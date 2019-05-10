@@ -2,20 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
-**BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus algorythm and the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Please make sure you study these projects as well if you are not already familiar.
-
-**BitSong** is a project dedicated to musicians and their fans, which aims to overcome the bureaucratic and economic obstacles within this industry and reward artists and users for simply using the platform.
-
-On the **BitSong** platform you (artist) will be able to produce songs in which an advertiser can attach advertisements and users can access from any device. Funds via the Bitsong token `$BTSG` will be credited to the artist wallet immediately and they will be able to withdraw or convert as they see fit.
-
-**Artists** need no longer to wait several months before a record label sends various reports, they can check the progress in real time directly within the Wallet.
-
-_NOTE: This is alpha software. Please contact us if you aim to run it in production._
-
-**Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
-
-# Welcome to StackEdit!
-
 **BitSong** è una nuova piattaforma di streaming musicale basata sull'algoritmo di consenso [Tendermint](https://github.com/tendermint/tendermint)  ed la [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Nel caso in cui non siete gia familiari con questi progetti, è consigliato di andarseli a studiare prima.
 
 **BitSong** è un progetto dedicato a musicisti ed i loro fan, che mira a superare gli ostacoli burocratici ed economici all'interno di questo settore e premiare artisti e utenti semplicemente utilizzando la piattaforma.
