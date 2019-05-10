@@ -122,3 +122,31 @@ Query an account
 ```bash
 bitsongcli query account $(bitsongcli keys show jack -a)
 ```
+
+## Resources
+- [Official Website](https://bitsong.io)
+
+### Community
+- [Telegram Channel (English)](https://t.me/BitSongOfficial)
+- [Telegram Group (English)](https://t.me/bitsong_ico)
+- [Facebook](https://www.facebook.com/BitSongOfficial)
+- [Twitter](https://twitter.com/BitSongOfficial)
+- [Medium](https://medium.com/@BitSongOfficial)
+- [Reddit](https://www.reddit.com/r/bitsong/)
+- [BitcoinTalk ANN](https://bitcointalk.org/index.php?topic=2850943)
+- [Linkedin](https://www.linkedin.com/company/bitsong)
+
+## License
+
+MIT License
+
+## Versioning
+
+### SemVer
+
+BitSong uses [SemVer](http://semver.org/) to determine when and how the version changes.
+According to SemVer, anything in the public API can change at any time before version 1.0.0
+
+To provide some stability to BitSong users in these 0.X.X days, the MINOR version is used
+to signal breaking changes across a subset of the total public API. This subset includes all
+interfaces exposed to other processes, but does not include the in-process Go APIs.
