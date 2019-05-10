@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
-**BitSong** is a new music streaming platforms builds on [Tendermint](https://github.com/tendermint/tendermint) consensus and the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Please make sure to study these projects as well if you are not already familiar.
+**BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus algorythm and the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Please make sure you study these projects as well if you are not already familiar.
 
 **BitSong** is a project dedicated to musicians and their fans, which aims to overcome the bureaucratic and economic obstacles within this industry and reward artists and users for simply using the platform.
 
@@ -10,13 +10,13 @@ On the **BitSong** platform you (artist) will be able to produce songs in which 
 
 **Artists** need no longer to wait several months before a record label sends various reports, they can check the progress in real time directly within the Wallet.
 
-_NOTE: This is alpha software. Please contact us if you intend to run it in production._
+_NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
 **Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 
-There are several ways you can install BitSong Blockchain Testnet node on your machine.
+There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
 ## From Source
 1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH`, `$GOBIN`, and `$PATH` environment variables, for example:
@@ -134,6 +134,7 @@ bitsongcli query account $(bitsongcli keys show jack -a)
 - [Reddit](https://www.reddit.com/r/bitsong/)
 - [BitcoinTalk ANN](https://bitcointalk.org/index.php?topic=2850943)
 - [Linkedin](https://www.linkedin.com/company/bitsong)
+- [Instagram](https://www.instagram.com/bitsong_official/)
 
 ## License
 
