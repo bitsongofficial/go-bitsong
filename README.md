@@ -128,7 +128,6 @@ bitsongcli query account $(bitsongcli keys show jack -a)
 
 ### Community
 - [Telegram Channel (English)](https://t.me/BitSongOfficial)
-- [Telegram Group (English)](https://t.me/bitsong_ico)
 - [Facebook](https://www.facebook.com/BitSongOfficial)
 - [Twitter](https://twitter.com/BitSongOfficial)
 - [Medium](https://medium.com/@BitSongOfficial)
