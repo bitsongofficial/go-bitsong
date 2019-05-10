@@ -8,9 +8,9 @@ require (
 	github.com/bgentry/speakeasy v0.1.0
 	github.com/btcsuite/btcd v0.0.0-20190115013929-ed77733ec07d
 	github.com/btcsuite/btcutil v0.0.0-20180706230648-ab6388e0c60a
-	github.com/cosmos/cosmos-sdk v0.33.0
+	github.com/cosmos/cosmos-sdk v0.34.0
 	github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8
-	github.com/cosmos/ledger-cosmos-go v0.9.8
+	github.com/cosmos/ledger-cosmos-go v0.9.11
 	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.8.23
 	github.com/fsnotify/fsnotify v1.4.7
@@ -51,7 +51,7 @@ require (
 	github.com/tendermint/btcd v0.1.1
 	github.com/tendermint/go-amino v0.14.1
 	github.com/tendermint/iavl v0.12.1
-	github.com/tendermint/tendermint v0.31.0-dev0
+	github.com/tendermint/tendermint v0.31.4
 	github.com/zondax/hid v0.9.0
 	github.com/zondax/ledger-go v0.8.0
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
