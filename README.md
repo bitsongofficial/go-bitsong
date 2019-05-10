@@ -14,12 +14,26 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 
 **Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
 
-# Install BitSong Blockchain
+# Welcome to StackEdit!
 
-There are many ways you can install BitSong Blockchain Testnet node on your machine.
+**BitSong** è una nuova piattaforma di streaming musicale basata sull'algoritmo di consenso [Tendermint](https://github.com/tendermint/tendermint)  ed la [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Nel caso in cui non siete gia familiari con questi progetti, è consigliato di andarseli a studiare prima.
 
-## From Source
-1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH`, `$GOBIN`, and `$PATH` environment variables, for example:
+**BitSong** è un progetto dedicato a musicisti ed i loro fan, che mira a superare gli ostacoli burocratici ed economici all'interno di questo settore e premiare artisti e utenti semplicemente utilizzando la piattaforma.
+
+Sulla piattaforma di **BitSong** tu (artista) sarai in grado di produrre canzoni in cui un inserzionista può allegare pubblicità e gli utenti possono accedere da qualsiasi dispositivo. I fondi tramite il token Bitsong `$BTSG` saranno accreditati immediatamente al portafoglio dell'artista che sarà in grado di prelevarli o convertirli come lo ritiene più opportuno.
+
+**Gli Artisti** non devono più aspettare diversi mesi prima che un'etichetta discografica invii vari rapporti, possono controllare i progressi in tempo reale direttamente all'interno del Wallet.
+
+_NOTA: Questo è un software Alpha. Vi preghiamo di contattarci se avete intenzione di eseguirlo in produzione._
+
+**Nota**: Richiede [Go 1.12.4+](https://golang.org/dl/)
+
+# Installare la Blockchain di BitSong
+
+Esistono molti modi per installare il nodo TestSense Blockchain di BitSong sulla tua macchina.
+
+## Dalla Source
+1. **Installa Go** seguendo il [official docs](https://golang.org/doc/install).Ricorda di impostare le variabili di ambiente `$ GOPATH`,` $ GOBIN` e `$ PATH`, ad esempio:
 	```bash
 	mkdir -p $HOME/go/bin
 	echo  "export GOPATH=$HOME/go" >> ~/.bash_profile
@@ -28,14 +42,14 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 	echo  "export GO111MODULE=on" >> ~/.bash_profile
 	source ~/.bash_profile
 	```
-2. **Clone BitSong source code to your machine**
+2. **Clona il codice sorgente di BitSong sul tuo computer**
 	```bash
 	mkdir -p $GOPATH/src/github.com/BitSongOfficial
 	cd $GOPATH/src/github.com/BitSongOfficial
 	git clone https://github.com/BitSongOfficial/go-bitsong.git
 	cd go-bitsong
 	```
-  3. **Compile**
+  3. **Compilare**
 		```bash
 		# Install the app into your $GOBIN
 		make install
@@ -43,88 +57,87 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 		bitsongd help
 		bitsongcli help
 		```
-		The latest `go-bitsong version` is now installed.
-3. **Run BitSong**
+		L'ultima versione di `go-bitsong version` è installata correttamente.
+3. **Avvia BitSong**
 	```bash
 	bitsongd start
 	```
 
-## Install on Digital Ocean
-1. **Clone repository**
+## Installa su Digital Ocean
+1. **Clona il repository**
     ```bash
 	git clone https://github.com/BitSongOfficial/go-bitsong.git
     chmod +x go-bitsong/scripts/install/install_ubuntu.sh
 	```
-2. **Run the script**
+2. **Avvia lo script**
     ```bash
     go-bitsong/scripts/install/install_ubuntu.sh
     source ~/.profile
 	```
-3. Now you should be able to run the following commands:
+3. Ora dovresti essere in grado di eseguire i seguenti comandi:
 	```bash
 	bitsongd help
 	bitsongcli help
 	```
-    The latest `go-bitsongd version` is now installed.
+    L'ultima versione di `go-bitsongd version` è installata correttamente.
 
-## Running the test network and using the commands
+## Esecuzione della Testnet e utilizzo dei comandi
 
-To initialize configuration and a `genesis.json` file for your application and an account for the transactions, start by running:
+Per inizializzare la configurazione e un file `genesis.json` per l'applicazione e un account per le transazioni, iniziare eseguendo:
 
->  _*NOTE*_: In the below commands addresses are are pulled using terminal utilities. You can also just input the raw strings saved from creating keys, shown below. The commands require [`jq`](https://stedolan.github.io/jq/download/) to be installed on your machine.
+> _*NOTA*_: nei comandi sottostanti gli indirizzi vengono estratti utilizzando le utilità del terminale. Puoi anche inserire le stringhe non elaborate, salvate dalla creazione delle key, mostrate sotto. I comandi richiedono [`jq`](https://stedolan.github.io/jq/download/) da installare sulla tua macchina.
 
->  _*NOTE*_: If you have run the tutorial before, you can start from scratch with a `bitsongd unsafe-reset-all` or by deleting both of the home folders `rm -rf ~/.bitsong*`
+> _*NOTA*_: Se hai già eseguito il tutorial, puoi iniziare da zero con un `bitsongd unsafe-reset-all` o eliminando entrambe le cartelle home `rm -rf ~/.bitsong*`
 
->  _*NOTE*_: If you have the Cosmos app for ledger and you want to use it, when you create the key with `bitsongcli keys add jack` just add `--ledger` at the end. That's all you need. When you sign, `jack` will be recognized as a Ledger key and will require a device.
+>  _*NOTA*_: Se si dispone dell'app Cosmos per il ledger e si desidera utilizzarlo, quando si crea la chiave con `bitsongcli keys add jack` aggiungere `--ledger` alla fine. Questo  è tutto cio che vi serve. Quando firmi, `jack` sarà riconosciuto come un tasto Ledger e richiederà un dispositivo.
 
 ```bash
-# Initialize configuration files and genesis file
+# Inizializza i file di configurazione e il file di genesi
 bitsongd init --chain-id bitsong-test-network-1
 
-# Copy the `Address` output here and save it for later use
-# [optional] add "--ledger" at the end to use a Ledger Nano S
+# Copia qui l'output `Address` e salvalo per un uso successivo
+# [opzionale] aggiungi "--ledger" alla fine per usare un Ledger Nano S
 bitsongcli keys add jack
 
-# Copy the `Address` output here and save it for later use
+# Copia qui l'output `Address` e salvalo per un uso successivo
 bitsongcli keys add alice
 
-# Add both accounts, with coins to the genesis file
+# Aggiungi entrambi gli account, con le monete nel file di genesi
 bitsongd add-genesis-account $(bitsongcli keys show jack -a) 1000btsg
 bitsongd add-genesis-account $(bitsongcli keys show alice -a) 1000btsg
 
-# Configure your CLI to eliminate need for chain-id flag
+# Configura la tua CLI per eliminare la necessità di flag dell'identificativo della chain
 bitsongcli config chain-id bitsong-test-network-1
 bitsongcli config output json
 bitsongcli config indent true
 bitsongcli config trust-node true
 ```
 
-You can now start `bitsongd` by calling `bitsongd start`. You will see logs begin streaming that represent blocks being produced, this will take a couple of seconds.
+È ora possibile avviare `bitsongd` chiamando `bitsongd start`. Vedrai che i registri iniziano lo streaming che rappresenta i blocchi prodotti, questo richiederà un paio di secondi.
 
-Open another terminal to run commands against the network you have just created:
+Apri un altro terminale per eseguire comandi sulla rete appena creata:
 
 ```bash
-# First check the accounts to ensure they have funds
+# Innanzitutto controlla gli account per assicurarti che abbiano fondi
 bitsongcli query account $(bitsongcli keys show jack -a)
 bitsongcli query account $(bitsongcli keys show alice -a)
 ```
 
-# Transactions
-You can now start the first transaction
+# Transazioni
+Ora puoi iniziare la prima transazione
 
 ```bash
 bitsongcli tx send --from=$(bitsongcli keys show jack -a)  $(bitsongcli keys show alice -a) 10btsg
 ```
 
-# Query
-Query an account
-
+# Richiesta
+Richiedi un account
 ```bash
 bitsongcli query account $(bitsongcli keys show jack -a)
 ```
 
-## Resources
-- [Official Website](https://bitsong.io)
+## Risorse
+- [Website Ufficiale](https://bitsong.io)
 
 ### Community
 - [Telegram Channel (English)](https://t.me/BitSongOfficial)
@@ -136,7 +149,7 @@ bitsongcli query account $(bitsongcli keys show jack -a)
 - [Linkedin](https://www.linkedin.com/company/bitsong)
 - [Instagram](https://www.instagram.com/bitsong_official/)
 
-## License
+## Licenza
 
 MIT License
 
@@ -144,9 +157,7 @@ MIT License
 
 ### SemVer
 
-BitSong uses [SemVer](http://semver.org/) to determine when and how the version changes.
-According to SemVer, anything in the public API can change at any time before version 1.0.0
+BitSong utilizza [SemVer](http://semver.org/) per determinare quando e come cambia la versione.
+Secondo SemVer, qualsiasi cosa nell'API pubblica può cambiare in qualsiasi momento prima della versione 1.0.0
 
-To provide some stability to BitSong users in these 0.X.X days, the MINOR version is used
-to signal breaking changes across a subset of the total public API. This subset includes all
-interfaces exposed to other processes, but does not include the in-process Go APIs.
+Per fornire una certa stabilità agli utenti BitSong in questi giorni 0.X.X, la versione MINOR viene utilizzata per segnalare le variazioni di interruzione attraverso un sottoinsieme dell'API pubblica totale. Questo sottoinsieme include tutte le interfacce esposte ad altri processi, ma non include le API Go in-process.
