@@ -1,0 +1,80 @@
+project_name: bitsong
+
+before:
+  hooks:
+    - make get_tools
+    - make go-mod-cache
+
+builds:
+  -
+    main: cmd/bitsongcli/main.go
+    binary: bitsongcli
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    ldflags: |
+      -s -w
+      -X github.com/BitSongOfficial/go-bitsong/version.Version={{.Version}}
+      -X github.com/BitSongOfficial/go-bitsong/version.Commit={{.Commit}}
+      -X "github.com/BitSongOfficial/go-bitsong/version.BuildTags={{.Env.BUILD_TAGS}}"
+      -X github.com/BitSongOfficial/go-bitsong/version.GoSumHash={{.Env.GOSUM}}
+    env:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: windows
+        goarch: 386
+
+  -
+    main: cmd/bitsongd/main.go
+    binary: bitsongd
+    asmflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    ldflags: |
+      -s -w
+      -X github.com/BitSongOfficial/go-bitsong/version.Version={{.Version}}
+      -X github.com/BitSongOfficial/go-bitsong/version.Commit={{.Commit}}
+      -X "github.com/BitSongOfficial/go-bitsong/version.BuildTags={{.Env.BUILD_TAGS}}"
+      -X github.com/BitSongOfficial/go-bitsong/version.GoSumHash={{.Env.GOSUM}}
+    env:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+    ignore:
+      - goos: darwin
+        goarch: 386
+      - goos: windows
+        goarch: 386
+
+archive:
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
