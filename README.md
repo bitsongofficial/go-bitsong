@@ -12,6 +12,28 @@ On the **BitSong** platform you (artist) will be able to produce songs in which 
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
+**TODO**
+- [*] Tendermint/ABCI
+- [*] Cosmos-SDK integration
+- [*] Token BTSG (1btsg = 100000000ubtsg)
+- [*] Auth module
+- [*] Bank module
+- [*] Crisis module
+- [*] Params module
+- [*] Slashing module
+- [*] Staking module
+- [ ] Terraform / ansible
+- [ ] Terraform / ansible for AWS
+- [ ] Terraform / ansible for DO
+- [ ] Governance module
+- [ ] Proposal module
+- [ ] Params managed by our validator
+- [ ] Community pool
+- [ ] Song store
+- [ ] Song listing by proposal and voted by our validator
+- [ ] Artist store
+- [ ] Playlist store
+
 **Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
