@@ -56,13 +56,7 @@ BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 ########################################
 ### All
 
-#all: clean go-mod-cache install lint test
 all: clean go-mod-cache install lint
-
-########################################
-### CI
-
-#ci: get_tools install lint test
 
 ########################################
 ### Build/Install
@@ -113,26 +107,25 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
+
 ########################################
-### Testing
+### Local validator nodes using docker and docker-compose
 
-test: test_unit
+build-docker-terradnode:
+	$(MAKE) -C networks/local
 
-test_unit:
-	@VERSION=$(VERSION) go test $(PACKAGES_NOSIMULATION)
+# Run a 4-node testnet locally
+localnet-start: localnet-stop
+	@if ! [ -f build/node0/terrad/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/terrad:Z tendermint/terradnode testnet --v 5 -o . --starting-ip-address 192.168.10.2; fi
+	# replace docker ip to local port, mapped
+	sed -i -e 's/192.168.10.2:26656/localhost:26656/g; s/192.168.10.3:26656/localhost:26659/g; s/192.168.10.4:26656/localhost:26661/g; s/192.168.10.5:26656/localhost:26663/g' $(CURDIR)/build/node4/terrad/config/config.toml
+	# change allow duplicated ip option to prevent the error : cant not route ~
+	sed -i -e 's/allow_duplicate_ip \= false/allow_duplicate_ip \= true/g' `find $(CURDIR)/build -name "config.toml"`
+	docker-compose up -d
 
-test_race:
-	@VERSION=$(VERSION) go test -race $(PACKAGES_NOSIMULATION)
-
-format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/terra-project/core
-
-benchmark:
-	@go test -bench=. $(PACKAGES_NOSIMULATION)
-
-lint: get_tools 
+# Stop testnet
+localnet-stop:
+	docker-compose down
 
 
 # To avoid unintended conflicts with file names, always add to .PHONY
@@ -140,7 +133,6 @@ lint: get_tools
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: build install clean distclean \
 get_tools update_tools \
-test test_cli test_unit benchmark \
 build-linux  \
 format update_dev_tools lint \
 go-mod-cache go-sum
