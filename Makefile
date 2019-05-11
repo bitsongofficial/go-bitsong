@@ -56,7 +56,8 @@ BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 ########################################
 ### All
 
-all: clean go-mod-cache install lint test
+#all: clean go-mod-cache install lint test
+all: clean go-mod-cache install lint
 
 ########################################
 ### CI
