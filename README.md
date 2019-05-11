@@ -13,15 +13,15 @@ On the **BitSong** platform you (artist) will be able to produce songs in which 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
 **TODO**
-- [*] Tendermint/ABCI
-- [*] Cosmos-SDK integration
-- [*] Token BTSG (1btsg = 100000000ubtsg)
-- [*] Auth module
-- [*] Bank module
-- [*] Crisis module
-- [*] Params module
-- [*] Slashing module
-- [*] Staking module
+- [x] Tendermint/ABCI
+- [x] Cosmos-SDK integration
+- [x] Token BTSG (1btsg = 100000000ubtsg)
+- [x] Auth module
+- [x] Bank module
+- [x] Crisis module
+- [x] Params module
+- [x] Slashing module
+- [x] Staking module
 - [ ] Terraform / ansible
 - [ ] Terraform / ansible for AWS
 - [ ] Terraform / ansible for DO
