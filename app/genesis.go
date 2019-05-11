@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )
@@ -32,6 +33,7 @@ type GenesisState struct {
 	AuthData     auth.GenesisState     `json:"auth"`
 	BankData     bank.GenesisState     `json:"bank"`
 	StakingData  staking.GenesisState  `json:"staking"`
+	MintData     mint.GenesisState     `json:"mint"`
 	DistrData    distr.GenesisState    `json:"distr"`
 	CrisisData   crisis.GenesisState   `json:"crisis"`
 	SlashingData slashing.GenesisState `json:"slashing"`
@@ -43,6 +45,7 @@ func NewGenesisState(accounts []GenesisAccount,
 	authData auth.GenesisState,
 	bankData bank.GenesisState,
 	stakingData staking.GenesisState,
+	mintData mint.GenesisState,
 	distrData distr.GenesisState,
 	crisisData crisis.GenesisState,
 	slashingData slashing.GenesisState) GenesisState {
@@ -52,6 +55,7 @@ func NewGenesisState(accounts []GenesisAccount,
 		AuthData:     authData,
 		BankData:     bankData,
 		StakingData:  stakingData,
+		MintData:     mintData,
 		DistrData:    distrData,
 		CrisisData:   crisisData,
 		SlashingData: slashingData,
@@ -210,17 +214,24 @@ func NewDefaultGenesisState() GenesisState {
 	distrGenState := distr.DefaultGenesisState()
 	distrGenState.CommunityTax = sdk.ZeroDec()
 
+	mintGenState := mint.DefaultGenesisState()
+	mintGenState.Params.MintDenom = assets.MicroBitSongDenom
+
 	stakingGenState := staking.DefaultGenesisState()
 	stakingGenState.Params.BondDenom = assets.MicroBitSongDenom
 	stakingGenState.Params.MaxValidators = 16 // Max 16 validator
+
+	crisisGenState := crisis.DefaultGenesisState()
+	crisisGenState.ConstantFee.Denom = assets.MicroBitSongDenom
 
 	return GenesisState{
 		Accounts:     nil,
 		AuthData:     auth.DefaultGenesisState(),
 		StakingData:  stakingGenState,
 		DistrData:    distrGenState,
+		MintData:     mintGenState,
 		BankData:     bank.DefaultGenesisState(),
-		CrisisData:   crisis.DefaultGenesisState(),
+		CrisisData:   crisisGenState,
 		SlashingData: slashing.DefaultGenesisState(),
 		GenTxs:       nil,
 	}
@@ -249,14 +260,17 @@ func BitSongValidateGenesisState(genesisState GenesisState) error {
 	if err := staking.ValidateGenesis(genesisState.StakingData); err != nil {
 		return err
 	}
+	if err := mint.ValidateGenesis(genesisState.MintData); err != nil {
+		return err
+	}
 	if err := distr.ValidateGenesis(genesisState.DistrData); err != nil {
 		return err
 	}
-	if err := slashing.ValidateGenesis(genesisState.SlashingData); err != nil {
+	if err := crisis.ValidateGenesis(genesisState.CrisisData); err != nil {
 		return err
 	}
 
-	return crisis.ValidateGenesis(genesisState.CrisisData)
+	return slashing.ValidateGenesis(genesisState.SlashingData)
 }
 
 // validateGenesisStateAccounts performs validation of genesis accounts. It

@@ -20,6 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -52,6 +53,7 @@ type BitSongBlockchain struct {
 	keyStaking       *sdk.KVStoreKey
 	tkeyStaking      *sdk.TransientStoreKey
 	keySlashing      *sdk.KVStoreKey
+	keyMint          *sdk.KVStoreKey
 	keyDistr         *sdk.KVStoreKey
 	tkeyDistr        *sdk.TransientStoreKey
 	keyFeeCollection *sdk.KVStoreKey
@@ -64,6 +66,7 @@ type BitSongBlockchain struct {
 	bankKeeper          bank.Keeper
 	stakingKeeper       staking.Keeper
 	slashingKeeper      slashing.Keeper
+	mintKeeper          mint.Keeper
 	distrKeeper         distr.Keeper
 	crisisKeeper        crisis.Keeper
 	paramsKeeper        params.Keeper
@@ -88,6 +91,7 @@ func NewBitSongBlockchain(logger log.Logger, db dbm.DB, traceStore io.Writer, lo
 		keyAccount:              sdk.NewKVStoreKey(auth.StoreKey),
 		keyStaking:              sdk.NewKVStoreKey(staking.StoreKey),
 		tkeyStaking:             sdk.NewTransientStoreKey(staking.TStoreKey),
+		keyMint:          		 sdk.NewKVStoreKey(mint.StoreKey),
 		keyDistr:                sdk.NewKVStoreKey(distr.StoreKey),
 		tkeyDistr:               sdk.NewTransientStoreKey(distr.TStoreKey),
 		keySlashing:             sdk.NewKVStoreKey(slashing.StoreKey),
@@ -127,6 +131,11 @@ func NewBitSongBlockchain(logger log.Logger, db dbm.DB, traceStore io.Writer, lo
 		app.keyStaking, app.tkeyStaking,
 		app.bankKeeper, app.paramsKeeper.Subspace(staking.DefaultParamspace),
 		staking.DefaultCodespace,
+	)
+
+	app.mintKeeper = mint.NewKeeper(app.cdc, app.keyMint,
+		app.paramsKeeper.Subspace(mint.DefaultParamspace),
+		&stakingKeeper, app.feeCollectionKeeper,
 	)
 
 	app.distrKeeper = distr.NewKeeper(
@@ -174,11 +183,12 @@ func NewBitSongBlockchain(logger log.Logger, db dbm.DB, traceStore io.Writer, lo
 		AddRoute(auth.QuerierRoute, auth.NewQuerier(app.accountKeeper)).
 		AddRoute(distr.QuerierRoute, distr.NewQuerier(app.distrKeeper)).
 		AddRoute(slashing.QuerierRoute, slashing.NewQuerier(app.slashingKeeper, app.cdc)).
-		AddRoute(staking.QuerierRoute, staking.NewQuerier(app.stakingKeeper, app.cdc))
+		AddRoute(staking.QuerierRoute, staking.NewQuerier(app.stakingKeeper, app.cdc)).
+		AddRoute(mint.QuerierRoute, mint.NewQuerier(app.mintKeeper))
 
 	// initialize BaseApp
 	app.MountStores(
-		app.keyMain, app.keyAccount, app.keyStaking, app.keyDistr,
+		app.keyMain, app.keyAccount, app.keyStaking, app.keyMint, app.keyDistr,
 		app.keySlashing, app.keyFeeCollection, app.keyParams,
 		app.tkeyParams, app.tkeyStaking, app.tkeyDistr,
 	)
@@ -216,6 +226,9 @@ func MakeCodec() *codec.Codec {
 
 // BeginBlocker application updates every initial block
 func (app *BitSongBlockchain) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+
+	// mint new tokens for the previous block
+	mint.BeginBlocker(ctx, app.mintKeeper)
 
 	// distribute rewards for the previous block
 	distr.BeginBlocker(ctx, req, app.distrKeeper)
@@ -267,6 +280,7 @@ func (app *BitSongBlockchain) initFromGenesisState(ctx sdk.Context, genesisState
 	bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
 	slashing.InitGenesis(ctx, app.slashingKeeper, genesisState.SlashingData, genesisState.StakingData.Validators.ToSDKValidators())
 	crisis.InitGenesis(ctx, app.crisisKeeper, genesisState.CrisisData)
+	mint.InitGenesis(ctx, app.mintKeeper, genesisState.MintData)
 
 	// validate genesis state
 	if err := BitSongValidateGenesisState(genesisState); err != nil {
