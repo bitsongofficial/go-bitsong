@@ -111,14 +111,14 @@ distclean: clean
 ########################################
 ### Local validator nodes using docker and docker-compose
 
-build-docker-terradnode:
+build-docker-bitsongdnode:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
 localnet-start: localnet-stop
-	@if ! [ -f build/node0/terrad/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/terrad:Z tendermint/terradnode testnet --v 5 -o . --starting-ip-address 192.168.10.2; fi
+	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/bitsongd:Z tendermint/bitsongdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 ; fi
 	# replace docker ip to local port, mapped
-	sed -i -e 's/192.168.10.2:26656/localhost:26656/g; s/192.168.10.3:26656/localhost:26659/g; s/192.168.10.4:26656/localhost:26661/g; s/192.168.10.5:26656/localhost:26663/g' $(CURDIR)/build/node4/terrad/config/config.toml
+	sed -i -e 's/192.168.10.2:26656/localhost:26656/g; s/192.168.10.3:26656/localhost:26659/g; s/192.168.10.4:26656/localhost:26661/g; s/192.168.10.5:26656/localhost:26663/g' $(CURDIR)/build/node0/bitsongd/config/config.toml
 	# change allow duplicated ip option to prevent the error : cant not route ~
 	sed -i -e 's/allow_duplicate_ip \= false/allow_duplicate_ip \= true/g' `find $(CURDIR)/build -name "config.toml"`
 	docker-compose up -d
@@ -133,6 +133,6 @@ localnet-stop:
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: build install clean distclean \
 get_tools update_tools \
-build-linux  \
+build-linux build-docker-bitsongdnode localnet-start localnet-stop \
 format update_dev_tools lint \
 go-mod-cache go-sum

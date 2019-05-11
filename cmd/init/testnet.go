@@ -82,8 +82,8 @@ Example:
 		client.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created",
 	)
 	cmd.Flags().String(
-		server.FlagMinGasPrices, fmt.Sprintf("0.015%s,0.015%s,0.015%s,0.015%s,0.015%s,0.015%s,0.015%s,0.015%s", assets.MicroBitSongDenom),
-		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01uluna,0.01usdr)",
+		server.FlagMinGasPrices, fmt.Sprintf("0.00000008%s", assets.MicroBitSongDenom),
+		"Minimum gas prices to accept for transactions; All fees in a tx must meet this minimum (e.g. 0.01ubtsg)",
 	)
 
 	return cmd
