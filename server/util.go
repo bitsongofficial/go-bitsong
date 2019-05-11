@@ -87,7 +87,7 @@ func interceptLoadConfig() (conf *cfg.Config, err error) {
 		conf, err = tcmd.ParseConfig() // NOTE: ParseConfig() creates dir/files as necessary.
 	}
 
-	// create a default terra config file if it does not exist
+	// create a default bitsong config file if it does not exist
 	bitsongConfigFilePath := filepath.Join(rootDir, "config/bitsongd.toml")
 	if _, err := os.Stat(bitsongConfigFilePath); os.IsNotExist(err) {
 		bitsongConf, _ := config.ParseConfig()

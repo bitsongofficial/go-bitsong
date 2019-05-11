@@ -40,7 +40,7 @@ var (
 	defaultMinSelfDelegation       = "1"
 )
 
-// GenTxCmd builds the terrad gentx command.
+// GenTxCmd builds the bitsongd gentx command.
 // nolint: errcheck
 func GenTxCmd(ctx *server.Context, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{

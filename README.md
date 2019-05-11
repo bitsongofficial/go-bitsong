@@ -22,13 +22,14 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 - [x] ~~Params module~~
 - [x] ~~Slashing module~~
 - [x] ~~Staking module~~
-- [ ] Terraform / ansible
-- [ ] Terraform / ansible for AWS
-- [ ] Terraform / ansible for DO
+- [x] ~~Minting module~~
 - [ ] Governance module
 - [ ] Proposal module
 - [ ] Params managed by our validator
 - [ ] Community pool
+- [ ] Terraform / ansible
+- [ ] Terraform / ansible for AWS
+- [ ] Terraform / ansible for DO
 - [ ] Song store
 - [ ] Song listing by proposal and voted by our validator
 - [ ] Artist store
