@@ -20,6 +20,7 @@ require (
 	github.com/gogo/protobuf v1.1.1
 	github.com/golang/protobuf v1.2.0
 	github.com/golang/snappy v0.0.1
+	github.com/golangci/golangci-lint v1.16.0 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/hashicorp/hcl v1.0.0
@@ -37,7 +38,7 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90
 	github.com/prometheus/common v0.2.0
 	github.com/prometheus/procfs v0.0.0-20190328153300-af7bedc223fb
-	github.com/rakyll/statik v0.1.4
+	github.com/rakyll/statik v0.1.6
 	github.com/rcrowley/go-metrics v0.0.0-20180503174638-e2704e165165
 	github.com/rs/cors v1.6.0
 	github.com/spf13/afero v1.2.2
@@ -54,7 +55,7 @@ require (
 	github.com/tendermint/tendermint v0.31.4
 	github.com/zondax/hid v0.9.0
 	github.com/zondax/ledger-go v0.8.0
-	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
+	golang.org/x/net v0.0.0-20190313220215-9f648a60d977
 	golang.org/x/sys v0.0.0-20190329044733-9eb1bfa1ce65
 	golang.org/x/text v0.3.0
 	google.golang.org/genproto v0.0.0-20190327125643-d831d65fe17d
