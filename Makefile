@@ -2,7 +2,6 @@ VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 GOTOOLS = \
-	github.com/golangci/golangci-lint/cmd/golangci-lint \
 	github.com/rakyll/statik
 GOBIN ?= $(GOPATH)/bin
 SHASUM := $(shell which sha256sum)
@@ -62,7 +61,7 @@ all: clean go-mod-cache install lint test
 ########################################
 ### CI
 
-ci: get_tools install lint test
+#ci: get_tools install lint test
 
 ########################################
 ### Build/Install
@@ -113,11 +112,34 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
+########################################
+### Testing
+
+test: test_unit
+
+test_unit:
+	@VERSION=$(VERSION) go test $(PACKAGES_NOSIMULATION)
+
+test_race:
+	@VERSION=$(VERSION) go test -race $(PACKAGES_NOSIMULATION)
+
+format:
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/terra-project/core
+
+benchmark:
+	@go test -bench=. $(PACKAGES_NOSIMULATION)
+
+lint: get_tools 
+
+
 # To avoid unintended conflicts with file names, always add to .PHONY
 # unless there is a reason not to.
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
 .PHONY: build install clean distclean \
 get_tools update_tools \
-build-linux \
-update_dev_tools \
+test test_cli test_unit benchmark \
+build-linux  \
+format update_dev_tools lint \
 go-mod-cache go-sum
