@@ -98,7 +98,7 @@ go-sum: get_tools
 
 go-release:
 	@echo "--> Dry run for go-release"
-	BUILD_TAGS=$(shell echo \"$(build_tags)\") GOSUM=$(shell sha256sum go.sum | cut -d ' ' -f1) goreleaser release --skip-publish --rm-dist --debug
+	BUILD_TAGS=$(shell echo \"$(build_tags)\") GOSUM=$(shell sha256sum go.sum | cut -d ' ' -f1) goreleaser release --rm-dist --debug
 
 clean:
 	rm -rf ./dist
