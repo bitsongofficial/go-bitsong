@@ -218,7 +218,6 @@ func NewDefaultGenesisState() GenesisState {
 	mintGenState.Params.MintDenom = assets.MicroBitSongDenom
 
 	stakingGenState := staking.DefaultGenesisState()
-	//stakingGenState.Pool.NotBondedTokens = sdk.NewInt(116280760).MulRaw(assets.MicroUnit)
 	stakingGenState.Params.BondDenom = assets.MicroBitSongDenom
 	stakingGenState.Params.MaxValidators = 16 // Max 16 validator
 
