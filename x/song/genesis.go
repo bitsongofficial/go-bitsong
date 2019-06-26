@@ -6,21 +6,21 @@ import (
 
 // GenesisState - song genesis state
 type GenesisState struct {
-	StartingSongId uint64 `json:"starting_id"`
+	StartingSongID uint64 `json:"starting_id"`
 	Songs          Songs  `json:"songs"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(startingSongId uint64) GenesisState {
+func NewGenesisState(startingSongID uint64) GenesisState {
 	return GenesisState{
-		StartingSongId: startingSongId,
+		StartingSongID: startingSongID,
 	}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		StartingSongId: DefaultStartingSongId,
+		StartingSongID: DefaultStartingSongID,
 	}
 }
 
@@ -43,7 +43,7 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
-	err := keeper.SetInitialSongId(ctx, data.StartingSongId)
+	err := keeper.SetInitialSongID(ctx, data.StartingSongID)
 	if err != nil {
 		// TODO: Handle this with #870
 		panic(err)
@@ -56,10 +56,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
-	startingSongId, _ := keeper.PeekCurrentSongId(ctx)
+	startingSongID, _ := keeper.PeekCurrentSongID(ctx)
 	//orders := keeper.GetOrdersFiltered(ctx, nil, "", "", 0)
 	return GenesisState{
-		StartingSongId: startingSongId,
+		StartingSongID: startingSongID,
 		//Orders:          orders,
 	}
 }

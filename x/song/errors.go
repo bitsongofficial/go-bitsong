@@ -22,7 +22,7 @@ const (
 
 // ErrInvalidGenesis Error constructor
 func ErrInvalidGenesis(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidGenesis, fmt.Sprintf("InitialSongId never set."))
+	return sdk.NewError(codespace, CodeInvalidGenesis, fmt.Sprintf("InitialSongID never set."))
 }
 
 // ErrEmptyInput Error constructor

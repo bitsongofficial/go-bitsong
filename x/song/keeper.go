@@ -11,7 +11,7 @@ import (
 var (
 	KeyDelimiter = []byte(":")
 
-	KeyNextSongId = []byte("newSongId")
+	KeyNextSongID = []byte("newSongID")
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
@@ -26,33 +26,40 @@ type Keeper struct {
 // NewKeeper creates new instances of the song Keeper
 func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec) Keeper {
 	return Keeper{
-		storeKey:   storeKey,
-		cdc:        cdc,
+		storeKey: storeKey,
+		cdc:      cdc,
 	}
 }
 
+// AddSong keeper
 func (k Keeper) AddSong(ctx sdk.Context, song Song) {
 	k.setSong(ctx, song)
 	idArr := k.GetAddressSongs(ctx, song.Owner)
-	idArr = append(idArr, song.SongId)
+	idArr = append(idArr, song.SongID)
 	k.setAddressSongs(ctx, song.Owner, idArr)
 }
 
+// Publish keeper
 func (k Keeper) Publish(ctx sdk.Context, title string,
-	owner sdk.AccAddress) (song *Song, err sdk.Error) {
-	id, err := k.getNewSongId(ctx)
+	owner sdk.AccAddress, content string,
+	redistributionSplitRate string) (song *Song, err sdk.Error) {
+	id, err := k.getNewSongID(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
 	createTime := ctx.BlockHeader().Time
+	totalReward := sdk.NewInt(0)
 
 	song = &Song{
-		SongId: id,
-		Owner: owner,
-		Title: title,
-		CreateTime: createTime,
+		SongID:                  id,
+		Owner:                   owner,
+		Title:                   title,
+		Content:                 content,
+		TotalReward:             totalReward,
+		RedistributionSplitRate: redistributionSplitRate,
+		CreateTime:              createTime,
 	}
 
 	k.AddSong(ctx, *song)
@@ -65,17 +72,17 @@ func (k Keeper) Play(ctx sdk.Context, songId string, listener sdk.AccAddress) sd
 	return nil
 }
 
-// Get the next available SongId and increments it
-func (k Keeper) getNewSongId(ctx sdk.Context) (id uint64, err sdk.Error) {
+// Get the next available SongID and increments it
+func (k Keeper) getNewSongID(ctx sdk.Context) (id uint64, err sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(KeyNextSongId)
+	bz := store.Get(KeyNextSongID)
 	if bz == nil {
-		//return 0, sdk.NewError(k.codespace, types.CodeInvalidGenesis, "InitialSongId never set")
+		//return 0, sdk.NewError(k.codespace, types.CodeInvalidGenesis, "InitialSongID never set")
 		return 0, ErrInvalidGenesis(k.codespace)
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
 	bz = k.cdc.MustMarshalBinaryLengthPrefixed(id + 1)
-	store.Set(KeyNextSongId, bz)
+	store.Set(KeyNextSongID, bz)
 	return id, nil
 }
 
@@ -115,9 +122,9 @@ func KeyAddressSongs(addr sdk.AccAddress) []byte {
 }
 
 // Peeks the next available id without incrementing it
-func (k Keeper) PeekCurrentSongId(ctx sdk.Context) (id uint64, err sdk.Error) {
+func (k Keeper) PeekCurrentSongID(ctx sdk.Context) (id uint64, err sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(KeyNextSongId)
+	bz := store.Get(KeyNextSongID)
 	if bz == nil {
 		return 0, sdk.NewError(k.codespace, CodeInvalidGenesis, "InitialSongID never set")
 	}
@@ -126,21 +133,21 @@ func (k Keeper) PeekCurrentSongId(ctx sdk.Context) (id uint64, err sdk.Error) {
 }
 
 // Set the initial song ID
-func (k Keeper) SetInitialSongId(ctx sdk.Context, id uint64) sdk.Error {
+func (k Keeper) SetInitialSongID(ctx sdk.Context, id uint64) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(KeyNextSongId)
+	bz := store.Get(KeyNextSongID)
 	if bz != nil {
 		return sdk.NewError(k.codespace, CodeInvalidGenesis, "Initial SongID already set")
 	}
 	bz = k.cdc.MustMarshalBinaryLengthPrefixed(id)
-	store.Set(KeyNextSongId, bz)
+	store.Set(KeyNextSongID, bz)
 	return nil
 }
 
 func (k Keeper) setSong(ctx sdk.Context, song Song) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(song)
-	store.Set(KeySong(song.SongId), bz)
+	store.Set(KeySong(song.SongID), bz)
 }
 
 func (k Keeper) SetSong(ctx sdk.Context, song Song) {

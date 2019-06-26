@@ -8,9 +8,11 @@ import (
 var (
 	TxCategory = "song"
 
-	Action         = sdk.TagAction
-	Category       = sdk.TagCategory
-	Owner          = sdk.TagSender
-	SongId         = "id"
-	//OrderStatus    = "status"
+	Action                  = sdk.TagAction
+	Category                = sdk.TagCategory
+	Owner                   = sdk.TagSender
+	SongID                  = "id"
+	Content                 = "content"
+	TotalReward             = "total_reward"
+	RedistributionSplitRate = "redistribution_split_rate"
 )

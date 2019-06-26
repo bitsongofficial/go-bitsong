@@ -8,7 +8,7 @@ const (
 	ModuleName = types.ModuleName
 	RouterKey  = types.RouterKey
 	StoreKey   = types.StoreKey
-	DefaultStartingSongId = types.DefaultStartingSongId
+	DefaultStartingSongID = types.DefaultStartingSongID
 )
 
 var (

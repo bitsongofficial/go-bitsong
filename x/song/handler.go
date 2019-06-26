@@ -23,14 +23,17 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 // Handle a message to publish song
 func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
-	song, err := k.Publish(ctx, msg.Title, msg.Owner)
+	song, err := k.Publish(ctx, msg.Title, msg.Owner, msg.Content, msg.RedistributionSplitRate)
 	if err != nil {
 		return err.Result()
 	}
 	resTags := sdk.NewTags(
 		Category, TxCategory,
-		SongId, fmt.Sprintf("%d", song.SongId),
+		SongID, fmt.Sprintf("%d", song.SongID),
 		Owner, song.Owner.String(),
+		Content, song.Content,
+		TotalReward, fmt.Sprintf("%d", song.TotalReward),
+		RedistributionSplitRate, song.RedistributionSplitRate,
 	)
 	return sdk.Result{
 		Tags: resTags,
@@ -39,7 +42,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 
 // Handle a message to play song
 func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
-	err := k.Play(ctx, msg.SongId, msg.Listener)
+	err := k.Play(ctx, msg.SongID, msg.Listener)
 
 	if err != nil {
 		return err.Result()
