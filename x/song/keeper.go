@@ -63,7 +63,7 @@ func (k Keeper) SetOwner(ctx sdk.Context, title string, owner sdk.AccAddress) {
 	k.SetSong(ctx, title, song)
 }
 
-func (k Keeper) GetNamesIterator(ctx sdk.Context) sdk.Iterator {
+func (k Keeper) GetTitlesIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return sdk.KVStorePrefixIterator(store, nil)
 }
