@@ -8,7 +8,7 @@ FROM golang:alpine AS build-env
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/cosmos/gaia
+WORKDIR /go/src/github.com/BitSongOfficial/go-bitsong
 
 # Add source files
 COPY . .

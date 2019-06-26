@@ -2,31 +2,36 @@ package types
 
 import (
 	"fmt"
+	"time"
 	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Song is a struct that contains all the metadata of a title
 type Song struct {
-	Owner sdk.AccAddress `json:"owner"`
-	Title string         `json:"title"`
+	SongId  	uint64 		    `json:"song_id"`
+	Owner   	sdk.AccAddress	`json:"owner"`
+	Title 		string         	`json:"title"`
+	CreateTime 	time.Time       `json:"create_time"`
 }
 
 func (s Song) String() string {
-	return strings.TrimSpace(fmt.Sprintf(`SONG:
-  Owner:      %s
-  Title: %s`,
-		s.Owner,
-		s.Title,
-	))
+	return fmt.Sprintf(`Song %d:
+		  Owner:			%s
+		  Title:			%s
+		  Create Time:		%s`, s.SongId, s.Owner, s.Title, s.CreateTime)
 }
 
-type Songs []Song
+// Songs is an array of song
+type Songs []*Song
 
 func (songs Songs) String() string {
-	out := ""
+	out := fmt.Sprintf("%10s - (%15s) - (%40s) - [%10s] - Create Time\n", "ID", "Title", "Owner", "CreateTime")
 	for _, song := range songs {
-		out += song.String() + "\n"
+		out += fmt.Sprintf("%10d - (%15s) - (%40s) - [%10s]\n",
+			song.SongId, song.Title, song.Owner, song.CreateTime)
 	}
-	return out
+
+	return strings.TrimSpace(out)
 }

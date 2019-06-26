@@ -6,44 +6,44 @@ import (
 
 const RouterKey = ModuleName // this was defined in your key.go file
 
-// MsgSetTitle defines a SetName message
-type MsgSetTitle struct {
-	Title  string         `json:"title"`
+// MsgPublish defines a Publish message
+type MsgPublish struct {
+	Title string         `json:"title"`
 	Owner sdk.AccAddress `json:"owner"`
 }
 
-// NewMsgSetName is a constructor function for MsgSetName
-func NewMsgSetTitle(title string, value string, owner sdk.AccAddress) MsgSetTitle {
-	return MsgSetTitle{
+// NewMsgPublish is a constructor function for MsgPublish
+func NewMsgPublish(title string, owner sdk.AccAddress) MsgPublish {
+	return MsgPublish{
 		Title: title,
 		Owner: owner,
 	}
 }
 
-// Route should return the name of the module
-func (msg MsgSetTitle) Route() string { return RouterKey }
-
-// Type should return the action
-func (msg MsgSetTitle) Type() string { return "set_title" }
-
 // ValidateBasic runs stateless checks on the message
-func (msg MsgSetTitle) ValidateBasic() sdk.Error {
+func (msg MsgPublish) ValidateBasic() sdk.Error {
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
-	//if len(msg.Name) == 0 || len(msg.Value) == 0 {
 	if len(msg.Title) == 0 {
 		return sdk.ErrUnknownRequest("Title cannot be empty")
 	}
+
 	return nil
 }
 
+// Route should return the name of the module
+func (msg MsgPublish) Route() string { return RouterKey }
+
+// Type should return the action
+func (msg MsgPublish) Type() string { return "publish" }
+
 // GetSignBytes encodes the message for signing
-func (msg MsgSetTitle) GetSignBytes() []byte {
+func (msg MsgPublish) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgSetTitle) GetSigners() []sdk.AccAddress {
+func (msg MsgPublish) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }

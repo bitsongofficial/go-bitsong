@@ -45,7 +45,7 @@ import (
 	tmrpc "github.com/tendermint/tendermint/rpc/lib/server"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	gapp "github.com/cosmos/gaia/app"
+	gapp "github.com/BitSongOfficial/go-bitsong/app"
 )
 
 // TODO: Make InitializeTestLCD safe to call in multiple tests at the same time

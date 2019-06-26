@@ -19,12 +19,12 @@ source ~/.bash_profile
 
 ### Install the binaries
 
-Next, let's install the latest version of Gaia. Make sure you `git checkout` the correct [released version](https://github.com/cosmos/gaia/releases).
+Next, let's install the latest version of Gaia. Make sure you `git checkout` the correct [released version](https://github.com/BitSongOfficial/go-bitsong/releases).
 
 ```bash
 mkdir -p $GOPATH/src/github.com/cosmos
 cd $GOPATH/src/github.com/cosmos
-git clone -b <latest-release-tag> https://github.com/cosmos/gaia
+git clone -b <latest-release-tag> https://github.com/BitSongOfficial/go-bitsong
 cd gaia && make install
 ```
 

@@ -20,7 +20,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	gaia "github.com/cosmos/gaia/app"
+	gaia "github.com/BitSongOfficial/go-bitsong/app"
 )
 
 func runHackCmd(cmd *cobra.Command, args []string) error {

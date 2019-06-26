@@ -1,4 +1,4 @@
-module github.com/cosmos/gaia
+module github.com/BitSongOfficial/go-bitsong
 
 go 1.12
 
@@ -7,7 +7,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.28.2-0.20190622092459-7b5e6cee0787
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
 	github.com/google/gofuzz v1.0.0 // indirect
-	github.com/gorilla/mux v1.7.2 // indirect
+	github.com/gorilla/mux v1.7.2
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-isatty v0.0.8 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect

@@ -1,11 +1,11 @@
 package types
 
-import "strings"
+//import "strings"
 
-// Query Result Payload for a names query
-type QueryResTitles []string
+type QueryResSearch struct {
+	Title string `json:"title"`
+}
 
-// implement fmt.Stringer
-func (n QueryResTitles) String() string {
-	return strings.Join(n[:], "\n")
+func (r QueryResSearch) String() string {
+	return r.Title
 }

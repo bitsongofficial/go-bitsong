@@ -12,5 +12,5 @@ func init() {
 
 // RegisterCodec registers concrete types on the Amino codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgSetTitle{}, "nameservice/SetTitle", nil)
+	cdc.RegisterConcrete(MsgPublish{}, "song/Publish", nil)
 }

@@ -8,15 +8,17 @@ const (
 	ModuleName = types.ModuleName
 	RouterKey  = types.RouterKey
 	StoreKey   = types.StoreKey
+	DefaultStartingSongId = types.DefaultStartingSongId
 )
 
 var (
-	NewMsgSetTitle = types.NewMsgSetTitle
+	NewMsgPublish = types.NewMsgPublish
 	ModuleCdc     = types.ModuleCdc
 	RegisterCodec = types.RegisterCodec
 )
 
 type (
-	MsgSetTitle      = types.MsgSetTitle
-	QueryResTitles   = types.QueryResTitles
+	MsgPublish      = types.MsgPublish
+	Song            = types.Song
+	Songs			= types.Songs
 )

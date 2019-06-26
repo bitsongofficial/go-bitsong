@@ -25,7 +25,7 @@ export PATH=/usr/local/opt/coreutils/libexec/gnubin/:$PATH
 Clone cosmos-sdk:
 
 ```
-git clone git@github.com:cosmos/gaia
+git clone git@github.com:BitSongOfficial/go-bitsong
 ```
 
 Checkout the commit, branch, or release tag you want to build:
@@ -65,7 +65,7 @@ Please refer to the `contrib/gitian-build.sh`'s help screen for further informat
 
 ## Signatures upload
 
-Once signatures are generated, they could be uploaded to gaia's dedicated repository: https://github.com/cosmos/gaia.sigs.
+Once signatures are generated, they could be uploaded to gaia's dedicated repository: https://github.com/BitSongOfficial/go-bitsong.sigs.
 The build script can take care of cloning the signatures repository and commit the signed result too:
 
 ```

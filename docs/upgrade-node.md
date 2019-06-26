@@ -7,7 +7,7 @@ This document describes the upgrade procedure of a `gaiad` full-node to a new ve
 First, stop your instance of `gaiad`. Next, upgrade the software:
 
 ```bash
-cd $GOPATH/src/github.com/cosmos/gaia
+cd $GOPATH/src/github.com/BitSongOfficial/go-bitsong
 git fetch --all && git checkout <new_version>
 make install
 ```
@@ -16,7 +16,7 @@ make install
 *NOTE*: If you have issues at this step, please check that you have the latest stable version of GO installed.
 :::
 
-See the [testnet repo](https://github.com/cosmos/testnets) for details on which version is needed for which public testnet, and the [Gaia release page](https://github.com/cosmos/Gaia/releases) for details on each release.
+See the [testnet repo](https://github.com/cosmos/testnets) for details on which version is needed for which public testnet, and the [Gaia release page](https://github.com/BitSongOfficial/go-bitsong/releases) for details on each release.
 
 Your full node has been cleanly upgraded!
 

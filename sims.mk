@@ -3,7 +3,7 @@
 ########################################
 ### Simulations
 
-SIMAPP = github.com/cosmos/gaia/app
+SIMAPP = github.com/BitSongOfficial/go-bitsong/app
 
 sim-gaia-nondeterminism:
 	@echo "Running nondeterminism test..."
@@ -12,12 +12,12 @@ sim-gaia-nondeterminism:
 sim-gaia-custom-genesis-fast:
 	@echo "Running custom genesis simulation..."
 	@echo "By default, ${HOME}/.gaiad/config/genesis.json will be used."
-	@go test -mod=readonly github.com/cosmos/gaia/app -run TestFullGaiaSimulation -SimulationGenesis=${HOME}/.gaiad/config/genesis.json \
+	@go test -mod=readonly github.com/BitSongOfficial/go-bitsong/app -run TestFullGaiaSimulation -SimulationGenesis=${HOME}/.gaiad/config/genesis.json \
 		-SimulationEnabled=true -SimulationNumBlocks=100 -SimulationBlockSize=200 -SimulationCommit=true -SimulationSeed=99 -SimulationPeriod=5 -v -timeout 24h
 
 sim-gaia-fast:
 	@echo "Running quick Gaia simulation. This may take several minutes..."
-	@go test -mod=readonly github.com/cosmos/gaia/app -run TestFullGaiaSimulation -SimulationEnabled=true -SimulationNumBlocks=100 -SimulationBlockSize=200 -SimulationCommit=true -SimulationSeed=99 -SimulationPeriod=5 -v -timeout 24h
+	@go test -mod=readonly github.com/BitSongOfficial/go-bitsong/app -run TestFullGaiaSimulation -SimulationEnabled=true -SimulationNumBlocks=100 -SimulationBlockSize=200 -SimulationCommit=true -SimulationSeed=99 -SimulationPeriod=5 -v -timeout 24h
 
 sim-gaia-import-export: runsim
 	@echo "Running Gaia import/export simulation. This may take several minutes..."
@@ -38,7 +38,7 @@ sim-gaia-multi-seed: runsim
 
 sim-benchmark-invariants:
 	@echo "Running simulation invariant benchmarks..."
-	@go test -mod=readonly github.com/cosmos/gaia/app -benchmem -bench=BenchmarkInvariants -run=^$ \
+	@go test -mod=readonly github.com/BitSongOfficial/go-bitsong/app -benchmem -bench=BenchmarkInvariants -run=^$ \
 	-SimulationEnabled=true -SimulationNumBlocks=1000 -SimulationBlockSize=200 \
 	-SimulationCommit=true -SimulationSeed=57 -v -timeout 24h
 
@@ -47,12 +47,12 @@ SIM_BLOCK_SIZE ?= 200
 SIM_COMMIT ?= true
 sim-gaia-benchmark:
 	@echo "Running Gaia benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
-	@go test -mod=readonly -benchmem -run=^$$ github.com/cosmos/gaia/app -bench ^BenchmarkFullGaiaSimulation$$  \
+	@go test -mod=readonly -benchmem -run=^$$ github.com/BitSongOfficial/go-bitsong/app -bench ^BenchmarkFullGaiaSimulation$$  \
 		-SimulationEnabled=true -SimulationNumBlocks=$(SIM_NUM_BLOCKS) -SimulationBlockSize=$(SIM_BLOCK_SIZE) -SimulationCommit=$(SIM_COMMIT) -timeout 24h
 
 sim-gaia-profile:
 	@echo "Running Gaia benchmark for numBlocks=$(SIM_NUM_BLOCKS), blockSize=$(SIM_BLOCK_SIZE). This may take awhile!"
-	@go test -mod=readonly -benchmem -run=^$$ github.com/cosmos/gaia/app -bench ^BenchmarkFullGaiaSimulation$$ \
+	@go test -mod=readonly -benchmem -run=^$$ github.com/BitSongOfficial/go-bitsong/app -bench ^BenchmarkFullGaiaSimulation$$ \
 		-SimulationEnabled=true -SimulationNumBlocks=$(SIM_NUM_BLOCKS) -SimulationBlockSize=$(SIM_BLOCK_SIZE) -SimulationCommit=$(SIM_COMMIT) -timeout 24h -cpuprofile cpu.out -memprofile mem.out
 
 
