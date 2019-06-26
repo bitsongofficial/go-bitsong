@@ -7,26 +7,21 @@
 *.swn
 .vscode
 .idea
-*.code-workspace
 
 # Build
-bin
-build
 vendor
-.vendor-new
 build
-dist
 tools/bin/*
 examples/build/*
 docs/_build
-client/lcd/statik/statik.go
+docs/tutorial
+dist
+tools-stamp
 
 # Data - ideally these don't exist
-examples/basecoin/app/data
 baseapp/data/*
 client/lcd/keys/*
-client/lcd/statik/statik.go
-remote/ansible/testnets
+cmd/gaiacli/statik/statik.go
 mytestnet
 
 # Testing
@@ -50,3 +45,4 @@ dependency-graph.png
 *.aux
 *.out
 *.synctex.gz
+contract_tests/*

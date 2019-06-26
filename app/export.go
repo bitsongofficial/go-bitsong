@@ -4,22 +4,18 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/crisis"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
-// ExportAppStateAndValidators exports the state of BitSong for a genesis file
-func (app *BitSongBlockchain) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string) (
-	appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+// export the state of gaia for a genesis file
+func (app *GaiaApp) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string,
+) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
@@ -28,25 +24,7 @@ func (app *BitSongBlockchain) ExportAppStateAndValidators(forZeroHeight bool, ja
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	// iterate to get the accounts
-	accounts := []GenesisAccount{}
-	appendAccount := func(acc auth.Account) (stop bool) {
-		account := NewGenesisAccountI(acc)
-		accounts = append(accounts, account)
-		return false
-	}
-	app.accountKeeper.IterateAccounts(ctx, appendAccount)
-
-	genState := NewGenesisState(
-		accounts,
-		auth.ExportGenesis(ctx, app.accountKeeper, app.feeCollectionKeeper),
-		bank.ExportGenesis(ctx, app.bankKeeper),
-		staking.ExportGenesis(ctx, app.stakingKeeper),
-		mint.ExportGenesis(ctx, app.mintKeeper),
-		distr.ExportGenesis(ctx, app.distrKeeper),
-		crisis.ExportGenesis(ctx, app.crisisKeeper),
-		slashing.ExportGenesis(ctx, app.slashingKeeper),
-	)
+	genState := app.mm.ExportGenesis(ctx)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
@@ -56,7 +34,9 @@ func (app *BitSongBlockchain) ExportAppStateAndValidators(forZeroHeight bool, ja
 }
 
 // prepare for fresh start at zero height
-func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
+// NOTE zero height genesis is a temporary feature which will be deprecated
+//      in favour of export at a block height
+func (app *GaiaApp) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string) {
 	applyWhiteList := false
 
 	//Check if there is a whitelist
@@ -75,25 +55,20 @@ func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhit
 	}
 
 	/* Just to be safe, assert the invariants on current state. */
-	app.assertRuntimeInvariantsOnContext(ctx)
+	app.crisisKeeper.AssertInvariants(ctx, app.Logger())
 
 	/* Handle fee distribution state. */
 
 	// withdraw all validator commission
-	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val sdk.Validator) (stop bool) {
-		_ = app.distrKeeper.WithdrawValidatorCommission(
-			ctx,
-			val.GetOperator())
+	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
+		_, _ = app.distrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		return false
 	})
 
 	// withdraw all delegator rewards
 	dels := app.stakingKeeper.GetAllDelegations(ctx)
 	for _, delegation := range dels {
-		_ = app.distrKeeper.WithdrawDelegationRewards(
-			ctx,
-			delegation.DelegatorAddress,
-			delegation.ValidatorAddress)
+		_, _ = app.distrKeeper.WithdrawDelegationRewards(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
 	}
 
 	// clear validator slash events
@@ -107,7 +82,14 @@ func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhit
 	ctx = ctx.WithBlockHeight(0)
 
 	// reinitialize all validators
-	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val sdk.Validator) (stop bool) {
+	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val staking.ValidatorI) (stop bool) {
+
+		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
+		scraps := app.distrKeeper.GetValidatorOutstandingRewards(ctx, val.GetOperator())
+		feePool := app.distrKeeper.GetFeePool(ctx)
+		feePool.CommunityPool = feePool.CommunityPool.Add(scraps)
+		app.distrKeeper.SetFeePool(ctx, feePool)
+
 		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
 		return false
 	})
@@ -115,6 +97,7 @@ func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhit
 	// reinitialize all delegations
 	for _, del := range dels {
 		app.distrKeeper.Hooks().BeforeDelegationCreated(ctx, del.DelegatorAddress, del.ValidatorAddress)
+		app.distrKeeper.Hooks().AfterDelegationModified(ctx, del.DelegatorAddress, del.ValidatorAddress)
 	}
 
 	// reset context height
@@ -146,6 +129,7 @@ func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhit
 	iter := sdk.KVStoreReversePrefixIterator(store, staking.ValidatorsKey)
 	counter := int16(0)
 
+	var valConsAddrs []sdk.ConsAddress
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.ValAddress(iter.Key()[1:])
 		validator, found := app.stakingKeeper.GetValidator(ctx, addr)
@@ -154,6 +138,7 @@ func (app *BitSongBlockchain) prepForZeroHeightGenesis(ctx sdk.Context, jailWhit
 		}
 
 		validator.UnbondingHeight = 0
+		valConsAddrs = append(valConsAddrs, validator.ConsAddress())
 		if applyWhiteList && !whiteListMap[addr.String()] {
 			validator.Jailed = true
 		}

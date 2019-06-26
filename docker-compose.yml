@@ -1,58 +1,58 @@
 version: '3'
 
 services:
-  bitsongdnode0:
-    container_name: bitsongdnode0
-    image: "tendermint/bitsongdnode"
+  gaiadnode0:
+    container_name: gaiadnode0
+    image: "tendermint/gaiadnode"
     ports:
       - "26656-26657:26656-26657"
     environment:
       - ID=0
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-gaiad.log}
     volumes:
-      - ./build:/bitsongd:Z
+      - ./build:/gaiad:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
 
-  bitsongdnode1:
-    container_name: bitsongdnode1
-    image: "tendermint/bitsongdnode"
+  gaiadnode1:
+    container_name: gaiadnode1
+    image: "tendermint/gaiadnode"
     ports:
       - "26659-26660:26656-26657"
     environment:
       - ID=1
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-gaiad.log}
     volumes:
-      - ./build:/bitsongd:Z
+      - ./build:/gaiad:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.3
 
-  bitsongdnode2:
-    container_name: bitsongdnode2
-    image: "tendermint/bitsongdnode"
+  gaiadnode2:
+    container_name: gaiadnode2
+    image: "tendermint/gaiadnode"
     environment:
       - ID=2
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-gaiad.log}
     ports:
       - "26661-26662:26656-26657"
     volumes:
-      - ./build:/bitsongd:Z
+      - ./build:/gaiad:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.4
 
-  bitsongdnode3:
-    container_name: bitsongdnode3
-    image: "tendermint/bitsongdnode"
+  gaiadnode3:
+    container_name: gaiadnode3
+    image: "tendermint/gaiadnode"
     environment:
       - ID=3
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-gaiad.log}
     ports:
       - "26663-26664:26656-26657"
     volumes:
-      - ./build:/bitsongd:Z
+      - ./build:/gaiad:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.5
@@ -65,3 +65,4 @@ networks:
       config:
       -
         subnet: 192.168.10.0/16
+

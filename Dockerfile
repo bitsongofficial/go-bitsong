@@ -1,20 +1,21 @@
 # Simple usage with a mounted data directory:
-# > docker build -t bitsong .
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli bitsong bitsongd init
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli bitsong bitsongd start
+# > docker build -t gaia .
+# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaiad:/root/.gaiad -v ~/.gaiacli:/root/.gaiacli gaia gaiad init
+# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaiad:/root/.gaiad -v ~/.gaiacli:/root/.gaiacli gaia gaiad start
 FROM golang:alpine AS build-env
 
 # Set up dependencies
-ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python
 
 # Set working directory for the build
-WORKDIR /go/src/github.com/BitSongOfficial/go-bitsong
+WORKDIR /go/src/github.com/cosmos/gaia
 
 # Add source files
 COPY . .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
 RUN apk add --no-cache $PACKAGES && \
+    make tools && \
     make install
 
 # Final image
@@ -25,8 +26,8 @@ RUN apk add --update ca-certificates
 WORKDIR /root
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/bin/bitsongd /usr/bin/bitsongd
-COPY --from=build-env /go/bin/bitsongcli /usr/bin/bitsongcli
+COPY --from=build-env /go/bin/gaiad /usr/bin/gaiad
+COPY --from=build-env /go/bin/gaiacli /usr/bin/gaiacli
 
-# Run bitsongd by default, omit entrypoint to ease using container with bitsongcli
-CMD ["bitsongd"]
+# Run gaiad by default, omit entrypoint to ease using container with gaiacli
+CMD ["gaiad"]
