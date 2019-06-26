@@ -49,16 +49,8 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			// Get from address
+			// Get flags
 			from := cliCtx.GetFromAddress()
-
-			// Pull associated account
-			// To fix or delete
-			/*account, err := cliCtx.GetAccount(from)
-			if err != nil {
-				return err
-			}*/
-
 			title := viper.GetString(FlagTitle)
 			content := viper.GetString(FlagContent)
 			redistributionSplitRate := viper.GetString(FlagRedistributionSplitRate)
