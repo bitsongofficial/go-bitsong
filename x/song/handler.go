@@ -12,6 +12,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case MsgPublish:
 			return hanleMsgPublish(ctx, keeper, msg)
+		case MsgPlay:
+			return hanleMsgPlay(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("Unrecognized song Msg type: %v", msg.Type())
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -28,11 +30,21 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	resTags := sdk.NewTags(
 		Category, TxCategory,
 		SongId, fmt.Sprintf("%d", song.SongId),
-		Sender, song.Owner.String(),
+		Owner, song.Owner.String(),
 	)
 	return sdk.Result{
 		Tags: resTags,
 	}
+}
+
+// Handle a message to play song
+func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
+	err := k.Play(ctx, msg.SongId, msg.Listener)
+
+	if err != nil {
+		return err.Result()
+	}
+	return sdk.Result{}
 }
 
 // Handle a message to set name

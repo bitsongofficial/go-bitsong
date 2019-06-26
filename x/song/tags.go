@@ -10,7 +10,7 @@ var (
 
 	Action         = sdk.TagAction
 	Category       = sdk.TagCategory
-	Sender         = sdk.TagSender
+	Owner          = sdk.TagSender
 	SongId         = "id"
 	//OrderStatus    = "status"
 )

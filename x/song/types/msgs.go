@@ -12,11 +12,25 @@ type MsgPublish struct {
 	Owner sdk.AccAddress `json:"owner"`
 }
 
+// MsgPublish defines a Publish message
+type MsgPlay struct {
+	SongId   	string 			`json:"song_id"`
+	Listener	sdk.AccAddress 	`json:"listener"`
+}
+
 // NewMsgPublish is a constructor function for MsgPublish
 func NewMsgPublish(title string, owner sdk.AccAddress) MsgPublish {
 	return MsgPublish{
 		Title: title,
 		Owner: owner,
+	}
+}
+
+// NewMsgPlay is a constructor function for MsgPublish
+func NewMsgPlay(songId string, listener sdk.AccAddress) MsgPlay {
+	return MsgPlay{
+		SongId: songId,
+		Listener: listener,
 	}
 }
 
@@ -32,18 +46,38 @@ func (msg MsgPublish) ValidateBasic() sdk.Error {
 	return nil
 }
 
+func (msg MsgPlay) ValidateBasic() sdk.Error {
+	if msg.Listener.Empty() {
+		return sdk.ErrInvalidAddress(msg.Listener.String())
+	}
+	if len(msg.SongId) == 0 {
+		return sdk.ErrUnknownRequest("Id cannot be empty")
+	}
+	return nil
+}
+
 // Route should return the name of the module
 func (msg MsgPublish) Route() string { return RouterKey }
+func (msg MsgPlay) Route() string { return RouterKey }
 
 // Type should return the action
 func (msg MsgPublish) Type() string { return "publish" }
+func (msg MsgPlay) Type() string { return "play" }
 
 // GetSignBytes encodes the message for signing
 func (msg MsgPublish) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
+func (msg MsgPlay) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
 // GetSigners defines whose signature is required
 func (msg MsgPublish) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
+}
+
+func (msg MsgPlay) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Listener}
 }

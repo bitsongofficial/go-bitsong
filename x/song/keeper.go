@@ -59,6 +59,12 @@ func (k Keeper) Publish(ctx sdk.Context, title string,
 	return song, nil
 }
 
+func (k Keeper) Play(ctx sdk.Context, songId string, listener sdk.AccAddress) sdk.Error {
+	// implement logic
+
+	return nil
+}
+
 // Get the next available SongId and increments it
 func (k Keeper) getNewSongId(ctx sdk.Context) (id uint64, err sdk.Error) {
 	store := ctx.KVStore(k.storeKey)

@@ -13,12 +13,14 @@ const (
 
 var (
 	NewMsgPublish = types.NewMsgPublish
+	NewMsgPlay    = types.NewMsgPlay
 	ModuleCdc     = types.ModuleCdc
 	RegisterCodec = types.RegisterCodec
 )
 
 type (
 	MsgPublish      = types.MsgPublish
+	MsgPlay         = types.MsgPlay
 	Song            = types.Song
 	Songs			= types.Songs
 )
