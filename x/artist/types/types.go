@@ -26,11 +26,11 @@ func (a Artist) String() string {
 // To FIX with new fields
 type Artists []*Artist
 
-func (songs Artists) String() string {
+func (artists Artists) String() string {
 	out := fmt.Sprintf("%10s - (%15s) - (%40s) - [%10s] - Create Time\n", "ID", "Title", "Owner", "CreateTime")
-	for _, song := range songs {
+	for _, artist := range artists {
 		out += fmt.Sprintf("%10d - (%15s) - (%40s) - [%10s]\n",
-			a.ArtistID, a.Image, a.Name)
+			artist.ArtistID, artist.Image, artist.Name)
 	}
 
 	return strings.TrimSpace(out)

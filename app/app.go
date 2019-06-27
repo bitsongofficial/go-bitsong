@@ -28,6 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	"github.com/BitSongOfficial/go-bitsong/x/artist"
 	"github.com/BitSongOfficial/go-bitsong/x/song"
 )
 
@@ -60,6 +61,7 @@ func init() {
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		song.AppModule{},
+		artist.AppModule{},
 	)
 }
 
@@ -89,6 +91,7 @@ type GaiaApp struct {
 	keyDistr         *sdk.KVStoreKey
 	tkeyDistr        *sdk.TransientStoreKey
 	keySong          *sdk.KVStoreKey
+	keyArtist        *sdk.KVStoreKey
 	keyGov           *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
@@ -106,6 +109,7 @@ type GaiaApp struct {
 	crisisKeeper        crisis.Keeper
 	paramsKeeper        params.Keeper
 	songKeeper          song.Keeper
+	artistKeeper        artist.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -133,6 +137,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		keyDistr:         sdk.NewKVStoreKey(distr.StoreKey),
 		tkeyDistr:        sdk.NewTransientStoreKey(distr.TStoreKey),
 		keySong:          sdk.NewKVStoreKey(song.StoreKey),
+		keyArtist:        sdk.NewKVStoreKey(artist.StoreKey),
 		keySlashing:      sdk.NewKVStoreKey(slashing.StoreKey),
 		keyGov:           sdk.NewKVStoreKey(gov.StoreKey),
 		keyFeeCollection: sdk.NewKVStoreKey(auth.FeeStoreKey),
@@ -183,6 +188,11 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 	)
 
+	app.artistKeeper = artist.NewKeeper(
+		app.keyArtist,
+		app.cdc,
+	)
+
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
@@ -191,6 +201,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		crisis.NewAppModule(app.crisisKeeper, app.Logger()),
 		distr.NewAppModule(app.distrKeeper),
 		song.NewAppModule(app.songKeeper),
+		artist.NewAppModule(app.artistKeeper),
 		gov.NewAppModule(app.govKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
@@ -208,7 +219,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, distr.ModuleName,
 		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, crisis.ModuleName, song.ModuleName, genutil.ModuleName)
+		gov.ModuleName, mint.ModuleName, crisis.ModuleName, song.ModuleName, artist.ModuleName, genutil.ModuleName)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
@@ -216,7 +227,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// initialize stores
 	app.MountStores(app.keyMain, app.keyAccount, app.keyStaking, app.keyMint,
 		app.keyDistr, app.keySlashing, app.keyGov, app.keyFeeCollection,
-		app.keyParams, app.tkeyParams, app.keySong, app.tkeyStaking, app.tkeyDistr)
+		app.keyParams, app.tkeyParams, app.keySong, app.keyArtist, app.tkeyStaking, app.tkeyDistr)
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
