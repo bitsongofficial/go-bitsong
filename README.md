@@ -23,7 +23,7 @@ For status updates and genesis file, see the [networks repo](https://github.com/
 ## Resources
 - [Official Website](https://bitsong.io)
 
-### Community
+## Community
 - [Telegram Channel (English)](https://t.me/BitSongOfficial)
 - [Facebook](https://www.facebook.com/BitSongOfficial)
 - [Twitter](https://twitter.com/BitSongOfficial)
