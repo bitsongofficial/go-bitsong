@@ -29,7 +29,7 @@ func GetCmdRegister(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "register",
 		Short:   "Register a new artist",
-		Example: "$ bitsongcli artist register --name=\"Armin Van Buuren\" --image=<ipfs_url> --from mykey",
+		Example: "$ bitsongcli tx artist register --name=\"Armin Van Buuren\" --image=<ipfs_url> --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil

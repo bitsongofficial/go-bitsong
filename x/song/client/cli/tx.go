@@ -42,7 +42,7 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "publish",
 		Short:   "Publish a new song",
-		Example: "$ bitsongcli song publish --title=SongTitle --content=<ipfs_url> --redistribution_split_rate=5 --from mykey",
+		Example: "$ bitsongcli tx song publish --title=SongTitle --content=<ipfs_url> --redistribution_split_rate=5 --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -78,7 +78,7 @@ func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "play",
 		Short:   "Play a song",
-		Example: "$ bitsongcli song play --id=1 --from mykey",
+		Example: "$ bitsongcli tx song play --id=1 --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)

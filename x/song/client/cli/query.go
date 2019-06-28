@@ -3,10 +3,10 @@ package cli
 import (
 	"fmt"
 
+	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	"github.com/spf13/cobra"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,7 +41,7 @@ func GetCmdList(cdc *codec.Codec) *cobra.Command {
 		Use:     "list [address]",
 		Args:    cobra.ExactArgs(1),
 		Short:   "Search all songs of a specific address",
-		Example: "$ bitsongcli song list bitsong1hf4n743fujvxrwx8af7u35anjqpdd2cx8p6cdd",
+		Example: "$ bitsongcli query song list bitsong1hf4n743fujvxrwx8af7u35anjqpdd2cx8p6cdd",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 

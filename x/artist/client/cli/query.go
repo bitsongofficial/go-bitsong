@@ -26,7 +26,7 @@ func GetCmdList(cdc *codec.Codec) *cobra.Command {
 		Use:     "list [address]",
 		Args:    cobra.ExactArgs(1),
 		Short:   "Search all artists of a specific address",
-		Example: "$ bitsongcli artist list bitsong1hf4n743fujvxrwx8af7u35anjqpdd2cx8p6cdd",
+		Example: "$ bitsongcli query artist list bitsong1hf4n743fujvxrwx8af7u35anjqpdd2cx8p6cdd",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return nil
 		},
