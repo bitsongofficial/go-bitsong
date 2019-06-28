@@ -1,4 +1,4 @@
-# Deploy Your Own Gaia Testnet
+# Deploy Your Own BitSong Testnet
 
 This document describes 3 ways to setup a network of `bitsongd` nodes, each serving a different usecase:
 
@@ -12,7 +12,9 @@ Supporting code can be found in the [networks directory](https://github.com/BitS
 
 ## Available Docker images
 
-In case you need to use or deploy gaia as a container you could skip the `build` steps and use the official images, $TAG stands for the version you are interested in:
+> NOTE: this part is work in progress....
+
+In case you need to use or deploy go-bitsong as a container you could skip the `build` steps and use the official images, $TAG stands for the version you are interested in:
 
 - `docker run -it -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli tendermint:$TAG bitsongd init`
 - `docker run -it -p 26657:26657 -p 26656:26656 -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli tendermint:$TAG bitsongd start`
@@ -27,7 +29,7 @@ This guide helps you create a single validator node that runs a network locally 
 
 ### Requirements
 
-- [Install gaia](./installation.md)
+- [Install go-bitsong](./installation.md)
 - [Install `jq`](https://stedolan.github.io/jq/download/) (optional)
 
 ### Create Genesis File and Start the Network
@@ -39,13 +41,22 @@ cd $HOME
 # Initialize the genesis.json file that will help you to bootstrap the network
 bitsongd init --chain-id=testing testing
 
+# Optionally set the `bitsongcli` config
+bitsongcli config chain-id bitsong-testnet-1
+bitsongcli config output json
+bitsongcli config indent true
+bitsongcli config trust-node true
+
 # Create a key to hold your validator account
 bitsongcli keys add validator
+
+# Change default bond token genesis.json
+sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
 
 # Add that key into the genesis.app_state.accounts array in the genesis file
 # NOTE: this command lets you set the number of coins. Make sure this account has some coins
 # with the genesis.app_state.staking.params.bond_denom denom, the default is staking
-bitsongd add-genesis-account $(bitsongcli keys show validator -a) 1000000000stake,1000000000validatortoken
+bitsongd add-genesis-account $(bitsongcli keys show validator -a) 1000000000000ubtsg
 
 # Generate the transaction that creates your validator
 bitsongd gentx --name validator
@@ -61,15 +72,19 @@ This setup puts all the data for `bitsongd` in `~/.bitsongd`. You can examine th
 
 ## Multi-node, Local, Automated Testnet
 
+> NOTE: this part is work in progress....
+
 From the [networks/local directory](https://github.com/BitSongOfficial/go-bitsong/tree/master/networks/local):
 
 ### Requirements
 
-- [Install gaia](./installation.md)
+- [Install go-bitsong](./installation.md)
 - [Install docker](https://docs.docker.com/engine/installation/)
 - [Install docker-compose](https://docs.docker.com/compose/install/)
 
 ### Build
+
+> NOTE: this part is work in progress....
 
 Build the `bitsongd` binary (linux) and the `tendermint/bitsongdnode` docker image required for running the `localnet` commands. This binary will be mounted into the container and can be updated rebuilding the image, so you only need to build the image once.
 
@@ -86,6 +101,8 @@ make build-docker-bitsongdnode
 
 ### Run Your Testnet
 
+> NOTE: this part is work in progress....
+
 To start a 4 node testnet run:
 
 ```
@@ -97,10 +114,10 @@ The ports for each node are found in this table:
 
 | Node ID | P2P Port | RPC Port |
 | --------|-------|------|
-| `gaianode0` | `26656` | `26657` |
-| `gaianode1` | `26659` | `26660` |
-| `gaianode2` | `26661` | `26662` |
-| `gaianode3` | `26663` | `26664` |
+| `bitsongnode0` | `26656` | `26657` |
+| `bitsongnode1` | `26659` | `26660` |
+| `bitsongnode2` | `26661` | `26662` |
+| `bitsongnode3` | `26663` | `26664` |
 
 To update the binary, just rebuild it and restart the nodes:
 
@@ -159,7 +176,7 @@ Each `./build/nodeN` directory is mounted to the `/bitsongd` directory in each c
 
 ### Logging
 
-Logs are saved under each `./build/nodeN/bitsongd/gaia.log`. You can also watch logs
+Logs are saved under each `./build/nodeN/bitsongd/go-bitsong.log`. You can also watch logs
 directly via Docker, for example:
 
 ```
@@ -188,10 +205,12 @@ If you have multiple binaries with different names, you can specify which one to
 
 ```
 # Run with custom binary
-BINARY=gaiafoo make localnet-start
+BINARY=bitsongfoo make localnet-start
 ```
 
 ## Multi-Node, Remote, Automated Testnet
+
+> NOTE: this part is work in progress....
 
 The following should be run from the [networks directory](https://github.com/BitSongOfficial/go-bitsong/tree/master/networks).
 

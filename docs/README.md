@@ -1,24 +1,24 @@
-# Cosmos Hub Documentation
+# BitSong Blockchain Documentation
 
-Welcome to the documentation of the **Cosmos Hub application: `gaia`**.
+Welcome to the documentation of the **BitSong Blockchain**.
 
-## What is Gaia?
+## What is BitSong?
 
-- [Gaia](./what-is-gaia.md)
+- [BitSong](./what-is-bitsong.md)
 
-## Join the Cosmos Hub Mainnet
+## Join the BitSong Testnet
 
-- [Install the `gaia` application](./installation.md)
-- [Set up a full node and join the mainnet](./join-mainnet.md)
+- [Install the `go-bitsong` application](./installation.md)
+- [Set up a full node and join the testnet](./join-testnet.md)
 - [Upgrade to a validator node](./validators/validator-setup.md)
 
 ## Join the Cosmos Hub Public Testnet
 
 - [Join the testnet](./join-testnet.md)
 
-## Setup Your Own `gaia` Testnet
+## Setup Your Own `bitsong` Testnet
 
-- [Setup your own `gaia` testnet](./deploy-testnet.md)
+- [Setup your own `go-bitsong` testnet](./deploy-testnet.md)
 
 ## Additional Resources
 

@@ -1,6 +1,6 @@
 # Genesis File
 
-This document explains how the genesis file of the Cosmos Hub mainnet is structured. It also explains how you can build a genesis file for your own `gaia` testnet.
+This document explains how the genesis file of the BitSong testnet is structured. It also explains how you can build a genesis file for your own `go-bitsong` testnet.
 
 Note that you can generate a default genesis file for your own testnet by running the following command:
 
@@ -27,12 +27,12 @@ The `genesis_time` is defined at the top of the genesis file. It is a `UTC` time
 The `chain_id` is a unique identifier for your chain. It helps differentiate between different chains using the same version of the software.
 
 ```json
-"chain_id": "cosmoshub-2",
+"chain_id": "bitsong-testnet-1",
 ```
 
 ## Consensus Parameters
 
-Next, the genesis file defines consensus parameters. Consensus parameters regroup all the parameters that are related to the consensus layer, which is `Tendermint` in the case of `gaia`. Let us look at these parameters:
+Next, the genesis file defines consensus parameters. Consensus parameters regroup all the parameters that are related to the consensus layer, which is `Tendermint` in the case of `go-bitsong`. Let us look at these parameters:
 
 - `block`
     + `max_bytes`: Maximum number of bytes per block. 
@@ -68,7 +68,7 @@ The application state defines the initial state of the state-machine.
 In this section, initial allocation of tokens is defined. It is possible to add accounts manually by directly editing the genesis file, but it is also possible to use the following command:
 
 ```bash
-// Example: bitsongd add-genesis-account cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000uatom
+// Example: bitsongd add-genesis-account bitsong1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000ubtsg
 
 bitsongd add-genesis-account <account-address> <amount><denom>
 ```
@@ -78,10 +78,10 @@ This command creates an item in the `accounts` list, under the `app_state` secti
 ```json
 "accounts": [
       {
-        "address": "cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h",
+        "address": "bitsong1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h",
         "coins": [
           {
-            "denom": "uatom",
+            "denom": "ubtsg",
             "amount": "10000000"
           }
         ],
@@ -89,7 +89,7 @@ This command creates an item in the `accounts` list, under the `app_state` secti
         "account_number": "0",
         "original_vesting": [
           {
-            "denom": "uatom",
+            "denom": "ubtsg",
             "amount": "26306000000"
           }
         ],
@@ -105,7 +105,7 @@ Let us break down the parameters:
 
 - `sequence_number`: This number is used to count the number of transactions sent by this account. It is incremented each time a transaction is included in a block, and used to prevent replay attacks. Initial value is `0`.
 - `account_number`: Unique identifier for the account. It is generated the first time a transaction including this account is included in a block.
-- `original_vesting`: Vesting is natively supported by `gaia`. You can define an amount of token owned by the account that needs to be vested for a period of time before they can be transferred. Vested tokens can be delegated. Default value is `null`.
+- `original_vesting`: Vesting is natively supported by `go-bitsong`. You can define an amount of token owned by the account that needs to be vested for a period of time before they can be transferred. Vested tokens can be delegated. Default value is `null`.
 - `delegated_free`: Amount of delegated tokens that can be transferred after they've been vested. Most of the time, will be `null` in genesis. 
 - `delegated_vesting`: Amount of delegated tokens that are still vesting. Most of the time, will be `null` in genesis.
 - `start_time`: Block at which the vesting period starts. `0` most of the time in genesis.
@@ -135,7 +135,7 @@ The `staking` module handles the bulk of the Proof-of-Stake logic of the state-m
         "unbonding_time": "1814400000000000",
         "max_validators": 100,
         "max_entries": 7,
-        "bond_denom": "uatom"
+        "bond_denom": "ubtsg"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
@@ -176,7 +176,7 @@ The `mint` module governs the logic of inflating the supply of token. The `mint`
         "annual_provisions": "0.000000000000000000"
       },
       "params": {
-        "mint_denom": "uatom",
+        "mint_denom": "ubtsg",
         "inflation_rate_change": "0.130000000000000000",
         "inflation_max": "0.200000000000000000",
         "inflation_min": "0.070000000000000000",
@@ -253,7 +253,7 @@ The `gov` module handles all governance-related transactions. The initial state 
       "deposit_params": {
         "min_deposit": [
           {
-            "denom": "uatom",
+            "denom": "ubtsg",
             "amount": "512000000"
           }
         ],

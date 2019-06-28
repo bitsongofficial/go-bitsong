@@ -1,6 +1,6 @@
-## Install Gaia
+## Install BitSong
 
-This guide will explain how to install the `bitsongd` and `bitsongcli` entrypoints onto your system. With these installed on a server, you can participate in the mainnet as either a [Full Node](./join-mainnet.md) or a [Validator](./validators/validator-setup.md).
+This guide will explain how to install the `bitsongd` and `bitsongcli` entrypoints onto your system. With these installed on a server, you can participate in the mainnet as either a [Full Node](./join-testnet.md) or a [Validator](./validators/validator-setup.md).
 
 ### Install Go
 
@@ -19,13 +19,13 @@ source ~/.bash_profile
 
 ### Install the binaries
 
-Next, let's install the latest version of Gaia. Make sure you `git checkout` the correct [released version](https://github.com/BitSongOfficial/go-bitsong/releases).
+Next, let's install the latest version of BitSong. Make sure you `git checkout` the correct [released version](https://github.com/BitSongOfficial/go-bitsong/releases).
 
 ```bash
-mkdir -p $GOPATH/src/github.com/cosmos
-cd $GOPATH/src/github.com/cosmos
+mkdir -p $GOPATH/src/github.com/BitSongOfficial
+cd $GOPATH/src/github.com/BitSongOfficial
 git clone -b <latest-release-tag> https://github.com/BitSongOfficial/go-bitsong
-cd gaia && make install
+cd go-bitsong && make install
 ```
 
 > _NOTE_: If you have issues at this step, please check that you have the latest stable version of GO installed.
@@ -70,4 +70,4 @@ To test any changes made in the SDK or Tendermint, a `replace` clause needs to b
 
 ### Next
 
-Now you can [join the mainnet](./join-mainnet.md), [the public testnet](./join-testnet.md) or [create you own testnet](./deploy-testnet.md)
+Now you can [join the testnet](./join-testnet.md) or [create you own testnet](./deploy-testnet.md)

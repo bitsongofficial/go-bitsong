@@ -1,8 +1,8 @@
 # Delegator Guide (CLI)
 
-This document contains all the necessary information for delegators to interact with the Cosmos Hub through the Command-Line Interface (CLI).
+This document contains all the necessary information for delegators to interact with the BitSong Blockchain through the Command-Line Interface (CLI).
 
-It also contains instructions on how to manage accounts, restore accounts from the fundraiser and use a ledger nano device.
+It also contains instructions on how to manage accounts and use a ledger nano device.
 
 ::: danger
 **Very Important**: Please assure that you follow the steps described hereinafter
@@ -10,15 +10,14 @@ carefully, as negligence in this significant process could lead to an indefinite
 loss of your Atoms. Therefore, read through the following instructions in their 
 entirety prior to proceeding and reach out to us in case you need support.
 
-Please also note that you are about to interact with the Cosmos Hub, a
+Please also note that you are about to interact with the BitSong Blockchain, a
 blockchain technology containing highly experimental software. While the
 blockchain has been developed in accordance to the state of the art and audited
 with utmost care, we can nevertheless expect to have issues, updates and bugs.
 Furthermore, interaction with blockchain technology requires
 advanced technical skills and always entails risks that are outside our control.
 By using the software, you confirm that you understand the inherent risks
-associated with cryptographic software (see also risk section of the 
-[Interchain Cosmos Contribution terms](https://github.com/cosmos/cosmos/blob/master/fundraiser/Interchain%20Cosmos%20Contribution%20Terms%20-%20FINAL.pdf)) and that the Interchain Foundation and/or 
+associated with cryptographic software and that the BitSong Group and/or 
 the Tendermint Team may not be held liable for potential damages arising out of the use of the
 software. Any use of this open source software released under the Apache 2.0 license is
 done at your own risk and on a "AS IS" basis, without warranties or conditions
@@ -30,17 +29,16 @@ Please exercise extreme caution!
 ## Table of Contents
 
 - [Installing `bitsongcli`](#installing-bitsongcli)
-- [Cosmos Accounts](#cosmos-accounts)
-    + [Restoring an Account from the Fundraiser](#restoring-an-account-from-the-fundraiser)
+- [BitSong Accounts](#bitsong-accounts)
     + [Creating an Account](#creating-an-account)
-- [Accessing the Cosmos Hub Network](#accessing-the-cosmos-hub-network)
+- [Accessing the BitSong Network](#accessing-the-bitsong-network)
     + [Running Your Own Full-Node](#running-your-own-full-node)
     + [Connecting to a Remote Full-Node](#connecting-to-a-remote-full-node)
 - [Setting Up `bitsongcli`](#setting-up-bitsongcli)
 - [Querying the State](#querying-the-state)
 - [Sending Transactions](#sending-transactions)
     + [A Note on Gas and Fees](#a-note-on-gas-and-fees)
-    + [Bonding Atoms and Withdrawing Rewards](#bonding-atoms-and-withdrawing-rewards)
+    + [Bonding BTSG and Withdrawing Rewards](#bonding-btsg-and-withdrawing-rewards)
     + [Participating in Governance](#participating-in-governance)
     + [Signing Transactions from an Offline Computer](#signing-transactions-from-an-offline-computer)
 
@@ -55,7 +53,7 @@ Please exercise extreme caution!
 [**Download the binaries**]
 Not available yet.
 
-[**Install from source**](https://cosmos.network/docs/cosmos-hub/installation.html)
+[**Install from source**](./installation.md)
 
 ::: tip
 `bitsongcli` is used from a terminal. To open the terminal, follow these steps:
@@ -64,9 +62,9 @@ Not available yet.
 - **Linux**: `Ctrl` + `Alt` + `T`
 :::
 
-## Cosmos Accounts
+## BitSong Accounts
 
-At the core of every Cosmos account, there is a seed, which takes the form of a 12 or 24-words mnemonic. From this mnemonic, it is possible to create any number of Cosmos accounts, i.e. pairs of private key/public key. This is called an HD wallet (see [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) for more information on the HD wallet specification).
+At the core of every BitSong account, there is a seed, which takes the form of a 12 or 24-words mnemonic. From this mnemonic, it is possible to create any number of BitSong accounts, i.e. pairs of private key/public key. This is called an HD wallet (see [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) for more information on the HD wallet specification).
 
 ```
      Account 0                         Account 1                         Account 2
@@ -107,19 +105,11 @@ The funds stored in an account are controlled by the private key. This private k
 **Do not lose or share your 12 words with anyone. To prevent theft or loss of funds, it is best to ensure that you keep multiple copies of your mnemonic, and store it in a safe, secure place and that only you know how to access. If someone is able to gain access to your mnemonic, they will be able to gain access to your private keys and control the accounts associated with them.**
 :::
 
-The address is a public string with a human-readable prefix (e.g. `cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg`) that identifies your account. When someone wants to send you funds, they send it to your address. It is computationally infeasible to find the private key associated with a given address. 
-
-### Restoring an Account from the Fundraiser
-
-::: tip
-*NOTE: This section only concerns fundraiser participants*
-:::
-
-If you participated in the fundraiser, you should be in possession of a 12-words mnemonic. Newly generated mnemonics use 24 words, but 12-word mnemonics are also compatible with all the Cosmos tools. 
+The address is a public string with a human-readable prefix (e.g. `bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg`) that identifies your account. When someone wants to send you funds, they send it to your address. It is computationally infeasible to find the private key associated with a given address. 
 
 #### On a Ledger Device
 
-At the core of a ledger device, there is a mnemonic used to generate accounts on multiple blockchains (including the Cosmos Hub). Usually, you will create a new mnemonic when you initialize your ledger device. However, it is possible to tell the ledger device to use a mnemonic provided by the user instead. Let us go ahead and see how you can input the mnemonic you obtained during the fundraiser as the seed of your ledger device. 
+At the core of a ledger device, there is a mnemonic used to generate accounts on multiple blockchains (including BitSong). Usually, you will create a new mnemonic when you initialize your ledger device. However, it is possible to tell the ledger device to use a mnemonic provided by the user instead. Let us go ahead and see how you can input the mnemonic you obtained during the fundraiser as the seed of your ledger device. 
 
 ::: warning
 *NOTE: To do this, **it is preferable to use a brand new ledger device.**. Indeed, there can be only one mnemonic per ledger device. If, however, you want to use a ledger that is already initialized with a seed, you can reset it by going in `Settings`>`Device`>`Reset All`. **Please note that this will wipe out the seed currently stored on the device. If you have not properly secured the associated mnemonic, you could lose your funds!!!***
@@ -132,7 +122,6 @@ The following steps need to be performed on an un-initialized ledger device:
 3. Do **NOT** choose the "Config as a new device" option. Instead, choose "Restore Configuration"
 4. Choose a PIN
 5. Choose the 12 words option
-6. Input each of the words you got during the fundraiser, in the correct order. 
 
 Your ledger is now correctly set up with your fundraiser mnemonic! Do not lose this mnemonic! If your ledger is compromised, you can always restore a new device again using the same mnemonic.
 
@@ -144,7 +133,7 @@ Next, click [here](#using-a-ledger-device) to learn how to generate an account.
 **NOTE: It is more secure to perform this action on an offline computer**
 ::: 
 
-To restore an account using a fundraiser mnemonic and store the associated encrypted private key on a computer, use the following command:
+To restore an account using a mnemonic and store the associated encrypted private key on a computer, use the following command:
 
 ```bash
 bitsongcli keys add <yourKeyName> --recover
@@ -165,7 +154,7 @@ To create an account, you just need to have `bitsongcli` installed. Before creat
 **Only use Ledger devices that you bought factory new or trust fully**
 :::
 
-When you initialize your ledger, a 24-word mnemonic is generated and stored in the device. This mnemonic is compatible with Cosmos and Cosmos accounts can be derived from it. Therefore, all you have to do is make your ledger compatible with `bitsongcli`. To do so, you need to go through the following steps:
+When you initialize your ledger, a 24-word mnemonic is generated and stored in the device. This mnemonic is compatible with Cosmos and BitSong accounts can be derived from it. Therefore, all you have to do is make your ledger compatible with `bitsongcli`. To do so, you need to go through the following steps:
 
 1. Download the Ledger Live app [here](https://www.ledger.com/pages/ledger-live). 
 2. Connect your ledger via USB and update to the latest firmware
@@ -225,19 +214,19 @@ bitsongcli keys add <yourKeyName> --recover --account 1
 This command will prompt you to input a passphrase as well as your mnemonic. Change the account number to generate a different account. 
 
 
-## Accessing the Cosmos Hub Network
+## Accessing the BitSong Network
 
 In order to query the state and send transactions, you need a way to access the network. To do so, you can either run your own full-node, or connect to someone else's.
 
 ::: danger
-**NOTE: Do not share your mnemonic (12 or 24 words) with anyone. The only person who should ever need to know it is you. This is especially important if you are ever approached via email or direct message by someone requesting that you share your mnemonic for any kind of blockchain services or support. No one from Cosmos, the Tendermint team or the Interchain Foundation will ever send an email that asks for you to share any kind of account credentials or your mnemonic."**.
+**NOTE: Do not share your mnemonic (12 or 24 words) with anyone. The only person who should ever need to know it is you. This is especially important if you are ever approached via email or direct message by someone requesting that you share your mnemonic for any kind of blockchain services or support. No one from BitSong will ever send an email that asks for you to share any kind of account credentials or your mnemonic."**.
 ::: 
 
 ### Running Your Own Full-Node
 
 This is the most secure option, but comes with relatively high resource requirements. In order to run your own full-node, you need good bandwidth and at least 1TB of disk space. 
 
-You will find the tutorial on how to install `bitsongd` [here](https://cosmos.network/docs/cosmos-hub/installation.html), and the guide to run a full-node [here](https://cosmos.network/docs/cosmos-hub/join-mainnet.html).
+You will find the tutorial on how to install `bitsongd` [here](./installation.md), and the guide to run a full-node [here](./join-testnet.html).
 
 ### Connecting to a Remote Full-Node
 
@@ -248,14 +237,14 @@ In order to connect to the full-node, you will need an address of the following 
 ## Setting Up `bitsongcli`
 
 ::: tip
-**Before setting up `bitsongcli`, make sure you have set up a way to [access the Cosmos Hub network](#accessing-the-cosmos-hub-network)**
+**Before setting up `bitsongcli`, make sure you have set up a way to [access the BitSong network](#accessing-the-bitsong-network)**
 :::
 
 ::: warning
 **Please check that you are always using the latest stable release of `bitsongcli`**
 :::
 
-`bitsongcli` is the tool that enables you to interact with the node that runs on the Cosmos Hub network, whether you run it yourself or not. Let us set it up properly.
+`bitsongcli` is the tool that enables you to interact with the node that runs on the BitSong network, whether you run it yourself or not. Let us set it up properly.
 
 In order to set up `bitsongcli`, use the following command:
 
@@ -286,13 +275,13 @@ bitsongcli config trust-node false
 Finally, let us set the `chain-id` of the blockchain we want to interact with:
 
 ```bash
-bitsongcli config chain-id cosmoshub-2
+bitsongcli config chain-id bitsong-testnet-1
 ```
 
 ## Querying the State
 
 ::: tip
-**Before you can bond atoms and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli)**
+**Before you can bond btsg and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli)**
 :::
 
 `bitsongcli` lets you query all relevant information from the blockchain, like account balances, amount of bonded tokens, outstanding rewards, governance proposals and more. Next is a list of the most useful commands for delegator. 
@@ -304,16 +293,16 @@ bitsongcli query account <yourAddress>
 // query the list of validators
 bitsongcli query staking validators
 
-// query the information of a validator given their address (e.g. cosmosvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27)
+// query the information of a validator given their address (e.g. bitsongvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27)
 bitsongcli query staking validator <validatorAddress>
 
-// query all delegations made from a delegator given their address (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
+// query all delegations made from a delegator given their address (e.g. bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
 bitsongcli query staking delegations <delegatorAddress>
 
-// query a specific delegation made from a delegator (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) to a validator (e.g. cosmosvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27) given their addresses
+// query a specific delegation made from a delegator (e.g. bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg) to a validator (e.g. bitsongvaloper1n5pepvmgsfd3p2tqqgvt505jvymmstf6s9gw27) given their addresses
 bitsongcli query staking delegation <delegatorAddress> <validatorAddress>
 
-// query the rewards of a delegator given a delegator address (e.g. cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
+// query the rewards of a delegator given a delegator address (e.g. bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
 bitsongcli query distr rewards <delegatorAddress> 
 
 // query all proposals currently open for depositing
@@ -337,12 +326,12 @@ For each command, you can use the `-h` or `--help` flag to get more information.
 ## Sending Transactions
 
 ::: warning
-On Cosmos Hub mainnet, the accepted denom is `uatom`, where `1atom = 1,000,000uatom`
+On BitSong testnet, the accepted denom is `ubtsg`, where `1btsg = 1,000,000ubtsg`
 :::
 
 ### A Note on Gas and Fees
 
-Transactions on the Cosmos Hub network need to include a transaction fee in order to be processed. This fee pays for the gas required to run the transaction. The formula is the following:
+Transactions on the BitSong network need to include a transaction fee in order to be processed. This fee pays for the gas required to run the transaction. The formula is the following:
 
 ```
 fees = ceil(gas * gasPrices)
@@ -355,13 +344,13 @@ The `gasPrice` is the price of each unit of `gas`. Each validator sets a `min-ga
 The transaction `fees` are the product of `gas` and `gasPrice`. As a user, you have to input 2 out of 3. The higher the `gasPrice`/`fees`, the higher the chance that your transaction will get included in a block. 
 
 ::: tip
-For mainnet, the recommended `gas-prices` is `0.025uatom`. 
+For testnet, the recommended `gas-prices` is `0.025ubtsg`. 
 ::: 
 
 ### Sending Tokens
 
 ::: tip
-**Before you can bond atoms and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli) and [create an account](#creating-an-account)**
+**Before you can bond btsg and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli) and [create an account](#creating-an-account)**
 :::
 
 ::: warning
@@ -370,20 +359,16 @@ For mainnet, the recommended `gas-prices` is `0.025uatom`.
 
 ```bash
 // Send a certain amount of tokens to an address
-// Ex value for parameters (do not actually use these values in your tx!!): <to_address>=cosmos16m93fezfiezhvnjajzrfyszml8qm92a0w67ntjhd3d0 <amount>=1000000uatom 
-// Ex value for flags: <gasPrice>=0.025uatom
+// Ex value for parameters (do not actually use these values in your tx!!): <to_address>=bitsong16m93fezfiezhvnjajzrfyszml8qm92a0w67ntjhd3d0 <amount>=1000000ubtsg 
+// Ex value for flags: <gasPrice>=0.025ubtsg
 
 bitsongcli tx send <to_address> <amount> --from <yourKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 ```
 
-### Bonding Atoms and Withdrawing Rewards
+### Bonding BitSong and Withdrawing Rewards
 
 ::: tip
-**Before you can bond atoms and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli) and [create an account](#creating-an-account)**
-:::
-
-::: warning
-**Before bonding Atoms, please read the [delegator faq](https://cosmos.network/resources/delegators) to understand the risk and responsibilities involved with delegating**
+**Before you can bond btsg and withdraw rewards, you need to [set up `bitsongcli`](#setting-up-bitsongcli) and [create an account](#creating-an-account)**
 :::
 
 ::: warning
@@ -391,29 +376,29 @@ bitsongcli tx send <to_address> <amount> --from <yourKeyName> --gas auto --gas-a
 ::: 
 
 ```bash
-// Bond a certain amount of Atoms to a given validator
-// ex value for flags: <validatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToBound>=10000000uatom, <gasPrice>=0.025uatom
+// Bond a certain amount of BTSG to a given validator
+// ex value for flags: <validatorAddress>=bitsongsvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToBound>=10000000ubtsg, <gasPrice>=0.025ubtsg
 
 bitsongcli tx staking delegate <validatorAddress> <amountToBond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 
-// Redelegate a certain amount of Atoms from a validator to another
+// Redelegate a certain amount of BTSG from a validator to another
 // Can only be used if already bonded to a validator
 // Redelegation takes effect immediately, there is no waiting period to redelegate
 // After a redelegation, no other redelegation can be made from the account for the next 3 weeks
-// ex value for flags: <stcValidatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToRedelegate>=100000000uatom, <gasPrice>=0.025uatom
+// ex value for flags: <stcValidatorAddress>=bitsongvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToRedelegate>=100000000ubtsg, <gasPrice>=0.025ubtsg
 
 bitsongcli tx staking redelegate <srcValidatorAddress> <destValidatorAddress> <amountToRedelegate> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 // Withdraw all rewards
-// ex value for flag: <gasPrice>=0.025uatom
+// ex value for flag: <gasPrice>=0.025ubtsg
 
 bitsongcli tx distr withdraw-all-rewards --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 
-// Unbond a certain amount of Atoms from a given validator 
-// You will have to wait 3 weeks before your Atoms are fully unbonded and transferrable 
-// ex value for flags: <validatorAddress>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToUnbound>=10000000uatom, <gasPrice>=0.025uatom
+// Unbond a certain amount of BTSG from a given validator 
+// You will have to wait 3 weeks (3 hour for testnet) before your BTSG are fully unbonded and transferrable 
+// ex value for flags: <validatorAddress>=bitsongvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <amountToUnbound>=10000000ubtsg, <gasPrice>=0.025ubtsg
 
 bitsongcli tx staking unbond <validatorAddress> <amountToUnbond> --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 ```
@@ -443,22 +428,24 @@ Double check with a block explorer if you interact with the network through a tr
 
 #### Primer on Governance
 
-The Cosmos Hub has a built-in governance system that lets bonded Atom holders vote on proposals. There are three types of proposal:
+The BitSong Network has a built-in governance system that lets bonded BTSG holders vote on proposals. There are three types of proposal:
 
 - `Text Proposals`: These are the most basic type of proposals. They can be used to get the opinion of the network on a given topic. 
 - `Parameter Proposals`: These are used to update the value of an existing parameter.
-- `Software Upgrade Proposal`: These are used to propose an upgrade of the Hub's software.
+- `Software Upgrade Proposal`: These are used to propose an upgrade of the BitSong Network software.
+- `Artist Verify`: Proposal to verify an artist
+- `Song Listing`: Proposal to list a new song on bitsong client
 
-Any Atom holder can submit a proposal. In order for the proposal to be open for voting, it needs to come with a `deposit` that is greater than a parameter called `minDeposit`. The `deposit` need not be provided in its entirety by the submitter. If the initial proposer's `deposit` is not sufficient, the proposal enters the `deposit_period` status. Then, any Atom holder can increase the deposit by sending a `depositTx`. 
+Any BTSG holder can submit a proposal. In order for the proposal to be open for voting, it needs to come with a `deposit` that is greater than a parameter called `minDeposit`. The `deposit` need not be provided in its entirety by the submitter. If the initial proposer's `deposit` is not sufficient, the proposal enters the `deposit_period` status. Then, any BTSG holder can increase the deposit by sending a `depositTx`. 
 
-Once the `deposit` reaches `minDeposit`, the proposal enters the `voting_period`, which lasts 2 weeks. Any **bonded** Atom holder can then cast a vote on this proposal. The options are `Yes`, `No`, `NoWithVeto` and `Abstain`. The weight of the vote is based on the amount of bonded Atoms of the sender. If they don't vote, delegator inherit the vote of their validator. However, delegators can override their validator's vote by sending a vote themselves. 
+Once the `deposit` reaches `minDeposit`, the proposal enters the `voting_period`, which lasts 2 weeks. Any **bonded** BTSG holder can then cast a vote on this proposal. The options are `Yes`, `No`, `NoWithVeto` and `Abstain`. The weight of the vote is based on the amount of bonded BTSG of the sender. If they don't vote, delegator inherit the vote of their validator. However, delegators can override their validator's vote by sending a vote themselves. 
 
 At the end of the voting period, the proposal is accepted if there are more than 50% `Yes` votes (excluding `Abstain ` votes) and less than 33.33% of `NoWithVeto` votes (excluding `Abstain` votes).
 
 #### In Practice
 
 ::: tip
-**Before you can bond atoms and withdraw rewards, you need to [bond Atoms](#bonding-atoms-and-withdrawing-rewards)**
+**Before you can bond btsg and withdraw rewards, you need to [bond BTSG](#bonding-btsg-and-withdrawing-rewards)**
 :::
 
 ::: warning
@@ -474,7 +461,7 @@ bitsongcli tx gov submit-proposal --title "Test Proposal" --description "My awes
 
 // Increase deposit of a proposal
 // Retrieve proposalID from $bitsongcli query gov proposals --status deposit_period
-// ex value for parameter: <deposit>=10000000uatom
+// ex value for parameter: <deposit>=10000000ubtsg
 
 bitsongcli tx gov deposit <proposalID> <deposit> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --from <delegatorKeyName>
 
@@ -490,18 +477,18 @@ bitsongcli tx gov vote <proposalID> <option> --gas auto --gas-adjustment 1.5 --g
 If you do not have a ledger device and want to interact with your private key on an offline computer, you can use the following procedure. First, generate an unsigned transaction on an **online computer** with the following command (example with a bonding transaction):
 
 ```bash
-// Bond Atoms 
-// ex value for flags: <amountToBound>=10000000uatom, <bech32AddressOfValidator>=cosmosvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <gasPrice>=0.025uatom, <delegatorAddress>=cosmos10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg
+// Bond BTSG 
+// ex value for flags: <amountToBound>=10000000ubtsg, <bech32AddressOfValidator>=bitsongvaloper18thamkhnj9wz8pa4nhnp9rldprgant57pk2m8s, <gasPrice>=0.025ubtsg, <delegatorAddress>=bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg
 
 bitsongcli tx staking delegate <validatorAddress> <amountToBond> --from <delegatorAddress> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice> --generate-only > unsignedTX.json
 ```
 
 In order to sign, you will also need the `chain-id`, `account-number` and `sequence`. The `chain-id` is a unique identifier for the blockchain on which you are submitting the transaction. The `account-number` is an identifier generated when your account first receives funds. The `sequence` number is used to keep track of the number of transactions you have sent and prevent replay attacks.
 
-Get the chain-id from the genesis file (`cosmoshub-2`), and the two other fields using the account query:
+Get the chain-id from the genesis file (`bitsong-testnet-1`), and the two other fields using the account query:
 
 ```bash
-bitsongcli query account <yourAddress> --chain-id cosmoshub-2
+bitsongcli query account <yourAddress> --chain-id bitsong-testnet-1
 ```
 
 Then, copy `unsignedTx.json` and transfer it (e.g. via USB) to the offline computer. If it is not done already, [create an account on the offline computer](#using-a-computer). For additional security, you can double check the parameters of your transaction before signing it using the following command:
@@ -513,7 +500,7 @@ cat unsignedTx.json
 Now, sign the transaction using the following command. You will need the `chain-id`, `sequence` and `account-number` obtained earlier:
 
 ```bash
-bitsongcli tx sign unsignedTx.json --from <delegatorKeyName> --offline --chain-id cosmoshub-2 --sequence <sequence> --account-number <account-number> > signedTx.json
+bitsongcli tx sign unsignedTx.json --from <delegatorKeyName> --offline --chain-id bitsong-testnet-1 --sequence <sequence> --account-number <account-number> > signedTx.json
 ```
 
 Copy `signedTx.json` and transfer it back to the online computer. Finally, use the following command to broadcast the transaction:

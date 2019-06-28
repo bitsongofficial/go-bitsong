@@ -4,7 +4,6 @@ See the [Tendermint specification](https://github.com/tendermint/tendermint/blob
 
 See `bitsongcli keys --help`.
 
-Also see the [testnet
-tutorial](./join-testnet).
+Also see the [testnet tutorial](./join-testnet).
 
 TODO: cleanup the UX and document this properly

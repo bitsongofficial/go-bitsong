@@ -1,11 +1,11 @@
-# Gaia Genesis State
+# Go-BitSong Genesis State
 
-Gaia genesis state, `GenesisState`, is composed of accounts, various module
+Go-BitSong genesis state, `GenesisState`, is composed of accounts, various module
 states and metadata such as genesis transactions. Each module may specify its
 own `GenesisState`. In addition, each module may specify its own genesis state
 validation, import and export functionality.
 
-The Gaia genesis state is defined as follows:
+The Go-BitSong genesis state is defined as follows:
 
 ```go
 type GenesisState struct {
@@ -21,7 +21,7 @@ type GenesisState struct {
 }
 ```
 
-In the ABCI `initChainer` definition of Gaia the `initFromGenesisState` is called
+In the ABCI `initChainer` definition of Go-BitSong the `initFromGenesisState` is called
 which internally calls each module's `InitGenesis` providing its own respective
 `GenesisState` as a parameter.
 
