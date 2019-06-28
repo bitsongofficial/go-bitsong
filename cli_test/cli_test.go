@@ -30,7 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 )
 
-func TestGaiaCLIKeysAddMultisig(t *testing.T) {
+func TestbitsongcliKeysAddMultisig(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -53,7 +53,7 @@ func TestGaiaCLIKeysAddMultisig(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIKeysAddRecover(t *testing.T) {
+func TestbitsongcliKeysAddRecover(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -68,7 +68,7 @@ func TestGaiaCLIKeysAddRecover(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIKeysAddRecoverHDPath(t *testing.T) {
+func TestbitsongcliKeysAddRecoverHDPath(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -88,11 +88,11 @@ func TestGaiaCLIKeysAddRecoverHDPath(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIMinimumFees(t *testing.T) {
+func TestbitsongcliMinimumFees(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	fees := fmt.Sprintf(
 		"--minimum-gas-prices=%s,%s",
@@ -124,11 +124,11 @@ func TestGaiaCLIMinimumFees(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIGasPrices(t *testing.T) {
+func TestbitsongcliGasPrices(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	proc := f.GDStart(fmt.Sprintf("--minimum-gas-prices=%s", sdk.NewDecCoinFromDec(feeDenom, minGasPrice)))
 	defer proc.Stop(false)
@@ -157,11 +157,11 @@ func TestGaiaCLIGasPrices(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIFeesDeduction(t *testing.T) {
+func TestbitsongcliFeesDeduction(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	minGasPrice, _ := sdk.NewDecFromStr("0.000006")
 	proc := f.GDStart(fmt.Sprintf("--minimum-gas-prices=%s", sdk.NewDecCoinFromDec(feeDenom, minGasPrice)))
 	defer proc.Stop(false)
@@ -209,11 +209,11 @@ func TestGaiaCLIFeesDeduction(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLISend(t *testing.T) {
+func TestbitsongcliSend(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -278,11 +278,11 @@ func TestGaiaCLISend(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIGasAuto(t *testing.T) {
+func TestbitsongcliGasAuto(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -336,11 +336,11 @@ func TestGaiaCLIGasAuto(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLICreateValidator(t *testing.T) {
+func TestbitsongcliCreateValidator(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -409,7 +409,7 @@ func TestGaiaCLICreateValidator(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIQueryRewards(t *testing.T) {
+func TestbitsongcliQueryRewards(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 	cdc := app.MakeCodec()
@@ -425,13 +425,13 @@ func TestGaiaCLIQueryRewards(t *testing.T) {
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
-	genFile := filepath.Join(f.GaiadHome, "config", "genesis.json")
+	genFile := filepath.Join(f.bitsongdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
 	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
 	require.NoError(t, genDoc.SaveAs(genFile))
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -442,11 +442,11 @@ func TestGaiaCLIQueryRewards(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLISubmitProposal(t *testing.T) {
+func TestbitsongcliSubmitProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -586,7 +586,7 @@ func TestGaiaCLISubmitProposal(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLISubmitParamChangeProposal(t *testing.T) {
+func TestbitsongcliSubmitParamChangeProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -650,7 +650,7 @@ func TestGaiaCLISubmitParamChangeProposal(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
+func TestbitsongcliSubmitCommunityPoolSpendProposal(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
@@ -667,7 +667,7 @@ func TestGaiaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
 
-	genFile := filepath.Join(f.GaiadHome, "config", "genesis.json")
+	genFile := filepath.Join(f.bitsongdHome, "config", "genesis.json")
 	genDoc, err := tmtypes.GenesisDocFromFile(genFile)
 	require.NoError(t, err)
 	genDoc.AppState, err = cdc.MarshalJSON(genesisState)
@@ -734,11 +734,11 @@ func TestGaiaCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIQueryTxPagination(t *testing.T) {
+func TestbitsongcliQueryTxPagination(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -787,11 +787,11 @@ func TestGaiaCLIQueryTxPagination(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIValidateSignatures(t *testing.T) {
+func TestbitsongcliValidateSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -837,11 +837,11 @@ func TestGaiaCLIValidateSignatures(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLISendGenerateSignAndBroadcast(t *testing.T) {
+func TestbitsongcliSendGenerateSignAndBroadcast(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -921,11 +921,11 @@ func TestGaiaCLISendGenerateSignAndBroadcast(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIMultisignInsufficientCosigners(t *testing.T) {
+func TestbitsongcliMultisignInsufficientCosigners(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -973,11 +973,11 @@ func TestGaiaCLIMultisignInsufficientCosigners(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIEncode(t *testing.T) {
+func TestbitsongcliEncode(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1011,11 +1011,11 @@ func TestGaiaCLIEncode(t *testing.T) {
 	require.Equal(t, "deadbeef", decodedTx.Memo)
 }
 
-func TestGaiaCLIMultisignSortSignatures(t *testing.T) {
+func TestbitsongcliMultisignSortSignatures(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1076,11 +1076,11 @@ func TestGaiaCLIMultisignSortSignatures(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIMultisign(t *testing.T) {
+func TestbitsongcliMultisign(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server with minimum fees
+	// start bitsongd server with minimum fees
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1142,7 +1142,7 @@ func TestGaiaCLIMultisign(t *testing.T) {
 	f.Cleanup()
 }
 
-func TestGaiaCLIConfig(t *testing.T) {
+func TestbitsongcliConfig(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 	node := fmt.Sprintf("%s:%s", f.RPCAddr, f.Port)
@@ -1156,7 +1156,7 @@ func TestGaiaCLIConfig(t *testing.T) {
 	f.CLIConfig("trace", "false")
 	f.CLIConfig("indent", "true")
 
-	config, err := ioutil.ReadFile(path.Join(f.GaiacliHome, "config", "config.toml"))
+	config, err := ioutil.ReadFile(path.Join(f.bitsongcliHome, "config", "config.toml"))
 	require.NoError(t, err)
 	expectedConfig := fmt.Sprintf(`broadcast-mode = "block"
 chain-id = "%s"
@@ -1171,7 +1171,7 @@ trust-node = true
 	f.Cleanup()
 }
 
-func TestGaiadCollectGentxs(t *testing.T) {
+func TestbitsongdCollectGentxs(t *testing.T) {
 	t.Parallel()
 	var customMaxBytes, customMaxGas int64 = 99999999, 1234567
 	f := NewFixtures(t)
@@ -1219,7 +1219,7 @@ func TestGaiadCollectGentxs(t *testing.T) {
 	f.Cleanup(gentxDir)
 }
 
-func TestGaiadAddGenesisAccount(t *testing.T) {
+func TestbitsongdAddGenesisAccount(t *testing.T) {
 	t.Parallel()
 	f := NewFixtures(t)
 
@@ -1266,7 +1266,7 @@ func TestSlashingGetParams(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 
@@ -1287,7 +1287,7 @@ func TestValidateGenesis(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
 
-	// start gaiad server
+	// start bitsongd server
 	proc := f.GDStart()
 	defer proc.Stop(false)
 

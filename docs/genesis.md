@@ -5,10 +5,10 @@ This document explains how the genesis file of the Cosmos Hub mainnet is structu
 Note that you can generate a default genesis file for your own testnet by running the following command:
 
 ```bash
-gaiad init <moniker> --chain-id <chain-id>
+bitsongd init <moniker> --chain-id <chain-id>
 ```
 
-The genesis file is stored in `~/.gaiad/config/genesis.toml`.
+The genesis file is stored in `~/.bitsongd/config/genesis.toml`.
 
 ## What is a Genesis File
 
@@ -68,9 +68,9 @@ The application state defines the initial state of the state-machine.
 In this section, initial allocation of tokens is defined. It is possible to add accounts manually by directly editing the genesis file, but it is also possible to use the following command:
 
 ```bash
-// Example: gaiad add-genesis-account cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000uatom
+// Example: bitsongd add-genesis-account cosmos1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z37gh3h 10000000uatom
 
-gaiad add-genesis-account <account-address> <amount><denom>
+bitsongd add-genesis-account <account-address> <amount><denom>
 ```
 
 This command creates an item in the `accounts` list, under the `app_state` section.
@@ -326,7 +326,7 @@ By default, the genesis file do not contain any `gentxs`. A `gentx` is a transac
 A `gentx` can be added manually to the genesis file, or via the following command:
 
 ```bash
-gaiad collect-gentxs
+bitsongd collect-gentxs
 ```
 
-This command will add all the `gentxs` stored in `~/.gaiad/config/gentx` to the genesis file. In order to create a genesis transaction, click [here](./validators/validator-setup.md#participate-in-genesis-as-a-validator).
+This command will add all the `gentxs` stored in `~/.bitsongd/config/gentx` to the genesis file. In order to create a genesis transaction, click [here](./validators/validator-setup.md#participate-in-genesis-as-a-validator).

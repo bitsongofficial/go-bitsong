@@ -11,8 +11,8 @@ sim-gaia-nondeterminism:
 
 sim-gaia-custom-genesis-fast:
 	@echo "Running custom genesis simulation..."
-	@echo "By default, ${HOME}/.gaiad/config/genesis.json will be used."
-	@go test -mod=readonly github.com/BitSongOfficial/go-bitsong/app -run TestFullGaiaSimulation -SimulationGenesis=${HOME}/.gaiad/config/genesis.json \
+	@echo "By default, ${HOME}/.bitsongd/config/genesis.json will be used."
+	@go test -mod=readonly github.com/BitSongOfficial/go-bitsong/app -run TestFullGaiaSimulation -SimulationGenesis=${HOME}/.bitsongd/config/genesis.json \
 		-SimulationEnabled=true -SimulationNumBlocks=100 -SimulationBlockSize=200 -SimulationCommit=true -SimulationSeed=99 -SimulationPeriod=5 -v -timeout 24h
 
 sim-gaia-fast:
@@ -29,8 +29,8 @@ sim-gaia-simulation-after-import: runsim
 
 sim-gaia-custom-genesis-multi-seed: runsim
 	@echo "Running multi-seed custom genesis simulation..."
-	@echo "By default, ${HOME}/.gaiad/config/genesis.json will be used."
-	$(GOPATH)/bin/runsim -g ${HOME}/.gaiad/config/genesis.json 400 5 TestFullGaiaSimulation
+	@echo "By default, ${HOME}/.bitsongd/config/genesis.json will be used."
+	$(GOPATH)/bin/runsim -g ${HOME}/.bitsongd/config/genesis.json 400 5 TestFullGaiaSimulation
 
 sim-gaia-multi-seed: runsim
 	@echo "Running multi-seed Gaia simulation. This may take awhile!"

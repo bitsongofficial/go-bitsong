@@ -36,7 +36,7 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:          "gaiadebug",
+	Use:          "bitsongdebug",
 	Short:        "Gaia debug tool",
 	SilenceUsage: true,
 }

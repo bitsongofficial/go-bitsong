@@ -79,8 +79,8 @@ script: |
   # Configure LDFLAGS for reproducible builds
   LDFLAGS="-extldflags=-static -buildid=${VERSION} -s -w \
     -X github.com/cosmos/cosmos-sdk/version.Name=gaia \
-    -X github.com/cosmos/cosmos-sdk/version.ServerName=gaiad \
-    -X github.com/cosmos/cosmos-sdk/version.ClientName=gaiacli \
+    -X github.com/cosmos/cosmos-sdk/version.ServerName=bitsongd \
+    -X github.com/cosmos/cosmos-sdk/version.ClientName=bitsongcli \
     -X github.com/cosmos/cosmos-sdk/version.Version=${VERSION} \
     -X github.com/cosmos/cosmos-sdk/version.Commit=${COMMIT} \
     -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger"
@@ -92,7 +92,7 @@ script: |
 
     # Build gaia tool suite
     pushd ${distsrc}
-    for prog in gaiacli gaiad; do
+    for prog in bitsongcli bitsongd; do
       GOARCH=${arch} GOROOT_FINAL=${GOROOT} go build -a \
         -gcflags=all=-trimpath=${GOPATH} \
         -asmflags=all=-trimpath=${GOPATH} \

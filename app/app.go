@@ -35,11 +35,11 @@ import (
 const appName = "GaiaApp"
 
 var (
-	// default home directories for gaiacli
-	DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
+	// default home directories for bitsongcli
+	DefaultCLIHome = os.ExpandEnv("$HOME/.bitsongcli")
 
-	// default home directories for gaiad
-	DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
+	// default home directories for bitsongd
+	DefaultNodeHome = os.ExpandEnv("$HOME/.bitsongd")
 
 	// The ModuleBasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration

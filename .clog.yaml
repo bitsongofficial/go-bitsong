@@ -5,6 +5,6 @@ sections:
   bugfixes: Bugfixes
 
 tags:
-  - gaiad
-  - gaiacli
+  - bitsongd
+  - bitsongcli
   - rest

@@ -5,8 +5,8 @@ RUN apk update && \
     apk upgrade && \
     apk --no-cache add curl jq file
 
-VOLUME [ /gaiad ]
-WORKDIR /gaiad
+VOLUME [ /bitsongd ]
+WORKDIR /bitsongd
 EXPOSE 26656 26657
 ENTRYPOINT ["/usr/bin/wrapper.sh"]
 CMD ["start"]

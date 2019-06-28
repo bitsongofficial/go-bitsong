@@ -1,6 +1,6 @@
 ## Install Gaia
 
-This guide will explain how to install the `gaiad` and `gaiacli` entrypoints onto your system. With these installed on a server, you can participate in the mainnet as either a [Full Node](./join-mainnet.md) or a [Validator](./validators/validator-setup.md).
+This guide will explain how to install the `bitsongd` and `bitsongcli` entrypoints onto your system. With these installed on a server, you can participate in the mainnet as either a [Full Node](./join-mainnet.md) or a [Validator](./validators/validator-setup.md).
 
 ### Install Go
 
@@ -30,14 +30,14 @@ cd gaia && make install
 
 > _NOTE_: If you have issues at this step, please check that you have the latest stable version of GO installed.
 
-That will install the `gaiad` and `gaiacli` binaries. Verify that everything is OK:
+That will install the `bitsongd` and `bitsongcli` binaries. Verify that everything is OK:
 
 ```bash
-$ gaiad version --long
-$ gaiacli version --long
+$ bitsongd version --long
+$ bitsongcli version --long
 ```
 
-`gaiacli` for instance should output something similar to:
+`bitsongcli` for instance should output something similar to:
 
 ```
 cosmos-sdk: 0.33.0

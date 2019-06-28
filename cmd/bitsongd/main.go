@@ -27,7 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )
 
-// gaiad custom flags
+// bitsongd custom flags
 const flagInvCheckPeriod = "inv-check-period"
 
 var invCheckPeriod uint
@@ -44,7 +44,7 @@ func main() {
 	ctx := server.NewDefaultContext()
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
-		Use:               "gaiad",
+		Use:               "bitsongd",
 		Short:             "Gaia Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}

@@ -1,7 +1,7 @@
 # Simple usage with a mounted data directory:
 # > docker build -t gaia .
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaiad:/root/.gaiad -v ~/.gaiacli:/root/.gaiacli gaia gaiad init
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.gaiad:/root/.gaiad -v ~/.gaiacli:/root/.gaiacli gaia gaiad start
+# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli gaia bitsongd init
+# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.bitsongd:/root/.bitsongd -v ~/.bitsongcli:/root/.bitsongcli gaia bitsongd start
 FROM golang:alpine AS build-env
 
 # Set up dependencies
@@ -26,8 +26,8 @@ RUN apk add --update ca-certificates
 WORKDIR /root
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/bin/gaiad /usr/bin/gaiad
-COPY --from=build-env /go/bin/gaiacli /usr/bin/gaiacli
+COPY --from=build-env /go/bin/bitsongd /usr/bin/bitsongd
+COPY --from=build-env /go/bin/bitsongcli /usr/bin/bitsongcli
 
-# Run gaiad by default, omit entrypoint to ease using container with gaiacli
-CMD ["gaiad"]
+# Run bitsongd by default, omit entrypoint to ease using container with bitsongcli
+CMD ["bitsongd"]

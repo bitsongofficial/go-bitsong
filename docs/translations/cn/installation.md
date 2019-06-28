@@ -1,6 +1,6 @@
 ## 安装Gaia
 
-本教程将详细说明如何在你的系统上安装`gaiad`和`gaiacli`。安装后，你可以作为[全节点](./join-mainnet.md)或是[验证人节点](./validators/validator-setup.md)加入到主网。
+本教程将详细说明如何在你的系统上安装`bitsongd`和`bitsongcli`。安装后，你可以作为[全节点](./join-mainnet.md)或是[验证人节点](./validators/validator-setup.md)加入到主网。
 
 ### 安装Go
 
@@ -36,14 +36,14 @@ make tools install
 
 > *注意*: 如果在这一步中出现问题，请检查你是否安装的是Go的最新稳定版本。
 
-等`gaiad`和`gaiacli`可执行程序安装完之后，请检查:
+等`bitsongd`和`bitsongcli`可执行程序安装完之后，请检查:
 
 ```bash
-$ gaiad version --long
-$ gaiacli version --long
+$ bitsongd version --long
+$ bitsongcli version --long
 ```
 
-`gaiacli`的返回应该类似于：
+`bitsongcli`的返回应该类似于：
 
 ```
 cosmos-sdk: 0.33.0

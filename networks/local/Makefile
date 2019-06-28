@@ -1,7 +1,7 @@
-# Makefile for the "gaiadnode" docker image.
+# Makefile for the "bitsongdnode" docker image.
 
 all:
-	docker build --tag tendermint/gaiadnode gaiadnode
+	docker build --tag tendermint/bitsongdnode bitsongdnode
 
 .PHONY: all
 
