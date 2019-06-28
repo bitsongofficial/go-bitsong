@@ -1,4 +1,4 @@
-# BitSong Blockchain Documentation
+# Introduction
 
 Welcome to the documentation of the **BitSong Blockchain**.
 
