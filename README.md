@@ -1,6 +1,6 @@
 <p align="center" background="black"><img src="bitsong-logo.png" width="398"></p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
+[![License: APACHE](https://img.shields.io/badge/License-APACHE-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
 **BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus algorithm and the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Please make sure you study these projects as well if you are not already familiar.
 
@@ -11,29 +11,6 @@ On the **BitSong** platform you (artist) will be able to produce songs in which 
 **Artists** need no longer to wait several months before a record label sends various reports, they can check the progress in real time directly within the Wallet.
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
-
-**TODO**
-- [x] ~~Tendermint/ABCI~~
-- [x] ~~Cosmos-SDK integration~~
-- [x] ~~Token BTSG (1btsg = 100000000ubtsg)~~
-- [x] ~~Auth module~~
-- [x] ~~Bank module~~
-- [x] ~~Crisis module~~
-- [x] ~~Params module~~
-- [x] ~~Slashing module~~
-- [x] ~~Staking module~~
-- [x] ~~Minting module~~
-- [ ] Governance module
-- [ ] Proposal module
-- [ ] Params managed by our validator
-- [ ] Community pool
-- [ ] Terraform / ansible
-- [ ] Terraform / ansible for AWS
-- [ ] Terraform / ansible for DO
-- [ ] Song store
-- [ ] Song listing by proposal and voted by our validator
-- [ ] Artist store
-- [ ] Playlist store
 
 **Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
 
