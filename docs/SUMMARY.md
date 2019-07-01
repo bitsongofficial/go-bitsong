@@ -24,7 +24,7 @@
 * [Upgrade Node](./upgrade-node.md)
 
 ## Genesis
-* [Getting started](./genesis.md)
+* [Overview](./genesis.md)
 * [State](./genesis-state.md)
 
 * [Notes on validators](guide/validators.md)

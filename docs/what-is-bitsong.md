@@ -29,5 +29,6 @@ On the **BitSong** platform you (artist) will be able to produce songs in which 
 
 >About the Cosmos Hub: The Cosmos Hub is the first Hub to be launched in the Cosmos Network. The role of a Hub is to facilitate transfers between blockchains. If a blockchain connects to a Hub via IBC, it automatically gains access to all the other blockchains that are connected to it.
 
-
 >BitSong is a public Proof-of-Stake chain. Its staking token is called the BTSG.
+
+Next, learn how to [install BitSong](./installation.md)
