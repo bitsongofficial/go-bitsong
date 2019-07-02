@@ -122,4 +122,15 @@ Now go to BitSong's [GitHub repo](https://github.com/bitsongofficial/go-bitsong/
 
 Create a pull request for `<github-username>/go-bitsong:genesis-<your-moniker>` against the `develop` branch of the BitSong repo.
 
+1) New Pull Request
+2) Click on "compare across forks"
+
+```
+base repository: bitsongofficial/go-bitsong
+base: develop
+
+head repository: <YOUR-USERNAME>/go-bitsong
+compare: genesis-<your-moniker>
+```
+
 We’ll make sure to promptly review your PR, let you know if there are any issues, and merge it in!
