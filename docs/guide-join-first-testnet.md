@@ -30,10 +30,9 @@ sudo apt upgrade -y
 sudo apt install build-essential -y
 wget https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz
 sudo tar -xvf go1.12.5.linux-amd64.tar.gz
+sudo mv go /usr/local
 
 # Updates environmental variables to include go
-sudo mv go /usr/local`
-
 cat <<EOF>> ~/.profile export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export GO111MODULE=on
