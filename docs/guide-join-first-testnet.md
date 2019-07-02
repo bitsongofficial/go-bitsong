@@ -27,7 +27,7 @@ sudo apt update
 sudo apt upgrade -y 
 
 # Installs go
-sudo apt install build-essential -y
+sudo apt install build-essential libleveldb1v5 git unzip -y
 wget https://dl.google.com/go/go1.12.5.linux-amd64.tar.gz
 sudo tar -xvf go1.12.5.linux-amd64.tar.gz
 sudo mv go /usr/local
@@ -57,7 +57,7 @@ Next, we’ll install the software needed to run the BitSong blockchain.
 
 ```bash
 # Clone your repository
-git clone git@github.com:<YOUR-USERNAME>/go-bitsong.git
+git clone https://github.com/<YOUR-USERNAME>/go-bitsong.git
 
 # install binaries
 cd go-bitsong
@@ -101,10 +101,14 @@ Now we will submit the transaction as a PR to be included in the genesis block:
 
 ```bash
 # create a branch for your pr submission
+cd $HOME/go-bitsong
 git checkout -b genesis-<your-moniker>
 
 # check that there's only one gentx
 ls $HOME/.bitsongd/config/gentx
+
+# copy your gentx
+cp $HOME/.bitsongd/config/gentx/* $HOME/go-bitsong/testnet-1/gentx/
 
 # Add and commit your changes
 git add testnet-1/gentx/*
