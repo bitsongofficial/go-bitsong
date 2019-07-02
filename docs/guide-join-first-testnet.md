@@ -56,7 +56,7 @@ Next, we’ll install the software needed to run the BitSong blockchain.
 2) Head over to [GitHub](https://github.com/bitsongofficial/go-bitsong) and click “Fork.”
 
 ```bash
-# Clone our repository
+# Clone your repository
 git clone git@github.com:<YOUR-USERNAME>/go-bitsong.git
 
 # install binaries
@@ -69,7 +69,7 @@ Now, we’ll setup the `bitsongd` software to run the current BitSong testnet:
 ```bash
 # Replace <your-moniker> with the publicly viewable name for your validator.
 # bitsong-testnet-1 is the name of the current testnet
-bitsongd init --chain-id bitsong-testnet-1 `<your-moniker>`
+bitsongd init --chain-id bitsong-testnet-1 <your-moniker>
 ```
 
 **Note:** `bitsongd init` sets the `node-id` of your validator. You can see this value by doing `bitsongd tendermint show-node-id`. The `node-id`value will become part of your genesis transaction, so if you are planning on submitting a genesis transaction, don’t reset your `node-id` by doing `bitsongd unsafe-reset-all` or changing your public IP address.
