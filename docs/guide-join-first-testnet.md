@@ -34,7 +34,6 @@ sudo mv go /usr/local
 
 # Updates environmental variables to include go
 cat <<EOF >> ~/.profile
-export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export GO111MODULE=on
 export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
@@ -189,7 +188,7 @@ To view the logs
 # Standard output of bitsongd
 tail -f /var/log/bitsongd/bitsongd.log
 
-# Standard error of kvd
+# Standard error of bitsongd
 tail -f /var/log/bitsongd/bitsongd_error.log
 ```
 
