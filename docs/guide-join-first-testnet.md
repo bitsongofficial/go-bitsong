@@ -69,7 +69,7 @@ Now, we’ll setup the `bitsongd` software to run the current BitSong testnet:
 ```bash
 # Replace <your-moniker> with the publicly viewable name for your validator.
 # bitsong-testnet-1 is the name of the current testnet
-kvd init --chain-id bitsong-testnet-1 `<your-moniker>`
+bitsongd init --chain-id bitsong-testnet-1 `<your-moniker>`
 ```
 
 **Note:** `bitsongd init` sets the `node-id` of your validator. You can see this value by doing `bitsongd tendermint show-node-id`. The `node-id`value will become part of your genesis transaction, so if you are planning on submitting a genesis transaction, don’t reset your `node-id` by doing `bitsongd unsafe-reset-all` or changing your public IP address.
@@ -114,7 +114,7 @@ git commit -m "feat: gentx for <your-moniker>"
 git push -u origin genesis-<your-moniker>
 ```
 
-Now go to Kava’s [GitHub repo](https://github.com/bitsongofficial/go-bitsong/pulls) and select **New Pull Request**
+Now go to BitSong's [GitHub repo](https://github.com/bitsongofficial/go-bitsong/pulls) and select **New Pull Request**
 
 Create a pull request for `<github-username>/go-bitsong:genesis-<your-moniker>` against the `develop` branch of the BitSong repo.
 
