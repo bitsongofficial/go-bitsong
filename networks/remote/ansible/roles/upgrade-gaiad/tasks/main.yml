@@ -1,0 +1,29 @@
+---
+
+- name: Copy binary
+  copy:
+    src: "{{BINARY}}"
+    dest: /usr/bin/bitsongd
+    mode: 0755
+  notify: restart bitsongd
+
+- name: Copy new genesis.json file, if available
+  when: "GENESISFILE is defined and GENESISFILE != ''" 
+  copy:
+    src: "{{GENESISFILE}}"
+    dest: /home/bitsongd/.bitsongd/config/genesis.json
+  notify: restart bitsongd
+
+- name: Download genesis.json URL, if available
+  when: "GENESISURL is defined and GENESISURL != ''"
+  get_url:
+    url: "{{GENESISURL}}"
+    dest: /home/bitsongd/.bitsongd/config/genesis.json
+    force: yes
+  notify: restart bitsongd
+
+- name: Reset network
+  when: UNSAFE_RESET_ALL | default(false) | bool
+  command: "sudo -u bitsongd bitsongd unsafe-reset-all"
+  notify: restart bitsongd
+

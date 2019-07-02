@@ -1,51 +1,85 @@
 package app
 
 import (
-	//"encoding/json"
-	"fmt"
 	"io"
 	"os"
-	"sort"
 
-	"github.com/BitSongOfficial/go-bitsong/types"
-
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
+	"github.com/tendermint/tendermint/libs/log"
 
+	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/BitSongOfficial/go-bitsong/x/artist"
+	"github.com/BitSongOfficial/go-bitsong/x/song"
 )
 
-const (
-	appName = "BitSongBlockchain"
-	// DefaultKeyPass contains the default key password for genesis transactions
-	DefaultKeyPass = "123456789"
-)
-
+const appName = "GaiaApp"
 
 var (
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.bitsongcli")
+	// default home directories for bitsongcli
+	DefaultCLIHome = os.ExpandEnv("$HOME/.bitsongcli")
+
+	// default home directories for bitsongd
 	DefaultNodeHome = os.ExpandEnv("$HOME/.bitsongd")
+
+	// The ModuleBasicManager is in charge of setting up basic,
+	// non-dependant module elements, such as codec registration
+	// and genesis verification.
+	ModuleBasics module.BasicManager
 )
 
-// BitSongBlockchain contains ABCI application
-type BitSongBlockchain struct {
+func init() {
+	ModuleBasics = module.NewBasicManager(
+		genaccounts.AppModuleBasic{},
+		genutil.AppModuleBasic{},
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distrclient.ProposalHandler),
+		params.AppModuleBasic{},
+		crisis.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		song.AppModule{},
+		artist.AppModule{},
+	)
+}
+
+// custom tx codec
+func MakeCodec() *codec.Codec {
+	var cdc = codec.New()
+	ModuleBasics.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	return cdc
+}
+
+// Extended ABCI application
+type GaiaApp struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
-	assertInvariantsBlockly bool
+	invCheckPeriod uint
 
 	// keys to access the substores
 	keyMain          *sdk.KVStoreKey
@@ -56,11 +90,14 @@ type BitSongBlockchain struct {
 	keyMint          *sdk.KVStoreKey
 	keyDistr         *sdk.KVStoreKey
 	tkeyDistr        *sdk.TransientStoreKey
+	keySong          *sdk.KVStoreKey
+	keyArtist        *sdk.KVStoreKey
+	keyGov           *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
 	keyParams        *sdk.KVStoreKey
 	tkeyParams       *sdk.TransientStoreKey
 
-	// Manage getting and setting accounts
+	// keepers
 	accountKeeper       auth.AccountKeeper
 	feeCollectionKeeper auth.FeeCollectionKeeper
 	bankKeeper          bank.Keeper
@@ -68,135 +105,134 @@ type BitSongBlockchain struct {
 	slashingKeeper      slashing.Keeper
 	mintKeeper          mint.Keeper
 	distrKeeper         distr.Keeper
+	govKeeper           gov.Keeper
 	crisisKeeper        crisis.Keeper
 	paramsKeeper        params.Keeper
+	songKeeper          song.Keeper
+	artistKeeper        artist.Keeper
+
+	// the module manager
+	mm *module.Manager
 }
 
-// NewBitSongBlockchain returns a reference to an initialized BitSongBlockchain.
-func NewBitSongBlockchain(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest, assertInvariantsBlockly bool, baseAppOptions ...func(*bam.BaseApp)) *BitSongBlockchain {
-	
-	// First define the top level codec that will be shared by the different modules
+// NewGaiaApp returns a reference to an initialized GaiaApp.
+func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *GaiaApp {
+
 	cdc := MakeCodec()
 
-	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
+	bApp.SetAppVersion(version.Version)
 
-	// Here you initialize your application with the store keys it requires
-	var app = &BitSongBlockchain{
-		BaseApp:                 bApp,
-		cdc:                     cdc,
-		assertInvariantsBlockly: assertInvariantsBlockly,
-		keyMain:                 sdk.NewKVStoreKey(bam.MainStoreKey),
-		keyAccount:              sdk.NewKVStoreKey(auth.StoreKey),
-		keyStaking:              sdk.NewKVStoreKey(staking.StoreKey),
-		tkeyStaking:             sdk.NewTransientStoreKey(staking.TStoreKey),
-		keyMint:          		 sdk.NewKVStoreKey(mint.StoreKey),
-		keyDistr:                sdk.NewKVStoreKey(distr.StoreKey),
-		tkeyDistr:               sdk.NewTransientStoreKey(distr.TStoreKey),
-		keySlashing:             sdk.NewKVStoreKey(slashing.StoreKey),
-		keyFeeCollection:        sdk.NewKVStoreKey(auth.FeeStoreKey),
-		keyParams:               sdk.NewKVStoreKey(params.StoreKey),
-		tkeyParams:              sdk.NewTransientStoreKey(params.TStoreKey),
+	var app = &GaiaApp{
+		BaseApp:          bApp,
+		cdc:              cdc,
+		invCheckPeriod:   invCheckPeriod,
+		keyMain:          sdk.NewKVStoreKey(bam.MainStoreKey),
+		keyAccount:       sdk.NewKVStoreKey(auth.StoreKey),
+		keyStaking:       sdk.NewKVStoreKey(staking.StoreKey),
+		tkeyStaking:      sdk.NewTransientStoreKey(staking.TStoreKey),
+		keyMint:          sdk.NewKVStoreKey(mint.StoreKey),
+		keyDistr:         sdk.NewKVStoreKey(distr.StoreKey),
+		tkeyDistr:        sdk.NewTransientStoreKey(distr.TStoreKey),
+		keySong:          sdk.NewKVStoreKey(song.StoreKey),
+		keyArtist:        sdk.NewKVStoreKey(artist.StoreKey),
+		keySlashing:      sdk.NewKVStoreKey(slashing.StoreKey),
+		keyGov:           sdk.NewKVStoreKey(gov.StoreKey),
+		keyFeeCollection: sdk.NewKVStoreKey(auth.FeeStoreKey),
+		keyParams:        sdk.NewKVStoreKey(params.StoreKey),
+		tkeyParams:       sdk.NewTransientStoreKey(params.TStoreKey),
 	}
 
-	// The ParamsKeeper handles parameter storage for the application
-	app.paramsKeeper = params.NewKeeper(
-		app.cdc,
-		app.keyParams, app.tkeyParams,
-	)
+	// init params keeper and subspaces
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, params.DefaultCodespace)
+	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
+	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
+	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
+	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
+	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
+	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	// The AccountKeeper handles address -> account lookups
-	app.accountKeeper = auth.NewAccountKeeper(
-		app.cdc,
-		app.keyAccount, // target store
-		app.paramsKeeper.Subspace(auth.DefaultParamspace),
-		auth.ProtoBaseAccount, // prototype
-	)
+	// add keepers
+	app.accountKeeper = auth.NewAccountKeeper(app.cdc, app.keyAccount, authSubspace, auth.ProtoBaseAccount)
+	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace)
+	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(app.cdc, app.keyFeeCollection)
+	stakingKeeper := staking.NewKeeper(app.cdc, app.keyStaking, app.tkeyStaking, app.bankKeeper,
+		stakingSubspace, staking.DefaultCodespace)
+	app.mintKeeper = mint.NewKeeper(app.cdc, app.keyMint, mintSubspace, &stakingKeeper, app.feeCollectionKeeper)
+	app.distrKeeper = distr.NewKeeper(app.cdc, app.keyDistr, distrSubspace, app.bankKeeper, &stakingKeeper,
+		app.feeCollectionKeeper, distr.DefaultCodespace)
+	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, &stakingKeeper,
+		slashingSubspace, slashing.DefaultCodespace)
+	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.distrKeeper,
+		app.bankKeeper, app.feeCollectionKeeper)
 
-	// add handlers
-	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(
-		app.cdc,
-		app.keyFeeCollection,
-	)
-
-	app.bankKeeper = bank.NewBaseKeeper(
-		app.accountKeeper,
-		app.paramsKeeper.Subspace(bank.DefaultParamspace),
-		bank.DefaultCodespace,
-	)
-
-	stakingKeeper := staking.NewKeeper(
-		app.cdc,
-		app.keyStaking, app.tkeyStaking,
-		app.bankKeeper, app.paramsKeeper.Subspace(staking.DefaultParamspace),
-		staking.DefaultCodespace,
-	)
-
-	app.mintKeeper = mint.NewKeeper(app.cdc, app.keyMint,
-		app.paramsKeeper.Subspace(mint.DefaultParamspace),
-		&stakingKeeper, app.feeCollectionKeeper,
-	)
-
-	app.distrKeeper = distr.NewKeeper(
-		app.cdc,
-		app.keyDistr,
-		app.paramsKeeper.Subspace(distr.DefaultParamspace),
-		app.bankKeeper, &stakingKeeper, app.feeCollectionKeeper,
-		distr.DefaultCodespace,
-	)
-
-	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc,
-		app.keySlashing,
-		&stakingKeeper, app.paramsKeeper.Subspace(slashing.DefaultParamspace),
-		slashing.DefaultCodespace,
-	)
-
-	app.crisisKeeper = crisis.NewKeeper(
-		app.paramsKeeper.Subspace(crisis.DefaultParamspace),
-		app.distrKeeper,
-		app.bankKeeper,
-		app.feeCollectionKeeper,
-	)
+	// register the proposal types
+	govRouter := gov.NewRouter()
+	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.paramsKeeper, govSubspace,
+		app.bankKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter)
 
 	// register the staking hooks
-	// NOTE: The stakingKeeper above is passed by reference, so that it can be
-	// modified like below:
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
-		NewStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
 
-	// register the crisis routes
-	bank.RegisterInvariants(&app.crisisKeeper, app.accountKeeper)
-	distr.RegisterInvariants(&app.crisisKeeper, app.distrKeeper, app.stakingKeeper)
-	staking.RegisterInvariants(&app.crisisKeeper, app.stakingKeeper, app.feeCollectionKeeper, app.distrKeeper, app.accountKeeper)
-
-	// register message routes
-	app.Router().
-		//AddRoute(bank.RouterKey, pay.NewHandler(app.bankKeeper, app.feeCollectionKeeper)).
-		AddRoute(bank.RouterKey, bank.NewHandler(app.bankKeeper)).
-		AddRoute(staking.RouterKey, staking.NewHandler(app.stakingKeeper)).
-		AddRoute(distr.RouterKey, distr.NewHandler(app.distrKeeper)).
-		AddRoute(slashing.RouterKey, slashing.NewHandler(app.slashingKeeper))
-
-	app.QueryRouter().
-		AddRoute(auth.QuerierRoute, auth.NewQuerier(app.accountKeeper)).
-		AddRoute(distr.QuerierRoute, distr.NewQuerier(app.distrKeeper)).
-		AddRoute(slashing.QuerierRoute, slashing.NewQuerier(app.slashingKeeper, app.cdc)).
-		AddRoute(staking.QuerierRoute, staking.NewQuerier(app.stakingKeeper, app.cdc)).
-		AddRoute(mint.QuerierRoute, mint.NewQuerier(app.mintKeeper))
-
-	// initialize BaseApp
-	app.MountStores(
-		app.keyMain, app.keyAccount, app.keyStaking, app.keyMint, app.keyDistr,
-		app.keySlashing, app.keyFeeCollection, app.keyParams,
-		app.tkeyParams, app.tkeyStaking, app.tkeyDistr,
+	app.songKeeper = song.NewKeeper(
+		app.keySong,
+		app.cdc,
 	)
 
-	// The initChainer handles translating the genesis.json file into initial state for the network
-	app.SetInitChainer(app.initChainer)
+	app.artistKeeper = artist.NewKeeper(
+		app.keyArtist,
+		app.cdc,
+	)
+
+	app.mm = module.NewManager(
+		genaccounts.NewAppModule(app.accountKeeper),
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		auth.NewAppModule(app.accountKeeper, app.feeCollectionKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		crisis.NewAppModule(app.crisisKeeper, app.Logger()),
+		distr.NewAppModule(app.distrKeeper),
+		song.NewAppModule(app.songKeeper),
+		artist.NewAppModule(app.artistKeeper),
+		gov.NewAppModule(app.govKeeper),
+		mint.NewAppModule(app.mintKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.feeCollectionKeeper, app.distrKeeper, app.accountKeeper),
+	)
+
+	// During begin block slashing happens after distr.BeginBlocker so that
+	// there is nothing left over in the validator fee pool, so as to keep the
+	// CanWithdrawInvariant invariant.
+	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
+
+	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName)
+
+	// genutils must occur after staking so that pools are properly
+	// initialized with tokens from genesis accounts.
+	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, distr.ModuleName,
+		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
+		gov.ModuleName, mint.ModuleName, crisis.ModuleName, song.ModuleName, artist.ModuleName, genutil.ModuleName)
+
+	app.mm.RegisterInvariants(&app.crisisKeeper)
+	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
+
+	// initialize stores
+	app.MountStores(app.keyMain, app.keyAccount, app.keyStaking, app.keyMint,
+		app.keyDistr, app.keySlashing, app.keyGov, app.keyFeeCollection,
+		app.keyParams, app.tkeyParams, app.keySong, app.keyArtist, app.tkeyStaking, app.tkeyDistr)
+
+	// initialize BaseApp
+	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper))
+	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.feeCollectionKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
@@ -205,220 +241,27 @@ func NewBitSongBlockchain(logger log.Logger, db dbm.DB, traceStore io.Writer, lo
 			cmn.Exit(err.Error())
 		}
 	}
-
 	return app
 }
 
-// MakeCodec builds a custom tx codec
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-	bank.RegisterCodec(cdc)
-	staking.RegisterCodec(cdc)
-	distr.RegisterCodec(cdc)
-	slashing.RegisterCodec(cdc)
-	auth.RegisterCodec(cdc)
-	types.RegisterCodec(cdc)
-	crisis.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	return cdc
+// application updates every begin block
+func (app *GaiaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	return app.mm.BeginBlock(ctx, req)
 }
 
-// BeginBlocker application updates every initial block
-func (app *BitSongBlockchain) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-
-	// mint new tokens for the previous block
-	mint.BeginBlocker(ctx, app.mintKeeper)
-
-	// distribute rewards for the previous block
-	distr.BeginBlocker(ctx, req, app.distrKeeper)
-
-	// slash anyone who double signed.
-	// NOTE: This should happen after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool,
-	// so as to keep the CanWithdrawInvariant invariant.
-	// TODO: This should really happen at EndBlocker.
-	tags := slashing.BeginBlocker(ctx, req, app.slashingKeeper)
-
-	return abci.ResponseBeginBlock{
-		Tags: tags.ToKVPairs(),
-	}
+// application updates every end block
+func (app *GaiaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	return app.mm.EndBlock(ctx, req)
 }
 
-// EndBlocker application updates every end block
-func (app *BitSongBlockchain) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	validatorUpdates, tags := staking.EndBlocker(ctx, app.stakingKeeper)
-
-	return abci.ResponseEndBlock{
-		ValidatorUpdates: validatorUpdates,
-		Tags:             tags,
-	}
-}
-
-// initialize store from a genesis state
-func (app *BitSongBlockchain) initFromGenesisState(ctx sdk.Context, genesisState GenesisState) []abci.ValidatorUpdate {
-	genesisState.Sanitize()
-
-	// load the accounts
-	for _, gacc := range genesisState.Accounts {
-		acc := gacc.ToAccount()
-		acc = app.accountKeeper.NewAccount(ctx, acc) // set account number
-		app.accountKeeper.SetAccount(ctx, acc)
-	}
-
-	// initialize distribution (must happen before staking)
-	distr.InitGenesis(ctx, app.distrKeeper, genesisState.DistrData)
-
-	// load the initial staking information
-	validators, err := staking.InitGenesis(ctx, app.stakingKeeper, genesisState.StakingData)
-	if err != nil {
-		panic(err) // TODO find a way to do this w/o panics
-	}
-
-	// initialize module-specific stores
-	auth.InitGenesis(ctx, app.accountKeeper, app.feeCollectionKeeper, genesisState.AuthData)
-	bank.InitGenesis(ctx, app.bankKeeper, genesisState.BankData)
-	slashing.InitGenesis(ctx, app.slashingKeeper, genesisState.SlashingData, genesisState.StakingData.Validators.ToSDKValidators())
-	crisis.InitGenesis(ctx, app.crisisKeeper, genesisState.CrisisData)
-	mint.InitGenesis(ctx, app.mintKeeper, genesisState.MintData)
-
-	// validate genesis state
-	if err := BitSongValidateGenesisState(genesisState); err != nil {
-		panic(err) // TODO find a way to do this w/o panics
-	}
-
-	if len(genesisState.GenTxs) > 0 {
-		for _, genTx := range genesisState.GenTxs {
-			var tx auth.StdTx
-			err = app.cdc.UnmarshalJSON(genTx, &tx)
-			if err != nil {
-				panic(err)
-			}
-
-			bz := app.cdc.MustMarshalBinaryLengthPrefixed(tx)
-			res := app.BaseApp.DeliverTx(bz)
-			if !res.IsOK() {
-				panic(res.Log)
-			}
-		}
-
-		validators = app.stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-	}
-	return validators
-}
-
-// custom logic for BitSong Blockchain initialization
-func (app *BitSongBlockchain) initChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	stateJSON := req.AppStateBytes
-	// TODO is this now the whole genesis file?
-
+// application update at chain initialization
+func (app *GaiaApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
-	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
-	if err != nil {
-		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
-		// return sdk.ErrGenesisParse("").TraceCause(err, "")
-	}
-
-	validators := app.initFromGenesisState(ctx, genesisState)
-
-	// sanity check
-	if len(req.Validators) > 0 {
-		if len(req.Validators) != len(validators) {
-			panic(fmt.Errorf("len(RequestInitChain.Validators) != len(validators) (%d != %d)",
-				len(req.Validators), len(validators)))
-		}
-		sort.Sort(abci.ValidatorUpdates(req.Validators))
-		sort.Sort(abci.ValidatorUpdates(validators))
-		for i, val := range validators {
-			if !val.Equal(req.Validators[i]) {
-				panic(fmt.Errorf("validators[%d] != req.Validators[%d] ", i, i))
-			}
-		}
-	}
-
-	// assert runtime invariants
-	app.assertRuntimeInvariants()
-
-	return abci.ResponseInitChain{
-		Validators: validators,
-	}
+	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
+	return app.mm.InitGenesis(ctx, genesisState)
 }
 
-// LoadHeight loads a particular height
-func (app *BitSongBlockchain) LoadHeight(height int64) error {
+// load a particular height
+func (app *GaiaApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keyMain)
-}
-
-var _ sdk.StakingHooks = StakingHooks{}
-
-// StakingHooks contains combined distribution and slashing hooks needed for the
-// staking module.
-type StakingHooks struct {
-	dh distr.Hooks
-	sh slashing.Hooks
-}
-
-// NewStakingHooks nolint
-func NewStakingHooks(dh distr.Hooks, sh slashing.Hooks) StakingHooks {
-	return StakingHooks{dh, sh}
-}
-
-// AfterValidatorCreated nolint
-func (h StakingHooks) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {
-	h.dh.AfterValidatorCreated(ctx, valAddr)
-	h.sh.AfterValidatorCreated(ctx, valAddr)
-}
-
-// BeforeValidatorModified nolint
-func (h StakingHooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) {
-	h.dh.BeforeValidatorModified(ctx, valAddr)
-	h.sh.BeforeValidatorModified(ctx, valAddr)
-}
-
-// AfterValidatorRemoved nolint
-func (h StakingHooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	h.dh.AfterValidatorRemoved(ctx, consAddr, valAddr)
-	h.sh.AfterValidatorRemoved(ctx, consAddr, valAddr)
-}
-
-// AfterValidatorBonded nolint
-func (h StakingHooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	h.dh.AfterValidatorBonded(ctx, consAddr, valAddr)
-	h.sh.AfterValidatorBonded(ctx, consAddr, valAddr)
-}
-
-// AfterValidatorBeginUnbonding nolint
-func (h StakingHooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
-	h.dh.AfterValidatorBeginUnbonding(ctx, consAddr, valAddr)
-	h.sh.AfterValidatorBeginUnbonding(ctx, consAddr, valAddr)
-}
-
-// BeforeDelegationCreated nolint
-func (h StakingHooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	h.dh.BeforeDelegationCreated(ctx, delAddr, valAddr)
-	h.sh.BeforeDelegationCreated(ctx, delAddr, valAddr)
-}
-
-// BeforeDelegationSharesModified nolint
-func (h StakingHooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	h.dh.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-	h.sh.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-}
-
-// BeforeDelegationRemoved nolint
-func (h StakingHooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	h.dh.BeforeDelegationRemoved(ctx, delAddr, valAddr)
-	h.sh.BeforeDelegationRemoved(ctx, delAddr, valAddr)
-}
-
-// AfterDelegationModified nolint
-func (h StakingHooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
-	h.dh.AfterDelegationModified(ctx, delAddr, valAddr)
-	h.sh.AfterDelegationModified(ctx, delAddr, valAddr)
-}
-
-// BeforeValidatorSlashed nolint
-func (h StakingHooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
-	h.dh.BeforeValidatorSlashed(ctx, valAddr, fraction)
-	h.sh.BeforeValidatorSlashed(ctx, valAddr, fraction)
 }

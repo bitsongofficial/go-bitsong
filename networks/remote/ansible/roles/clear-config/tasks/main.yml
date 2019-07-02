@@ -1,0 +1,12 @@
+---
+
+- name: Stop service
+  service: name=bitsongd state=stopped
+
+- name: Delete files
+  file: "path={{item}} state=absent"
+  with_items:
+  - /usr/bin/bitsongd
+  - /home/bitsongd/.bitsongd
+  - /home/bitsongd/.bitsongcli
+

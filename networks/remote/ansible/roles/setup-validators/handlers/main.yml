@@ -1,0 +1,5 @@
+---
+
+- name: reload systemd
+  systemd: name=bitsongd enabled=yes daemon_reload=yes
+
