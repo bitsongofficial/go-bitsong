@@ -142,6 +142,9 @@ On **July 10, 2019 at 17:00 UTC**, BitSong will release the proposed genesis blo
 To start validating the testnet after the genesis has been released, run the following commands:
 
 ```bash
+# Delete the old genesis
+rm -f ~/.bitsongd/config/genesis.json
+
 # Copy the genesis file to the bitsongd directory
 wget https://raw.githubusercontent.com/bitsongofficial/go-bitsong/develop/testnet-1/genesis.json -P ~/.bitsongd/config
 
