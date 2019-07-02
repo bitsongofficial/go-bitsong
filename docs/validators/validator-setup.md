@@ -1,10 +1,6 @@
-# Run a Validator on the Cosmos Hub Mainnet
+# Run a Validator on the BitSong Network Testnet
 
-::: tip
-Information on how to join the mainnet (`genesis.json` file and seeds) is held [in our `launch` repo](https://github.com/cosmos/launch/tree/master/latest). 
-:::
-
-Before setting up your validator node, make sure you've already gone through the [Full Node Setup](../join-mainnet.md) guide.
+Before setting up your validator node, make sure you've already gone through the [Full Node Setup](../join-testnet.md) guide.
 
 If you plan to use a KMS (key management system), you should go through these steps first: [Using a KMS](kms/kms.md).
 
@@ -13,14 +9,14 @@ If you plan to use a KMS (key management system), you should go through these st
 [Validators](./overview.md) are responsible for committing new blocks to the blockchain through voting. A validator's stake is slashed if they become unavailable or sign blocks at the same height. Please read about [Sentry Node Architecture](./validator-faq.md#how-can-validators-protect-themselves-from-denial-of-service-attacks) to protect your node from DDOS attacks and to ensure high-availability.
 
 ::: danger Warning
-If you want to become a validator for the Hub's `mainnet`, you should [research security](./security.md).
+If you want to become a validator for the BitSong Network `mainnet`, you should [research security](./security.md).
 :::
 
-You may want to skip the next section if you have already [set up a full-node](../join-mainnet.md).
+You may want to skip the next section if you have already [set up a full-node](../join-testnet.md).
 
 ## Create Your Validator
 
-Your `cosmosvalconspub` can be used to create a new validator by staking tokens. You can find your validator pubkey by running:
+Your `bitsongvalconspub` can be used to create a new validator by staking tokens. You can find your validator pubkey by running:
 
 ```bash
 bitsongd tendermint show-validator
@@ -29,12 +25,12 @@ bitsongd tendermint show-validator
 To create your validator, just use the following command:
 
 ::: warning 
-Don't use more `uatom` than you have! 
+Don't use more `ubtsg` than you have! 
 :::
 
 ```bash
 bitsongcli tx staking create-validator \
-  --amount=1000000uatom \
+  --amount=10000000ubtsg \
   --pubkey=$(bitsongd tendermint show-validator) \
   --moniker="choose a moniker" \
   --chain-id=<chain_id> \
@@ -43,7 +39,7 @@ bitsongcli tx staking create-validator \
   --commission-max-change-rate="0.01" \
   --min-self-delegation="1" \
   --gas="auto" \
-  --gas-prices="0.025uatom" \
+  --gas-prices="0.025ubtsg" \
   --from=<key_name>
 ```
 
@@ -52,21 +48,17 @@ When specifying commission parameters, the `commission-max-change-rate` is used 
 :::
 
 ::: tip
-`Min-self-delegation` is a stritly positive integer that represents the minimum amount of self-delegated voting power your validator must always have. A `min-self-delegation` of 1 means your validator will never have a self-delegation lower than `1atom`, or `1000000uatom`
+`Min-self-delegation` is a stritly positive integer that represents the minimum amount of self-delegated voting power your validator must always have. A `min-self-delegation` of 1 means your validator will never have a self-delegation lower than `1btsg`, or `1000000ubtsg`
 :::
 
 You can confirm that you are in the validator set by using a third party explorer.
 
 ## Participate in Genesis as a Validator
 
-::: warning
-The genesis ceremony for the Cosmos Hub mainnet is closed. Please skip to the next section.
-:::
-
 If you want to participate in genesis as a validator, you need to justify that
 you have some stake at genesis, create one (or multiple) transactions to bond this stake to your validator address, and include this transaction in the genesis file.
 
-Your `cosmosvalconspub` can be used to create a new validator by staking tokens. You can find your validator pubkey by running:
+Your `bitsongvalconspub` can be used to create a new validator by staking tokens. You can find your validator pubkey by running:
 
 ```bash
 bitsongd tendermint show-validator
@@ -79,12 +71,12 @@ A `gentx` is a JSON file carrying a self-delegation. All genesis transactions ar
 :::
 
 ::: warning Note
-Don't use more `uatom` than you have! 
+Don't use more `ubtsg` than you have! 
 :::
 
 ```bash
 bitsongd gentx \
-  --amount <amount_of_delegation_uatom> \
+  --amount <amount_of_delegation_ubtsg> \
   --commission-rate <commission_rate> \
   --commission-max-rate <commission_max_rate> \
   --commission-max-change-rate <commission_max_change_rate> \
@@ -96,7 +88,7 @@ bitsongd gentx \
 When specifying commission parameters, the `commission-max-change-rate` is used to measure % _point_ change over the `commission-rate`. E.g. 1% to 2% is a 100% rate increase, but only 1 percentage point.
 :::
 
-You can then submit your `gentx` on the [launch repository](https://github.com/cosmos/launch). These `gentx` will be used to form the final genesis file. 
+You can then submit your `gentx` on the [networks repository](https://github.com/BitSongOfficial/networks). These `gentx` will be used to form the final genesis file. 
 
 ## Edit Validator Description
 
@@ -109,12 +101,12 @@ The `--identity` can be used as to verify identity with systems like Keybase or 
 ```bash
 bitsongcli tx staking edit-validator
   --moniker="choose a moniker" \
-  --website="https://cosmos.network" \
+  --website="https://bitsong.iok" \
   --identity=6A0D65E29A4CBC8E \
   --details="To infinity and beyond!" \
   --chain-id=<chain_id> \
   --gas="auto" \
-  --gas-prices="0.025uatom" \
+  --gas-prices="0.025ubtsg" \
   --from=<key_name> \
   --commission-rate="0.10"
 ```
@@ -131,7 +123,7 @@ __Note__: The `commission-rate` value must adhere to the following invariants:
 View the validator's information with this command:
 
 ```bash
-bitsongcli query staking validator <account_cosmos>
+bitsongcli query staking validator <account_bitsong>
 ```
 
 ## Track Validator Signing Information
@@ -161,7 +153,7 @@ Your validator is active if the following command returns anything:
 bitsongcli query tendermint-validator-set | grep "$(bitsongd tendermint show-validator)"
 ```
 
-You should now see your validator in one of the Cosmos Hub explorers. You are looking for the `bech32` encoded `address` in the `~/.bitsongd/config/priv_validator.json` file.
+You should now see your validator in one of the BitSong Network explorers. You are looking for the `bech32` encoded `address` in the `~/.bitsongd/config/priv_validator.json` file.
 
 ::: warning Note
 To be in the validator set, you need to have more total voting power than the 100th validator.
@@ -205,7 +197,7 @@ The default number of files Linux can open (per-process) is `1024`. `bitsongd` i
 ```toml
 # /etc/systemd/system/bitsongd.service
 [Unit]
-Description=Cosmos Gaia Node
+Description=BitSong Network Node
 After=network.target
 
 [Service]

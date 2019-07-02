@@ -28,12 +28,12 @@ You can find other configuration examples [here](https://github.com/tendermint/k
 # Example KMS configuration file
 [[validator]]
 addr = "tcp://localhost:26658"    # or "unix:///path/to/socket"
-chain_id = "gaia-11001"
+chain_id = "bitsong-testnet-1"
 reconnect = true # true is the default
 secret_key = "~/.tmkms/secret_connection.key"
 
 [[providers.ledgertm]]
-chain_ids = ["gaia-11001"]
+chain_ids = ["bitsong-testnet-1"]
 ```
 
 - Edit `addr` to point to your `bitsongd` instance.
@@ -64,17 +64,17 @@ The output should look similar to:
 
 ```text
 07:28:24 [INFO] tmkms 0.3.0 starting up...
-07:28:24 [INFO] [keyring:ledgertm:ledgertm] added validator key cosmosvalconspub1zcjduepqy53m39prgp9dz3nz96kaav3el5e0th8ltwcf8cpavqdvpxgr5slsd6wz6f
+07:28:24 [INFO] [keyring:ledgertm:ledgertm] added validator key bitsongvalconspub1zcjduepqy53m39prgp9dz3nz96kaav3el5e0th8ltwcf8cpavqdvpxgr5slsd6wz6f
 07:28:24 [INFO] KMS node ID: 1BC12314E2E1C29015B66017A397F170C6ECDE4A
 ```
 
 The KMS may complain that it cannot connect to bitsongd. That is fine, we will fix it in the next section.
 
-This output indicates the validator key linked to this particular device is: `cosmosvalconspub1zcjduepqy53m39prgp9dz3nz96kaav3el5e0th8ltwcf8cpavqdvpxgr5slsd6wz6f`
+This output indicates the validator key linked to this particular device is: `bitsongvalconspub1zcjduepqy53m39prgp9dz3nz96kaav3el5e0th8ltwcf8cpavqdvpxgr5slsd6wz6f`
 
 Take note of the validator pubkey that appears in your screen. *We will use it in the next section.*
 
-## Gaia configuration
+## BitSong configuration
 
 You need to enable KMS access by editing `.bitsongd/config/config.toml`. In this file, modify `priv_validator_laddr` to create a listening address/port or a unix socket in `bitsongd`.
 
