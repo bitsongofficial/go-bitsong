@@ -307,51 +307,6 @@
           ],
           "memo": "b3f2baddbc141e2f1e93ea6d884a4c4647aa943a@91.134.181.227:26656"
         }
-      },
-      {
-        "type": "auth/StdTx",
-        "value": {
-          "msg": [
-            {
-              "type": "cosmos-sdk/MsgCreateValidator",
-              "value": {
-                "description": {
-                  "moniker": "ManaComm",
-                  "identity": "",
-                  "website": "",
-                  "details": ""
-                },
-                "commission": {
-                  "rate": "0.100000000000000000",
-                  "max_rate": "0.200000000000000000",
-                  "max_change_rate": "0.010000000000000000"
-                },
-                "min_self_delegation": "1",
-                "delegator_address": "bitsong1n35ll8f7442zv24r87uqzu7dp5k5mq8cjmg838",
-                "validator_address": "bitsongvaloper1n35ll8f7442zv24r87uqzu7dp5k5mq8cnl5wp6",
-                "pubkey": "bitsongvalconspub1zcjduepqujmc9sazna6qzu9wh4vzuytpv0l8u4ljh9nj36e3ndhrmv9uthsse2e0cs",
-                "value": {
-                  "denom": "ubtsg",
-                  "amount": "100000000"
-                }
-              }
-            }
-          ],
-          "fee": {
-            "amount": [],
-            "gas": "200000"
-          },
-          "signatures": [
-            {
-              "pub_key": {
-                "type": "tendermint/PubKeySecp256k1",
-                "value": "Az52rXLKovgo3V9enAEECNrGV04zupHXHwg0clG5U/4J"
-              },
-              "signature": "/dvREdBGEgukL3B3G67Qk/VqU9BAWkWwmA4tN4jB3iNNLm3o+mUzBcwKJQ/5AsEzOOo6R8qMPN0/pO6trNH/Bg=="
-            }
-          ],
-          "memo": "b3f2baddbc141e2f1e93ea6d884a4c4647aa943a@91.134.181.227:26656"
-        }
       }
     ]
   }
