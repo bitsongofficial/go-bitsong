@@ -134,3 +134,62 @@ compare: genesis-<your-moniker>
 ```
 
 We’ll make sure to promptly review your PR, let you know if there are any issues, and merge it in!
+
+## Launching the testnet
+
+On **July 10, 2019 at 17:00 UTC**, BitSong will release the proposed genesis block. All validators are invited to review the included transactions, agree on the final genesis block, and start validating on **July 11, 2019 at 11:11 UTC.**
+
+To start validating the testnet after the genesis has been released, run the following commands:
+
+```bash
+# Copy the genesis file to the bitsongd directory
+wget https://raw.githubusercontent.com/bitsongofficial/go-bitsong/develop/testnet-1/genesis.json -P ~/.bitsongd/config
+
+# Create log files for kvd
+sudo mkdir -p /var/log/bitsongd && sudo touch /var/log/bitsongd/bitsongd.log && sudo touch /var/log/bitsongd/bitsongd_error.log
+
+# create a systemd file to run the kvd daemon
+# replace <your_user> where necessary
+sudo tee /etc/systemd/system/bitsongd.service > /dev/null <<EOF
+[Unit]
+Description=BitSong Network Daemon
+After=network-online.target
+
+[Service]
+User=<your_user>
+ExecStart=/home/<your_user>/go/bin/bitsongd start
+StandardOutput=file:/var/log/bitsongd/bitsongd.log
+StandardError=file:/var/log/bitsongd/bitsongd_error.log
+Restart=always
+RestartSec=3
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Start the node
+sudo systemctl enable bitsongd
+sudo systemctl start bitsongd
+```
+
+To check on the status of the node
+
+```bash
+bitsongcli status
+sudo journalctl -u bitsongd -f
+```
+
+To view the logs
+
+```bash
+# Standard output of bitsongd
+tail -f /var/log/bitsongd/bitsongd.log
+
+# Standard error of kvd
+tail -f /var/log/bitsongd/bitsongd_error.log
+```
+
+After the BitSong Network blockchain reaches a quorum, the testnet will be officially launched!
+
+If a quorum is not reached by 11:11 UTC on July 11, we will coordinate further communication through the BitSong validator [Discord Validator Chat](https://discord.gg/qSFUps6).
