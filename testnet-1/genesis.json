@@ -307,7 +307,8 @@
           ],
           "memo": "b3f2baddbc141e2f1e93ea6d884a4c4647aa943a@91.134.181.227:26656"
         }
-      }{
+      },
+      {
         "type": "auth/StdTx",
         "value": {
           "msg": [
