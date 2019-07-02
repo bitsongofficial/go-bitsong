@@ -34,11 +34,11 @@ sudo tar -xvf go1.12.5.linux-amd64.tar.gz
 # Updates environmental variables to include go
 sudo mv go /usr/local`
 
-cat <<EOF>> ~/.profile` export GOROOT=/usr/local/go
+cat <<EOF>> ~/.profile export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export GO111MODULE=on
 export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin
-`EOF`
+EOF
 
 source ~/.profile
 ```
