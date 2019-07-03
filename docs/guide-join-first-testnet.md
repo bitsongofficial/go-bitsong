@@ -86,12 +86,12 @@ This will spit out your recovery mnemonic.
 If you are planning on participating in the genesis of the BitSong testnet, you can follow along here and create a genesis transaction that you can submit as a pull request before launch. Otherwise, skip to the section about obtaining some coins from the faucet. If you are participating in genesis, it is expected that your validator will be up and available at all times during the testnet. If you can’t commit to this, we recommend joining via the faucet after the testnet is live.
 
 ```bash
-# Create an account in genesis with 100000000 ubtsg (100 btsg) tokens. Don't change the amount of ubtsg tokens so that we can have equal distribution among genesis participants.
+# Create an account in genesis with 1000000000 ubtsg (1000 btsg) tokens. Don't change the amount of ubtsg tokens so that we can have equal distribution among genesis participants.
 # 1 btsg = 1000000ubtsg
-bitsongd add-genesis-account $(bitsongcli keys show <your_wallet_name> -a) 100000000ubtsg
+bitsongd add-genesis-account $(bitsongcli keys show <your_wallet_name> -a) 1000000000ubtsg
 
 # Sign a gentx that creates a validator in the genesis file for your account. Note to pass your public ip to the --ip flag.
-bitsongd gentx --name <your_wallet_name> --amount 100000000ubtsg --ip <your-public-ip>
+bitsongd gentx --name <your_wallet_name> --amount 1000000000ubtsg --ip <your-public-ip>
 ```
 
 This will write your genesis transaction to `$HOME/.bitsongd/config/gentx/gentx-<gen-tx-hash>.json`. This should be the only file in your `gentx` directory. If you have more than one, delete them and repeat the `gentx` command above.
@@ -136,7 +136,7 @@ We’ll make sure to promptly review your PR, let you know if there are any issu
 
 ## Launching the testnet
 
-On **July 10, 2019 at 17:00 UTC**, BitSong will release the proposed genesis block. All validators are invited to review the included transactions, agree on the final genesis block, and start validating on **July 11, 2019 at 11:11 UTC.**
+On **July 10, 2019 at 15:00 UTC**, BitSong will release the proposed genesis block. All validators are invited to review the included transactions, agree on the final genesis block, and start validating on **July 11, 2019 at 15:00 UTC.**
 
 To start validating the testnet after the genesis has been released, run the following commands:
 
@@ -147,10 +147,10 @@ rm -f ~/.bitsongd/config/genesis.json
 # Copy the genesis file to the bitsongd directory
 wget https://raw.githubusercontent.com/bitsongofficial/go-bitsong/develop/testnet-1/genesis.json -P ~/.bitsongd/config
 
-# Create log files for kvd
+# Create log files for bitsongd
 sudo mkdir -p /var/log/bitsongd && sudo touch /var/log/bitsongd/bitsongd.log && sudo touch /var/log/bitsongd/bitsongd_error.log
 
-# create a systemd file to run the kvd daemon
+# create a systemd file to run the bitsongd daemon
 # replace <your_user> where necessary
 sudo tee /etc/systemd/system/bitsongd.service > /dev/null <<EOF
 [Unit]
@@ -194,4 +194,4 @@ tail -f /var/log/bitsongd/bitsongd_error.log
 
 After the BitSong Network blockchain reaches a quorum, the testnet will be officially launched!
 
-If a quorum is not reached by 11:11 UTC on July 11, we will coordinate further communication through the BitSong validator [Discord Validator Chat](https://discord.gg/qSFUps6).
+If a quorum is not reached by 15:00 UTC on July 11, we will coordinate further communication through the BitSong validator [Discord Validator Chat](https://discord.gg/qSFUps6).

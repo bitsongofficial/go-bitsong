@@ -16,7 +16,7 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 
 ## BitSong Testnet
 
-To run a full-node for the testnet of BitSong Blockchain, first [install `bitsongd`](./docs/installation.md), then follow [the guide](./docs/join-testnet.md).
+To run a full-node for the testnet of BitSong Blockchain, follow [the guide](./docs/guide-join-first-testnet.md).
 
 For status updates and genesis file, see the [networks repo](https://github.com/BitSongOfficial/networks).
 
@@ -24,14 +24,15 @@ For status updates and genesis file, see the [networks repo](https://github.com/
 - [Official Website](https://bitsong.io)
 
 ## Community
+- [Discord Validator Chat](hhttps://discord.gg/qSFUps6)
 - [Telegram Channel (English)](https://t.me/BitSongOfficial)
+- [Linkedin](https://www.linkedin.com/company/bitsong)
 - [Facebook](https://www.facebook.com/BitSongOfficial)
 - [Twitter](https://twitter.com/BitSongOfficial)
 - [Medium](https://medium.com/@BitSongOfficial)
 - [Reddit](https://www.reddit.com/r/bitsong/)
-- [BitcoinTalk ANN](https://bitcointalk.org/index.php?topic=2850943)
-- [Linkedin](https://www.linkedin.com/company/bitsong)
 - [Instagram](https://www.instagram.com/bitsong_official/)
+- [BitcoinTalk ANN](https://bitcointalk.org/index.php?topic=2850943)
 
 ## License
 
