@@ -47,7 +47,7 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=gaia \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=go-bitsong \
 		  -X github.com/cosmos/cosmos-sdk/version.ServerName=bitsongd \
 		  -X github.com/cosmos/cosmos-sdk/version.ClientName=bitsongcli \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
