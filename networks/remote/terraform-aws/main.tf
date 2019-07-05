@@ -47,7 +47,7 @@ variable "instance_type" {
 }
 
 module "nodes-0" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -60,7 +60,7 @@ module "nodes-0" {
 }
 
 module "nodes-1" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -73,7 +73,7 @@ module "nodes-1" {
 }
 
 module "nodes-2" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -86,7 +86,7 @@ module "nodes-2" {
 }
 
 module "nodes-3" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -99,7 +99,7 @@ module "nodes-3" {
 }
 
 module "nodes-4" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -112,7 +112,7 @@ module "nodes-4" {
 }
 
 module "nodes-5" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -125,7 +125,7 @@ module "nodes-5" {
 }
 
 module "nodes-6" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -138,7 +138,7 @@ module "nodes-6" {
 }
 
 module "nodes-7" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -151,7 +151,7 @@ module "nodes-7" {
 }
 
 module "nodes-8" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -164,7 +164,7 @@ module "nodes-8" {
 }
 
 module "nodes-9" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -177,7 +177,7 @@ module "nodes-9" {
 }
 
 module "nodes-10" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -190,7 +190,7 @@ module "nodes-10" {
 }
 
 module "nodes-11" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -203,7 +203,7 @@ module "nodes-11" {
 }
 
 module "nodes-12" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -216,7 +216,7 @@ module "nodes-12" {
 }
 
 module "nodes-13" {
-  source           = "nodes"
+  source           = "./nodes"
   name             = "${var.TESTNET_NAME}"
   image_name       = "${var.image}"
   instance_type    = "${var.instance_type}"
@@ -244,6 +244,6 @@ output "public_ips" {
 		module.nodes-11.public_ips,
 		module.nodes-12.public_ips,
 		module.nodes-13.public_ips
-		)}",
+		)}"
 }
 
