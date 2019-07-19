@@ -17,7 +17,7 @@ const (
 	FlagID                      = "id"
 	FlagTitle                   = "title"
 	FlagContent                 = "content"
-	FlagRedistributionSplitRate = "redistribuition_split_rate"
+	FlagRedistributionSplitRate = "redistribution_split_rate"
 )
 
 func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
