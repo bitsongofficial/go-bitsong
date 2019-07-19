@@ -3,6 +3,7 @@ package song
 import (
 	"fmt"
 
+	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -27,7 +28,21 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	if err != nil {
 		return err.Result()
 	}
-	resTags := sdk.NewTags(
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, song.Owner.String()),
+		),
+	)
+
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
+
+	// TODO: remove
+	/*resTags := sdk.NewTags(
 		Category, TxCategory,
 		SongID, fmt.Sprintf("%d", song.SongID),
 		Owner, song.Owner.String(),
@@ -37,7 +52,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	)
 	return sdk.Result{
 		Tags: resTags,
-	}
+	}*/
 }
 
 // Handle a message to play song
