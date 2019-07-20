@@ -728,7 +728,7 @@ bitsongcli query gov param deposit
 To check the current distribution parameters, run:
 
 ```bash
-bitsongcli query distr params
+bitsongcli query distribution params
 ```
 
 #### Query distribution Community Pool
@@ -736,7 +736,7 @@ bitsongcli query distr params
 To query all coins in the community pool which is under Governance control:
 
 ```bash
-bitsongcli query distr community-pool
+bitsongcli query distribution community-pool
 ```
 
 #### Query outstanding rewards
@@ -744,7 +744,7 @@ bitsongcli query distr community-pool
 To check the current outstanding (un-withdrawn) rewards, run:
 
 ```bash
-bitsongcli query distr outstanding-rewards
+bitsongcli query distribution outstanding-rewards
 ```
 
 #### Query Validator Commission
@@ -752,7 +752,7 @@ bitsongcli query distr outstanding-rewards
 To check the current outstanding commission for a validator, run:
 
 ```bash
-bitsongcli query distr commission <validator_address>
+bitsongcli query distribution commission <validator_address>
 ```
 
 #### Query Validator Slashes
@@ -760,7 +760,7 @@ bitsongcli query distr commission <validator_address>
 To check historical slashes for a validator, run:
 
 ```bash
-bitsongcli query distr slashes <validator_address> <start_height> <end_height>
+bitsongcli query distribution slashes <validator_address> <start_height> <end_height>
 ```
 
 #### Query Delegator Rewards
@@ -768,7 +768,7 @@ bitsongcli query distr slashes <validator_address> <start_height> <end_height>
 To check current rewards for a delegation (were they to be withdrawn), run:
 
 ```bash
-bitsongcli query distr rewards <delegator_address> <validator_address>
+bitsongcli query distribution rewards <delegator_address> <validator_address>
 ```
 
 #### Query All Delegator Rewards
