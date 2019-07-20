@@ -1,16 +1,13 @@
-package song
-
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
+package types
 
 // Song tags
 var (
 	TxCategory = "song"
 
-	Action                  = sdk.TagAction
+	/*Action                  = sdk.TagAction
 	Category                = sdk.TagCategory
-	Owner                   = sdk.TagSender
+	Owner                   = sdk.TagSender*/
+	AttributeValueCategory  = ModuleName
 	SongID                  = "id"
 	Content                 = "content"
 	TotalReward             = "total_reward"

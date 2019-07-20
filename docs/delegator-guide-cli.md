@@ -303,7 +303,7 @@ bitsongcli query staking delegations <delegatorAddress>
 bitsongcli query staking delegation <delegatorAddress> <validatorAddress>
 
 // query the rewards of a delegator given a delegator address (e.g. bitsong10snjt8dmpr5my0h76xj48ty80uzwhraqalu4eg)
-bitsongcli query distr rewards <delegatorAddress> 
+bitsongcli query distribution rewards <delegatorAddress> 
 
 // query all proposals currently open for depositing
 bitsongcli query gov proposals --status deposit_period
@@ -393,7 +393,7 @@ bitsongcli tx staking redelegate <srcValidatorAddress> <destValidatorAddress> <a
 // Withdraw all rewards
 // ex value for flag: <gasPrice>=0.025ubtsg
 
-bitsongcli tx distr withdraw-all-rewards --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
+bitsongcli tx distribution withdraw-all-rewards --from <delegatorKeyName> --gas auto --gas-adjustment 1.5 --gas-prices <gasPrice>
 
 
 // Unbond a certain amount of BTSG from a given validator 
