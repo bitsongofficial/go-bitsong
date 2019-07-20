@@ -22,8 +22,6 @@ source ~/.bash_profile
 Next, let's install the latest version of BitSong. Make sure you `git checkout` the correct [released version](https://github.com/BitSongOfficial/go-bitsong/releases).
 
 ```bash
-mkdir -p $GOPATH/src/github.com/BitSongOfficial
-cd $GOPATH/src/github.com/BitSongOfficial
 git clone -b <latest-release-tag> https://github.com/BitSongOfficial/go-bitsong
 cd go-bitsong && make install
 ```
