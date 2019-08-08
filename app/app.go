@@ -6,8 +6,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -43,12 +42,27 @@ var (
 	// default home directories for bitsongd
 	DefaultNodeHome = os.ExpandEnv("$HOME/.bitsongd")
 
-	// The ModuleBasicManager is in charge of setting up basic,
+	// The module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
 	// and genesis verification.
-	ModuleBasics module.BasicManager
+	ModuleBasics = module.NewBasicManager(
+		genaccounts.AppModuleBasic{},
+		genutil.AppModuleBasic{},
+		auth.AppModuleBasic{},
+		bank.AppModuleBasic{},
+		staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler),
+		params.AppModuleBasic{},
+		crisis.AppModuleBasic{},
+		slashing.AppModuleBasic{},
+		supply.AppModuleBasic{},
+		song.AppModule{},
+		artist.AppModule{},
+	)
 
-	// account permissions
+	// module account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
@@ -59,31 +73,15 @@ var (
 	}
 )
 
-func init() {
-	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
-		genutil.AppModuleBasic{},
-		auth.AppModuleBasic{},
-		bank.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		mint.AppModuleBasic{},
-		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distrclient.ProposalHandler),
-		params.AppModuleBasic{},
-		crisis.AppModuleBasic{},
-		slashing.AppModuleBasic{},
-		supply.AppModuleBasic{},
-		song.AppModule{},
-		artist.AppModule{},
-	)
-}
-
 // custom tx codec
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
+
 	ModuleBasics.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
+	codec.RegisterEvidences(cdc)
+
 	return cdc
 }
 
@@ -95,20 +93,8 @@ type GaiaApp struct {
 	invCheckPeriod uint
 
 	// keys to access the substores
-	keyMain     *sdk.KVStoreKey
-	keyAccount  *sdk.KVStoreKey
-	keySupply   *sdk.KVStoreKey
-	keyStaking  *sdk.KVStoreKey
-	tkeyStaking *sdk.TransientStoreKey
-	keySlashing *sdk.KVStoreKey
-	keyMint     *sdk.KVStoreKey
-	keyDistr    *sdk.KVStoreKey
-	tkeyDistr   *sdk.TransientStoreKey
-	keyGov      *sdk.KVStoreKey
-	keyParams   *sdk.KVStoreKey
-	tkeyParams  *sdk.TransientStoreKey
-	keySong     *sdk.KVStoreKey
-	keyArtist   *sdk.KVStoreKey
+	keys  map[string]*sdk.KVStoreKey
+	tkeys map[string]*sdk.TransientStoreKey
 
 	// keepers
 	accountKeeper  auth.AccountKeeper
@@ -138,28 +124,23 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 
+	keys := sdk.NewKVStoreKeys(
+		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
+		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		gov.StoreKey, params.StoreKey, song.StoreKey, artist.StoreKey,
+	)
+	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+
 	var app = &GaiaApp{
 		BaseApp:        bApp,
 		cdc:            cdc,
 		invCheckPeriod: invCheckPeriod,
-		keyMain:        sdk.NewKVStoreKey(bam.MainStoreKey),
-		keyAccount:     sdk.NewKVStoreKey(auth.StoreKey),
-		keySupply:      sdk.NewKVStoreKey(supply.StoreKey),
-		keyStaking:     sdk.NewKVStoreKey(staking.StoreKey),
-		tkeyStaking:    sdk.NewTransientStoreKey(staking.TStoreKey),
-		keyMint:        sdk.NewKVStoreKey(mint.StoreKey),
-		keyDistr:       sdk.NewKVStoreKey(distr.StoreKey),
-		tkeyDistr:      sdk.NewTransientStoreKey(distr.TStoreKey),
-		keySlashing:    sdk.NewKVStoreKey(slashing.StoreKey),
-		keyGov:         sdk.NewKVStoreKey(gov.StoreKey),
-		keyParams:      sdk.NewKVStoreKey(params.StoreKey),
-		tkeyParams:     sdk.NewTransientStoreKey(params.TStoreKey),
-		keySong:        sdk.NewKVStoreKey(song.StoreKey),
-		keyArtist:      sdk.NewKVStoreKey(artist.StoreKey),
+		keys:           keys,
+		tkeys:          tkeys,
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams, app.tkeyParams, params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -170,18 +151,19 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
 	// add keepers
-	app.accountKeeper = auth.NewAccountKeeper(app.cdc, app.keyAccount, authSubspace, auth.ProtoBaseAccount)
-	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace)
-	app.supplyKeeper = supply.NewKeeper(app.cdc, app.keySupply, app.accountKeeper, app.bankKeeper,
-		supply.DefaultCodespace, maccPerms)
-	stakingKeeper := staking.NewKeeper(app.cdc, app.keyStaking, app.tkeyStaking,
-		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace)
-	app.mintKeeper = mint.NewKeeper(app.cdc, app.keyMint, mintSubspace, &stakingKeeper, app.supplyKeeper,
-		auth.FeeCollectorName)
-	app.distrKeeper = distr.NewKeeper(app.cdc, app.keyDistr, distrSubspace, &stakingKeeper,
-		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName)
-	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, &stakingKeeper,
-		slashingSubspace, slashing.DefaultCodespace)
+	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
+	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
+	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
+	stakingKeeper := staking.NewKeeper(
+		app.cdc, keys[staking.StoreKey], tkeys[staking.TStoreKey],
+		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace,
+	)
+	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
+	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], distrSubspace, &stakingKeeper,
+		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
+	app.slashingKeeper = slashing.NewKeeper(
+		app.cdc, keys[slashing.StoreKey], &stakingKeeper, slashingSubspace, slashing.DefaultCodespace,
+	)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 
 	// register the proposal types
@@ -189,30 +171,35 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
-	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.paramsKeeper, govSubspace,
-		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter)
+	app.govKeeper = gov.NewKeeper(
+		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
+		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
+	)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()))
+		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
+	)
 
 	app.songKeeper = song.NewKeeper(
-		app.keySong,
+		keys[song.StoreKey],
 		app.cdc,
 	)
 
 	app.artistKeeper = artist.NewKeeper(
-		app.keyArtist,
+		keys[artist.StoreKey],
 		app.cdc,
 	)
 
+	// NOTE: Any module instantiated in the module manager that is later modified
+	// must be passed by reference here.
 	app.mm = module.NewManager(
 		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
-		crisis.NewAppModule(app.crisisKeeper),
+		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
@@ -228,22 +215,23 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
 
-	app.mm.SetOrderEndBlockers(gov.ModuleName, staking.ModuleName)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
-	// genutils must occur after staking so that pools are properly
-	// initialized with tokens from genesis accounts.
-	app.mm.SetOrderInitGenesis(genaccounts.ModuleName, distr.ModuleName,
-		staking.ModuleName, auth.ModuleName, bank.ModuleName, slashing.ModuleName,
-		gov.ModuleName, mint.ModuleName, supply.ModuleName, crisis.ModuleName, song.ModuleName, artist.ModuleName,
-		genutil.ModuleName)
+	// NOTE: The genutils module must occur after staking so that pools are
+	// properly initialized with tokens from genesis accounts.
+	app.mm.SetOrderInitGenesis(
+		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
+		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
+		mint.ModuleName, supply.ModuleName, crisis.ModuleName, song.ModuleName,
+		artist.ModuleName, genutil.ModuleName,
+	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
 
 	// initialize stores
-	app.MountStores(app.keyMain, app.keyAccount, app.keySupply, app.keyStaking,
-		app.keyMint, app.keyDistr, app.keySlashing, app.keyGov, app.keyParams,
-		app.tkeyParams, app.tkeyStaking, app.tkeyDistr, app.keySong, app.keyArtist)
+	app.MountKVStores(keys)
+	app.MountTransientStores(tkeys)
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
@@ -253,7 +241,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keyMain)
+		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 		if err != nil {
 			cmn.Exit(err.Error())
 		}
@@ -280,7 +268,7 @@ func (app *GaiaApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 
 // load a particular height
 func (app *GaiaApp) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keyMain)
+	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
