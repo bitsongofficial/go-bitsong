@@ -49,6 +49,8 @@ github.com/cosmos/cosmos-sdk v0.28.2-0.20190805171329-cf1980273fac/go.mod h1:RkW
 github.com/cosmos/cosmos-sdk v0.28.2-0.20190806205118-0dcf1583878e h1:Lq7i6tN5ay+1enr3BwYWmMOkmsmWuKGO+BlqYI7hsD4=
 github.com/cosmos/cosmos-sdk v0.28.2-0.20190806205118-0dcf1583878e/go.mod h1:RkWDqk5VawCuk6G+Mr7kWkE+1i5oHhxdOriaRibAvPg=
 github.com/cosmos/cosmos-sdk v0.35.0 h1:EPeie1aKHwnXtTzKggvabG7aAPN+DDmju2xquvjFwao=
+github.com/cosmos/cosmos-sdk v0.37.0 h1:S2I3NDGN2wqfGlY5KqkAHTpfezjhgeqDxrCxhlhd528=
+github.com/cosmos/cosmos-sdk v0.37.0/go.mod h1:3b/k/Zd+YDuttSmEJdNkxga1H5EIiDUhSYeErAHQN7A=
 github.com/cosmos/go-bip39 v0.0.0-20180618194314-52158e4697b8/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
 github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d h1:49RLWk1j44Xu4fjHb6JFYmeUnDORVwHNkDxaQ0ctCVU=
 github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d/go.mod h1:tSxLoYXyBmiFeKpvmq4dzayMdCjCnu8uqmCysIGBT2Y=
@@ -194,6 +196,8 @@ github.com/prometheus/procfs v0.0.3 h1:CTwfnzjQ+8dS6MhHHu4YswVAD99sL2wjPqP+VkURm
 github.com/prometheus/procfs v0.0.3/go.mod h1:4A/X28fw3Fc593LaREMrKMqOKvUAntwMDaekg4FpcdQ=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
 github.com/rakyll/statik v0.1.4/go.mod h1:OEi9wJV/fMUAGx1eNjq75DKDsJVuEv1U0oYdX6GX8Zs=
+github.com/rakyll/statik v0.1.5 h1:Ly2UjURzxnsSYS0zI50fZ+srA+Fu7EbpV5hglvJvJG0=
+github.com/rakyll/statik v0.1.5/go.mod h1:OEi9wJV/fMUAGx1eNjq75DKDsJVuEv1U0oYdX6GX8Zs=
 github.com/rakyll/statik v0.1.6 h1:uICcfUXpgqtw2VopbIncslhAmE5hwc4g20TEyEENBNs=
 github.com/rakyll/statik v0.1.6/go.mod h1:OEi9wJV/fMUAGx1eNjq75DKDsJVuEv1U0oYdX6GX8Zs=
 github.com/rcrowley/go-metrics v0.0.0-20180503174638-e2704e165165/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
