@@ -23,4 +23,5 @@ type (
 	MsgPlay         = types.MsgPlay
 	Song            = types.Song
 	Songs			= types.Songs
+	Pool			= types.Pool
 )
