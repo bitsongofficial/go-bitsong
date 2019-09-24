@@ -8,21 +8,21 @@ import (
 
 // global pool for distribution
 type Pool struct {
-	SongsPool sdk.DecCoins `json:"songs_pool"` // pool for community funds yet to be spent
+	Rewards sdk.DecCoins `json:"rewards"` // pool for song funds yet to be send
 }
 
 // zero fee pool
 func InitialPool() Pool {
 	return Pool{
-		SongsPool: sdk.DecCoins{},
+		Rewards: sdk.DecCoins{},
 	}
 }
 
 // ValidateGenesis validates the pool for a genesis state
 func (f Pool) ValidateGenesis() error {
-	if f.SongsPool.IsAnyNegative() {
-		return fmt.Errorf("negative SongsPool in distribution pool, is %v",
-			f.SongsPool)
+	if f.Rewards.IsAnyNegative() {
+		return fmt.Errorf("negative Rewards in song pool, is %v",
+			f.Rewards)
 	}
 
 	return nil
