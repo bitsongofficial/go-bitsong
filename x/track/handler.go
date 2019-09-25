@@ -2,6 +2,8 @@ package track
 
 import (
 	"fmt"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -23,7 +25,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 // Handle a message to publish track
 func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
-	/*song, err := k.Publish(ctx, msg.Title, msg.Owner, msg.Content, msg.RedistributionSplitRate)
+	track, err := k.PublishTrack(ctx, msg.Title, msg.Owner, msg.Content, msg.RedistributionSplitRate)
 	if err != nil {
 		return err.Result()
 	}
@@ -32,15 +34,17 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, song.Owner.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, track.Owner.String()),
+			sdk.NewAttribute(AttributeKeyTrackId, strconv.FormatUint(track.TrackID, 2)),
+			sdk.NewAttribute(AttributeKeyTitle, track.Title),
+			sdk.NewAttribute(AttributeKeyContent, track.Content),
+			sdk.NewAttribute(AttributeKeyRedistributionSplitRate, track.RedistributionSplitRate.String()),
 		),
 	)
 
 	return sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}*/
-	return sdk.Result{}
-
+	}
 }
 
 // Handle a message to play track

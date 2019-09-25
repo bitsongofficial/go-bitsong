@@ -44,7 +44,7 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "publish",
 		Short:   "Publish a new track",
-		Example: "$ bitsongcli tx track publish --title=SongTitle --content=<ipfs_url> --redistribution_split_rate=5 --from mykey",
+		Example: "$ bitsongcli tx track publish --title=SongTitle --content=ipfs_hash --redistribution_split_rate=0.05 --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -61,7 +61,7 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 			if redistributionSplitRate != "" {
 				rate, err := sdk.NewDecFromStr(redistributionSplitRate)
 				if err != nil {
-					return fmt.Errorf("invalid new redistribution splir rate: %v", err)
+					return fmt.Errorf("invalid new redistribution split rate: %v", err)
 				}
 
 				splitRate = rate
@@ -73,15 +73,13 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			// To fix or delete
-			//return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, []sdk.Msg{msg})
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().String(FlagTitle, "", "track title, eg. SongTitle")
 	cmd.Flags().String(FlagContent, "", "track content, eg. <ipfs_url>")
-	cmd.Flags().String(FlagRedistributionSplitRate, "", "track redistribution_split_rate, eg. 5")
+	cmd.Flags().String(FlagRedistributionSplitRate, "", "percentage redistribution_split_rate, eg. 0.05 for 5%")
 
 	return cmd
 }

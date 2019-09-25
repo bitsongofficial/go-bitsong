@@ -11,7 +11,6 @@ type MsgPublish struct {
 	Title                   string         `json:"title"`
 	Content                 string         `json:"content"`
 	Owner                   sdk.AccAddress `json:"owner"`
-	TotalReward             sdk.Int        `json:"total_reward"`
 	RedistributionSplitRate sdk.Dec        `json:"redistribution_split_rate"`
 }
 
@@ -27,7 +26,6 @@ func NewMsgPublish(title string, owner sdk.AccAddress, content string, redistrib
 		Title:                   title,
 		Content:                 content,
 		Owner:                   owner,
-		TotalReward:             sdk.NewInt(0),
 		RedistributionSplitRate: redistributionSplitRate,
 	}
 }
