@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/exported"
-
 	//"github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -136,7 +135,7 @@ func (k Keeper) PublishTrack(ctx sdk.Context, title string, owner sdk.AccAddress
 	return track, nil
 }
 
-func (k Keeper) GetUserPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
+func (k Keeper) GetAccPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
 	power := sdk.ZeroDec()
 
 	k.sk.IterateDelegations(
@@ -167,4 +166,29 @@ func (k Keeper) setPlay(ctx sdk.Context, play types.Play) sdk.Error {
 	store.Set(KeyPlay(play.AccAddress, play.TrackId), bz)
 
 	return nil
+}
+
+func (k Keeper) SetPlay(ctx sdk.Context, play types.Play) sdk.Error {
+	return k.setPlay(ctx, play)
+}
+
+func (k Keeper) SavePlay(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64) (types.Play, bool) {
+	play, ok := k.GetPlay(ctx, accAddr, trackID)
+
+	if !ok {
+		play = types.Play{
+			AccAddress: accAddr,
+			TrackId:    trackID,
+			Shares:     k.GetAccPower(ctx, accAddr),
+			Streams:    sdk.NewInt(1),
+			CreateTime: ctx.BlockHeader().Time,
+		}
+
+		k.setPlay(ctx, play)
+	} else {
+		play.Streams = play.Streams.Add(sdk.NewInt(1))
+		k.setPlay(ctx, play)
+	}
+
+	return play, true
 }
