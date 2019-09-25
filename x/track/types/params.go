@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	KeyPlayTax = []byte("PlayTax")
+	KeyPlayTax  = []byte("PlayTax")
+	PlayPoolKey = []byte("PlayPool")
 )
 
 type Params struct {

@@ -11,10 +11,10 @@ import (
 
 type OverrideDistrModule struct {
 	distr.AppModule
-	k distr.Keeper
+	k OverrideDistrKeeper
 }
 
-func NewOverrideDistrModule(appModule distr.AppModule, keeper distr.Keeper) OverrideDistrModule {
+func NewOverrideDistrModule(appModule distr.AppModule, keeper OverrideDistrKeeper) OverrideDistrModule {
 	return OverrideDistrModule{
 		AppModule: appModule,
 		k:         keeper,

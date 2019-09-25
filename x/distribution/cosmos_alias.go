@@ -34,13 +34,13 @@ const (
 
 var (
 	// functions aliases
-	RegisterInvariants                         = distr.RegisterInvariants
-	AllInvariants                              = distr.AllInvariants
-	NonNegativeOutstandingInvariant            = distr.NonNegativeOutstandingInvariant
-	CanWithdrawInvariant                       = distr.CanWithdrawInvariant
-	ReferenceCountInvariant                    = distr.ReferenceCountInvariant
-	ModuleAccountInvariant                     = distr.ModuleAccountInvariant
-	NewKeeper                                  = distr.NewKeeper
+	RegisterInvariants              = distr.RegisterInvariants
+	AllInvariants                   = distr.AllInvariants
+	NonNegativeOutstandingInvariant = distr.NonNegativeOutstandingInvariant
+	CanWithdrawInvariant            = distr.CanWithdrawInvariant
+	ReferenceCountInvariant         = distr.ReferenceCountInvariant
+	ModuleAccountInvariant          = distr.ModuleAccountInvariant
+	//NewKeeper                                  = distr.NewKeeper
 	GetValidatorOutstandingRewardsAddress      = distr.GetValidatorOutstandingRewardsAddress
 	GetDelegatorWithdrawInfoAddress            = distr.GetDelegatorWithdrawInfoAddress
 	GetDelegatorStartingInfoAddresses          = distr.GetDelegatorStartingInfoAddresses
@@ -118,8 +118,8 @@ var (
 )
 
 type (
-	Hooks                                  = distr.Hooks
-	Keeper                                 = distr.Keeper
+	Hooks = distr.Hooks
+	//Keeper                                 = distr.Keeper
 	DelegatorStartingInfo                  = distr.DelegatorStartingInfo
 	CodeType                               = distr.CodeType
 	FeePool                                = distr.FeePool

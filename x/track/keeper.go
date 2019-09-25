@@ -241,3 +241,25 @@ func (k Keeper) GetAllPlays(ctx sdk.Context) (plays []types.Play) {
 	})
 	return plays
 }
+
+func (k Keeper) GetPlayTax(ctx sdk.Context) sdk.Dec {
+	var percent sdk.Dec
+	k.paramSpace.Get(ctx, types.KeyPlayTax, &percent)
+	return percent
+}
+
+func (k Keeper) GetFeePlayPool(ctx sdk.Context) (playPool types.Pool) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.PlayPoolKey)
+	if b == nil {
+		panic("Stored fee pool should not have been nil")
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &playPool)
+	return
+}
+
+func (k Keeper) SetFeePlayPool(ctx sdk.Context, playPool types.Pool) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(playPool)
+	store.Set(types.PlayPoolKey, b)
+}

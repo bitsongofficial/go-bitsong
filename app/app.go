@@ -107,7 +107,7 @@ type GaiaApp struct {
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
-	songKeeper     track.Keeper
+	trackKeeper    track.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -182,7 +182,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.songKeeper = track.NewKeeper(
+	app.trackKeeper = track.NewKeeper(
 		keys[track.StoreKey],
 		app.cdc,
 		trackSubspace,
@@ -190,7 +190,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	distrModule := sdkdistr.NewAppModule(app.distrKeeper, app.supplyKeeper)
-	overriddenDistrModule := distr.NewOverrideDistrModule(distrModule, app.distrKeeper)
+	overriddenDistrKeeper := distr.NewOverrideDistrKeeper(app.distrKeeper, app.stakingKeeper, app.supplyKeeper, app.trackKeeper, auth.FeeCollectorName)
+	overriddenDistrModule := distr.NewOverrideDistrModule(distrModule, overriddenDistrKeeper)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -206,7 +207,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		track.NewAppModule(app.songKeeper),
+		track.NewAppModule(app.trackKeeper),
 	)
 
 	// During begin block slashing happens after sdkdistr.BeginBlocker so that

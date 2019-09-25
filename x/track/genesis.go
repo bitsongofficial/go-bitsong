@@ -44,6 +44,7 @@ func ValidateGenesis(data GenesisState) error {
 
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	keeper.SetParams(ctx, data.Params)
+	keeper.SetFeePlayPool(ctx, data.Pool)
 
 	err := keeper.SetInitialTrackID(ctx, data.StartingTrackID)
 	if err != nil {
