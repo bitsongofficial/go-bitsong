@@ -3,6 +3,7 @@ package track
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -214,7 +215,7 @@ func TestGetSetTrack(t *testing.T) {
 		CreateTime:              ctx.BlockHeader().Time,
 	}
 
-	err := trackKeeper.setTrack(ctx, newTrack)
+	err := trackKeeper.SetTrack(ctx, newTrack)
 	require.NoError(t, err)
 
 	_, ok := trackKeeper.GetTrack(ctx, 1)
@@ -222,6 +223,66 @@ func TestGetSetTrack(t *testing.T) {
 
 	_, ok = trackKeeper.GetTrack(ctx, 2)
 	require.False(t, ok)
+}
+
+func TestGetSetPlay(t *testing.T) {
+	input := SetupTestInput(t)
+	ctx := input.ctx
+	trackKeeper := input.trackKeeper
+
+	userPower := trackKeeper.GetAccPower(ctx, addrDels[0])
+
+	newPlay := types.Play{
+		AccAddress: addrDels[0],
+		TrackId:    1,
+		Shares:     userPower,
+		Streams:    sdk.NewInt(1),
+		CreateTime: ctx.BlockHeader().Time,
+	}
+
+	err := trackKeeper.SetPlay(ctx, newPlay)
+	require.NoError(t, err)
+
+	play, ok := trackKeeper.GetPlay(ctx, addrDels[0], 1)
+	require.True(t, ok)
+	fmt.Printf("%s", play)
+
+	_, ok = trackKeeper.GetPlay(ctx, addrDels[1], 1)
+	require.False(t, ok)
+}
+
+func TestSavePlay(t *testing.T) {
+	input := SetupTestInput(t)
+	ctx := input.ctx
+	trackKeeper := input.trackKeeper
+
+	play, ok := trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(2))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(2))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 2)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 2)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 2)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(2))
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {
