@@ -48,10 +48,22 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 
 // Handle a message to play track
 func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
-	/*err := k.Play(ctx, msg.TrackID, msg.Listener)
+	_, ok := k.SavePlay(ctx, msg.Listener, msg.TrackID)
+	if !ok {
+		// TODO: fix with error
+		return sdk.Result{}
+	}
 
-	if err != nil {
-		return err.Result()
-	}*/
-	return sdk.Result{}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Listener.String()),
+			sdk.NewAttribute(AttributeKeyTrackId, strconv.FormatUint(msg.TrackID, 10)),
+		),
+	)
+
+	return sdk.Result{
+		Events: ctx.EventManager().Events(),
+	}
 }

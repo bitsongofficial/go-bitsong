@@ -98,12 +98,12 @@ func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
 
 			// Get listener address
 			listener := cliCtx.GetFromAddress()
-			songId, err := strconv.ParseUint(viper.GetString(FlagID), 10, 64)
+			trackID, err := strconv.ParseUint(viper.GetString(FlagID), 10, 64)
 			if err != nil {
-				return fmt.Errorf("proposal-id %s not a valid uint, please input a valid proposal-id", args[0])
+				return fmt.Errorf("id %s not a valid uint, please input a valid track id", args[0])
 			}
 
-			msg := types.NewMsgPlay(songId, listener)
+			msg := types.NewMsgPlay(trackID, listener)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err
