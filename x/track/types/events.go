@@ -2,7 +2,7 @@ package types
 
 // Song tags
 var (
-	TxCategory = "song"
+	TxCategory = "track"
 
 	/*Action                  = sdk.TagAction
 	Category                = sdk.TagCategory

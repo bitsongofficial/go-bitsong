@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GenesisState - song genesis state
+// GenesisState - track genesis state
 type GenesisState struct {
 }
 

@@ -22,7 +22,7 @@ func (a Artist) String() string {
 		  Name:			%s`, a.ArtistID, a.Image, a.Name)
 }
 
-// Artists is an array of song
+// Artists is an array of track
 // To FIX with new fields
 type Artists []*Artist
 

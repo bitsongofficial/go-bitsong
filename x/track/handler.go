@@ -1,13 +1,13 @@
-package song
+package track
 
 import (
 	"fmt"
 
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewHandler returns a handler for "song" type messages.
+// NewHandler returns a handler for "track" type messages.
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
 		switch msg := msg.(type) {
@@ -16,13 +16,13 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		case MsgPlay:
 			return hanleMsgPlay(ctx, keeper, msg)
 		default:
-			errMsg := fmt.Sprintf("Unrecognized song Msg type: %v", msg.Type())
+			errMsg := fmt.Sprintf("Unrecognized track Msg type: %v", msg.Type())
 			return sdk.ErrUnknownRequest(errMsg).Result()
 		}
 	}
 }
 
-// Handle a message to publish song
+// Handle a message to publish track
 func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	song, err := k.Publish(ctx, msg.Title, msg.Owner, msg.Content, msg.RedistributionSplitRate)
 	if err != nil {
@@ -44,18 +44,18 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	// TODO: remove
 	/*resTags := sdk.NewTags(
 		Category, TxCategory,
-		SongID, fmt.Sprintf("%d", song.SongID),
-		Owner, song.Owner.String(),
-		Content, song.Content,
-		TotalReward, fmt.Sprintf("%d", song.TotalReward),
-		RedistributionSplitRate, song.RedistributionSplitRate,
+		SongID, fmt.Sprintf("%d", track.SongID),
+		Owner, track.Owner.String(),
+		Content, track.Content,
+		TotalReward, fmt.Sprintf("%d", track.TotalReward),
+		RedistributionSplitRate, track.RedistributionSplitRate,
 	)
 	return sdk.Result{
 		Tags: resTags,
 	}*/
 }
 
-// Handle a message to play song
+// Handle a message to play track
 func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
 	err := k.Play(ctx, msg.SongID, msg.Listener)
 

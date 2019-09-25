@@ -29,7 +29,7 @@ func (s Song) String() string {
 		  Create Time:		%s`, s.SongID, s.Owner, s.Title, s.Content, s.TotalReward, s.RedistributionSplitRate, s.CreateTime)
 }
 
-// Songs is an array of song
+// Songs is an array of track
 // To FIX with new fields
 type Songs []*Song
 

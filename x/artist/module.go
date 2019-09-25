@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	//"github.com/BitSongOfficial/go-bitsong/x/song/client/rest"
+	//"github.com/BitSongOfficial/go-bitsong/x/track/client/rest"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"

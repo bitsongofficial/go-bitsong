@@ -1,12 +1,12 @@
-package song
+package track
 
 import (
 	"fmt"
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GenesisState - song genesis state
+// GenesisState - track genesis state
 type GenesisState struct {
 	Pool           Pool         `json:"pool"`
 	Params         types.Params `json:"params"`
@@ -36,7 +36,7 @@ func DefaultGenesisState() GenesisState {
 // ValidateGenesis validates genesis state
 func ValidateGenesis(data GenesisState) error {
 	if data.SongTax.IsNegative() || data.SongTax.GT(sdk.OneDec()) {
-		return fmt.Errorf("song parameter SongTax should non-negative and "+
+		return fmt.Errorf("track parameter SongTax should non-negative and "+
 			"less than one, is %s", data.SongTax.String())
 	}
 
@@ -50,8 +50,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	if err != nil {
 		panic(err)
 	}
-	/*for _, song := range data.Songs {
-		keeper.AddSong(ctx, *song)
+	/*for _, track := range data.Songs {
+		keeper.AddSong(ctx, *track)
 	}*/
 
 }

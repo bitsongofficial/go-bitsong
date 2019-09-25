@@ -30,7 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/BitSongOfficial/go-bitsong/x/artist"
-	"github.com/BitSongOfficial/go-bitsong/x/song"
+	"github.com/BitSongOfficial/go-bitsong/x/track"
 )
 
 const appName = "GaiaApp"
@@ -58,7 +58,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		song.AppModule{},
+		track.AppModule{},
 		artist.AppModule{},
 	)
 
@@ -107,7 +107,7 @@ type GaiaApp struct {
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
-	songKeeper     song.Keeper
+	songKeeper     track.Keeper
 	artistKeeper   artist.Keeper
 
 	// the module manager
@@ -127,7 +127,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, song.StoreKey, artist.StoreKey,
+		gov.StoreKey, params.StoreKey, track.StoreKey, artist.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -182,8 +182,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.songKeeper = song.NewKeeper(
-		keys[song.StoreKey],
+	app.songKeeper = track.NewKeeper(
+		keys[track.StoreKey],
 		app.cdc,
 	)
 
@@ -207,7 +207,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		artist.NewAppModule(app.artistKeeper),
-		song.NewAppModule(app.songKeeper),
+		track.NewAppModule(app.songKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -222,7 +222,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
-		mint.ModuleName, supply.ModuleName, crisis.ModuleName, song.ModuleName,
+		mint.ModuleName, supply.ModuleName, crisis.ModuleName, track.ModuleName,
 		artist.ModuleName, genutil.ModuleName,
 	)
 

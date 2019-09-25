@@ -1,4 +1,4 @@
-package song
+package track
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// query endpoints supported by the song Querier
+// query endpoints supported by the track Querier
 const (
 	//QueryResolve = "resolve"
 	//QueryWhois   = "whois"
@@ -33,7 +33,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case QueryAllSongsByAddress:
 			return queryOrdersByAddress(ctx, req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown song query endpoint")
+			return nil, sdk.ErrUnknownRequest("unknown track query endpoint")
 		}
 	}
 }

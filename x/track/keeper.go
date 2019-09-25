@@ -1,8 +1,8 @@
-package song
+package track
 
 import (
 	"fmt"
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/exported"
@@ -29,7 +29,7 @@ type Keeper struct {
 	sk         staking.Keeper
 }
 
-// NewKeeper creates new instances of the song Keeper
+// NewKeeper creates new instances of the track Keeper
 func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace, sk staking.Keeper) Keeper {
 	return Keeper{
 		storeKey:   storeKey,
@@ -166,7 +166,7 @@ func (k Keeper) GetSong(ctx sdk.Context, id uint64) (*Song, sdk.Error) {
 	return &song, nil
 }
 
-// Key for getting a specific song from the store
+// Key for getting a specific track from the store
 func KeySong(id uint64) []byte {
 	return []byte(fmt.Sprintf("songs:%d", id))
 }
@@ -187,7 +187,7 @@ func (k Keeper) PeekCurrentSongID(ctx sdk.Context) (id uint64, err sdk.Error) {
 	return id, nil
 }
 
-// Set the initial song ID
+// Set the initial track ID
 func (k Keeper) SetInitialSongID(ctx sdk.Context, id uint64) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyNextSongID)

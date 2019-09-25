@@ -2,7 +2,7 @@ package types
 
 const (
 	// module name
-	ModuleName = "song"
+	ModuleName = "track"
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName

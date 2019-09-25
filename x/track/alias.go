@@ -1,7 +1,7 @@
-package song
+package track
 
 import (
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 )
 
 const (

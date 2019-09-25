@@ -21,7 +21,7 @@ type Keeper struct {
 	codespace sdk.CodespaceType
 }
 
-// NewKeeper creates new instances of the song Keeper
+// NewKeeper creates new instances of the track Keeper
 func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec) Keeper {
 	return Keeper{
 		storeKey: storeKey,

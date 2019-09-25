@@ -1,4 +1,4 @@
-package song
+package track
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 
 	"testing"
 )

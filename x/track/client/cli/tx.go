@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"strconv"
 
-	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -43,8 +43,8 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "publish",
-		Short:   "Publish a new song",
-		Example: "$ bitsongcli tx song publish --title=SongTitle --content=<ipfs_url> --redistribution_split_rate=5 --from mykey",
+		Short:   "Publish a new track",
+		Example: "$ bitsongcli tx track publish --title=SongTitle --content=<ipfs_url> --redistribution_split_rate=5 --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -79,9 +79,9 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagTitle, "", "song title, eg. SongTitle")
-	cmd.Flags().String(FlagContent, "", "song content, eg. <ipfs_url>")
-	cmd.Flags().String(FlagRedistributionSplitRate, "", "song redistribution_split_rate, eg. 5")
+	cmd.Flags().String(FlagTitle, "", "track title, eg. SongTitle")
+	cmd.Flags().String(FlagContent, "", "track content, eg. <ipfs_url>")
+	cmd.Flags().String(FlagRedistributionSplitRate, "", "track redistribution_split_rate, eg. 5")
 
 	return cmd
 }
@@ -89,8 +89,8 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "play",
-		Short:   "Play a song",
-		Example: "$ bitsongcli tx song play --id=1 --from mykey",
+		Short:   "Play a track",
+		Example: "$ bitsongcli tx track play --id=1 --from mykey",
 		//Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//cliCtx := context.NewCLIContext().WithCodec(cdc).WithAccountDecoder(cdc)
@@ -115,7 +115,7 @@ func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().String(FlagID, "", "song id, eg. 1")
+	cmd.Flags().String(FlagID, "", "track id, eg. 1")
 
 	return cmd
 }
