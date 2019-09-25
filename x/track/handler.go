@@ -2,7 +2,6 @@ package track
 
 import (
 	"fmt"
-	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -33,7 +32,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyModule, AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, track.Owner.String()),
 			sdk.NewAttribute(AttributeKeyTrackId, strconv.FormatUint(track.TrackID, 10)),
 			sdk.NewAttribute(AttributeKeyTitle, track.Title),
@@ -49,7 +48,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 
 // Handle a message to play track
 func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
-	/*err := k.Play(ctx, msg.SongID, msg.Listener)
+	/*err := k.Play(ctx, msg.TrackID, msg.Listener)
 
 	if err != nil {
 		return err.Result()

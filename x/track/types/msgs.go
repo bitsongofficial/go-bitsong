@@ -16,7 +16,7 @@ type MsgPublish struct {
 
 // MsgPublish defines a Publish message
 type MsgPlay struct {
-	SongID   uint64         `json:"song_id"`
+	TrackID  uint64         `json:"track_id"`
 	Listener sdk.AccAddress `json:"listener"`
 }
 
@@ -33,7 +33,7 @@ func NewMsgPublish(title string, owner sdk.AccAddress, content string, redistrib
 // NewMsgPlay is a constructor function for MsgPublish
 func NewMsgPlay(songID uint64, listener sdk.AccAddress) MsgPlay {
 	return MsgPlay{
-		SongID:   songID,
+		TrackID:  songID,
 		Listener: listener,
 	}
 }
