@@ -256,31 +256,31 @@ func TestSavePlay(t *testing.T) {
 	ctx := input.ctx
 	trackKeeper := input.trackKeeper
 
-	play, ok := trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	play, ok := trackKeeper.PlayTrack(ctx, addrDels[0], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[0], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(2))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[1], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[1], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(2))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 2)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[0], 2)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 2)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[1], 2)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 2)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[1], 2)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(2))
 }
@@ -290,19 +290,19 @@ func TestPlayIterator(t *testing.T) {
 	ctx := input.ctx
 	trackKeeper := input.trackKeeper
 
-	play, ok := trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	play, ok := trackKeeper.PlayTrack(ctx, addrDels[0], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[0], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(2))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 2)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[0], 2)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 
-	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	play, ok = trackKeeper.PlayTrack(ctx, addrDels[1], 1)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(1))
 

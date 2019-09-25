@@ -48,7 +48,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 
 // Handle a message to play track
 func hanleMsgPlay(ctx sdk.Context, k Keeper, msg MsgPlay) sdk.Result {
-	_, ok := k.SavePlay(ctx, msg.Listener, msg.TrackID)
+	_, ok := k.PlayTrack(ctx, msg.Listener, msg.TrackID)
 	if !ok {
 		// TODO: fix with error
 		return sdk.Result{}

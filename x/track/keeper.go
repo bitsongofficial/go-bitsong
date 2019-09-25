@@ -191,7 +191,7 @@ func (k Keeper) SetPlay(ctx sdk.Context, play types.Play) sdk.Error {
 	return k.setPlay(ctx, play)
 }
 
-func (k Keeper) SavePlay(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64) (types.Play, bool) {
+func (k Keeper) PlayTrack(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64) (types.Play, bool) {
 	play, ok := k.GetAccPlay(ctx, accAddr, trackID)
 
 	if !ok {
