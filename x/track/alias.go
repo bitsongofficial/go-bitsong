@@ -9,6 +9,7 @@ const (
 	RouterKey             = types.RouterKey
 	StoreKey              = types.StoreKey
 	DefaultStartingSongID = types.DefaultStartingTrackID
+	DefaultParamspace     = types.DefaultParamspace
 )
 
 var (

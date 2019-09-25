@@ -146,6 +146,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	trackSubspace := app.paramsKeeper.Subspace(track.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
@@ -182,6 +183,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.songKeeper = track.NewKeeper(
 		keys[track.StoreKey],
 		app.cdc,
+		trackSubspace,
+		app.stakingKeeper,
 	)
 
 	// NOTE: Any module instantiated in the module manager that is later modified

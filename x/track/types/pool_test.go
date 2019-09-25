@@ -13,7 +13,7 @@ func TestValidateGenesis(t *testing.T) {
 	p := InitialPool()
 	require.Nil(t, p.ValidateGenesis())
 
-	p2 := Pool{SongsPool: sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(-1)}}}
+	p2 := Pool{Rewards: sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: sdk.NewDec(-1)}}}
 	require.NotNil(t, p2.ValidateGenesis())
 
 }
