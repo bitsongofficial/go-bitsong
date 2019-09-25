@@ -14,10 +14,13 @@ const (
 	CodeInvalidGenesis sdk.CodeType = 101
 
 	// CodeEmptyInput error code
-	CodeEmptyInput     sdk.CodeType = 102
+	CodeEmptyInput sdk.CodeType = 102
 
 	// CodeSongNotExist error code
-	CodeSongNotExist   sdk.CodeType = 103
+	CodeSongNotExist sdk.CodeType = 103
+
+	// CodePlayNotExist error code
+	CodePlayNotExist sdk.CodeType = 104
 )
 
 // ErrInvalidGenesis Error constructor

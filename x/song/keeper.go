@@ -2,6 +2,7 @@ package song
 
 import (
 	"fmt"
+	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -39,6 +40,43 @@ func (k Keeper) AddSong(ctx sdk.Context, song Song) {
 	k.setAddressSongs(ctx, song.Owner, idArr)
 }
 
+func (k Keeper) Play(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) sdk.Error {
+
+	return nil
+}
+
+func (k Keeper) GetPlay(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) (play *types.Play, err sdk.Error) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(KeyPlay(accAddr, songId))
+	if bz == nil {
+		return nil, sdk.NewError(k.codespace, CodePlayNotExist, fmt.Sprintf("this play is invalid"))
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
+	return play, nil
+}
+
+func (k Keeper) SetPlay(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) (play *types.Play) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(KeyPlay(accAddr, songId))
+	if bz == nil {
+		play = &types.Play{
+			AccountAddress: accAddr,
+			SongId:         songId,
+			Shares:         sdk.Dec{},
+			Streams:        sdk.NewInt(1),
+		}
+	}
+
+	play.Streams = play.Streams.Add(sdk.NewInt(1))
+
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
+	return play
+}
+
+func KeyPlay(accAddr sdk.AccAddress, songId uint64) []byte {
+	return []byte(fmt.Sprintf("play:%s-%d", accAddr, songId))
+}
+
 // Publish keeper
 func (k Keeper) Publish(ctx sdk.Context, title string,
 	owner sdk.AccAddress, content string,
@@ -64,12 +102,6 @@ func (k Keeper) Publish(ctx sdk.Context, title string,
 
 	k.AddSong(ctx, *song)
 	return song, nil
-}
-
-func (k Keeper) Play(ctx sdk.Context, songId string, listener sdk.AccAddress) sdk.Error {
-	// implement logic
-
-	return nil
 }
 
 // Get the next available SongID and increments it
