@@ -35,7 +35,7 @@ func hanleMsgPublish(ctx sdk.Context, k Keeper, msg MsgPublish) sdk.Result {
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, track.Owner.String()),
-			sdk.NewAttribute(AttributeKeyTrackId, strconv.FormatUint(track.TrackID, 2)),
+			sdk.NewAttribute(AttributeKeyTrackId, strconv.FormatUint(track.TrackID, 10)),
 			sdk.NewAttribute(AttributeKeyTitle, track.Title),
 			sdk.NewAttribute(AttributeKeyContent, track.Content),
 			sdk.NewAttribute(AttributeKeyRedistributionSplitRate, track.RedistributionSplitRate.String()),
