@@ -9,5 +9,6 @@ const (
 
 	DefaultStartingSongID uint64 = 1
 
-	QuerierRoute = ModuleName
+	QuerierRoute      = ModuleName
+	DefaultParamspace = ModuleName
 )

@@ -8,18 +8,19 @@ import (
 
 // GenesisState - song genesis state
 type GenesisState struct {
-	Pool           Pool    `json:"pool"`
-	SongTax        sdk.Dec `json:"song_tax"`
-	StartingSongID uint64  `json:"starting_id"`
-	Songs          Songs   `json:"songs"`
+	Pool           Pool         `json:"pool"`
+	Params         types.Params `json:"params"`
+	SongTax        sdk.Dec      `json:"song_tax"`
+	StartingSongID uint64       `json:"starting_id"`
+	Songs          Songs        `json:"songs"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(pool Pool, songTax sdk.Dec, startingSongID uint64) GenesisState {
+func NewGenesisState(pool Pool, startingSongID uint64, params types.Params) GenesisState {
 	return GenesisState{
 		Pool:           pool,
-		SongTax:        songTax,
 		StartingSongID: startingSongID,
+		Params:         params,
 	}
 }
 
@@ -27,8 +28,8 @@ func NewGenesisState(pool Pool, songTax sdk.Dec, startingSongID uint64) GenesisS
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Pool:           types.InitialPool(),
-		SongTax:        sdk.NewDecWithPrec(30, 2),
 		StartingSongID: DefaultStartingSongID,
+		Params:         types.DefaultParams(),
 	}
 }
 
@@ -43,6 +44,8 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
+	keeper.SetParams(ctx, data.Params)
+
 	err := keeper.SetInitialSongID(ctx, data.StartingSongID)
 	if err != nil {
 		panic(err)
@@ -56,7 +59,5 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper Keeper) GenesisState {
 	startingSongID, _ := keeper.PeekCurrentSongID(ctx)
-	return GenesisState{
-		StartingSongID: startingSongID,
-	}
+	return NewGenesisState(Pool{}, startingSongID, keeper.GetParams(ctx))
 }

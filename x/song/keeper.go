@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -22,14 +23,16 @@ type Keeper struct {
 
 	cdc        *codec.Codec // The wire codec for binary encoding/decoding.
 	paramSpace params.Subspace
+	sk         staking.Keeper
 }
 
 // NewKeeper creates new instances of the song Keeper
-func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace) Keeper {
+func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace, sk staking.Keeper) Keeper {
 	return Keeper{
 		storeKey:   storeKey,
 		cdc:        cdc,
 		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
+		sk:         sk,
 	}
 }
 
@@ -42,6 +45,8 @@ func (k Keeper) AddSong(ctx sdk.Context, song Song) {
 }
 
 func (k Keeper) Play(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) sdk.Error {
+	// Get user power
+	//delegations := k.sk.GetAllDelegatorDelegations(ctx, accAddr)
 
 	return nil
 }
@@ -211,6 +216,11 @@ func (k Keeper) GetAddressSongs(ctx sdk.Context, addr sdk.AccAddress) (idArr []u
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &idArr)
 	return idArr
+}
+
+func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+	k.paramSpace.GetParamSet(ctx, &params)
+	return params
 }
 
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
