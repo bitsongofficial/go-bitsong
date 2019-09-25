@@ -5,6 +5,9 @@ import (
 	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/staking/exported"
+
+	//"github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -49,6 +52,20 @@ func (k Keeper) Play(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) sdk
 	//delegations := k.sk.GetAllDelegatorDelegations(ctx, accAddr)
 
 	return nil
+}
+
+func (k Keeper) GetUserPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
+	power := sdk.ZeroDec()
+
+	k.sk.IterateDelegations(
+		ctx, address,
+		func(_ int64, del exported.DelegationI) (stop bool) {
+			power = power.Add(del.GetShares())
+			return false
+		},
+	)
+
+	return power
 }
 
 func (k Keeper) GetPlay(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) (play *types.Play, err sdk.Error) {

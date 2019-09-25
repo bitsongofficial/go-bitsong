@@ -162,14 +162,23 @@ func SetupTestInput(t *testing.T) TestInput {
 	songKeeper.SetInitialSongID(ctx, types.DefaultStartingSongID)
 
 	// Create validator
-	validator := stakingtypes.NewValidator(addrVals[0], PKs[0], stakingtypes.Description{})
-	stakingKeeper.SetValidator(ctx, validator)
-	stakingKeeper.SetValidatorByPowerIndex(ctx, validator)
-	stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
+	var validators [3]stakingtypes.Validator
+	for i, amt := range amts {
+		validators[i] = stakingtypes.NewValidator(addrVals[i], PKs[i], stakingtypes.Description{})
+		validators[i], _ = validators[i].AddTokensFromDel(amt)
+		stakingKeeper.SetValidator(ctx, validators[i])
+		stakingKeeper.SetValidatorByPowerIndex(ctx, validators[i])
+		stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	}
 
 	// Add delegation
 	delegation := stakingtypes.NewDelegation(addrDels[0], addrVals[0], sdk.NewDec(9))
 	stakingKeeper.SetDelegation(ctx, delegation)
+	delegation2 := stakingtypes.NewDelegation(addrDels[0], addrVals[1], sdk.NewDec(10))
+	stakingKeeper.SetDelegation(ctx, delegation2)
+	delegation3 := stakingtypes.NewDelegation(addrDels[1], addrVals[0], sdk.NewDec(20))
+	stakingKeeper.SetDelegation(ctx, delegation3)
 
 	return TestInput{cdc: cdc, ctx: ctx, k: songKeeper}
 }
@@ -182,11 +191,7 @@ func TestKeeper(t *testing.T) {
 	_, err := k.Publish(ctx, "Test Song", sdk.AccAddress([]byte("addr1")), "", sdk.NewDecWithPrec(5, 2))
 	require.NoError(t, err)
 
-	fmt.Printf("%s", k.sk.GetAllValidators(ctx))
-	fmt.Println()
-	fmt.Printf("%s", k.sk.GetAllDelegations(ctx))
-	fmt.Println()
-	fmt.Printf("%s", k.sk.GetAllDelegatorDelegations(ctx, addrDels[0]))
+	fmt.Printf("%d", k.GetUserPower(ctx, addrDels[1]))
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {
