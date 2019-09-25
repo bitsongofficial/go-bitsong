@@ -5,6 +5,8 @@ import (
 	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/staking/exported"
+
 	//"github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -75,6 +77,10 @@ func KeyTrack(id uint64) []byte {
 	return []byte(fmt.Sprintf("track:%d", id))
 }
 
+func KeyPlay(accAddr sdk.AccAddress, trackID uint64) []byte {
+	return []byte(fmt.Sprintf("play:%s-%d", accAddr, trackID))
+}
+
 func (k Keeper) GetTrack(ctx sdk.Context, trackId uint64) (types.Track, bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyTrack(trackId))
@@ -92,6 +98,10 @@ func (k Keeper) setTrack(ctx sdk.Context, track types.Track) sdk.Error {
 	store.Set(KeyTrack(track.TrackID), bz)
 
 	return nil
+}
+
+func (k Keeper) SetTrack(ctx sdk.Context, track types.Track) sdk.Error {
+	return k.setTrack(ctx, track)
 }
 
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
@@ -124,4 +134,37 @@ func (k Keeper) PublishTrack(ctx sdk.Context, title string, owner sdk.AccAddress
 
 	k.setTrack(ctx, *track)
 	return track, nil
+}
+
+func (k Keeper) GetUserPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
+	power := sdk.ZeroDec()
+
+	k.sk.IterateDelegations(
+		ctx, address,
+		func(_ int64, del exported.DelegationI) (stop bool) {
+			power = power.Add(del.GetShares())
+			return false
+		},
+	)
+
+	return power
+}
+
+func (k Keeper) GetPlay(ctx sdk.Context, accAddr sdk.AccAddress, trackId uint64) (types.Play, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(KeyPlay(accAddr, trackId))
+	if bz == nil {
+		return types.Play{}, false
+	}
+	var play types.Play
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
+	return play, true
+}
+
+func (k Keeper) setPlay(ctx sdk.Context, play types.Play) sdk.Error {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(play)
+	store.Set(KeyPlay(play.AccAddress, play.TrackId), bz)
+
+	return nil
 }

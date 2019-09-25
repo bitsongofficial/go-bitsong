@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Track is a struct that contains all the metadata of a title
+// Track is a struct that contains all the metadata of a single track
 type Track struct {
 	TrackID                 uint64         `json:"track_id"`
 	Owner                   sdk.AccAddress `json:"owner"`
@@ -19,14 +19,14 @@ type Track struct {
 	CreateTime              time.Time      `json:"create_time"`
 }
 
-func (s Track) String() string {
+func (t Track) String() string {
 	return fmt.Sprintf(`Track %d:
 		  Owner:					%s
 		  Title:					%s
 		  Content:					%s
 		  TotalReward:				%s
 		  RedistributionSplitRate:	%d
-		  Create Time:		%s`, s.TrackID, s.Owner, s.Title, s.Content, s.TotalReward, s.RedistributionSplitRate, s.CreateTime)
+		  Create Time:		%s`, t.TrackID, t.Owner, t.Title, t.Content, t.TotalReward, t.RedistributionSplitRate, t.CreateTime)
 }
 
 // Tracks is an array of track
@@ -41,4 +41,21 @@ func (tracks Tracks) String() string {
 	}
 
 	return strings.TrimSpace(out)
+}
+
+// Play is a struct that contains all the metadata of a single play
+type Play struct {
+	AccAddress sdk.AccAddress `json:"acc_address"`
+	TrackId    uint64         `json:"track_id"`
+	Shares     sdk.Dec        `json:"shares"`
+	Streams    sdk.Int        `json:"streams"`
+	CreateTime time.Time      `json:"create_time"`
+}
+
+func (p Play) String() string {
+	return fmt.Sprintf(`AccAddress %s:
+		  TrackId:					%d
+		  Shares:					%d
+		  Streams:					%s
+		  CreateTime:				%s`, p.AccAddress, p.TrackId, p.Shares, p.Streams, p.CreateTime)
 }
