@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	KeyDelimiter = []byte(":")
-
+	KeyDelimiter   = []byte(":")
 	KeyNextTrackID = []byte("newTrackID")
+	PlayPrefix     = []byte("play")
 )
 
 type Keeper struct {
@@ -76,8 +76,16 @@ func KeyTrack(id uint64) []byte {
 	return []byte(fmt.Sprintf("track:%d", id))
 }
 
-func KeyPlay(accAddr sdk.AccAddress, trackID uint64) []byte {
-	return []byte(fmt.Sprintf("play:%s-%d", accAddr, trackID))
+/*func KeyPlay(accAddr sdk.AccAddress, trackID uint64) []byte {
+	return append([]byte(PlayPrefix), accAddr..., trackID...)
+}*/
+
+func GetPlayKey(accAddr sdk.AccAddress, trackID uint64) []byte {
+	return append(GetPlaysKey(trackID), accAddr.Bytes()...)
+}
+
+func GetPlaysKey(trackID uint64) []byte {
+	return append(PlayPrefix, make([]byte, trackID)...)
 }
 
 func (k Keeper) GetTrack(ctx sdk.Context, trackId uint64) (types.Track, bool) {
@@ -149,9 +157,20 @@ func (k Keeper) GetAccPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
 	return power
 }
 
-func (k Keeper) GetPlay(ctx sdk.Context, accAddr sdk.AccAddress, trackId uint64) (types.Play, bool) {
+func (k Keeper) GetPlays(ctx sdk.Context, trackId uint64) (types.Play, bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(KeyPlay(accAddr, trackId))
+	bz := store.Get(GetPlaysKey(trackId))
+	if bz == nil {
+		return types.Play{}, false
+	}
+	var play types.Play
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
+	return play, true
+}
+
+func (k Keeper) GetAccPlay(ctx sdk.Context, accAddr sdk.AccAddress, trackId uint64) (types.Play, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(GetPlayKey(accAddr, trackId))
 	if bz == nil {
 		return types.Play{}, false
 	}
@@ -163,7 +182,7 @@ func (k Keeper) GetPlay(ctx sdk.Context, accAddr sdk.AccAddress, trackId uint64)
 func (k Keeper) setPlay(ctx sdk.Context, play types.Play) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(play)
-	store.Set(KeyPlay(play.AccAddress, play.TrackId), bz)
+	store.Set(GetPlayKey(play.AccAddress, play.TrackId), bz)
 
 	return nil
 }
@@ -173,7 +192,7 @@ func (k Keeper) SetPlay(ctx sdk.Context, play types.Play) sdk.Error {
 }
 
 func (k Keeper) SavePlay(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64) (types.Play, bool) {
-	play, ok := k.GetPlay(ctx, accAddr, trackID)
+	play, ok := k.GetAccPlay(ctx, accAddr, trackID)
 
 	if !ok {
 		play = types.Play{
@@ -191,4 +210,34 @@ func (k Keeper) SavePlay(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64
 	}
 
 	return play, true
+}
+
+func (k Keeper) IterateAllPlays(ctx sdk.Context, cb func(play types.Play) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, PlayPrefix)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		play, err := UnmarshalPlay(k.cdc, iterator.Value())
+		if err != nil {
+			panic(err)
+		}
+
+		if cb(play) {
+			break
+		}
+	}
+}
+
+func UnmarshalPlay(cdc *codec.Codec, value []byte) (play types.Play, err error) {
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &play)
+	return play, err
+}
+
+func (k Keeper) GetAllPlays(ctx sdk.Context) (plays []types.Play) {
+	k.IterateAllPlays(ctx, func(play types.Play) bool {
+		plays = append(plays, play)
+		return false
+	})
+	return plays
 }

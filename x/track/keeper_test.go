@@ -243,11 +243,11 @@ func TestGetSetPlay(t *testing.T) {
 	err := trackKeeper.SetPlay(ctx, newPlay)
 	require.NoError(t, err)
 
-	play, ok := trackKeeper.GetPlay(ctx, addrDels[0], 1)
+	play, ok := trackKeeper.GetAccPlay(ctx, addrDels[0], 1)
 	require.True(t, ok)
 	fmt.Printf("%s", play)
 
-	_, ok = trackKeeper.GetPlay(ctx, addrDels[1], 1)
+	_, ok = trackKeeper.GetAccPlay(ctx, addrDels[1], 1)
 	require.False(t, ok)
 }
 
@@ -283,6 +283,32 @@ func TestSavePlay(t *testing.T) {
 	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 2)
 	require.True(t, ok)
 	require.Equal(t, play.Streams, sdk.NewInt(2))
+}
+
+func TestPlayIterator(t *testing.T) {
+	input := SetupTestInput(t)
+	ctx := input.ctx
+	trackKeeper := input.trackKeeper
+
+	play, ok := trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(2))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[0], 2)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	play, ok = trackKeeper.SavePlay(ctx, addrDels[1], 1)
+	require.True(t, ok)
+	require.Equal(t, play.Streams, sdk.NewInt(1))
+
+	plays := trackKeeper.GetAllPlays(ctx)
+
+	fmt.Printf("%s", plays)
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {
