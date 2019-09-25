@@ -2,120 +2,67 @@ package distribution
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/distribution/types"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 )
 
-var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-)
-
-// app module basics object
-type AppModuleBasic struct{}
-
-var _ module.AppModuleBasic = AppModuleBasic{}
-
-// module name
-func (AppModuleBasic) Name() string {
-	return CosmosAppModuleBasic{}.Name()
+type OverrideDistrModule struct {
+	distr.AppModule
+	k distr.Keeper
 }
 
-// register module codec
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	CosmosAppModuleBasic{}.RegisterCodec(cdc)
-	//*CosmosModuleCdc = *ModuleCdc // nolint
-}
-
-// default genesis state
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return CosmosAppModuleBasic{}.DefaultGenesis()
-}
-
-// module validate genesis
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
-}
-
-// register rest routes
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.Router) {
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
-}
-
-// get the root tx command of this module
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetTxCmd(cdc)
-}
-
-// get the root query command of this module
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
-}
-
-// app module
-type AppModule struct {
-	AppModuleBasic
-	cosmosAppModule CosmosAppModule
-}
-
-// NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper types.SupplyKeeper) AppModule {
-	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(keeper, supplyKeeper),
+func NewOverrideDistrModule(appModule distr.AppModule, keeper distr.Keeper) OverrideDistrModule {
+	return OverrideDistrModule{
+		AppModule: appModule,
+		k:         keeper,
 	}
 }
 
 // module name
-func (am AppModule) Name() string {
-	return am.cosmosAppModule.Name()
+func (am OverrideDistrModule) Name() string {
+	return am.AppModule.Name()
 }
 
 // register invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	am.cosmosAppModule.RegisterInvariants(ir)
+func (am OverrideDistrModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	am.AppModule.RegisterInvariants(ir)
 }
 
 // module querier route name
-func (am AppModule) Route() string {
-	return am.cosmosAppModule.Route()
+func (am OverrideDistrModule) Route() string {
+	return am.AppModule.Route()
 }
 
 // module handler
-func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
+func (am OverrideDistrModule) NewHandler() sdk.Handler {
+	return am.AppModule.NewHandler()
 }
 
 // module querier route name
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
+func (am OverrideDistrModule) QuerierRoute() string { return am.AppModule.QuerierRoute() }
 
 // module querier
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
+func (am OverrideDistrModule) NewQuerierHandler() sdk.Querier { return am.AppModule.NewQuerierHandler() }
 
 // module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+func (am OverrideDistrModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+	return am.AppModule.InitGenesis(ctx, data)
 }
 
 // module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+func (am OverrideDistrModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+	return am.AppModule.ExportGenesis(ctx)
 }
 
 // module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	am.cosmosAppModule.BeginBlock(ctx, rbb)
+func (am OverrideDistrModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
+	BeginBlocker(ctx, rbb, am.k)
 }
 
 // module end-block
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
+func (am OverrideDistrModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return am.AppModule.EndBlock(ctx, rbb)
 }
