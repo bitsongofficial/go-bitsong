@@ -7,8 +7,6 @@ import (
 
 // query endpoints supported by the track Querier
 const (
-	//QueryResolve = "resolve"
-	//QueryWhois   = "whois"
 	QueryAllSongsByAddress = "songs"
 )
 

@@ -8,36 +8,35 @@ import (
 
 // GenesisState - track genesis state
 type GenesisState struct {
-	Pool           Pool         `json:"pool"`
-	Params         types.Params `json:"params"`
-	SongTax        sdk.Dec      `json:"song_tax"`
-	StartingSongID uint64       `json:"starting_id"`
-	Songs          Tracks       `json:"songs"`
+	Pool            Pool         `json:"pool"`
+	Params          types.Params `json:"params"`
+	StartingTrackID uint64       `json:"starting_id"`
+	Tracks          Tracks       `json:"tracks"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(pool Pool, startingSongID uint64, params types.Params) GenesisState {
+func NewGenesisState(pool Pool, startingTrackID uint64, params types.Params) GenesisState {
 	return GenesisState{
-		Pool:           pool,
-		StartingSongID: startingSongID,
-		Params:         params,
+		Pool:            pool,
+		StartingTrackID: startingTrackID,
+		Params:          params,
 	}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Pool:           types.InitialPool(),
-		StartingSongID: DefaultStartingSongID,
-		Params:         types.DefaultParams(),
+		Pool:            types.InitialPool(),
+		StartingTrackID: DefaultStartingSongID,
+		Params:          types.DefaultParams(),
 	}
 }
 
 // ValidateGenesis validates genesis state
 func ValidateGenesis(data GenesisState) error {
-	if data.SongTax.IsNegative() || data.SongTax.GT(sdk.OneDec()) {
-		return fmt.Errorf("track parameter SongTax should non-negative and "+
-			"less than one, is %s", data.SongTax.String())
+	if data.Params.PlayTax.IsNegative() || data.Params.PlayTax.GT(sdk.OneDec()) {
+		return fmt.Errorf("track parameter PlayTax should non-negative and "+
+			"less than one, is %s", data.Params.PlayTax.String())
 	}
 
 	return data.Pool.ValidateGenesis()
@@ -46,7 +45,7 @@ func ValidateGenesis(data GenesisState) error {
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
 	keeper.SetParams(ctx, data.Params)
 
-	err := keeper.SetInitialTrackID(ctx, data.StartingSongID)
+	err := keeper.SetInitialTrackID(ctx, data.StartingTrackID)
 	if err != nil {
 		panic(err)
 	}

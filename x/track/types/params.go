@@ -6,11 +6,11 @@ import (
 )
 
 var (
-	KeySongTax = []byte("SongTax")
+	KeyPlayTax = []byte("PlayTax")
 )
 
 type Params struct {
-	SongTax sdk.Dec `json:"song_tax"`
+	PlayTax sdk.Dec `json:"play_tax"`
 }
 
 // ParamTable for token module.
@@ -18,22 +18,22 @@ func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-func NewParams(songTax sdk.Dec) Params {
+func NewParams(playTax sdk.Dec, startingTrackID uint64) Params {
 	return Params{
-		SongTax: songTax,
+		PlayTax: playTax,
 	}
 }
 
 // default minting module parameters
 func DefaultParams() Params {
 	return Params{
-		SongTax: sdk.NewDecWithPrec(30, 2),
+		PlayTax: sdk.NewDecWithPrec(30, 2),
 	}
 }
 
 // Implements params.ParamSet
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{Key: KeySongTax, Value: &p.SongTax},
+		{Key: KeyPlayTax, Value: &p.PlayTax},
 	}
 }
