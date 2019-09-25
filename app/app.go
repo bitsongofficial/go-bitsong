@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"github.com/BitSongOfficial/go-bitsong/x/artist"
 	"github.com/BitSongOfficial/go-bitsong/x/track"
 )
 
@@ -59,7 +58,6 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		track.AppModule{},
-		artist.AppModule{},
 	)
 
 	// module account permissions
@@ -108,7 +106,6 @@ type GaiaApp struct {
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
 	songKeeper     track.Keeper
-	artistKeeper   artist.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -127,7 +124,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, track.StoreKey, artist.StoreKey,
+		gov.StoreKey, params.StoreKey, track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -187,11 +184,6 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 	)
 
-	app.artistKeeper = artist.NewKeeper(
-		keys[artist.StoreKey],
-		app.cdc,
-	)
-
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -206,7 +198,6 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		artist.NewAppModule(app.artistKeeper),
 		track.NewAppModule(app.songKeeper),
 	)
 
@@ -223,7 +214,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, track.ModuleName,
-		artist.ModuleName, genutil.ModuleName,
+		genutil.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
