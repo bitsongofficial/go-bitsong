@@ -12,17 +12,17 @@ type MsgPublish struct {
 	Content                 string         `json:"content"`
 	Owner                   sdk.AccAddress `json:"owner"`
 	TotalReward             sdk.Int        `json:"total_reward"`
-	RedistributionSplitRate string         `json:"redistribution_split_rate"`
+	RedistributionSplitRate sdk.Dec        `json:"redistribution_split_rate"`
 }
 
 // MsgPublish defines a Publish message
 type MsgPlay struct {
-	SongID   string         `json:"song_id"`
+	SongID   uint64         `json:"song_id"`
 	Listener sdk.AccAddress `json:"listener"`
 }
 
 // NewMsgPublish is a constructor function for MsgPublish
-func NewMsgPublish(title string, owner sdk.AccAddress, content string, redistributionSplitRate string) MsgPublish {
+func NewMsgPublish(title string, owner sdk.AccAddress, content string, redistributionSplitRate sdk.Dec) MsgPublish {
 	return MsgPublish{
 		Title:                   title,
 		Content:                 content,
@@ -33,7 +33,7 @@ func NewMsgPublish(title string, owner sdk.AccAddress, content string, redistrib
 }
 
 // NewMsgPlay is a constructor function for MsgPublish
-func NewMsgPlay(songID string, listener sdk.AccAddress) MsgPlay {
+func NewMsgPlay(songID uint64, listener sdk.AccAddress) MsgPlay {
 	return MsgPlay{
 		SongID:   songID,
 		Listener: listener,
@@ -51,8 +51,11 @@ func (msg MsgPublish) ValidateBasic() sdk.Error {
 	if len(msg.Content) == 0 {
 		return sdk.ErrUnknownRequest("Content cannot be empty")
 	}
-	if len(msg.RedistributionSplitRate) == 0 {
-		return sdk.ErrUnknownRequest("Redistribution Split Rate cannot be empty")
+	if msg.RedistributionSplitRate.IsNegative() {
+		return sdk.ErrUnknownRequest("Redistribution Split Rate cannot be negative")
+	}
+	if msg.RedistributionSplitRate.IsNil() {
+		return sdk.ErrUnknownRequest("Redistribution Split Rate cannot be nil")
 	}
 
 	return nil
@@ -62,9 +65,7 @@ func (msg MsgPlay) ValidateBasic() sdk.Error {
 	if msg.Listener.Empty() {
 		return sdk.ErrInvalidAddress(msg.Listener.String())
 	}
-	if len(msg.SongID) == 0 {
-		return sdk.ErrUnknownRequest("Id cannot be empty")
-	}
+
 	return nil
 }
 

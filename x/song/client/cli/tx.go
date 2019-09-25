@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strconv"
 
 	"github.com/BitSongOfficial/go-bitsong/x/song/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -50,12 +52,22 @@ func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			// Get flags
+			var splitRate sdk.Dec
+
 			from := cliCtx.GetFromAddress()
 			title := viper.GetString(FlagTitle)
 			content := viper.GetString(FlagContent)
 			redistributionSplitRate := viper.GetString(FlagRedistributionSplitRate)
+			if redistributionSplitRate != "" {
+				rate, err := sdk.NewDecFromStr(redistributionSplitRate)
+				if err != nil {
+					return fmt.Errorf("invalid new redistribution splir rate: %v", err)
+				}
 
-			msg := types.NewMsgPublish(title, from, content, redistributionSplitRate)
+				splitRate = rate
+			}
+
+			msg := types.NewMsgPublish(title, from, content, splitRate)
 			err := msg.ValidateBasic()
 			if err != nil {
 				return err
@@ -88,18 +100,17 @@ func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
 
 			// Get listener address
 			listener := cliCtx.GetFromAddress()
-			id := viper.GetString(FlagID)
+			songId, err := strconv.ParseUint(viper.GetString(FlagID), 10, 64)
+			if err != nil {
+				return fmt.Errorf("proposal-id %s not a valid uint, please input a valid proposal-id", args[0])
+			}
 
-			msg := types.NewMsgPlay(id, listener)
-			err := msg.ValidateBasic()
+			msg := types.NewMsgPlay(songId, listener)
+			err = msg.ValidateBasic()
 			if err != nil {
 				return err
 			}
 
-			// FIX
-			//cliCtx.PrintResponse = true
-
-			// return utils.CompleteAndBroadcastTxCLI(txBldr, cliCtx, msgs)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

@@ -15,7 +15,7 @@ type Song struct {
 	Title                   string         `json:"title"`
 	Content                 string         `json:"content"`
 	TotalReward             sdk.Int        `json:"total_reward"`
-	RedistributionSplitRate string         `json:"redistribution_split_rate"`
+	RedistributionSplitRate sdk.Dec        `json:"redistribution_split_rate"`
 	CreateTime              time.Time      `json:"create_time"`
 }
 

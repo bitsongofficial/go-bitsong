@@ -3,6 +3,7 @@ package song
 import (
 	"fmt"
 	"github.com/BitSongOfficial/go-bitsong/x/song/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
@@ -19,16 +20,16 @@ var (
 type Keeper struct {
 	storeKey sdk.StoreKey // Unexposed key to access store from sdk.Context
 
-	cdc *codec.Codec // The wire codec for binary encoding/decoding.
-
-	codespace sdk.CodespaceType
+	cdc        *codec.Codec // The wire codec for binary encoding/decoding.
+	paramSpace params.Subspace
 }
 
 // NewKeeper creates new instances of the song Keeper
-func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec) Keeper {
+func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace) Keeper {
 	return Keeper{
-		storeKey: storeKey,
-		cdc:      cdc,
+		storeKey:   storeKey,
+		cdc:        cdc,
+		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
@@ -49,7 +50,7 @@ func (k Keeper) GetPlay(ctx sdk.Context, songId uint64, accAddr sdk.AccAddress) 
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyPlay(accAddr, songId))
 	if bz == nil {
-		return nil, sdk.NewError(k.codespace, CodePlayNotExist, fmt.Sprintf("this play is invalid"))
+		return nil, sdk.NewError(DefaultCodespace, CodePlayNotExist, fmt.Sprintf("this play is invalid"))
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
 	return play, nil
@@ -80,7 +81,7 @@ func KeyPlay(accAddr sdk.AccAddress, songId uint64) []byte {
 // Publish keeper
 func (k Keeper) Publish(ctx sdk.Context, title string,
 	owner sdk.AccAddress, content string,
-	redistributionSplitRate string) (song *Song, err sdk.Error) {
+	redistributionSplitRate sdk.Dec) (song *Song, err sdk.Error) {
 	id, err := k.getNewSongID(ctx)
 
 	if err != nil {
@@ -110,7 +111,7 @@ func (k Keeper) getNewSongID(ctx sdk.Context) (id uint64, err sdk.Error) {
 	bz := store.Get(KeyNextSongID)
 	if bz == nil {
 		//return 0, sdk.NewError(k.codespace, types.CodeInvalidGenesis, "InitialSongID never set")
-		return 0, ErrInvalidGenesis(k.codespace)
+		return 0, ErrInvalidGenesis(DefaultCodespace)
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
 	bz = k.cdc.MustMarshalBinaryLengthPrefixed(id + 1)
@@ -136,7 +137,7 @@ func (k Keeper) GetSong(ctx sdk.Context, id uint64) (*Song, sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeySong(id))
 	if bz == nil {
-		return nil, sdk.NewError(k.codespace, CodeSongNotExist, fmt.Sprintf("this id is invalid : %d", id))
+		return nil, sdk.NewError(DefaultCodespace, CodeSongNotExist, fmt.Sprintf("this id is invalid : %d", id))
 	}
 	var song Song
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &song)
@@ -158,7 +159,7 @@ func (k Keeper) PeekCurrentSongID(ctx sdk.Context) (id uint64, err sdk.Error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyNextSongID)
 	if bz == nil {
-		return 0, sdk.NewError(k.codespace, CodeInvalidGenesis, "InitialSongID never set")
+		return 0, sdk.NewError(DefaultCodespace, CodeInvalidGenesis, "InitialSongID never set")
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &id)
 	return id, nil
@@ -169,7 +170,7 @@ func (k Keeper) SetInitialSongID(ctx sdk.Context, id uint64) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(KeyNextSongID)
 	if bz != nil {
-		return sdk.NewError(k.codespace, CodeInvalidGenesis, "Initial SongID already set")
+		return sdk.NewError(DefaultCodespace, CodeInvalidGenesis, "Initial SongID already set")
 	}
 	bz = k.cdc.MustMarshalBinaryLengthPrefixed(id)
 	store.Set(KeyNextSongID, bz)
@@ -210,4 +211,8 @@ func (k Keeper) GetAddressSongs(ctx sdk.Context, addr sdk.AccAddress) (idArr []u
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &idArr)
 	return idArr
+}
+
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
+	k.paramSpace.SetParamSet(ctx, &params)
 }
