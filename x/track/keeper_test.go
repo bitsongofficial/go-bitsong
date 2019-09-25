@@ -3,7 +3,6 @@ package track
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,13 +14,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 	"strconv"
-
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/BitSongOfficial/go-bitsong/x/track/types"
 
@@ -46,10 +44,10 @@ var (
 )
 
 type TestInput struct {
-	cdc *codec.Codec
-	ctx sdk.Context
-	k   Keeper
-	sk  staking.Keeper
+	cdc            *codec.Codec
+	ctx            sdk.Context
+	trackKeeper    Keeper
+	stackingKeeper staking.Keeper
 }
 
 func MakeTestCodec() *codec.Codec {
@@ -159,7 +157,7 @@ func SetupTestInput(t *testing.T) TestInput {
 
 	songKeeper := NewKeeper(songCapKey, cdc, songSubspace, stakingKeeper)
 	songKeeper.SetParams(ctx, types.DefaultParams())
-	songKeeper.SetInitialSongID(ctx, types.DefaultStartingSongID)
+	songKeeper.SetInitialTrackID(ctx, types.DefaultStartingTrackID)
 
 	// Create validator
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
@@ -180,18 +178,50 @@ func SetupTestInput(t *testing.T) TestInput {
 	delegation3 := stakingtypes.NewDelegation(addrDels[1], addrVals[0], sdk.NewDec(20))
 	stakingKeeper.SetDelegation(ctx, delegation3)
 
-	return TestInput{cdc: cdc, ctx: ctx, k: songKeeper}
+	return TestInput{cdc: cdc, ctx: ctx, trackKeeper: songKeeper}
 }
 
-func TestKeeper(t *testing.T) {
+func TestPublishTrack(t *testing.T) {
 	input := SetupTestInput(t)
 	ctx := input.ctx
-	k := input.k
+	trackKeeper := input.trackKeeper
 
-	_, err := k.Publish(ctx, "Test Song", sdk.AccAddress([]byte("addr1")), "", sdk.NewDecWithPrec(5, 2))
+	_, err := trackKeeper.PublishTrack(ctx, "My second track on BitSong feat. Angelo Recca", addrDels[0], "ipfs hash", sdk.NewDecWithPrec(10, 2))
 	require.NoError(t, err)
 
-	fmt.Printf("%d", k.GetUserPower(ctx, addrDels[1]))
+	_, ok := trackKeeper.GetTrack(ctx, 1)
+	require.True(t, ok)
+
+	_, err = trackKeeper.PublishTrack(ctx, "My third track on BitSong feat. Angelo Recca", addrDels[0], "ipfs hash", sdk.NewDecWithPrec(7, 2))
+	require.NoError(t, err)
+
+	_, ok = trackKeeper.GetTrack(ctx, 2)
+	require.True(t, ok)
+}
+
+func TestGetSetTrack(t *testing.T) {
+	input := SetupTestInput(t)
+	ctx := input.ctx
+	trackKeeper := input.trackKeeper
+
+	newTrack := types.Track{
+		TrackID:                 1,
+		Owner:                   addrDels[0],
+		Title:                   "My first track on BitSong feat. Angelo Recca",
+		Content:                 "ipfs hash",
+		TotalReward:             sdk.NewInt(0),
+		RedistributionSplitRate: sdk.NewDecWithPrec(5, 2),
+		CreateTime:              ctx.BlockHeader().Time,
+	}
+
+	err := trackKeeper.setTrack(ctx, newTrack)
+	require.NoError(t, err)
+
+	_, ok := trackKeeper.GetTrack(ctx, 1)
+	require.True(t, ok)
+
+	_, ok = trackKeeper.GetTrack(ctx, 2)
+	require.False(t, ok)
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {

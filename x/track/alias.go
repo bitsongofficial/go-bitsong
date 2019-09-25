@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	ModuleName = types.ModuleName
-	RouterKey  = types.RouterKey
-	StoreKey   = types.StoreKey
-	DefaultStartingSongID = types.DefaultStartingSongID
+	ModuleName            = types.ModuleName
+	RouterKey             = types.RouterKey
+	StoreKey              = types.StoreKey
+	DefaultStartingSongID = types.DefaultStartingTrackID
 )
 
 var (
@@ -19,9 +19,9 @@ var (
 )
 
 type (
-	MsgPublish      = types.MsgPublish
-	MsgPlay         = types.MsgPlay
-	Song            = types.Song
-	Songs			= types.Songs
-	Pool			= types.Pool
+	MsgPublish = types.MsgPublish
+	MsgPlay    = types.MsgPlay
+	Track      = types.Track
+	Tracks     = types.Tracks
+	Pool       = types.Pool
 )

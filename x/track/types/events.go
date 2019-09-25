@@ -1,6 +1,6 @@
 package types
 
-// Song tags
+// Track tags
 var (
 	TxCategory = "track"
 

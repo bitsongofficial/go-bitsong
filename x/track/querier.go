@@ -1,10 +1,6 @@
 package track
 
 import (
-	"fmt"
-	
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -13,7 +9,7 @@ import (
 const (
 	//QueryResolve = "resolve"
 	//QueryWhois   = "whois"
-	QueryAllSongsByAddress   = "songs"
+	QueryAllSongsByAddress = "songs"
 )
 
 type QuerySongsParams struct {
@@ -39,7 +35,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 }
 
 func queryOrdersByAddress(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	var params QuerySongsParams
+	/*var params QuerySongsParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return []byte{}, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
@@ -55,7 +51,8 @@ func queryOrdersByAddress(ctx sdk.Context, req abci.RequestQuery, keeper Keeper)
 		return nil, sdk.ErrInternal(fmt.Sprintf("could not marshal result to JSON: %s", err))
 	}
 
-	return bz, nil
+	return bz, nil*/
+	return nil, nil
 }
 
 /*func querySearch(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {

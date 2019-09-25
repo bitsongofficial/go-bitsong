@@ -25,7 +25,12 @@ const (
 
 // ErrInvalidGenesis Error constructor
 func ErrInvalidGenesis(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidGenesis, fmt.Sprintf("InitialSongID never set."))
+	return sdk.NewError(codespace, CodeInvalidGenesis, fmt.Sprintf("InitialTrackID never set."))
+}
+
+// ErrInitialTrackIDAlreadySet Error constructor
+func ErrInitialTrackIDAlreadySet(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidGenesis, fmt.Sprintf("InitialTrackID already set."))
 }
 
 // ErrEmptyInput Error constructor
@@ -35,5 +40,5 @@ func ErrEmptyInput(codespace sdk.CodespaceType) sdk.Error {
 
 // ErrSongNotExist Error constructor
 func ErrSongNotExist(codespace sdk.CodespaceType) sdk.Error {
-	return sdk.NewError(codespace, CodeEmptyInput, fmt.Sprintf("Song not exist."))
+	return sdk.NewError(codespace, CodeEmptyInput, fmt.Sprintf("Track not exist."))
 }

@@ -61,7 +61,7 @@ func GetCmdList(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			var songs types.Songs
+			var songs types.Tracks
 			cdc.MustUnmarshalJSON(res, &songs)
 			return cliCtx.PrintOutput(songs)
 		},

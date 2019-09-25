@@ -16,7 +16,7 @@ type Artist struct {
 }
 
 func (a Artist) String() string {
-	return fmt.Sprintf(`Song %d:
+	return fmt.Sprintf(`Track %d:
 		  Artist ID:	%s
 		  Image:		%s
 		  Name:			%s`, a.ArtistID, a.Image, a.Name)
