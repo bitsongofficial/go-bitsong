@@ -258,7 +258,7 @@ func (k Keeper) GetPlayTax(ctx sdk.Context) sdk.Dec {
 	return percent
 }
 
-func (k Keeper) GetFeePlayPool(ctx sdk.Context) (playPool types.Pool) {
+func (k Keeper) GetPlayPool(ctx sdk.Context) (playPool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.PlayPoolKey)
 	if b == nil {
@@ -268,7 +268,7 @@ func (k Keeper) GetFeePlayPool(ctx sdk.Context) (playPool types.Pool) {
 	return
 }
 
-func (k Keeper) SetFeePlayPool(ctx sdk.Context, playPool types.Pool) {
+func (k Keeper) SetPlayPool(ctx sdk.Context, playPool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(playPool)
 	store.Set(types.PlayPoolKey, b)

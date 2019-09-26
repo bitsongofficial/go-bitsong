@@ -37,6 +37,8 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	previousProposer sdk.ConsAddress, previousVotes []abci.VoteInfo,
 ) {
 
+	fmt.Println()
+
 	logger := k.Logger(ctx)
 
 	// fetch and clear the collected fees for distribution, since this is
@@ -45,6 +47,9 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	feeCollector := k.supplyKeeper.GetModuleAccount(ctx, k.feeCollectorName)
 	feesCollectedInt := feeCollector.GetCoins()
 	feesCollected := sdk.NewDecCoins(feesCollectedInt)
+
+	fmt.Printf("Fee Collected: %s", feesCollected)
+	fmt.Println()
 
 	// transfer collected fees to the distribution module account
 	err := k.supplyKeeper.SendCoinsFromModuleToModule(ctx, k.feeCollectorName, types.ModuleName, feesCollectedInt)
@@ -70,6 +75,9 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	proposerMultiplier := baseProposerReward.Add(bonusProposerReward.MulTruncate(previousFractionVotes))
 	proposerReward := feesCollected.MulDecTruncate(proposerMultiplier)
 
+	fmt.Printf("Proposer Reward: %s", proposerReward)
+	fmt.Println()
+
 	// pay previous proposer
 	remaining := feesCollected
 	proposerValidator := k.stakingKeeper.ValidatorByConsAddr(ctx, previousProposer)
@@ -85,6 +93,9 @@ func (k OverrideDistrKeeper) AllocateTokens(
 
 		k.AllocateTokensToValidator(ctx, proposerValidator, proposerReward)
 		remaining = remaining.Sub(proposerReward)
+
+		fmt.Printf("Allocate to validator: %s", proposerReward)
+		fmt.Println()
 	} else {
 		// previous proposer can be unknown if say, the unbonding period is 1 block, so
 		// e.g. a validator undelegates at block X, it's removed entirely by
@@ -114,13 +125,30 @@ func (k OverrideDistrKeeper) AllocateTokens(
 		reward := feesCollected.MulDecTruncate(voteMultiplier).MulDecTruncate(powerFraction)
 		k.AllocateTokensToValidator(ctx, validator, reward)
 		remaining = remaining.Sub(reward)
+
+		fmt.Printf("Allocate by voting: %s", reward)
+		fmt.Println()
 	}
 
-	playPoolMultiplier := sdk.OneDec().Sub(communityTax).Sub(playTax)
-	playPoolReward := remaining.MulDec(playPoolMultiplier)
+	fmt.Printf("Tokens to Distribuite: %s", remaining)
+	fmt.Println()
+
+	playPoolMultiplier := sdk.OneDec().Sub(voteMultiplier).Sub(proposerMultiplier).Sub(communityTax) // TODO: temporary fix, change with play fee param
+	fmt.Printf("Play pool multiplier: %s", playPoolMultiplier)
+	fmt.Println()
+
+	playPoolReward := feesCollected.MulDecTruncate(playPoolMultiplier)
+
+	fmt.Printf("Play Pool Reward: %s", playPoolReward)
+	fmt.Println()
 
 	// truncate coins, return remainder to community pool
 	coin, remainder := sdk.NewDecCoinFromDec("ubtsg", playPoolReward.AmountOf("ubtsg")).TruncateDecimal()
+
+	fmt.Printf("Coin to play pool: %s", coin)
+	fmt.Println()
+	fmt.Printf("Coin remainder: %s", remainder)
+	fmt.Println()
 
 	// transfer collected play fees to the track module account
 	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, tracktypes.ModuleName, sdk.NewCoins(coin))
@@ -128,22 +156,24 @@ func (k OverrideDistrKeeper) AllocateTokens(
 		panic(err)
 	}
 
-	playPool := k.trackKeeper.GetFeePlayPool(ctx)
-	playPool.Rewards = playPool.Rewards.Add(sdk.NewDecCoins(sdk.NewCoins(coin)))
-	k.trackKeeper.SetFeePlayPool(ctx, playPool)
+	playPool := k.trackKeeper.GetPlayPool(ctx)
+	fmt.Printf("Before set play pool: %s", playPool.Rewards)
+	fmt.Println()
+	playPool.Rewards = playPool.Rewards.Add(coin.Amount)
+	k.trackKeeper.SetPlayPool(ctx, playPool)
 
-	remaining = remaining.Sub(playPoolReward).Add(sdk.NewDecCoins(sdk.NewCoins(sdk.NewCoin(remainder.Denom, remainder.Amount.TruncateInt()))))
+	fmt.Printf("Coin amount: %s", coin.Amount)
+	fmt.Println()
+	fmt.Printf("Set play pool: %s", playPool.Rewards)
+	fmt.Println()
 
 	// allocate community funding
+	remaining = remaining.Sub(sdk.NewDecCoins(sdk.NewCoins(coin)))
 	feePool.CommunityPool = feePool.CommunityPool.Add(remaining)
 	k.SetFeePool(ctx, feePool)
 
+	fmt.Printf("Set community pool: %s", feePool.CommunityPool)
 	fmt.Println()
-	fmt.Println()
-	fmt.Printf("Play Rewards Pool: %s", playPool.Rewards.String())
-	fmt.Println()
-	fmt.Printf("Community Pool: %s", feePool.CommunityPool.String())
-	fmt.Println()
-	fmt.Println()
+
 	fmt.Println()
 }

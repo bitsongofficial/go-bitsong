@@ -13,7 +13,7 @@ func TestEndBlocker(t *testing.T) {
 	trackKeeper := input.trackKeeper
 
 	// assure that play pool have rewards
-	playPool := trackKeeper.GetFeePlayPool(ctx)
+	playPool := trackKeeper.GetPlayPool(ctx)
 	fmt.Printf("Play pool: %s", playPool)
 	fmt.Println()
 

@@ -162,7 +162,7 @@ func SetupTestInput(t *testing.T) TestInput {
 	initialFeePool := Pool{
 		Rewards: sdk.NewCoins(sdk.NewInt64Coin("ubtsg", 100000)),
 	}
-	trackKeeper.SetFeePlayPool(ctx, initialFeePool)
+	trackKeeper.SetPlayPool(ctx, initialFeePool)
 
 	// Create validator
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
@@ -322,6 +322,10 @@ func TestAllocateTokensToAccount(t *testing.T) {
 
 	tokens := sdk.DecCoins{{sdk.DefaultBondDenom, sdk.NewDec(10000)}}
 	trackKeeper.AllocateTokensToAccount(ctx, addrDels[0], tokens)
+}
+
+func TestDec(t *testing.T) {
+	fmt.Printf("%s", sdk.NewDecWithPrec(70, 2))
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {

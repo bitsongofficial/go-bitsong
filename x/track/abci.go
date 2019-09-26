@@ -1,5 +1,6 @@
 package track
 
+/*
 import (
 	"fmt"
 	"github.com/BitSongOfficial/go-bitsong/x/track/types"
@@ -34,7 +35,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		//k.AllocateTokensToAccount(ctx, play.AccAddress, tokens)
 
 		// get initial data
-		playPool := k.GetFeePlayPool(ctx)
+		playPool := k.GetPlayPool(ctx)
 		playCollection := make(map[uint64]types.PlayReward)
 
 		// IterateAllPlays - calculate some parameters each play and add it on playCollection
@@ -98,10 +99,11 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 
 					// Adjust play pool
 					playPool.Rewards = playPool.Rewards.Sub(sdk.NewDecCoins(sdk.NewCoins(reward)))
-					k.SetFeePlayPool(ctx, playPool)
+					k.SetPlayPool(ctx, playPool)
 					fmt.Printf("new play pool %v", playPool.Rewards)
 				}
 			}
 		}
 	}
 }
+*/
