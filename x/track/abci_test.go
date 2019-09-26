@@ -41,13 +41,13 @@ func TestEndBlocker(t *testing.T) {
 	// then calculate redistribution split rate per account
 	//fmt.Printf("%s", trackKeeper.GetAllPlays(ctx))
 
-	playCollection := make(map[uint64]PlayReward)
+	playCollection := make(map[uint64]types.PlayReward)
 	totalStreamPower := sdk.ZeroInt()
 
 	trackKeeper.IterateAllPlays(ctx, func(play types.Play) bool {
 		reward, ok := playCollection[play.TrackId]
 		if !ok {
-			reward = PlayReward{
+			reward = types.PlayReward{
 				Streams:      play.Streams,
 				Users:        sdk.NewInt(1),
 				UsersPower:   play.Shares,
@@ -94,17 +94,5 @@ func TestEndBlocker(t *testing.T) {
 		fmt.Printf("totalStreamPower: %v ", totalStreamPower)
 		fmt.Println()
 	}
-
-}
-
-type PlayReward struct {
-	Streams      sdk.Int  `json:"streams"`
-	Users        sdk.Int  `json:"users"`
-	UsersPower   sdk.Dec  `json:"users_power"`
-	StreamsPower sdk.Int  `json:"streams_power"`
-	Reward       sdk.Coin `json:"reward"`
-}
-
-func (k Keeper) IterateAllTracks(ctx sdk.Context, cb func(play types.Play) (stop bool)) {
 
 }

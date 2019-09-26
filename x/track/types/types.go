@@ -67,3 +67,12 @@ type AccountCurrentRewards struct {
 	Rewards sdk.DecCoins `json:"rewards" yaml:"rewards"` // current rewards
 	Period  uint64       `json:"period" yaml:"period"`   // current period
 }
+
+type PlayReward struct {
+	Streams      sdk.Int        `json:"streams"`
+	Users        sdk.Int        `json:"users"`
+	UsersPower   sdk.Dec        `json:"users_power"`
+	StreamsPower sdk.Int        `json:"streams_power"`
+	Reward       sdk.Coin       `json:"reward"`
+	Owner        sdk.AccAddress `json:"owner"`
+}

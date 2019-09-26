@@ -117,10 +117,10 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	}
 
 	playPoolMultiplier := sdk.OneDec().Sub(communityTax).Sub(playTax)
-	playPoolReward := remaining.MulDecTruncate(playPoolMultiplier)
+	playPoolReward := remaining.MulDec(playPoolMultiplier)
 
 	// truncate coins, return remainder to community pool
-	coins, remainder := playPoolReward.TruncateDecimal()
+	coins := sdk.NewCoins(sdk.NewCoin("ubtsg", playPoolReward.AmountOf("ubtsg").TruncateInt()))
 
 	// transfer collected play fees to the track module account
 	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, tracktypes.ModuleName, coins)
@@ -132,7 +132,7 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	playPool.Rewards = playPool.Rewards.Add(coins)
 	k.trackKeeper.SetFeePlayPool(ctx, playPool)
 
-	remaining = remaining.Sub(playPoolReward).Add(remainder)
+	//remaining = remaining.Sub(playPoolReward).Add(remainder)
 
 	// allocate community funding
 	feePool.CommunityPool = feePool.CommunityPool.Add(remaining)
