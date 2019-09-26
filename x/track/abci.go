@@ -10,7 +10,7 @@ import (
 // and distribute rewards for the previous block
 func EndBlocker(ctx sdk.Context, k Keeper) {
 	blockHeight := ctx.BlockHeight()
-	blocksToPay := int64(2) // pay each 2 blocks
+	blocksToPay := int64(12) // pay each 2 blocks
 
 	if blockHeight%blocksToPay == 0 {
 		// calculate reward
@@ -79,7 +79,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 		// If totalStreamPower is > 0
 		if totalStreamPower.GT(sdk.NewInt(0)) {
 			// Calculate price stream power
-			priceStreamPower := playPool.Rewards.AmountOf("ubtsg").Quo(totalStreamPower).ToDec()
+			priceStreamPower := playPool.Rewards.AmountOf("ubtsg").Quo(totalStreamPower.ToDec())
 			fmt.Printf("%s", priceStreamPower)
 			fmt.Println()
 
@@ -97,7 +97,7 @@ func EndBlocker(ctx sdk.Context, k Keeper) {
 					}
 
 					// Adjust play pool
-					playPool.Rewards = playPool.Rewards.Sub(sdk.NewCoins(reward))
+					playPool.Rewards = playPool.Rewards.Sub(sdk.NewDecCoins(sdk.NewCoins(reward)))
 					k.SetFeePlayPool(ctx, playPool)
 					fmt.Printf("new play pool %v", playPool.Rewards)
 				}

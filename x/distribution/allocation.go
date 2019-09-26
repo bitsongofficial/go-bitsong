@@ -120,19 +120,19 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	playPoolReward := remaining.MulDec(playPoolMultiplier)
 
 	// truncate coins, return remainder to community pool
-	coins := sdk.NewCoins(sdk.NewCoin("ubtsg", playPoolReward.AmountOf("ubtsg").TruncateInt()))
+	coin, remainder := sdk.NewDecCoinFromDec("ubtsg", playPoolReward.AmountOf("ubtsg")).TruncateDecimal()
 
 	// transfer collected play fees to the track module account
-	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, tracktypes.ModuleName, coins)
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, tracktypes.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		panic(err)
 	}
 
 	playPool := k.trackKeeper.GetFeePlayPool(ctx)
-	playPool.Rewards = playPool.Rewards.Add(coins)
+	playPool.Rewards = playPool.Rewards.Add(sdk.NewDecCoins(sdk.NewCoins(coin)))
 	k.trackKeeper.SetFeePlayPool(ctx, playPool)
 
-	//remaining = remaining.Sub(playPoolReward).Add(remainder)
+	remaining = remaining.Sub(playPoolReward).Add(sdk.NewDecCoins(sdk.NewCoins(sdk.NewCoin(remainder.Denom, remainder.Amount.TruncateInt()))))
 
 	// allocate community funding
 	feePool.CommunityPool = feePool.CommunityPool.Add(remaining)
