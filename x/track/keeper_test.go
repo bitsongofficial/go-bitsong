@@ -67,7 +67,7 @@ func MakeTestCodec() *codec.Codec {
 }
 
 func SetupTestInput(t *testing.T) TestInput {
-	songCapKey := sdk.NewKVStoreKey("songCapKey")
+	trackCapKey := sdk.NewKVStoreKey("trackCapKey")
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	stakingCapKey := sdk.NewKVStoreKey(stakingtypes.StoreKey)
 	tkeyStaking := sdk.NewTransientStoreKey(stakingtypes.TStoreKey)
@@ -77,7 +77,7 @@ func SetupTestInput(t *testing.T) TestInput {
 
 	db := dbm.NewMemDB()
 	ms := store.NewCommitMultiStore(db)
-	ms.MountStoreWithDB(songCapKey, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(trackCapKey, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(tkeyStaking, sdk.StoreTypeTransient, nil)
 	ms.MountStoreWithDB(stakingCapKey, sdk.StoreTypeIAVL, db)
 	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
@@ -154,11 +154,15 @@ func SetupTestInput(t *testing.T) TestInput {
 		}
 	}
 
-	songSubspace := pk.Subspace(types.DefaultParamspace)
+	trackSubspace := pk.Subspace(types.DefaultParamspace)
 
-	songKeeper := NewKeeper(songCapKey, cdc, songSubspace, stakingKeeper, supplyKeeper)
-	songKeeper.SetParams(ctx, types.DefaultParams())
-	songKeeper.SetInitialTrackID(ctx, types.DefaultStartingTrackID)
+	trackKeeper := NewKeeper(trackCapKey, cdc, trackSubspace, stakingKeeper, supplyKeeper)
+	trackKeeper.SetParams(ctx, types.DefaultParams())
+	trackKeeper.SetInitialTrackID(ctx, types.DefaultStartingTrackID)
+	initialFeePool := Pool{
+		Rewards: sdk.NewCoins(sdk.NewInt64Coin("ubtsg", 100000)),
+	}
+	trackKeeper.SetFeePlayPool(ctx, initialFeePool)
 
 	// Create validator
 	amts := []sdk.Int{sdk.NewInt(9), sdk.NewInt(8), sdk.NewInt(7)}
@@ -179,7 +183,7 @@ func SetupTestInput(t *testing.T) TestInput {
 	delegation3 := stakingtypes.NewDelegation(addrDels[1], addrVals[0], sdk.NewDec(20))
 	stakingKeeper.SetDelegation(ctx, delegation3)
 
-	return TestInput{cdc: cdc, ctx: ctx, trackKeeper: songKeeper}
+	return TestInput{cdc: cdc, ctx: ctx, trackKeeper: trackKeeper}
 }
 
 func TestPublishTrack(t *testing.T) {
