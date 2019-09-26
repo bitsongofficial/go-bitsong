@@ -75,4 +75,5 @@ type PlayReward struct {
 	StreamsPower sdk.Int        `json:"streams_power"`
 	Reward       sdk.Coin       `json:"reward"`
 	Owner        sdk.AccAddress `json:"owner"`
+	TrackID      uint64         `json:"track_id"`
 }
