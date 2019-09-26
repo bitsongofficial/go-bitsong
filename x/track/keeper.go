@@ -6,6 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/staking/exported"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+
 	//"github.com/cosmos/cosmos-sdk/x/staking/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,24 +16,27 @@ import (
 )
 
 var (
-	KeyDelimiter   = []byte(":")
-	KeyNextTrackID = []byte("newTrackID")
-	PlayPrefix     = []byte("play")
+	KeyDelimiter                = []byte(":")
+	KeyNextTrackID              = []byte("newTrackID")
+	PlayPrefix                  = []byte("play")
+	AccountCurrentRewardsPrefix = []byte("accCurrReward")
 )
 
 type Keeper struct {
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
-	paramSpace params.Subspace
-	sk         staking.Keeper
+	storeKey      sdk.StoreKey
+	cdc           *codec.Codec
+	paramSpace    params.Subspace
+	stakingKeeper staking.Keeper
+	supplyKeeper  supply.Keeper
 }
 
-func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace, sk staking.Keeper) Keeper {
+func NewKeeper(storeKey sdk.StoreKey, cdc *codec.Codec, paramSpace params.Subspace, stkingKeeper staking.Keeper, supplyKeeper supply.Keeper) Keeper {
 	return Keeper{
-		storeKey:   storeKey,
-		cdc:        cdc,
-		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
-		sk:         sk,
+		storeKey:      storeKey,
+		cdc:           cdc,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+		stakingKeeper: stkingKeeper,
+		supplyKeeper:  supplyKeeper,
 	}
 }
 
@@ -146,7 +151,7 @@ func (k Keeper) PublishTrack(ctx sdk.Context, title string, owner sdk.AccAddress
 func (k Keeper) GetAccPower(ctx sdk.Context, address sdk.AccAddress) sdk.Dec {
 	power := sdk.ZeroDec()
 
-	k.sk.IterateDelegations(
+	k.stakingKeeper.IterateDelegations(
 		ctx, address,
 		func(_ int64, del exported.DelegationI) (stop bool) {
 			power = power.Add(del.GetShares())
@@ -189,6 +194,11 @@ func (k Keeper) setPlay(ctx sdk.Context, play types.Play) sdk.Error {
 
 func (k Keeper) SetPlay(ctx sdk.Context, play types.Play) sdk.Error {
 	return k.setPlay(ctx, play)
+}
+
+func (k Keeper) DeletePlay(ctx sdk.Context, play types.Play) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(GetPlayKey(play.AccAddress, play.TrackId))
 }
 
 func (k Keeper) PlayTrack(ctx sdk.Context, accAddr sdk.AccAddress, trackID uint64) (types.Play, bool) {
@@ -262,4 +272,61 @@ func (k Keeper) SetFeePlayPool(ctx sdk.Context, playPool types.Pool) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(playPool)
 	store.Set(types.PlayPoolKey, b)
+}
+
+// gets the key for a account's current rewards
+func GetAccountCurrentRewardsKey(accAddr sdk.AccAddress) []byte {
+	return append(AccountCurrentRewardsPrefix, accAddr.Bytes()...)
+}
+
+// gets the address
+func GetAccountCurrentRewardsAddress(key []byte) (accAddr sdk.AccAddress) {
+	addr := key[1:]
+	if len(addr) != sdk.AddrLen {
+		panic("unexpected key length")
+	}
+	return addr
+}
+
+// get current rewards for an account
+func (k Keeper) GetAccountCurrentRewards(ctx sdk.Context, acc sdk.AccAddress) (rewards types.AccountCurrentRewards) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(GetAccountCurrentRewardsKey(acc))
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &rewards)
+	return
+}
+
+// set current rewards for an account
+func (k Keeper) SetAccountCurrentRewards(ctx sdk.Context, acc sdk.AccAddress, rewards types.AccountCurrentRewards) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(rewards)
+	store.Set(GetAccountCurrentRewardsKey(acc), b)
+}
+
+// delete current rewards for an account
+func (k Keeper) DeleteAccountCurrentRewards(ctx sdk.Context, acc sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(GetAccountCurrentRewardsKey(acc))
+}
+
+// iterate over current rewards
+func (k Keeper) IterateAccountCurrentRewards(ctx sdk.Context, handler func(acc sdk.AccAddress, rewards types.AccountCurrentRewards) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, AccountCurrentRewardsPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		var rewards types.AccountCurrentRewards
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &rewards)
+		addr := GetAccountCurrentRewardsAddress(iter.Key())
+		if handler(addr, rewards) {
+			break
+		}
+	}
+}
+
+func (k Keeper) AllocateTokensToAccount(ctx sdk.Context, acc sdk.AccAddress, tokens sdk.DecCoins) {
+	// update current rewards
+	currentRewards := k.GetAccountCurrentRewards(ctx, acc)
+	currentRewards.Rewards = currentRewards.Rewards.Add(tokens)
+	k.SetAccountCurrentRewards(ctx, acc, currentRewards)
 }

@@ -8,13 +8,13 @@ import (
 
 // global pool for distribution
 type Pool struct {
-	Rewards sdk.DecCoins `json:"rewards"` // pool for track funds yet to be send
+	Rewards sdk.Coins `json:"rewards"` // pool for track funds yet to be send
 }
 
 // zero fee pool
 func InitialPool() Pool {
 	return Pool{
-		Rewards: sdk.DecCoins{},
+		Rewards: sdk.Coins{},
 	}
 }
 

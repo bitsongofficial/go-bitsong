@@ -156,7 +156,7 @@ func SetupTestInput(t *testing.T) TestInput {
 
 	songSubspace := pk.Subspace(types.DefaultParamspace)
 
-	songKeeper := NewKeeper(songCapKey, cdc, songSubspace, stakingKeeper)
+	songKeeper := NewKeeper(songCapKey, cdc, songSubspace, stakingKeeper, supplyKeeper)
 	songKeeper.SetParams(ctx, types.DefaultParams())
 	songKeeper.SetInitialTrackID(ctx, types.DefaultStartingTrackID)
 
@@ -309,6 +309,15 @@ func TestPlayIterator(t *testing.T) {
 	plays := trackKeeper.GetAllPlays(ctx)
 
 	fmt.Printf("%s", plays)
+}
+
+func TestAllocateTokensToAccount(t *testing.T) {
+	input := SetupTestInput(t)
+	ctx := input.ctx
+	trackKeeper := input.trackKeeper
+
+	tokens := sdk.DecCoins{{sdk.DefaultBondDenom, sdk.NewDec(10000)}}
+	trackKeeper.AllocateTokensToAccount(ctx, addrDels[0], tokens)
 }
 
 func createTestAddrs(numAddrs int) []sdk.AccAddress {

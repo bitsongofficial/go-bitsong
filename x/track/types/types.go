@@ -59,3 +59,11 @@ func (p Play) String() string {
 		  Streams:					%s
 		  CreateTime:				%s`, p.AccAddress, p.TrackId, p.Shares, p.Streams, p.CreateTime)
 }
+
+// current rewards and current period for an account
+// kept as a running counter and incremented each block
+// as long as the account's tokens remain constant
+type AccountCurrentRewards struct {
+	Rewards sdk.DecCoins `json:"rewards" yaml:"rewards"` // current rewards
+	Period  uint64       `json:"period" yaml:"period"`   // current period
+}

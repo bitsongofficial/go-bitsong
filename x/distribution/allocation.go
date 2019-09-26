@@ -7,6 +7,7 @@ import (
 
 	"github.com/BitSongOfficial/go-bitsong/x/track"
 
+	tracktypes "github.com/BitSongOfficial/go-bitsong/x/track/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -118,11 +119,20 @@ func (k OverrideDistrKeeper) AllocateTokens(
 	playPoolMultiplier := sdk.OneDec().Sub(communityTax).Sub(playTax)
 	playPoolReward := remaining.MulDecTruncate(playPoolMultiplier)
 
+	// truncate coins, return remainder to community pool
+	coins, remainder := playPoolReward.TruncateDecimal()
+
+	// transfer collected play fees to the track module account
+	err = k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, tracktypes.ModuleName, coins)
+	if err != nil {
+		panic(err)
+	}
+
 	playPool := k.trackKeeper.GetFeePlayPool(ctx)
-	playPool.Rewards = playPool.Rewards.Add(playPoolReward)
+	playPool.Rewards = playPool.Rewards.Add(coins)
 	k.trackKeeper.SetFeePlayPool(ctx, playPool)
 
-	remaining = remaining.Sub(playPoolReward)
+	remaining = remaining.Sub(playPoolReward).Add(remainder)
 
 	// allocate community funding
 	feePool.CommunityPool = feePool.CommunityPool.Add(remaining)

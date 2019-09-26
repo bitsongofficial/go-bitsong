@@ -65,11 +65,12 @@ var (
 	// module account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
-		sdkdistr.ModuleName:       nil,
+		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		track.ModuleName:          nil,
 	}
 )
 
@@ -187,6 +188,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.cdc,
 		trackSubspace,
 		app.stakingKeeper,
+		app.supplyKeeper,
 	)
 
 	distrModule := sdkdistr.NewAppModule(app.distrKeeper, app.supplyKeeper)
