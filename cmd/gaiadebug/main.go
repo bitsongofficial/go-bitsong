@@ -14,7 +14,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
-	gaia "github.com/BitSongOfficial/go-bitsong/app"
+	gaia "github.com/bitsongofficial/go-bitsong/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -36,7 +36,7 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:          "bitsongdebug",
+	Use:          "gaiadebug",
 	Short:        "Gaia debug tool",
 	SilenceUsage: true,
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 
-	"github.com/BitSongOfficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/app"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"

@@ -1,9 +1,0 @@
----
-
-- name: systemctl
-  systemd: name=bitsongcli enabled=yes daemon_reload=yes
-
-- name: restart bitsongcli
-  service: name=bitsongcli state=restarted
-
-

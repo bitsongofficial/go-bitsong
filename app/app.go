@@ -9,7 +9,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	distr "github.com/BitSongOfficial/go-bitsong/x/distribution"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -19,8 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	sdkdistr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -30,11 +28,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	"github.com/BitSongOfficial/go-bitsong/x/track"
 )
 
-const appName = "GaiaApp"
+const appName = "GoBitsong"
 
 var (
 	// default home directories for bitsongcli
@@ -53,13 +49,12 @@ var (
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
-		sdkdistr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distrclient.ProposalHandler),
+		distr.AppModuleBasic{},
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		track.AppModule{},
 	)
 
 	// module account permissions
@@ -70,7 +65,6 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		track.ModuleName:          nil,
 	}
 )
 
@@ -87,7 +81,7 @@ func MakeCodec() *codec.Codec {
 }
 
 // Extended ABCI application
-type GaiaApp struct {
+type GoBitsong struct {
 	*bam.BaseApp
 	cdc *codec.Codec
 
@@ -104,19 +98,18 @@ type GaiaApp struct {
 	stakingKeeper  staking.Keeper
 	slashingKeeper slashing.Keeper
 	mintKeeper     mint.Keeper
-	distrKeeper    sdkdistr.Keeper
+	distrKeeper    distr.Keeper
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
-	trackKeeper    track.Keeper
 
 	// the module manager
 	mm *module.Manager
 }
 
-// NewGaiaApp returns a reference to an initialized GaiaApp.
-func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *GaiaApp {
+// NewBitsongApp returns a reference to an initialized GoBitsong.
+func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *GoBitsong {
 
 	cdc := MakeCodec()
 
@@ -126,12 +119,12 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, mint.StoreKey, sdkdistr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, track.StoreKey,
+		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		gov.StoreKey, params.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
-	var app = &GaiaApp{
+	app := &GoBitsong{
 		BaseApp:        bApp,
 		cdc:            cdc,
 		invCheckPeriod: invCheckPeriod,
@@ -145,11 +138,10 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
 	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(sdkdistr.DefaultParamspace)
+	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-	trackSubspace := app.paramsKeeper.Subspace(track.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
@@ -160,8 +152,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace,
 	)
 	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
-	app.distrKeeper = sdkdistr.NewKeeper(app.cdc, keys[sdkdistr.StoreKey], distrSubspace, &stakingKeeper,
-		app.supplyKeeper, sdkdistr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
+	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], distrSubspace, &stakingKeeper,
+		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
 	app.slashingKeeper = slashing.NewKeeper(
 		app.cdc, keys[slashing.StoreKey], &stakingKeeper, slashingSubspace, slashing.DefaultCodespace,
 	)
@@ -171,7 +163,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govRouter := gov.NewRouter()
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(sdkdistr.RouterKey, sdkdistr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
@@ -183,18 +175,6 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.trackKeeper = track.NewKeeper(
-		keys[track.StoreKey],
-		app.cdc,
-		trackSubspace,
-		app.stakingKeeper,
-		app.supplyKeeper,
-	)
-
-	distrModule := sdkdistr.NewAppModule(app.distrKeeper, app.supplyKeeper)
-	overriddenDistrKeeper := distr.NewOverrideDistrKeeper(app.distrKeeper, app.stakingKeeper, app.supplyKeeper, app.trackKeeper, auth.FeeCollectorName)
-	overriddenDistrModule := distr.NewOverrideDistrModule(distrModule, overriddenDistrKeeper)
-
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -204,28 +184,26 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		overriddenDistrModule,
+		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
 		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		track.NewAppModule(app.trackKeeper),
 	)
 
-	// During begin block slashing happens after sdkdistr.BeginBlocker so that
+	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
 
-	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, track.ModuleName)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		genaccounts.ModuleName, sdkdistr.ModuleName, staking.ModuleName,
+		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
-		mint.ModuleName, supply.ModuleName, crisis.ModuleName, track.ModuleName,
-		genutil.ModuleName,
+		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -238,8 +216,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper,
-		auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
@@ -248,36 +225,38 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 			cmn.Exit(err.Error())
 		}
 	}
+
 	return app
 }
 
 // application updates every begin block
-func (app *GaiaApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *GoBitsong) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // application updates every end block
-func (app *GaiaApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *GoBitsong) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
 // application update at chain initialization
-func (app *GaiaApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *GoBitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
+
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 
 // load a particular height
-func (app *GaiaApp) LoadHeight(height int64) error {
+func (app *GoBitsong) LoadHeight(height int64) error {
 	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *GaiaApp) ModuleAccountAddrs() map[string]bool {
+func (app *GoBitsong) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[app.supplyKeeper.GetModuleAddress(acc).String()] = true
+		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs

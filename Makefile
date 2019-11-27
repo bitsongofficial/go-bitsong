@@ -63,7 +63,6 @@ ldflags := $(strip $(ldflags))
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 # The below include contains the tools target.
-include contrib/devtools/Makefile
 
 all: install lint check
 
@@ -86,14 +85,12 @@ else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
 endif
 
-install: go.sum check-ledger
+install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongcli
 
 install-debug: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongdebug
-
-
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/gaiadebug
 
 ########################################
 ### Tools & dependencies
@@ -121,24 +118,23 @@ distclean: clean
 ### Testing
 
 
-check: check-unit check-build
-check-all: check check-race check-cover
+test: test-unit test-build
+test-all: check test-race test-cover
 
-check-unit:
+test-unit:
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
-check-race:
+test-race:
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
-check-cover:
+test-cover:
 	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
 
-check-build: build
+test-build: build
 	@go test -mod=readonly -p 4 `go list ./cli_test/...` -tags=cli_test -v
 
 
 lint: golangci-lint
-
 	golangci-lint run
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
 	go mod verify
@@ -159,7 +155,7 @@ build-docker-bitsongdnode:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
-localnet-start: localnet-stop
+localnet-start: build-linux localnet-stop
 	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/bitsongd:Z tendermint/bitsongdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 ; fi
 	docker-compose up -d
 
@@ -175,19 +171,19 @@ setup-contract-tests-data:
 	./build/bitsongd init --home /tmp/contract_tests/.bitsongd --chain-id lcd contract-tests ; \
 	tar -xzf lcd_test/testdata/state.tar.gz -C /tmp/contract_tests/
 
-start-gaia: setup-contract-tests-data
+start-go-bitsong: setup-contract-tests-data
 	./build/bitsongd --home /tmp/contract_tests/.bitsongd start &
 	@sleep 2s
 
-setup-transactions: start-gaia
+setup-transactions: start-go-bitsong
 	@bash ./lcd_test/testdata/setup.sh
 
 run-lcd-contract-tests:
-	@echo "Running Gaia LCD for contract tests"
+	@echo "Running Go-Bitsong LCD for contract tests"
 	./build/bitsongcli rest-server --laddr tcp://0.0.0.0:8080 --home /tmp/contract_tests/.bitsongcli --node http://localhost:26657 --chain-id lcd --trust-node true
 
 contract-tests: setup-transactions
-	@echo "Running Gaia LCD for contract tests"
+	@echo "Running Go-Bitsong LCD for contract tests"
 	dredd && pkill bitsongd
 
 # include simulations
@@ -195,6 +191,5 @@ include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
-	setup-transactions setup-contract-tests-data start-gaia run-lcd-contract-tests contract-tests \
-	check check-all check-build check-cover check-ledger check-unit check-race
-
+	setup-transactions setup-contract-tests-data start-go-bitsong run-lcd-contract-tests contract-tests \
+	test test-all test-build test-cover test-unit test-race

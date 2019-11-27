@@ -48,7 +48,7 @@ func testnetCmd(ctx *server.Context, cdc *codec.Codec,
 
 	cmd := &cobra.Command{
 		Use:   "testnet",
-		Short: "Initialize files for a bitsongd testnet",
+		Short: "Initialize files for a Bitsongd testnet",
 		Long: `testnet will create "v" number of directories and populate each with
 necessary files (private validator, genesis, config, etc.).
 
@@ -110,8 +110,8 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 	nodeIDs := make([]string, numValidators)
 	valPubKeys := make([]crypto.PubKey, numValidators)
 
-	gaiaConfig := srvconfig.DefaultConfig()
-	gaiaConfig.MinGasPrices = minGasPrices
+	bitsongConfig := srvconfig.DefaultConfig()
+	bitsongConfig.MinGasPrices = minGasPrices
 
 	var (
 		accs     []genaccounts.GenesisAccount
@@ -235,10 +235,10 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 			return err
 		}
 
-		// TODO: Rename config file to server.toml as it's not particular to Gaia
+		// TODO: Rename config file to server.toml as it's not particular to Bitsong
 		// (REF: https://github.com/cosmos/cosmos-sdk/issues/4125).
-		gaiaConfigFilePath := filepath.Join(nodeDir, "config/bitsongd.toml")
-		srvconfig.WriteConfigFile(gaiaConfigFilePath, gaiaConfig)
+		bitsongConfigFilePath := filepath.Join(nodeDir, "config/bitsongd.toml")
+		srvconfig.WriteConfigFile(bitsongConfigFilePath, bitsongConfig)
 	}
 
 	if err := initGenFiles(cdc, mbm, chainID, accs, genFiles, numValidators); err != nil {

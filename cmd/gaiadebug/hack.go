@@ -20,7 +20,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	gaia "github.com/BitSongOfficial/go-bitsong/app"
+	gaia "github.com/bitsongofficial/go-bitsong/app"
 )
 
 func runHackCmd(cmd *cobra.Command, args []string) error {
@@ -29,7 +29,7 @@ func runHackCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Expected 1 arg")
 	}
 
-	// ".bitsongd"
+	// ".gaiad"
 	dataDir := args[0]
 	dataDir = path.Join(dataDir, "data")
 
@@ -40,7 +40,7 @@ func runHackCmd(cmd *cobra.Command, args []string) error {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	app, keyMain, keyStaking, stakingKeeper := gaia.NewGaiaAppUNSAFE(
+	app, keyMain, keyStaking, stakingKeeper := gaia.NewBitsongAppUNSAFE(
 		logger, db, nil, false, 0, baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))))
 
 	// print some info

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tm-db"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -14,18 +14,28 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-func TestbitsongdExport(t *testing.T) {
+func TestBitsongdExport(t *testing.T) {
 	db := db.NewMemDB()
-	gapp := NewGaiaApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
-	setGenesis(gapp)
+	bapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	setGenesis(bapp)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newGapp := NewGaiaApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
-	_, _, err := newGapp.ExportAppStateAndValidators(false, []string{})
+	newBapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	_, _, err := newBapp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
 
-func setGenesis(gapp *GaiaApp) error {
+// ensure that black listed addresses are properly set in bank keeper
+func TestBlackListedAddrs(t *testing.T) {
+	db := db.NewMemDB()
+	app := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+
+	for acc := range maccPerms {
+		require.True(t, app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))
+	}
+}
+
+func setGenesis(gapp *GoBitsong) error {
 
 	genesisState := simapp.NewDefaultGenesisState()
 	stateBytes, err := codec.MarshalJSONIndent(gapp.cdc, genesisState)

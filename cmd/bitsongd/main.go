@@ -13,8 +13,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/BitSongOfficial/go-bitsong/app"
-	"github.com/BitSongOfficial/go-bitsong/types/util"
+	"github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/types/util"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -45,7 +45,7 @@ func main() {
 	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
 		Use:               "bitsongd",
-		Short:             "Gaia Daemon (server)",
+		Short:             "Bitsong Daemon (server)",
 		PersistentPreRunE: server.PersistentPreRunEFn(ctx),
 	}
 
@@ -73,7 +73,7 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
-	return app.NewGaiaApp(
+	return app.NewBitsongApp(
 		logger, db, traceStore, true, invCheckPeriod,
 		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
@@ -86,13 +86,13 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		gApp := app.NewGaiaApp(logger, db, traceStore, false, uint(1))
+		gApp := app.NewBitsongApp(logger, db, traceStore, false, uint(1))
 		err := gApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	gApp := app.NewGaiaApp(logger, db, traceStore, true, uint(1))
+	gApp := app.NewBitsongApp(logger, db, traceStore, true, uint(1))
 	return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

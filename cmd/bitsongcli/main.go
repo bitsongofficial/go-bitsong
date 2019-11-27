@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/bitsongofficial/go-bitsong/types/util"
 	"os"
 	"path"
 
@@ -23,8 +24,7 @@ import (
 	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/cli"
 
-	"github.com/BitSongOfficial/go-bitsong/app"
-	"github.com/BitSongOfficial/go-bitsong/types/util"
+	"github.com/bitsongofficial/go-bitsong/app"
 )
 
 func main() {
