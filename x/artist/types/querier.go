@@ -38,13 +38,15 @@ func NewQueryOwnerParams(artistID uint64, owner sdk.AccAddress) QueryOwnerParams
 
 // Params for query 'custom/artist/artists'
 type QueryArtistsParams struct {
+	Owner        sdk.AccAddress
 	ArtistStatus ArtistStatus
 	Limit        uint64
 }
 
 // creates a new instance of QueryProposalsParams
-func NewQueryArtistsParams(status ArtistStatus, limit uint64) QueryArtistsParams {
+func NewQueryArtistsParams(owner sdk.AccAddress, status ArtistStatus, limit uint64) QueryArtistsParams {
 	return QueryArtistsParams{
+		Owner:        owner,
 		ArtistStatus: status,
 		Limit:        limit,
 	}
