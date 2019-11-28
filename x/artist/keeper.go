@@ -117,13 +117,13 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 }
 
 // CreateArtist create new artist
-func (keeper Keeper) CreateArtist(ctx sdk.Context, meta types.Meta, owner sdk.AccAddress) (types.Artist, sdk.Error) {
+func (keeper Keeper) CreateArtist(ctx sdk.Context, meta types.Meta, images []types.Image, owner sdk.AccAddress) (types.Artist, sdk.Error) {
 	artistID, err := keeper.GetArtistID(ctx)
 	if err != nil {
 		return types.Artist{}, err
 	}
 
-	artist := types.NewArtist(artistID, meta, owner)
+	artist := types.NewArtist(artistID, meta, images, owner)
 
 	keeper.SetArtist(ctx, artist)
 	keeper.setArtistID(ctx, artistID+1)

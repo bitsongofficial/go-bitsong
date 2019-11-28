@@ -16,12 +16,13 @@ var _ sdk.Msg = MsgCreateArtist{}
 
 // MsgCreateArtist
 type MsgCreateArtist struct {
-	Meta  Meta           `json:"meta" yaml:"meta"`   // Meta information about artist
-	Owner sdk.AccAddress `json:"owner" yaml:"owner"` //  Address of the owner
+	Meta   Meta           `json:"meta" yaml:"meta"`     // Meta information about artist
+	Images []Image        `json:"images" yaml:"images"` // Images
+	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`   //  Address of the owner
 }
 
-func NewMsgCreateArtist(meta Meta, owner sdk.AccAddress) MsgCreateArtist {
-	return MsgCreateArtist{meta, owner}
+func NewMsgCreateArtist(meta Meta, images []Image, owner sdk.AccAddress) MsgCreateArtist {
+	return MsgCreateArtist{meta, images, owner}
 }
 
 //nolint

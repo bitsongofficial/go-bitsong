@@ -17,7 +17,8 @@ func TestGetSetArtist(t *testing.T) {
 	ctx := input.mApp.BaseApp.NewContext(false, abci.Header{})
 
 	artist := testArtist()
-	artist1, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	images := testImages()
+	artist1, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
 	artistID := artist1.ArtistID
 	input.keeper.SetArtist(ctx, artist1)
@@ -36,12 +37,13 @@ func TestIncrementArtistNumber(t *testing.T) {
 	ctx := input.mApp.BaseApp.NewContext(false, abci.Header{})
 
 	artist := testArtist()
-	input.keeper.CreateArtist(ctx, artist, input.addrs[0])
-	input.keeper.CreateArtist(ctx, artist, input.addrs[0])
-	input.keeper.CreateArtist(ctx, artist, input.addrs[0])
-	input.keeper.CreateArtist(ctx, artist, input.addrs[0])
-	input.keeper.CreateArtist(ctx, artist, input.addrs[0])
-	artist6, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	images := testImages()
+	input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
+	input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
+	input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
+	input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
+	input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
+	artist6, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
 
 	require.Equal(t, uint64(6), artist6.ArtistID)

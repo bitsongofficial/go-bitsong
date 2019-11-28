@@ -1,17 +1,8 @@
 package rest
 
-import (
-	"github.com/bitsongofficial/go-bitsong/x/artist/types"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/gorilla/mux"
-	"net/http"
+// TODO: Implements
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-)
-
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+/*func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	// Create Artist (POST)
 	r.HandleFunc(
 		"/artist/create",
@@ -49,4 +40,4 @@ func postArtistHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
-}
+}*/

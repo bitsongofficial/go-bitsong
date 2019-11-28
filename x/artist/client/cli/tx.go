@@ -48,7 +48,10 @@ Example:
 $ %s tx artist create-artist --artist="path/to/artist.json" --from mykey
 Where artist.json contains:
 {
-  "name": "Freddy Mercury"
+  "name": "Freddy Mercury",
+  "images": [
+	{ "CID": "QM.....", "height": "500", "width": "500" }
+  ]
 }
 Which is equivalent to:
 $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
@@ -65,8 +68,9 @@ $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
 			}
 
 			meta := types.MetaFromArtist(artist.Name)
+			images := types.ImagesFromArtist(artist.Images)
 
-			msg := types.NewMsgCreateArtist(meta, cliCtx.GetFromAddress())
+			msg := types.NewMsgCreateArtist(meta, images, cliCtx.GetFromAddress())
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -75,30 +79,19 @@ $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
 		},
 	}
 
-	cmd.Flags().String(FlagName, "", "Artist name")
 	cmd.Flags().String(FlagArtist, "", "artist file path (if this path is given, other artist flags are ignored")
 
 	return cmd
 }
 
 type artist struct {
-	Name string
+	Name   string
+	Images []types.Image
 }
 
 func parseCreateArtistFlags() (*artist, error) {
 	artist := &artist{}
 	artistFile := viper.GetString(FlagArtist)
-
-	if artistFile == "" {
-		artist.Name = viper.GetString(FlagName)
-		return artist, nil
-	}
-
-	for _, flag := range ArtistFlags {
-		if viper.GetString(flag) != "" {
-			return nil, fmt.Errorf("--%s flag provided alongside --artist, which is a noop", flag)
-		}
-	}
 
 	payload, err := ioutil.ReadFile(artistFile)
 	if err != nil {

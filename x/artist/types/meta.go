@@ -7,7 +7,6 @@ const (
 
 type Meta struct {
 	Name string `json:"name" yaml:"name"`
-	//Images []Image `json:"images" yaml:"images"`
 }
 
 func NewMeta(name string) Meta {
@@ -18,11 +17,11 @@ func NewMeta(name string) Meta {
 // Images
 type Image struct {
 	CID    string
-	Height uint64
-	Width  uint64
+	Height string
+	Width  string
 }
 
-func NewImage(cid string, width uint64, height uint64) Image {
+func NewImage(cid string, width string, height string) Image {
 	return Image{
 		CID:    cid,
 		Height: height,

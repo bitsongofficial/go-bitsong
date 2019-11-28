@@ -30,9 +30,12 @@ func TestMsgCreateArtist(t *testing.T) {
 		{strings.Repeat("#", MaxNameLength*2), addrs[0], false},
 	}
 
+	// TODO: implement test for images
+
 	for i, tc := range tests {
 		msg := NewMsgCreateArtist(
 			NewMeta(tc.name),
+			[]Image{NewImage("QmQwQwq5sNK886Uq4Nfb9WNtr3DDv6PVoDuE2uytGgtx4X", "500", "500")},
 			tc.ownerAddr,
 		)
 

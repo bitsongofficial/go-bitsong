@@ -21,6 +21,7 @@ func (a Artist) GetName() string { return a.Meta.Name }
 
 type Artist struct {
 	Meta     Meta           `json:"meta" yaml:"meta"`     // Artist meta
+	Images   []Image        `json:"images" yaml:"images"` // Artist images
 	ArtistID uint64         `json:"id" yaml:"id"`         // ID of the Artist
 	Status   ArtistStatus   `json:"status" yaml:"status"` // Status of the Artist {Nil, Verified, Rejected, Failed}
 	Owner    sdk.AccAddress `json:"owner" yaml:"owner"`   // Owner of the Artist`
@@ -39,10 +40,11 @@ const (
 	StatusFailed   ArtistStatus = 0x03
 )
 
-func NewArtist(id uint64, meta Meta, owner sdk.AccAddress) Artist {
+func NewArtist(id uint64, meta Meta, images []Image, owner sdk.AccAddress) Artist {
 	return Artist{
 		ArtistID: id,
 		Meta:     meta,
+		Images:   images,
 		Status:   StatusNil,
 		Owner:    owner,
 	}
@@ -168,4 +170,14 @@ func (status ArtistStatus) Format(s fmt.State, verb rune) {
 // MetaFromProposalType returns a Content object based on the proposal type.
 func MetaFromArtist(name string) Meta {
 	return NewMeta(name)
+}
+
+func ImagesFromArtist(images []Image) []Image {
+	var images2 []Image
+
+	for i := 0; i < len(images); i++ {
+		images2 = append(images2, NewImage(images[i].CID, images[i].Width, images[i].Height))
+	}
+
+	return images2
 }

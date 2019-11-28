@@ -36,9 +36,10 @@ func TestEqualArtists(t *testing.T) {
 
 	// Create two artists
 	artist := testArtist()
-	artist1, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	images := testImages()
+	artist1, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
-	artist2, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	artist2, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
 
 	// They are similar but their IDs should be different
@@ -79,11 +80,12 @@ func TestImportExportArtists(t *testing.T) {
 	// Create two artists
 	// TODO: put the second into the status Verified
 	artist := testArtist()
-	artist1, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	images := testImages()
+	artist1, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
 	artistID1 := artist1.ArtistID
 
-	artist2, err := input.keeper.CreateArtist(ctx, artist, input.addrs[0])
+	artist2, err := input.keeper.CreateArtist(ctx, artist, images, input.addrs[0])
 	require.NoError(t, err)
 	artistID2 := artist2.ArtistID
 

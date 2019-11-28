@@ -24,7 +24,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgCreateArtist(ctx sdk.Context, keeper Keeper, msg types.MsgCreateArtist) sdk.Result {
-	artist, err := keeper.CreateArtist(ctx, msg.Meta, msg.Owner)
+	artist, err := keeper.CreateArtist(ctx, msg.Meta, msg.Images, msg.Owner)
 	if err != nil {
 		return err.Result()
 	}

@@ -60,18 +60,18 @@ func TestQueries(t *testing.T) {
 	ctx := input.mApp.NewContext(false, abci.Header{})
 
 	// input.addrs[0] create artist #1 and #2
-	res := handler(ctx, types.NewMsgCreateArtist(testArtist(), input.addrs[0]))
+	res := handler(ctx, types.NewMsgCreateArtist(testArtist(), []types.Image{}, input.addrs[0]))
 	var artistID1 uint64
 	require.True(t, res.IsOK())
 	cdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &artistID1)
 
-	res = handler(ctx, types.NewMsgCreateArtist(testArtist(), input.addrs[0]))
+	res = handler(ctx, types.NewMsgCreateArtist(testArtist(), []types.Image{}, input.addrs[0]))
 	var artistID2 uint64
 	require.True(t, res.IsOK())
 	cdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &artistID2)
 
 	// input.addrs[1] create artist #3
-	res = handler(ctx, types.NewMsgCreateArtist(testArtist(), input.addrs[1]))
+	res = handler(ctx, types.NewMsgCreateArtist(testArtist(), []types.Image{}, input.addrs[1]))
 	var artistID3 uint64
 	require.True(t, res.IsOK())
 	cdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &artistID3)

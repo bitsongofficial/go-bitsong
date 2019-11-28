@@ -3,6 +3,7 @@ package cli
 const (
 	FlagOwner    = "owner"
 	FlagName     = "name"
+	FlagImages   = "images"
 	FlagStatus   = "status"
 	flagNumLimit = "limit"
 	FlagArtist   = "artist"

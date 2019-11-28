@@ -126,6 +126,12 @@ func testArtist() types.Meta {
 	return types.NewMeta("Freddy Mercury")
 }
 
+func testImages() []types.Image {
+	return []types.Image{
+		types.NewImage("", "", ""),
+	}
+}
+
 // checks if two artists are equal (note: slow, for tests only)
 func ArtistEqual(artistA types.Artist, artistB types.Artist) bool {
 	return bytes.Equal(types.ModuleCdc.MustMarshalBinaryBare(artistA),
