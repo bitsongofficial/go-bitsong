@@ -43,7 +43,7 @@ type QueryArtistsParams struct {
 	Limit        uint64
 }
 
-// creates a new instance of QueryProposalsParams
+// creates a new instance of QueryArtistsParams
 func NewQueryArtistsParams(owner sdk.AccAddress, status ArtistStatus, limit uint64) QueryArtistsParams {
 	return QueryArtistsParams{
 		Owner:        owner,
