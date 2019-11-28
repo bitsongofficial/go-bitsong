@@ -26,7 +26,7 @@ func TestMsgCreateArtist(t *testing.T) {
 		{"", addrs[0], false},
 		{"U2", nil, false},
 		{"Vasco Rossi", addrs[1], true},
-		{"Bob Marley", sdk.AccAddress{}, true},
+		{"Bob Marley", sdk.AccAddress{}, false},
 		{strings.Repeat("#", MaxNameLength*2), addrs[0], false},
 	}
 
