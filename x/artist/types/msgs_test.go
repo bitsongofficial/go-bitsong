@@ -32,7 +32,7 @@ func TestMsgCreateArtist(t *testing.T) {
 
 	for i, tc := range tests {
 		msg := NewMsgCreateArtist(
-			NewGeneralMeta(tc.name),
+			NewMeta(tc.name),
 			tc.ownerAddr,
 		)
 

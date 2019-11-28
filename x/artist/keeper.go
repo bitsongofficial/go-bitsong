@@ -32,9 +32,6 @@ type Keeper struct {
 func NewKeeper(
 	cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType,
 ) Keeper {
-	// TODO:
-	// need router.seal() ???
-
 	return Keeper{
 		storeKey:  key,
 		cdc:       cdc,
@@ -135,7 +132,7 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, meta types.Meta, owner sdk.Ac
 		sdk.NewEvent(
 			types.EventTypeCreateArtist,
 			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
-			sdk.NewAttribute(types.AttributeKeyArtistMeta, fmt.Sprintf("%s", meta.String())),
+			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", meta.Name)),
 			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", owner.String())),
 		),
 	)

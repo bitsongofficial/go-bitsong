@@ -6,11 +6,7 @@ import (
 
 // Register concrete types on codec codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterInterface((*Meta)(nil), nil)
-
 	cdc.RegisterConcrete(MsgCreateArtist{}, "go-bitsong/MsgCreateArtist", nil)
-
-	cdc.RegisterConcrete(GeneralMeta{}, "go-bitsong/ArtistGeneralMeta", nil)
 }
 
 // generic sealed codec to be used throughout this module

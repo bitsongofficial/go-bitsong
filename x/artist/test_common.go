@@ -123,7 +123,7 @@ func SortByteArrays(src [][]byte) [][]byte {
 }
 
 func testArtist() types.Meta {
-	return types.NewGeneralMeta("Freddy Mercury")
+	return types.NewMeta("Freddy Mercury")
 }
 
 // checks if two artists are equal (note: slow, for tests only)

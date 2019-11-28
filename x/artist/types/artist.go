@@ -8,8 +8,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type ArtistI interface {
+	//IsActive() bool  // is artist status active?
+	GetName() string // get artist name
+}
+
+// Implements Artist interface
+var _ ArtistI = Artist{}
+
+// nolint - for ArtistI
+func (a Artist) GetName() string { return a.Meta.Name }
+
 type Artist struct {
-	Meta     Meta           `json:"meta" yaml:"meta"`     // Meta information about Artist
+	Meta     Meta           `json:"meta" yaml:"meta"`     // Artist meta
 	ArtistID uint64         `json:"id" yaml:"id"`         // ID of the Artist
 	Status   ArtistStatus   `json:"status" yaml:"status"` // Status of the Artist {Nil, Verified, Rejected, Failed}
 	Owner    sdk.AccAddress `json:"owner" yaml:"owner"`   // Owner of the Artist`
@@ -43,7 +54,7 @@ func (a Artist) String() string {
   Name:    %s
   Status:  %s
   Owner:   %s`,
-		a.ArtistID, a.Meta.GetName(), a.Status.String(), a.Owner.String(),
+		a.ArtistID, a.GetName(), a.Status.String(), a.Owner.String(),
 	)
 }
 
@@ -55,7 +66,7 @@ func (a Artists) String() string {
 	out := "ID - (Status) Name\n"
 	for _, art := range a {
 		out += fmt.Sprintf("%d - (%s) %s\n",
-			art.ArtistID, art.Status, art.Meta.GetName())
+			art.ArtistID, art.Status, art.GetName())
 	}
 	return strings.TrimSpace(out)
 }
@@ -156,5 +167,5 @@ func (status ArtistStatus) Format(s fmt.State, verb rune) {
 
 // MetaFromProposalType returns a Content object based on the proposal type.
 func MetaFromArtist(name string) Meta {
-	return NewGeneralMeta(name)
+	return NewMeta(name)
 }

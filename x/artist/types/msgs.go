@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -29,23 +30,29 @@ func (msg MsgCreateArtist) Type() string  { return TypeMsgCreateArtist }
 
 // ValidateBasic
 func (msg MsgCreateArtist) ValidateBasic() sdk.Error {
-	if msg.Meta == nil {
-		return ErrInvalidArtistMeta(DefaultCodespace, "missing meta")
+	if len(strings.TrimSpace(msg.Meta.Name)) == 0 {
+		return ErrInvalidArtistMeta(DefaultCodespace, "artist name cannot be blank")
+	}
+
+	if len(msg.Meta.Name) > MaxNameLength {
+		return ErrInvalidArtistMeta(DefaultCodespace, fmt.Sprintf("artist name is longer than max length of %d", MaxNameLength))
 	}
 
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
 
-	return msg.Meta.ValidateBasic()
+	// TODO: to remove
+	// return msg.ValidateBasic()
+	return nil
 }
 
 // Implements Msg.
 func (msg MsgCreateArtist) String() string {
 	return fmt.Sprintf(`Create Artist Message:
-  Meta:         %s
+  Name:         %s
   Owner: %s
-`, msg.Meta.String(), msg.Owner.String())
+`, msg.Meta.Name, msg.Owner.String())
 }
 
 // Implements Msg.

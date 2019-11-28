@@ -5,7 +5,7 @@ const (
 	EventTypeCreateArtist = "create_artist"
 
 	AttributeKeyArtistID    = "artist_id"
-	AttributeKeyArtistMeta  = "artist_meta"
+	AttributeKeyArtistName  = "artist_name"
 	AttributeKeyArtistOwner = "artist_owner"
 	AttributeValueCategory  = "artist"
 )
