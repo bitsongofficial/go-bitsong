@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/artist/client"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -20,7 +21,7 @@ const (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	// Get all artists with params
 	r.HandleFunc(
-		"/artists",
+		"/artist/artists",
 		queryArtistsWithParameterFn(cliCtx),
 	).Methods("GET")
 
@@ -51,7 +52,7 @@ func queryArtistsWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Check Artist Status
 		if len(strArtistStatus) != 0 {
-			artistStatus, err := types.ArtistStatusFromString(NormalizeArtistStatus(strArtistStatus))
+			artistStatus, err := types.ArtistStatusFromString(client.NormalizeArtistStatus(strArtistStatus))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return

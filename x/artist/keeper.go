@@ -30,16 +30,15 @@ type Keeper struct {
 
 // NewKeeper returns an artist keeper.
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramsKeeper params.Keeper, codespace sdk.CodespaceType,
+	cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType,
 ) Keeper {
 	// TODO:
 	// need router.seal() ???
 
 	return Keeper{
-		storeKey:     key,
-		paramsKeeper: paramsKeeper,
-		cdc:          cdc,
-		codespace:    codespace,
+		storeKey:  key,
+		cdc:       cdc,
+		codespace: codespace,
 	}
 }
 
@@ -87,7 +86,7 @@ func (keeper Keeper) GetArtist(ctx sdk.Context, artistID uint64) (artist types.A
 // GetArtistsFiltered get Artists from store by ArtistID
 // status will filter proposals by status
 // numLatest will fetch a specified number of the most recent proposals, or 0 for all proposals
-func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, status types.ArtistStatus, numLatest uint64) []types.Artist {
+func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress, status types.ArtistStatus, numLatest uint64) []types.Artist {
 
 	maxArtistID, err := keeper.GetArtistID(ctx)
 	if err != nil {
@@ -107,6 +106,10 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, status types.ArtistStat
 		}
 
 		if types.ValidArtistStatus(status) && artist.Status != status {
+			continue
+		}
+
+		if ownerAddr != nil && len(ownerAddr) != 0 && artist.Owner.String() != ownerAddr.String() {
 			continue
 		}
 

@@ -37,13 +37,11 @@ func getMockApp(t *testing.T, numGenAccs int, genState GenesisState, genAccs []a
 
 	types.RegisterCodec(mApp.Cdc)
 
-	keyGov := sdk.NewKVStoreKey(types.StoreKey)
-
-	pk := mApp.ParamsKeeper
+	keyArtist := sdk.NewKVStoreKey(types.StoreKey)
 
 	/*rtr := NewRouter().
 	AddRoute(RouterKey, ProposalHandler)*/
-	keeper := NewKeeper(mApp.Cdc, keyGov, pk, types.DefaultCodespace)
+	keeper := NewKeeper(mApp.Cdc, keyArtist, types.DefaultCodespace)
 	//keeper := NewKeeper(mApp.Cdc, keyGov, pk, pk.Subspace(DefaultParamspace), supplyKeeper, sk, DefaultCodespace, rtr)
 
 	mApp.Router().AddRoute(types.RouterKey, NewHandler(keeper))
@@ -51,7 +49,7 @@ func getMockApp(t *testing.T, numGenAccs int, genState GenesisState, genAccs []a
 
 	mApp.SetInitChainer(getInitChainer(mApp, keeper, genState))
 
-	require.NoError(t, mApp.CompleteSetup(keyGov))
+	require.NoError(t, mApp.CompleteSetup(keyArtist))
 
 	var (
 		addrs    []sdk.AccAddress

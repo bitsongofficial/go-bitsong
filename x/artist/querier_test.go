@@ -76,9 +76,9 @@ func TestQueries(t *testing.T) {
 	require.True(t, res.IsOK())
 	cdc.MustUnmarshalBinaryLengthPrefixed(res.Data, &artistID3)
 
-	// Test proposals queries with filters
+	// Test artists queries with filters
 
-	// Test query all proposals and status nil
+	// Test query all artists and status nil
 	artists := getQueriedArtists(t, ctx, cdc, querier, nil, types.StatusNil, 0)
 	require.Equal(t, artistID1, (artists[0]).ArtistID)
 	require.Equal(t, artistID2, (artists[1]).ArtistID)
@@ -88,12 +88,8 @@ func TestQueries(t *testing.T) {
 	artists = getQueriedArtists(t, ctx, cdc, querier, input.addrs[0], types.StatusNil, 0)
 	require.Equal(t, artistID1, (artists[0]).ArtistID)
 	require.Equal(t, artistID2, (artists[1]).ArtistID)
-	require.NotEqual(t, artistID1, (artists[2]).ArtistID)
-	require.NotEqual(t, artistID2, (artists[2]).ArtistID)
 
 	// Test query artists added by input.addrs[1] and status nil
 	artists = getQueriedArtists(t, ctx, cdc, querier, input.addrs[1], types.StatusNil, 0)
-	require.NotEqual(t, artistID3, (artists[0]).ArtistID)
-	require.NotEqual(t, artistID3, (artists[1]).ArtistID)
-	require.Equal(t, artistID3, (artists[2]).ArtistID)
+	require.Equal(t, artistID3, (artists[0]).ArtistID)
 }

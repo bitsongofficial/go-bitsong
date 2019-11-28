@@ -2,6 +2,8 @@ package artist
 
 import (
 	"encoding/json"
+	"github.com/bitsongofficial/go-bitsong/x/artist/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/artist/client/rest"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -13,8 +15,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/cosmos/cosmos-sdk/x/gov/client"
-
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
@@ -24,16 +24,7 @@ var (
 )
 
 // app module basics object
-type AppModuleBasic struct {
-	proposalHandlers []client.ProposalHandler // proposal handlers which live in governance cli and rest
-}
-
-// NewAppModuleBasic creates a new AppModuleBasic object
-func NewAppModuleBasic(proposalHandlers ...client.ProposalHandler) AppModuleBasic {
-	return AppModuleBasic{
-		proposalHandlers: proposalHandlers,
-	}
-}
+type AppModuleBasic struct{}
 
 var _ module.AppModuleBasic = AppModuleBasic{}
 
@@ -64,30 +55,17 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 
 // register rest routes
 func (a AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	/*var proposalRESTHandlers []rest.ProposalRESTHandler
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalRESTHandlers = append(proposalRESTHandlers, proposalHandler.RESTHandler(ctx))
-	}
-
-	rest.RegisterRoutes(ctx, rtr, proposalRESTHandlers)*/
+	rest.RegisterRoutes(ctx, rtr)
 }
 
 // get the root tx command of this module
 func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-
-	/*var proposalCLIHandlers []*cobra.Command
-	for _, proposalHandler := range a.proposalHandlers {
-		proposalCLIHandlers = append(proposalCLIHandlers, proposalHandler.CLIHandler(cdc))
-	}
-
-	return cli.GetTxCmd(types.StoreKey, cdc, proposalCLIHandlers)*/
-	return nil
+	return cli.GetTxCmd(types.StoreKey, cdc)
 }
 
 // get the root query command of this module
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetQueryCmd(StoreKey, cdc)
-	return nil
+	return cli.GetQueryCmd(types.StoreKey, cdc)
 }
 
 //___________________________

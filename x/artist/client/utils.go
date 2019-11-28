@@ -1,4 +1,4 @@
-package rest
+package client
 
 //NormalizeArtistStatus - normalize user specified artist status
 func NormalizeArtistStatus(status string) string {

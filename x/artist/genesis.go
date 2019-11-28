@@ -57,7 +57,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	startingArtistID, _ := k.GetArtistID(ctx)
 	//artists := k.GetArtistsFiltered(ctx, types.StatusVerified, 0)
-	artists := k.GetArtistsFiltered(ctx, types.StatusNil, 0)
+	artists := k.GetArtistsFiltered(ctx, sdk.AccAddress{}, types.StatusNil, 0)
 
 	return GenesisState{
 		StartingArtistID: startingArtistID,

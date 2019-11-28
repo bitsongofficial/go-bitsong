@@ -153,3 +153,8 @@ func (status ArtistStatus) Format(s fmt.State, verb rune) {
 		s.Write([]byte(fmt.Sprintf("%v", byte(status))))
 	}
 }
+
+// MetaFromProposalType returns a Content object based on the proposal type.
+func MetaFromArtist(name string) Meta {
+	return NewGeneralMeta(name)
+}

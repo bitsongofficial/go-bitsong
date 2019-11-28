@@ -18,7 +18,7 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		case types.QueryArtist:
 			return queryArtist(ctx, path[1:], req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown gov query endpoint")
+			return nil, sdk.ErrUnknownRequest("unknown artist query endpoint")
 		}
 	}
 }
@@ -51,7 +51,7 @@ func queryArtists(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
 	}
 
-	artists := keeper.GetArtistsFiltered(ctx, params.ArtistStatus, params.Limit)
+	artists := keeper.GetArtistsFiltered(ctx, params.Owner, params.ArtistStatus, params.Limit)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, artists)
 	if err != nil {
