@@ -1,10 +1,8 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -16,8 +14,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	//govutils "github.com/cosmos/cosmos-sdk/x/gov/client/utils"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
+)
+
+const (
+	FlagName = "name"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -43,34 +46,24 @@ func GetCmdCreateArtist(cdc *codec.Codec) *cobra.Command {
 		Use:   "create-artist",
 		Short: "create new artist initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Artist initialized with status nil.
-Artist name and other data can be given directly or through an artist JSON file.
 Example:
-$ %s tx artist create-artist --artist="path/to/artist.json" --from mykey
-Where artist.json contains:
-{
-  "name": "Freddy Mercury",
-  "images": [
-	{ "CID": "QM.....", "height": "500", "width": "500" }
-  ]
-}
-Which is equivalent to:
 $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
 `,
-			version.ClientName, version.ClientName,
+			version.ClientName,
 		)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			artist, err := parseCreateArtistFlags()
-			if err != nil {
+			name := viper.GetString(FlagName)
+
+			accGetter := authtypes.NewAccountRetriever(cliCtx)
+			from := cliCtx.GetFromAddress()
+			if err := accGetter.EnsureExists(from); err != nil {
 				return err
 			}
 
-			meta := types.MetaFromArtist(artist.Name)
-			images := types.ImagesFromArtist(artist.Images)
-
-			msg := types.NewMsgCreateArtist(meta, images, cliCtx.GetFromAddress())
+			msg := types.NewMsgCreateArtist(name, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -79,29 +72,7 @@ $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
 		},
 	}
 
-	cmd.Flags().String(FlagArtist, "", "artist file path (if this path is given, other artist flags are ignored")
+	cmd.Flags().String(FlagName, "", "the artist name")
 
 	return cmd
-}
-
-type artist struct {
-	Name   string
-	Images []types.Image
-}
-
-func parseCreateArtistFlags() (*artist, error) {
-	artist := &artist{}
-	artistFile := viper.GetString(FlagArtist)
-
-	payload, err := ioutil.ReadFile(artistFile)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(payload, artist)
-	if err != nil {
-		return nil, err
-	}
-
-	return artist, nil
 }

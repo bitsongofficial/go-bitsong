@@ -19,20 +19,8 @@ type QueryArtistParams struct {
 
 // creates a new instance of QueryArtistParams
 func NewQueryArtistParams(artistID uint64) QueryArtistParams {
-	return QueryArtistParams{ArtistID: artistID}
-}
-
-// Params for query 'custom/artist/owner'
-type QueryOwnerParams struct {
-	ArtistID uint64
-	Owner    sdk.AccAddress
-}
-
-// creates a new instance of QueryOwnerParams
-func NewQueryOwnerParams(artistID uint64, owner sdk.AccAddress) QueryOwnerParams {
-	return QueryOwnerParams{
+	return QueryArtistParams{
 		ArtistID: artistID,
-		Owner:    owner,
 	}
 }
 

@@ -1,11 +1,10 @@
-package artist
+package keeper
 
 import (
 	"fmt"
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
@@ -13,10 +12,10 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
 		switch path[0] {
-		case types.QueryArtists:
-			return queryArtists(ctx, path[1:], req, keeper)
 		case types.QueryArtist:
 			return queryArtist(ctx, path[1:], req, keeper)
+		case types.QueryArtists:
+			return queryArtists(ctx, path[1:], req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown artist query endpoint")
 		}

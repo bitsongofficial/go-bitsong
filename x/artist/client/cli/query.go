@@ -2,18 +2,24 @@ package cli
 
 import (
 	"fmt"
-	cliart "github.com/bitsongofficial/go-bitsong/x/artist/client"
+	"strings"
 
-	"github.com/bitsongofficial/go-bitsong/x/artist/types"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/bitsongofficial/go-bitsong/x/artist/types"
+)
+
+const (
+	FlagOwner    = "owner"
+	FlagStatus   = "status"
+	flagNumLimit = "limit"
 )
 
 // GetQueryCmd returns the cli query commands for the artist module
@@ -28,8 +34,9 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	artistQueryCmd.AddCommand(client.GetCommands(
-		//GetCmdQueryArtist(queryRoute),
 		GetCmdQueryArtists(queryRoute, cdc),
+		// TODO: create GetCmdQueryArtist
+		//GetCmdQueryArtist(queryRoute),
 	)...)
 
 	return artistQueryCmd
@@ -41,12 +48,13 @@ func GetCmdQueryArtists(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Use:   "artists",
 		Short: "Query artists with optional filters",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query for a all artists. You can filter the returns with the following flags.
+			fmt.Sprintf(`Query for all artists. You can filter the returns with the following flags.
 Example:
 $ %s query artist artists --owner cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
 $ %s query artist artists --status (Verified|Rejected|Failed)
+$ %s query artist artists --limit 10
 `,
-				version.ClientName, version.ClientName,
+				version.ClientName, version.ClientName, version.ClientName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -68,7 +76,7 @@ $ %s query artist artists --status (Verified|Rejected|Failed)
 			}
 
 			if len(strArtistStatus) != 0 {
-				artistStatus, err := types.ArtistStatusFromString(cliart.NormalizeArtistStatus(strArtistStatus))
+				artistStatus, err := types.ArtistStatusFromString(NormalizeArtistStatus(strArtistStatus))
 				if err != nil {
 					return err
 				}
@@ -106,4 +114,17 @@ $ %s query artist artists --status (Verified|Rejected|Failed)
 	cmd.Flags().String(FlagStatus, "", "(optional) filter artists by artist status, status: verified/failed/rejected")
 
 	return cmd
+}
+
+//NormalizeArtistStatus - normalize user specified artist status
+func NormalizeArtistStatus(status string) string {
+	switch status {
+	case "Verified", "verified":
+		return "Verified"
+	case "Rejected", "rejected":
+		return "Rejected"
+	case "Failed", "failed":
+		return "Failed"
+	}
+	return ""
 }

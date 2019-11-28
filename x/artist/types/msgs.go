@@ -7,6 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+/****
+ * Artist Msg
+ ***/
+
 // Artist message types and routes
 const (
 	TypeMsgCreateArtist = "create_artist"
@@ -14,15 +18,17 @@ const (
 
 var _ sdk.Msg = MsgCreateArtist{}
 
-// MsgCreateArtist
+// MsgCreateArtist defines CreateArtist message
 type MsgCreateArtist struct {
-	Meta   Meta           `json:"meta" yaml:"meta"`     // Meta information about artist
-	Images []Image        `json:"images" yaml:"images"` // Images
-	Owner  sdk.AccAddress `json:"owner" yaml:"owner"`   //  Address of the owner
+	Name  string         `json:"name"`  // Artist name
+	Owner sdk.AccAddress `json:"owner"` // Artist owner
 }
 
-func NewMsgCreateArtist(meta Meta, images []Image, owner sdk.AccAddress) MsgCreateArtist {
-	return MsgCreateArtist{meta, images, owner}
+func NewMsgCreateArtist(name string, owner sdk.AccAddress) MsgCreateArtist {
+	return MsgCreateArtist{
+		Name:  name,
+		Owner: owner,
+	}
 }
 
 //nolint
@@ -31,20 +37,18 @@ func (msg MsgCreateArtist) Type() string  { return TypeMsgCreateArtist }
 
 // ValidateBasic
 func (msg MsgCreateArtist) ValidateBasic() sdk.Error {
-	if len(strings.TrimSpace(msg.Meta.Name)) == 0 {
-		return ErrInvalidArtistMeta(DefaultCodespace, "artist name cannot be blank")
+	if len(strings.TrimSpace(msg.Name)) == 0 {
+		return ErrInvalidArtistName(DefaultCodespace, "artist name cannot be blank")
 	}
 
-	if len(msg.Meta.Name) > MaxNameLength {
-		return ErrInvalidArtistMeta(DefaultCodespace, fmt.Sprintf("artist name is longer than max length of %d", MaxNameLength))
+	if len(msg.Name) > MaxNameLength {
+		return ErrInvalidArtistName(DefaultCodespace, fmt.Sprintf("artist name is longer than max length of %d", MaxNameLength))
 	}
 
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
 
-	// TODO: to remove
-	// return msg.ValidateBasic()
 	return nil
 }
 
@@ -53,16 +57,15 @@ func (msg MsgCreateArtist) String() string {
 	return fmt.Sprintf(`Create Artist Message:
   Name:         %s
   Owner: %s
-`, msg.Meta.Name, msg.Owner.String())
+`, msg.Name, msg.Owner.String())
 }
 
-// Implements Msg.
+// GetSignBytes encodes the message for signing
 func (msg MsgCreateArtist) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
-// Implements Msg.
+// GetSigners defines whose signature is required
 func (msg MsgCreateArtist) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }

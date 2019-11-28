@@ -1,37 +1,25 @@
-package artist
+package keeper
 
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
-// Governance Keeper
+// Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	// The reference to the Param Keeper to get and set Global Params
-	paramsKeeper params.Keeper
-
-	// The (unexposed) keys used to access the stores from the Context.
-	storeKey sdk.StoreKey
-
-	// The codec for binary encoding/decoding.
-	cdc *codec.Codec
-
-	// Reserved codespace
-	codespace sdk.CodespaceType
+	storeKey  sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
+	cdc       *codec.Codec      // The codec for binary encoding/decoding.
+	codespace sdk.CodespaceType // Reserved codespace
 }
 
 // NewKeeper returns an artist keeper.
-func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType,
-) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType) Keeper {
 	return Keeper{
 		storeKey:  key,
 		cdc:       cdc,
@@ -44,8 +32,12 @@ func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+/****
+ * Artists
+ ***/
+
 // Set the artist ID
-func (keeper Keeper) setArtistID(ctx sdk.Context, artistID uint64) {
+func (keeper Keeper) SetArtistID(ctx sdk.Context, artistID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(artistID)
 	store.Set(types.ArtistIDKey, bz)
@@ -81,8 +73,8 @@ func (keeper Keeper) GetArtist(ctx sdk.Context, artistID uint64) (artist types.A
 }
 
 // GetArtistsFiltered get Artists from store by ArtistID
-// status will filter proposals by status
-// numLatest will fetch a specified number of the most recent proposals, or 0 for all proposals
+// status will filter artists by status
+// numLatest will fetch a specified number of the most recent artists, or 0 for all artists
 func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress, status types.ArtistStatus, numLatest uint64) []types.Artist {
 
 	maxArtistID, err := keeper.GetArtistID(ctx)
@@ -90,7 +82,7 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 		return []types.Artist{}
 	}
 
-	matchingArtists := []types.Artist{}
+	var matchingArtists []types.Artist
 
 	if numLatest == 0 {
 		numLatest = maxArtistID
@@ -102,7 +94,7 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 			continue
 		}
 
-		if types.ValidArtistStatus(status) && artist.Status != status {
+		if artist.Status.Valid() && artist.Status != status {
 			continue
 		}
 
@@ -117,22 +109,22 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 }
 
 // CreateArtist create new artist
-func (keeper Keeper) CreateArtist(ctx sdk.Context, meta types.Meta, images []types.Image, owner sdk.AccAddress) (types.Artist, sdk.Error) {
+func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAddress) (types.Artist, sdk.Error) {
 	artistID, err := keeper.GetArtistID(ctx)
 	if err != nil {
 		return types.Artist{}, err
 	}
 
-	artist := types.NewArtist(artistID, meta, images, owner)
+	artist := types.NewArtist(artistID, name, owner)
 
 	keeper.SetArtist(ctx, artist)
-	keeper.setArtistID(ctx, artistID+1)
+	keeper.SetArtistID(ctx, artistID+1)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateArtist,
 			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
-			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", meta.Name)),
+			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", name)),
 			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", owner.String())),
 		),
 	)

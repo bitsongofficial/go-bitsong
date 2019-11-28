@@ -3,13 +3,14 @@ package artist
 import (
 	"bytes"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenesisState - all artist state that must be provided at genesis
 type GenesisState struct {
-	StartingArtistID uint64         `json:"starting_artist_id" yaml:"starting_artist_id"`
-	Artists          []types.Artist `json:"artists" yaml:"artists"`
+	StartingArtistID uint64  `json:"starting_artist_id"`
+	Artists          Artists `json:"artists"`
 }
 
 // NewGenesisState creates a new genesis state for the artist module
@@ -28,8 +29,8 @@ func DefaultGenesisState() GenesisState {
 
 // Checks whether 2 GenesisState structs are equivalent.
 func (data GenesisState) Equal(data2 GenesisState) bool {
-	b1 := types.ModuleCdc.MustMarshalBinaryBare(data)
-	b2 := types.ModuleCdc.MustMarshalBinaryBare(data2)
+	b1 := ModuleCdc.MustMarshalBinaryBare(data)
+	b2 := ModuleCdc.MustMarshalBinaryBare(data2)
 	return bytes.Equal(b1, b2)
 }
 
@@ -39,14 +40,21 @@ func (data GenesisState) IsEmpty() bool {
 	return data.Equal(emptyGenState)
 }
 
-// ValidateGenesis checks if parameters are within valid ranges
+// ValidateGenesis validates the given genesis state and returns an error if something is invalid
 func ValidateGenesis(data GenesisState) error {
+	// TODO: add validation
+	/*for _, record := range data.Artists {
+		if err := record.Validate(); err != nil {
+			return err
+		}
+	}*/
+
 	return nil
 }
 
 // InitGenesis - store genesis parameters
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
-	k.setArtistID(ctx, data.StartingArtistID)
+	k.SetArtistID(ctx, data.StartingArtistID)
 
 	for _, artist := range data.Artists {
 		k.SetArtist(ctx, artist)
@@ -56,8 +64,8 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 // ExportGenesis - output genesis parameters
 func ExportGenesis(ctx sdk.Context, k Keeper) GenesisState {
 	startingArtistID, _ := k.GetArtistID(ctx)
-	//artists := k.GetArtistsFiltered(ctx, types.StatusVerified, 0)
-	artists := k.GetArtistsFiltered(ctx, sdk.AccAddress{}, types.StatusNil, 0)
+	// TODO: export only verified artists?
+	artists := k.GetArtistsFiltered(ctx, sdk.AccAddress{}, types.StatusVerified, 0)
 
 	return GenesisState{
 		StartingArtistID: startingArtistID,

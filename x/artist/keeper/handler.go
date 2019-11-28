@@ -1,10 +1,11 @@
-package artist
+package keeper
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
 // Handle all "artist" type messages.
@@ -23,8 +24,9 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
+// handleMsgCreateArtist handles the creation of a new artist
 func handleMsgCreateArtist(ctx sdk.Context, keeper Keeper, msg types.MsgCreateArtist) sdk.Result {
-	artist, err := keeper.CreateArtist(ctx, msg.Meta, msg.Images, msg.Owner)
+	artist, err := keeper.CreateArtist(ctx, msg.Name, msg.Owner)
 	if err != nil {
 		return err.Result()
 	}
