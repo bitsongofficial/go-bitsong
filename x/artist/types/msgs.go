@@ -14,8 +14,9 @@ import (
 
 // Artist messages types and routes
 const (
-	TypeMsgCreateArtist   = "create_artist"
-	TypeMsgSetArtistImage = "set_artist_image"
+	TypeMsgCreateArtist    = "create_artist"
+	TypeMsgSetArtistImage  = "set_artist_image"
+	TypeMsgSetArtistStatus = "set_artist_status"
 )
 
 /****************************************
@@ -149,5 +150,62 @@ func (msg MsgSetArtistImage) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgSetArtistImage) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Owner}
+}
+
+/****************************************
+ * MsgSetArtistStatus
+ ****************************************/
+
+var _ sdk.Msg = MsgSetArtistStatus{}
+
+// MsgSetArtistStatus defines SetStatus message
+type MsgSetArtistStatus struct {
+	ArtistID uint64         `json:"artist_id"` // Artist ID
+	Status   ArtistStatus   `json:"status"`    // Status of the Artist {Nil, Verified, Rejected, Failed}
+	Owner    sdk.AccAddress `json:"owner"`     // Artist Owner
+}
+
+func NewMsgSetArtistStatus(artistID uint64, status ArtistStatus, owner sdk.AccAddress) MsgSetArtistStatus {
+	return MsgSetArtistStatus{
+		ArtistID: artistID,
+		Status:   status,
+		Owner:    owner,
+	}
+}
+
+//nolint
+func (msg MsgSetArtistStatus) Route() string { return RouterKey }
+func (msg MsgSetArtistStatus) Type() string  { return TypeMsgSetArtistStatus }
+
+// ValidateBasic
+func (msg MsgSetArtistStatus) ValidateBasic() sdk.Error {
+	if msg.ArtistID == 0 {
+		return ErrUnknownArtist(DefaultCodespace, "unknown artist")
+	}
+
+	if !msg.Status.Valid() {
+		return ErrInvalidArtistStatus(DefaultCodespace, "invalid artist status")
+	}
+
+	return nil
+}
+
+// Implements Msg.
+func (msg MsgSetArtistStatus) String() string {
+	return fmt.Sprintf(`Set Artist Status Message:
+  ArtistID:         %d
+  Status: %s
+  Owner: %s
+`, msg.ArtistID, msg.Status.String(), msg.Owner.String())
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgSetArtistStatus) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgSetArtistStatus) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }

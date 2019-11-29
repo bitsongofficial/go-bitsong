@@ -8,6 +8,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/bitsongofficial/go-bitsong/types/util"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
@@ -132,7 +133,7 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	return artist, nil
 }
 
-// SetArtistImage create new artist
+// SetArtistImage set artist image
 func (keeper Keeper) SetArtistImage(ctx sdk.Context, artistID uint64, image types.ArtistImage, owner sdk.AccAddress) sdk.Error {
 	artist, ok := keeper.GetArtist(ctx, artistID)
 	if !ok {
@@ -153,6 +154,37 @@ func (keeper Keeper) SetArtistImage(ctx sdk.Context, artistID uint64, image type
 			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
 			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", artist.Name)),
 			sdk.NewAttribute(types.AttributeKeyArtistImage, fmt.Sprintf("%s", artist.Image.CID)),
+			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", artist.Owner.String())),
+		),
+	)
+
+	return nil
+}
+
+// SetArtistStatus set Status of the Artist {Nil, Verified, Rejected, Failed}
+func (keeper Keeper) SetArtistStatus(ctx sdk.Context, artistID uint64, status types.ArtistStatus, from sdk.AccAddress) sdk.Error {
+	artist, ok := keeper.GetArtist(ctx, artistID)
+	if !ok {
+		return types.ErrUnknownArtist(keeper.codespace, "unknown artist")
+	}
+
+	// TODO:
+	// Interim moderator that can edit status on modules
+	// This is only for testnet use and will be excluded then
+	if from.String() != util.ModeratorBech32AccAddr {
+		return types.ErrUnknownModerator(keeper.codespace, "unknown moderator")
+	}
+
+	artist.Status = status
+
+	keeper.SetArtist(ctx, artist)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetArtistStatus,
+			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
+			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", artist.Name)),
+			sdk.NewAttribute(types.AttributeKeyArtistStatus, fmt.Sprintf("%s", artist.Status.String())),
 			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", artist.Owner.String())),
 		),
 	)

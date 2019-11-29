@@ -14,6 +14,8 @@ const (
 	CodeInvalidArtistImageWidth  sdk.CodeType = 5
 	CodeInvalidArtistImageCid    sdk.CodeType = 6
 	CodeUnknownOwner             sdk.CodeType = 7
+	CodeInvalidArtistStatus      sdk.CodeType = 8
+	CodeUnknownModerator         sdk.CodeType = 9
 )
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -40,6 +42,14 @@ func ErrInvalidArtistImageCid(codespace sdk.CodespaceType, msg string) sdk.Error
 	return sdk.NewError(codespace, CodeInvalidArtistImageCid, msg)
 }
 
+func ErrInvalidArtistStatus(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidArtistStatus, msg)
+}
+
 func ErrUnknownOwner(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeUnknownOwner, msg)
+}
+
+func ErrUnknownModerator(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeUnknownModerator, msg)
 }
