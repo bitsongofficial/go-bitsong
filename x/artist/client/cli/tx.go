@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,9 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
 const (
@@ -60,15 +58,16 @@ $ %s tx artist create-artist --name="Freddy Mercury" --from mykey
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			name := viper.GetString(FlagName)
+			// Get flags
+			flagName := viper.GetString(FlagName) // Get artist name
 
-			accGetter := authtypes.NewAccountRetriever(cliCtx)
-			from := cliCtx.GetFromAddress()
-			if err := accGetter.EnsureExists(from); err != nil {
-				return err
-			}
+			// Get params
+			from := cliCtx.GetFromAddress() // Get owner
 
-			msg := types.NewMsgCreateArtist(name, from)
+			// Build create artist message
+			msg := types.NewMsgCreateArtist(flagName, from)
+
+			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -112,10 +111,11 @@ $ %s tx artist set-image 1 --imageHeight 500 --imageWidth 500 --cid QM..... --fr
 			width, _ := strconv.ParseUint(flagWidth, 10, 64)   // get width param
 			owner := cliCtx.GetFromAddress()                   // get owner
 
-			// Build set artist image message and run basic validation
+			// Build set artist image message
 			msg := types.NewMsgSetArtistImage(artistID, height, width, flagCid, owner)
-			err := msg.ValidateBasic()
-			if err != nil {
+
+			// Run basic validation
+			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
 
