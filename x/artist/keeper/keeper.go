@@ -116,6 +116,23 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 	return matchingArtists
 }
 
+func (keeper Keeper) PayFee(ctx sdk.Context, owner sdk.AccAddress, amt sdk.Coins) sdk.Error {
+	// Get account
+	fromAcc := keeper.ak.GetAccount(ctx, owner)
+
+	// Safe sub coins from account
+	if _, hasNeg := fromAcc.GetCoins().SafeSub(amt); hasNeg {
+		return sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
+	}
+
+	// Send fee from account to distribution module
+	if err := keeper.sk.SendCoinsFromAccountToModule(ctx, owner, distribution.ModuleName, amt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateArtist create new artist
 func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAddress) (types.Artist, sdk.Error) {
 	artistID, err := keeper.GetArtistID(ctx)
@@ -126,18 +143,8 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	// TODO: just for test, pay a fee to create a new artist
 	//////////////////////////////////////////
 	feeAmt := sdk.Coins{sdk.NewCoin(util.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
-
-	// Get account
-	fromAcc := keeper.ak.GetAccount(ctx, owner)
-
-	// Safe sub coins from account
-	if _, hasNeg := fromAcc.GetCoins().SafeSub(feeAmt); hasNeg {
-		return types.Artist{}, sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
-	}
-
-	// Send fee from account to distribution module
-	if err := keeper.sk.SendCoinsFromAccountToModule(ctx, owner, distribution.ModuleName, feeAmt); err != nil {
-		return types.Artist{}, sdk.ErrInternal(err.Error())
+	if err := keeper.PayFee(ctx, owner, feeAmt); err != nil {
+		return types.Artist{}, err
 	}
 	//////////////////////////////////////////
 
