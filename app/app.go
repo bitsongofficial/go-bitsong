@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/artist"
 	"io"
 	"os"
 
@@ -30,7 +29,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	arttypes "github.com/bitsongofficial/go-bitsong/x/artist/types"
+	"github.com/bitsongofficial/go-bitsong/x/album"
+	albumTypes "github.com/bitsongofficial/go-bitsong/x/album/types"
+	"github.com/bitsongofficial/go-bitsong/x/artist"
+	artistTypes "github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
 const appName = "GoBitsong"
@@ -59,6 +61,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		artist.AppModuleBasic{},
+		album.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -109,6 +112,7 @@ type GoBitsong struct {
 
 	// bitsong keepers
 	artistKeeper artist.Keeper
+	albumKeeper  album.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -127,7 +131,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, arttypes.StoreKey,
+		gov.StoreKey, params.StoreKey, artistTypes.StoreKey, albumTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -182,7 +186,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.artistKeeper = artist.NewKeeper(app.cdc, keys[arttypes.StoreKey], arttypes.DefaultCodespace)
+	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace)
+	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -199,6 +204,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		artist.NewAppModule(app.artistKeeper),
+		album.NewAppModule(app.albumKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -214,7 +220,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		arttypes.ModuleName,
+		artistTypes.ModuleName, albumTypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

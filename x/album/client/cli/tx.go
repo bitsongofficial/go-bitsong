@@ -49,7 +49,7 @@ func GetCmdCreateAlbum(cdc *codec.Codec) *cobra.Command {
 		Short: "create new album initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Album initialized with status nil.
 Example:
-$ %s tx album create --name="Innuendo" --from mykey
+$ %s tx album create --title "Innuendo" --album_type "Album" --release_date "2018-12-12" --release_date_precision "day" --from mykey
 `,
 			version.ClientName,
 		)),

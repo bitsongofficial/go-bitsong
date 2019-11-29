@@ -124,9 +124,9 @@ func (keeper Keeper) CreateAlbum(ctx sdk.Context, title string, albumType types.
 			types.EventTypeCreateAlbum,
 			sdk.NewAttribute(types.AttributeKeyAlbumID, fmt.Sprintf("%d", albumID)),
 			sdk.NewAttribute(types.AttributeKeyAlbumTitle, fmt.Sprintf("%s", title)),
-			sdk.NewAttribute(types.AttributeKeyAlbumType, fmt.Sprintf("%s", title)),
-			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDate, fmt.Sprintf("%s", title)),
-			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDatePrecision, fmt.Sprintf("%s", title)),
+			sdk.NewAttribute(types.AttributeKeyAlbumType, fmt.Sprintf("%s", albumType.String())),
+			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDate, fmt.Sprintf("%s", releaseDate)),
+			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDatePrecision, fmt.Sprintf("%s", releasePrecision)),
 			sdk.NewAttribute(types.AttributeKeyAlbumOwner, fmt.Sprintf("%s", owner.String())),
 		),
 	)

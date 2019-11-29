@@ -14,6 +14,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/album/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/album/client/rest"
 )
 
 // type check to ensure the interface is properly implemented
@@ -64,8 +65,7 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 // register rest routes
 func (a AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	// TODO: add rest route
-	//rest.RegisterRoutes(ctx, rtr)
+	rest.RegisterRoutes(ctx, rtr)
 }
 
 //___________________________
