@@ -5,11 +5,15 @@ import (
 )
 
 const (
-	DefaultCodespace sdk.CodespaceType = "artist"
+	DefaultCodespace sdk.CodespaceType = ModuleName
 
-	CodeInvalidGenesis    sdk.CodeType = 1
-	CodeInvalidArtistName sdk.CodeType = 2
-	CodeUnknownArtist     sdk.CodeType = 3
+	CodeInvalidGenesis           sdk.CodeType = 1
+	CodeInvalidArtistName        sdk.CodeType = 2
+	CodeUnknownArtist            sdk.CodeType = 3
+	CodeInvalidArtistImageHeight sdk.CodeType = 4
+	CodeInvalidArtistImageWidth  sdk.CodeType = 5
+	CodeInvalidArtistImageCid    sdk.CodeType = 6
+	CodeUnknownOwner             sdk.CodeType = 7
 )
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -22,4 +26,20 @@ func ErrInvalidArtistName(codespace sdk.CodespaceType, msg string) sdk.Error {
 
 func ErrUnknownArtist(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeUnknownArtist, msg)
+}
+
+func ErrInvalidArtistImageHeight(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidArtistImageHeight, msg)
+}
+
+func ErrInvalidArtistImageWidth(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidArtistImageWidth, msg)
+}
+
+func ErrInvalidArtistImageCid(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidArtistImageCid, msg)
+}
+
+func ErrUnknownOwner(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeUnknownOwner, msg)
 }

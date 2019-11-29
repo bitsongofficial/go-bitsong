@@ -18,8 +18,9 @@ const (
 )
 
 type Artist struct {
-	ArtistID uint64         `json:"id"`     // Artist ID
-	Name     string         `json:"name"`   // Artist Name
+	ArtistID uint64         `json:"id"`   // Artist ID
+	Name     string         `json:"name"` // Artist Name
+	Image    ArtistImage    `json:"image" // Artist Image`
 	Status   ArtistStatus   `json:"status"` // Status of the Artist {Nil, Verified, Rejected, Failed}
 	Owner    sdk.AccAddress `json:"owner"`  // Artist Owner
 }

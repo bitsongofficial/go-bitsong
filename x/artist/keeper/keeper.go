@@ -32,9 +32,9 @@ func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-/****
+/****************************************
  * Artists
- ***/
+ ****************************************/
 
 // Set the artist ID
 func (keeper Keeper) SetArtistID(ctx sdk.Context, artistID uint64) {
@@ -130,4 +130,32 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	)
 
 	return artist, nil
+}
+
+// SetArtistImage create new artist
+func (keeper Keeper) SetArtistImage(ctx sdk.Context, artistID uint64, image types.ArtistImage, owner sdk.AccAddress) sdk.Error {
+	artist, ok := keeper.GetArtist(ctx, artistID)
+	if !ok {
+		return types.ErrUnknownArtist(keeper.codespace, "unknown artist")
+	}
+
+	if artist.Owner.String() != owner.String() {
+		return types.ErrUnknownOwner(keeper.codespace, "unknown owner")
+	}
+
+	artist.Image = image
+
+	keeper.SetArtist(ctx, artist)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetArtistImage,
+			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
+			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", artist.Name)),
+			sdk.NewAttribute(types.AttributeKeyArtistImage, fmt.Sprintf("%s", artist.Image.CID)),
+			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", artist.Owner.String())),
+		),
+	)
+
+	return nil
 }
