@@ -17,6 +17,7 @@ const (
 	MaxTitleLength int = 140
 )
 
+// TODO: image, cid, duration
 type Track struct {
 	TrackID uint64         `json:"id"`     // Track ID
 	Title   string         `json:"title"`  // Track Title
