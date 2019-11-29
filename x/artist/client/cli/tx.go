@@ -46,11 +46,11 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 // GetCmdCreateArtist implements the create artist command handler.
 func GetCmdCreateArtist(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-artist",
+		Use:   "create",
 		Short: "create new artist initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Artist initialized with status nil.
 Example:
-$ %s tx artist create-artist --name="Freddy Mercury" --from mykey
+$ %s tx artist create --name="Freddy Mercury" --from mykey
 `,
 			version.ClientName,
 		)),

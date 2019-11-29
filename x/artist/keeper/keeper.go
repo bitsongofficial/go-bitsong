@@ -33,7 +33,7 @@ func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 /****************************************
- * Artists
+ * Artist
  ****************************************/
 
 // Set the artist ID

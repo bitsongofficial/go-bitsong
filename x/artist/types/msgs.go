@@ -12,7 +12,7 @@ import (
  * Artist Msg
  ***/
 
-// Artist message types and routes
+// Artist messages types and routes
 const (
 	TypeMsgCreateArtist   = "create_artist"
 	TypeMsgSetArtistImage = "set_artist_image"
