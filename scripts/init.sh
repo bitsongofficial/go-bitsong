@@ -14,7 +14,7 @@ bitsongcli config trust-node true
 
 # Change default bond token genesis.json
 sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
-sed -i 's/"send_enabled": true/"send_enabled": false/g' ~/.bitsongd/config/genesis.json
+#sed -i 's/"send_enabled": true/"send_enabled": false/g' ~/.bitsongd/config/genesis.json
 
 # Create a key to hold your validator account
 echo ${PASSWORD} | bitsongcli keys add validator
