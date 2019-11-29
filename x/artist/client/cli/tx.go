@@ -106,33 +106,15 @@ $ %s tx artist set-image 1 --imageHeight 500 --imageWidth 500 --cid QM..... --fr
 			flagWidth := viper.GetString(FlagWidth)
 			flagCid := viper.GetString(FlagCid)
 
-			// Get owner address
-			owner := cliCtx.GetFromAddress()
-
-			// validate that the artist id is a uint
-			artistID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("artist-id %s not a valid int, please input a valid artist-id", args[0])
-			}
-
-			// validate that the image height is a uint
-			height, err := strconv.ParseUint(flagHeight, 10, 64)
-			if err != nil {
-				return fmt.Errorf("height %s not a valid int, please input a valid height", flagHeight)
-			}
-
-			// validate that the image width is a uint
-			width, err := strconv.ParseUint(flagWidth, 10, 64)
-			if err != nil {
-				return fmt.Errorf("width %s not a valid int, please input a valid width", flagWidth)
-			}
-
-			// TODO:
-			// validate cid ???
+			// Get params
+			artistID, _ := strconv.ParseUint(args[0], 10, 64)  // get artistID param
+			height, _ := strconv.ParseUint(flagHeight, 10, 64) // get height param
+			width, _ := strconv.ParseUint(flagWidth, 10, 64)   // get width param
+			owner := cliCtx.GetFromAddress()                   // get owner
 
 			// Build set artist image message and run basic validation
 			msg := types.NewMsgSetArtistImage(artistID, height, width, flagCid, owner)
-			err = msg.ValidateBasic()
+			err := msg.ValidateBasic()
 			if err != nil {
 				return err
 			}

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	c "github.com/ipsn/go-ipfs/gxlibs/github.com/ipfs/go-cid"
 )
 
 /****
@@ -106,6 +107,10 @@ func (msg MsgSetArtistImage) Type() string  { return TypeMsgSetArtistImage }
 
 // ValidateBasic
 func (msg MsgSetArtistImage) ValidateBasic() sdk.Error {
+	if msg.ArtistID == 0 {
+		return ErrUnknownArtist(DefaultCodespace, "unknown artist")
+	}
+
 	if msg.Height == 0 {
 		return ErrInvalidArtistImageHeight(DefaultCodespace, "image height cannot be blank")
 	}
@@ -116,6 +121,11 @@ func (msg MsgSetArtistImage) ValidateBasic() sdk.Error {
 
 	if len(strings.TrimSpace(msg.CID)) == 0 {
 		return ErrInvalidArtistImageCid(DefaultCodespace, "image cid cannot be blank")
+	}
+
+	_, err := c.Decode(msg.CID)
+	if err != nil {
+		return ErrInvalidArtistImageCid(DefaultCodespace, fmt.Sprintf("invalid artist image cid: %s", msg.CID))
 	}
 
 	return nil

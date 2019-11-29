@@ -45,14 +45,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryArtists implements a query artists command.
 func GetCmdQueryArtists(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "artists",
-		Short: "Query artists with optional filters",
+		Use:   "all",
+		Short: "Query all artists with optional filters",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query for all artists. You can filter the returns with the following flags.
 Example:
-$ %s query artist artists --owner cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ %s query artist artists --status (Verified|Rejected|Failed)
-$ %s query artist artists --limit 10
+$ %s query artist all --owner cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
+$ %s query artist all --status (Verified|Rejected|Failed)
+$ %s query artist all --limit 10
 `,
 				version.ClientName, version.ClientName, version.ClientName,
 			),
