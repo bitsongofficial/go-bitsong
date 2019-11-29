@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,17 +17,21 @@ import (
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeKey  sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
-	cdc       *codec.Codec      // The codec for binary encoding/decoding.
-	codespace sdk.CodespaceType // Reserved codespace
+	storeKey  sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
+	cdc       *codec.Codec       // The codec for binary encoding/decoding.
+	codespace sdk.CodespaceType  // Reserved codespace
+	ak        auth.AccountKeeper // Cosmos-SDK Account Keeper
+	sk        supply.Keeper      // Cosmos-SDK Supply Keeper
 }
 
 // NewKeeper returns an artist keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, ak auth.AccountKeeper, sk supply.Keeper) Keeper {
 	return Keeper{
 		storeKey:  key,
 		cdc:       cdc,
 		codespace: codespace,
+		ak:        ak,
+		sk:        sk,
 	}
 }
 
@@ -115,6 +122,25 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	if err != nil {
 		return types.Artist{}, err
 	}
+
+	// TODO: just for test, pay a fee to create a new artist
+	//////////////////////////////////////////
+	feeAmt := sdk.Coins{sdk.NewCoin(util.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
+
+	// Get account
+	fromAcc := keeper.ak.GetAccount(ctx, owner)
+
+	// Safe sub coins from account
+	_, hasNeg := fromAcc.GetCoins().SafeSub(feeAmt)
+	if hasNeg {
+		return types.Artist{}, sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
+	}
+
+	// Send fee from account to distribution module
+	if err := keeper.sk.SendCoinsFromAccountToModule(ctx, owner, distribution.ModuleName, feeAmt); err != nil {
+		return types.Artist{}, sdk.ErrInternal(err.Error())
+	}
+	//////////////////////////////////////////
 
 	artist := types.NewArtist(artistID, name, owner)
 

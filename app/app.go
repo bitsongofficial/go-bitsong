@@ -191,7 +191,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace)
+	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper)
 	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
 	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace)
 
