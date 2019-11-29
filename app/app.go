@@ -33,6 +33,8 @@ import (
 	albumTypes "github.com/bitsongofficial/go-bitsong/x/album/types"
 	"github.com/bitsongofficial/go-bitsong/x/artist"
 	artistTypes "github.com/bitsongofficial/go-bitsong/x/artist/types"
+	"github.com/bitsongofficial/go-bitsong/x/track"
+	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
 )
 
 const appName = "GoBitsong"
@@ -62,6 +64,7 @@ var (
 		supply.AppModuleBasic{},
 		artist.AppModuleBasic{},
 		album.AppModuleBasic{},
+		track.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -113,6 +116,7 @@ type GoBitsong struct {
 	// bitsong keepers
 	artistKeeper artist.Keeper
 	albumKeeper  album.Keeper
+	trackKeeper  track.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -132,6 +136,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, artistTypes.StoreKey, albumTypes.StoreKey,
+		trackTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -188,6 +193,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 
 	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace)
 	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
+	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -205,6 +211,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		artist.NewAppModule(app.artistKeeper),
 		album.NewAppModule(app.albumKeeper),
+		track.NewAppModule(app.trackKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -220,7 +227,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		artistTypes.ModuleName, albumTypes.ModuleName,
+		artistTypes.ModuleName, albumTypes.ModuleName, trackTypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
