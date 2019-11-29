@@ -131,8 +131,7 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	fromAcc := keeper.ak.GetAccount(ctx, owner)
 
 	// Safe sub coins from account
-	_, hasNeg := fromAcc.GetCoins().SafeSub(feeAmt)
-	if hasNeg {
+	if _, hasNeg := fromAcc.GetCoins().SafeSub(feeAmt); hasNeg {
 		return types.Artist{}, sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
 	}
 
