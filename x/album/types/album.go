@@ -28,9 +28,9 @@ type Album struct {
 }
 
 // AlbumKey gets a specific artist from the store
-func AlbumKey(artistID uint64) []byte {
+func AlbumKey(albumID uint64) []byte {
 	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, artistID)
+	binary.LittleEndian.PutUint64(bz, albumID)
 	return append(AlbumsKeyPrefix, bz...)
 }
 
