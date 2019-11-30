@@ -45,13 +45,6 @@ func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
  * Artist
  ****************************************/
 
-// Set the artist ID
-func (keeper Keeper) SetArtistID(ctx sdk.Context, artistID uint64) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(artistID)
-	store.Set(types.ArtistIDKey, bz)
-}
-
 // GetArtistID gets the highest artist ID
 func (keeper Keeper) GetArtistID(ctx sdk.Context) (artistID uint64, err sdk.Error) {
 	store := ctx.KVStore(keeper.storeKey)
@@ -61,6 +54,13 @@ func (keeper Keeper) GetArtistID(ctx sdk.Context) (artistID uint64, err sdk.Erro
 	}
 	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &artistID)
 	return artistID, nil
+}
+
+// Set the artist ID
+func (keeper Keeper) SetArtistID(ctx sdk.Context, artistID uint64) {
+	store := ctx.KVStore(keeper.storeKey)
+	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(artistID)
+	store.Set(types.ArtistIDKey, bz)
 }
 
 // SetArtist set an artist to store
@@ -118,12 +118,27 @@ func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddres
 }
 
 func (keeper Keeper) PayFee(ctx sdk.Context, owner sdk.AccAddress, amt sdk.Coins) sdk.Error {
+	// Get block time
+	blockTime := ctx.BlockHeader().Time
+
 	// Get account
 	fromAcc := keeper.ak.GetAccount(ctx, owner)
 
-	// Safe sub coins from account
+	// Safe sub coins from account, verify the account has enough funds to pay for fees
 	if _, hasNeg := fromAcc.GetCoins().SafeSub(amt); hasNeg {
-		return sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
+		//return sdk.ErrInsufficientCoins(fmt.Sprintf("%s", fromAcc.GetCoins().String()))
+		return sdk.ErrInsufficientFunds(
+			fmt.Sprintf("insufficient funds to pay for fees; %s < %s", fromAcc.GetCoins().String(), amt),
+		)
+	}
+
+	// Validate the account has enough "spendable" coins as this will cover cases
+	// such as vesting accounts.
+	spendableCoins := fromAcc.SpendableCoins(blockTime)
+	if _, hasNeg := spendableCoins.SafeSub(amt); hasNeg {
+		return sdk.ErrInsufficientFunds(
+			fmt.Sprintf("insufficient funds to pay for fees; %s < %s", spendableCoins, amt),
+		)
 	}
 
 	// Send fee from account to distribution module
@@ -141,6 +156,7 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 		return types.Artist{}, err
 	}
 
+	//////////////////////////////////////////
 	// TODO: just for test, pay a fee to create a new artist
 	//////////////////////////////////////////
 	feeAmt := sdk.Coins{sdk.NewCoin(btsg.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
