@@ -16,6 +16,10 @@ bitsongcli config trust-node true
 sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
 #sed -i 's/"send_enabled": true/"send_enabled": false/g' ~/.bitsongd/config/genesis.json
 
+# Change gov parameters (2 min)
+sed -i 's/"max_deposit_period": "172800000000000"/"max_deposit_period": "120000000000"/g' ~/.bitsongd/config/genesis.json
+sed -i 's/"voting_period": "172800000000000"/"voting_period": "120000000000"/g' ~/.bitsongd/config/genesis.json
+
 # Create a key to hold your validator account
 echo ${PASSWORD} | bitsongcli keys add validator
 echo ${PASSWORD} | bitsongcli keys add faucet

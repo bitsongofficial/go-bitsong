@@ -72,7 +72,7 @@ func handleMsgSetArtistImage(ctx sdk.Context, keeper Keeper, msg types.MsgSetArt
 
 // handleMsgSetArtistStatus handles the status of an artist
 func handleMsgSetArtistStatus(ctx sdk.Context, keeper Keeper, msg types.MsgSetArtistStatus) sdk.Result {
-	err := keeper.SetArtistStatus(ctx, msg.ArtistID, msg.Status, msg.Owner)
+	err := keeper.SetArtistStatus(ctx, msg.ArtistID, msg.Status)
 	if err != nil {
 		return err.Result()
 	}

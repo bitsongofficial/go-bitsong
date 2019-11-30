@@ -9,15 +9,15 @@ import (
 )
 
 const (
-	// ProposalTypeVerifyArtist defines the type for a ArtistVerifyProposal
-	ProposalTypeVerifyArtist = "VerifyArtist"
+	// ProposalTypeArtistVerify defines the type for a ArtistVerifyProposal
+	ProposalTypeArtistVerify = "ArtistVerify"
 )
 
 // Assert ArtistVerifyProposal implements govtypes.Content at compile-time
 var _ govtypes.Content = ArtistVerifyProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeVerifyArtist)
+	govtypes.RegisterProposalType(ProposalTypeArtistVerify)
 	govtypes.RegisterProposalTypeCodec(ArtistVerifyProposal{}, "go-bitsong/ArtistVerifyProposal")
 }
 
@@ -43,7 +43,7 @@ func (vp ArtistVerifyProposal) GetDescription() string { return vp.Description }
 func (vp ArtistVerifyProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.
-func (vp ArtistVerifyProposal) ProposalType() string { return ProposalTypeVerifyArtist }
+func (vp ArtistVerifyProposal) ProposalType() string { return ProposalTypeArtistVerify }
 
 // ValidateBasic runs basic stateless validity checks
 func (vp ArtistVerifyProposal) ValidateBasic() sdk.Error {

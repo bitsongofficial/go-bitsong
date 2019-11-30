@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/types/util"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
@@ -159,10 +157,10 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	//////////////////////////////////////////
 	// TODO: just for test, pay a fee to create a new artist
 	//////////////////////////////////////////
-	feeAmt := sdk.Coins{sdk.NewCoin(btsg.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
-	if err := keeper.PayFee(ctx, owner, feeAmt); err != nil {
-		return types.Artist{}, err
-	}
+	// feeAmt := sdk.Coins{sdk.NewCoin(btsg.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
+	// if err := keeper.PayFee(ctx, owner, feeAmt); err != nil {
+	//	return types.Artist{}, err
+	// }
 	//////////////////////////////////////////
 
 	artist := types.NewArtist(artistID, name, owner)
@@ -211,7 +209,7 @@ func (keeper Keeper) SetArtistImage(ctx sdk.Context, artistID uint64, image type
 }
 
 // SetArtistStatus set Status of the Artist {Nil, Verified, Rejected, Failed}
-func (keeper Keeper) SetArtistStatus(ctx sdk.Context, artistID uint64, status types.ArtistStatus, from sdk.AccAddress) sdk.Error {
+func (keeper Keeper) SetArtistStatus(ctx sdk.Context, artistID uint64, status types.ArtistStatus) sdk.Error {
 	artist, ok := keeper.GetArtist(ctx, artistID)
 	if !ok {
 		return types.ErrUnknownArtist(keeper.codespace, "unknown artist")
@@ -220,9 +218,9 @@ func (keeper Keeper) SetArtistStatus(ctx sdk.Context, artistID uint64, status ty
 	// TODO:
 	// Interim moderator that can edit status on modules
 	// This is only for testnet use and will be excluded then
-	if from.String() != util.ModeratorBech32AccAddr {
-		return types.ErrUnknownModerator(keeper.codespace, "unknown moderator")
-	}
+	// if from.String() != util.ModeratorBech32AccAddr {
+	//	return types.ErrUnknownModerator(keeper.codespace, "unknown moderator")
+	// }
 
 	artist.Status = status
 

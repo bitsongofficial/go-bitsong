@@ -57,7 +57,7 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler),
+		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler, artist.ProposalHandler),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -175,6 +175,10 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 
+	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper)
+	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
+	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace)
+
 	// register the proposal types
 	govRouter := gov.NewRouter()
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
@@ -191,10 +195,6 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
-
-	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper)
-	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
-	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.

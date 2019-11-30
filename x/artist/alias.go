@@ -1,6 +1,7 @@
 package artist
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/artist/client"
 	"github.com/bitsongofficial/go-bitsong/x/artist/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
@@ -25,8 +26,9 @@ var (
 	NewArtist = types.NewArtist
 
 	// Msgs
-	NewMsgCreateArtist             = types.NewMsgCreateArtist
 	NewArtistVerifyProposalHandler = keeper.NewArtistVerifyProposalHandler
+	HandleVerifyArtistProposal     = keeper.HandleVerifyArtistProposal
+	ProposalHandler                = client.ProposalHandler
 )
 
 type (
@@ -34,9 +36,10 @@ type (
 	Keeper = keeper.Keeper
 
 	// Types
-	ArtistStatus = types.ArtistStatus
-	Artist       = types.Artist
-	Artists      = types.Artists
+	ArtistStatus         = types.ArtistStatus
+	Artist               = types.Artist
+	Artists              = types.Artists
+	ArtistVerifyProposal = types.ArtistVerifyProposal
 
 	// Msgs
 	MsgCreateArtist = types.MsgCreateArtist
