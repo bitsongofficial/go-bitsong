@@ -16,4 +16,6 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateArtist{}, "go-bitsong/MsgCreateArtist", nil)
 	cdc.RegisterConcrete(MsgSetArtistImage{}, "go-bitsong/MsgSetArtistImage", nil)
 	cdc.RegisterConcrete(MsgSetArtistStatus{}, "go-bitsong/MsgSetArtistStatus", nil)
+
+	cdc.RegisterConcrete(ArtistVerifyProposal{}, "go-bitsong/ArtistVerifyProposal", nil)
 }

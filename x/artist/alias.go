@@ -25,7 +25,8 @@ var (
 	NewArtist = types.NewArtist
 
 	// Msgs
-	NewMsgCreateArtist = types.NewMsgCreateArtist
+	NewMsgCreateArtist             = types.NewMsgCreateArtist
+	NewArtistVerifyProposalHandler = keeper.NewArtistVerifyProposalHandler
 )
 
 type (

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/bitsongofficial/go-bitsong/types/util"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/supply"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/bitsongofficial/go-bitsong/types/util"
+	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
 
@@ -142,7 +143,7 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 
 	// TODO: just for test, pay a fee to create a new artist
 	//////////////////////////////////////////
-	feeAmt := sdk.Coins{sdk.NewCoin(util.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
+	feeAmt := sdk.Coins{sdk.NewCoin(btsg.BondDenom, sdk.NewInt(1000000))} // 1btsg = 1000000ubtsg
 	if err := keeper.PayFee(ctx, owner, feeAmt); err != nil {
 		return types.Artist{}, err
 	}

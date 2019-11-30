@@ -1,0 +1,11 @@
+{
+  "title": "Freddy Mercury",
+  "description": "Please, verify my profile. BTSG Topic: https://btsg.community/......",
+  "id": "1",
+  "deposit": [
+    {
+      "denom": "ubtsg",
+      "amount": "10000"
+    }
+  ]
+}

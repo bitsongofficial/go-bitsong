@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/spf13/viper"
 	"strconv"
 	"strings"
@@ -39,6 +40,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 		GetCmdCreateArtist(cdc),
 		GetCmdSetArtistImage(cdc),
 		GetCmdSetArtistStatus(cdc),
+		GetCmdSubmitProposal(cdc),
 	)...)
 
 	return artistTxCmd
@@ -162,6 +164,57 @@ $ %s tx artist set-status 1 verified --from mykey
 			msg := types.NewMsgSetArtistStatus(artistID, artistStatus, from)
 
 			// Run basic validation
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
+}
+
+// GetCmdSubmitProposal implements the command to submit a artist verify proposal
+func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "verify-artist [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit an artist verify proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit an artist verify proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+Example:
+$ %s tx gov submit-proposal verify-artist <path/to/proposal.json> --from=<key_or_address>
+Where proposal.json contains:
+{
+  "title": "Freddy Mercury",
+  "description": "Please, verify my profile. BTSG Topic: https://btsg.community/......",
+  "id":  1, 
+  "deposit": [
+    {
+      "denom": "ubtsg",
+      "amount": "10000"
+    }
+  ]
+}
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			proposal, err := ParseArtistVerifyProposalJSON(cdc, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := cliCtx.GetFromAddress()
+			content := types.NewArtistVerifyProposal(proposal.Title, proposal.Description, proposal.ArtistID)
+
+			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
