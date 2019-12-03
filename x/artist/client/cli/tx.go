@@ -142,7 +142,7 @@ func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Submit an artist verify proposal along with an initial deposit.
 The proposal details must be supplied via a JSON file.
 Example:
-$ %s tx gov submit-proposal verify-artist <path/to/proposal.json> --from=<key_or_address>
+$ %s tx artist verify-artist <path/to/proposal.json> --from=<key_or_address>
 Where proposal.json contains:
 {
   "title": "Freddy Mercury",
