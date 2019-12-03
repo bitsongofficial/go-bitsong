@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -44,12 +43,20 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 
 // GetCmdCreateAlbum implements the create album command handler.
 func GetCmdCreateAlbum(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "create",
 		Short: "create new album initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Album initialized with status nil.
+The album details must be supplied via a JSON file.
 Example:
-$ %s tx album create --title "Innuendo" --album_type "Album" --release_date "2018-12-12" --release_date_precision "day" --from mykey
+$ %s tx album create <path/to/album.json> --from=<key_or_address>
+Where album.json contains:
+{
+  "title": "Innuendo",
+  "album_type": "Album",
+  "release_date": "2018-12-12",
+  "release_date_precision": "day"
+}
 `,
 			version.ClientName,
 		)),
@@ -57,17 +64,16 @@ $ %s tx album create --title "Innuendo" --album_type "Album" --release_date "201
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// Get flags
-			flagTitle := viper.GetString(FlagTitle)                                                           // Get album title
-			flagAlbumType, _ := types.AlbumTypeFromString(NormalizeAlbumType(viper.GetString(FlagAlbumType))) // Get album type
-			flagReleaseDate := viper.GetString(FlagReleaseDate)                                               // Get album release date
-			flagReleaseDatePrecision := viper.GetString(FlagReleaseDatePrecision)                             // Get album release date precision
+			album, err := ParseCreateAlbumJSON(cdc, args[0])
+			if err != nil {
+				return err
+			}
 
 			// Get params
 			from := cliCtx.GetFromAddress() // Get owner
 
 			// Build create artist message
-			msg := types.NewMsgCreateAlbum(flagAlbumType, flagTitle, flagReleaseDate, flagReleaseDatePrecision, from)
+			msg := types.NewMsgCreateAlbum(album.AlbumType, album.Title, album.ReleaseDate, album.ReleaseDatePrecision, from)
 
 			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
@@ -77,13 +83,6 @@ $ %s tx album create --title "Innuendo" --album_type "Album" --release_date "201
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
-	cmd.Flags().String(FlagTitle, "", "the album title")
-	cmd.Flags().String(FlagAlbumType, "", "the album type")
-	cmd.Flags().String(FlagReleaseDate, "", "the album release date")
-	cmd.Flags().String(FlagReleaseDatePrecision, "", "the album release date precision")
-
-	return cmd
 }
 
 //NormalizeAlbumType - normalize user specified album type
