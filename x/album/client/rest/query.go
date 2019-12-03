@@ -44,7 +44,7 @@ func queryAlbumsWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// Check Album Status
 		if len(strAlbumStatus) != 0 {
-			albumStatus, err := types.AlbumStatusFromString(cli.NormalizeAlbumType(strAlbumStatus))
+			albumStatus, err := types.AlbumStatusFromString(cli.NormalizeAlbumStatus(strAlbumStatus))
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
