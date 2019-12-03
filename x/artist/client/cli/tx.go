@@ -39,7 +39,6 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	artistTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateArtist(cdc),
 		GetCmdSetArtistImage(cdc),
-		GetCmdSetArtistStatus(cdc),
 		GetCmdSubmitProposal(cdc),
 	)...)
 
@@ -129,48 +128,6 @@ $ %s tx artist set-image 1 --imageHeight 500 --imageWidth 500 --cid QM..... --fr
 	cmd.Flags().String(FlagHeight, "", "the image height")
 	cmd.Flags().String(FlagWidth, "", "the image width")
 	cmd.Flags().String(FlagCid, "", "the image cid")
-
-	return cmd
-}
-
-// GetCmdSetArtistStatus command to set a new artist status
-func GetCmdSetArtistStatus(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "set-status [artist-id] [status]",
-		Args:  cobra.ExactArgs(2),
-		Short: "Set a new status to artist",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Set a new status to artist. You can
-find the artist-id by running "%s query artist artists --owner [your-key]".
-Example:
-$ %s tx artist set-status 1 verified --from mykey
-`,
-				version.ClientName, version.ClientName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// Get params
-			artistID, _ := strconv.ParseUint(args[0], 10, 64)                                 // get artistID param
-			artistStatus, err := types.ArtistStatusFromString(NormalizeArtistStatus(args[1])) // get and normalize artist status
-			if err != nil {
-				return err
-			}
-			from := cliCtx.GetFromAddress() // get from (should be interim moderator)
-
-			// Build set artist status message
-			msg := types.NewMsgSetArtistStatus(artistID, artistStatus, from)
-
-			// Run basic validation
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
 
 	return cmd
 }

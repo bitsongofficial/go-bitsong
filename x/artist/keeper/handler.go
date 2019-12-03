@@ -17,8 +17,6 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgCreateArtist(ctx, keeper, msg)
 		case types.MsgSetArtistImage:
 			return handleMsgSetArtistImage(ctx, keeper, msg)
-		case types.MsgSetArtistStatus:
-			return handleMsgSetArtistStatus(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized artist message type: %T", msg)
@@ -53,26 +51,6 @@ func handleMsgSetArtistImage(ctx sdk.Context, keeper Keeper, msg types.MsgSetArt
 	image := types.NewArtistImage(msg.Height, msg.Width, msg.CID)
 
 	err := keeper.SetArtistImage(ctx, msg.ArtistID, image, msg.Owner)
-	if err != nil {
-		return err.Result()
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Owner.String()),
-		),
-	)
-
-	return sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}
-}
-
-// handleMsgSetArtistStatus handles the status of an artist
-func handleMsgSetArtistStatus(ctx sdk.Context, keeper Keeper, msg types.MsgSetArtistStatus) sdk.Result {
-	err := keeper.SetArtistStatus(ctx, msg.ArtistID, msg.Status)
 	if err != nil {
 		return err.Result()
 	}
