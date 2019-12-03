@@ -1,6 +1,7 @@
 package cli
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"io/ioutil"
 
 	"github.com/bitsongofficial/go-bitsong/x/album/types"
@@ -31,4 +32,30 @@ func ParseCreateAlbumJSON(cdc *codec.Codec, albumFile string) (CreateAlbumJSON, 
 	}
 
 	return album, nil
+}
+
+type (
+	// AlbumVerifyProposalJSON defines a ArtistVerifyProposal with a deposit
+	AlbumVerifyProposalJSON struct {
+		Title       string    `json:"title" yaml:"title"`
+		Description string    `json:"description" yaml:"description"`
+		AlbumID     uint64    `json:"id" yaml:"id"`
+		Deposit     sdk.Coins `json:"deposit" yaml:"deposit"`
+	}
+)
+
+// ParseAlbumVerifyProposalJSON reads and parses a ArtistVerifyProposalJSON from a file.
+func ParseAlbumVerifyProposalJSON(cdc *codec.Codec, proposalFile string) (AlbumVerifyProposalJSON, error) {
+	proposal := AlbumVerifyProposalJSON{}
+
+	contents, err := ioutil.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
 }

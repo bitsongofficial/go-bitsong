@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -124,12 +123,36 @@ func (keeper Keeper) CreateAlbum(ctx sdk.Context, title string, albumType types.
 			types.EventTypeCreateAlbum,
 			sdk.NewAttribute(types.AttributeKeyAlbumID, fmt.Sprintf("%d", albumID)),
 			sdk.NewAttribute(types.AttributeKeyAlbumTitle, fmt.Sprintf("%s", title)),
-			sdk.NewAttribute(types.AttributeKeyAlbumType, fmt.Sprintf("%s", albumType.String())),
-			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDate, fmt.Sprintf("%s", releaseDate)),
-			sdk.NewAttribute(types.AttributeKeyAlbumReleaseDatePrecision, fmt.Sprintf("%s", releasePrecision)),
+			//sdk.NewAttribute(types.AttributeKeyAlbumType, fmt.Sprintf("%s", albumType.String())),
+			//sdk.NewAttribute(types.AttributeKeyAlbumReleaseDate, fmt.Sprintf("%s", releaseDate)),
+			//sdk.NewAttribute(types.AttributeKeyAlbumReleaseDatePrecision, fmt.Sprintf("%s", releasePrecision)),
 			sdk.NewAttribute(types.AttributeKeyAlbumOwner, fmt.Sprintf("%s", owner.String())),
 		),
 	)
 
 	return album, nil
+}
+
+// SetAlbumStatus set Status of the Album {Nil, Verified, Rejected, Failed}
+func (keeper Keeper) SetAlbumStatus(ctx sdk.Context, albumID uint64, status types.AlbumStatus) sdk.Error {
+	album, ok := keeper.GetAlbum(ctx, albumID)
+	if !ok {
+		return types.ErrUnknownAlbum(keeper.codespace, "unknown album")
+	}
+
+	album.Status = status
+
+	keeper.SetAlbum(ctx, album)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetAlbumStatus,
+			sdk.NewAttribute(types.AttributeKeyAlbumID, fmt.Sprintf("%d", albumID)),
+			sdk.NewAttribute(types.AttributeKeyAlbumTitle, fmt.Sprintf("%s", album.Title)),
+			sdk.NewAttribute(types.AttributeKeyAlbumStatus, fmt.Sprintf("%s", album.Status.String())),
+			sdk.NewAttribute(types.AttributeKeyAlbumOwner, fmt.Sprintf("%s", album.Owner.String())),
+		),
+	)
+
+	return nil
 }

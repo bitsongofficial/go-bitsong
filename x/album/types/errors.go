@@ -12,6 +12,8 @@ const (
 	CodeInvalidAlbumReleaseDate          sdk.CodeType = 2
 	CodeInvalidAlbumReleaseDatePrecision sdk.CodeType = 3
 	CodeInvalidGenesis                   sdk.CodeType = 4
+	CodeUnknownAlbum                     sdk.CodeType = 5
+	CodeInvalidAlbumStatus               sdk.CodeType = 6
 )
 
 func ErrInvalidAlbumType(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -32,4 +34,12 @@ func ErrInvalidAlbumReleaseDatePrecision(codespace sdk.CodespaceType, msg string
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidGenesis, msg)
+}
+
+func ErrUnknownAlbum(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeUnknownAlbum, msg)
+}
+
+func ErrInvalidAlbumStatus(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidAlbumStatus, msg)
 }

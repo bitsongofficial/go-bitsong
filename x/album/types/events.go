@@ -2,7 +2,8 @@ package types
 
 // Album module event types
 const (
-	EventTypeCreateAlbum = "create_album"
+	EventTypeCreateAlbum    = "create_album"
+	EventTypeSetAlbumStatus = "set_album_status"
 
 	// Album attributes
 	AttributeValueCategory                = ModuleName
@@ -12,4 +13,5 @@ const (
 	AttributeKeyAlbumReleaseDate          = ModuleName + "_release_date"
 	AttributeKeyAlbumReleaseDatePrecision = ModuleName + "_release_date_precision"
 	AttributeKeyAlbumOwner                = ModuleName + "_owner"
+	AttributeKeyAlbumStatus               = ModuleName + "_status"
 )

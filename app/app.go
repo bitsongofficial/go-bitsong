@@ -57,7 +57,12 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(paramsclient.ProposalHandler, distr.ProposalHandler, artist.ProposalHandler),
+		gov.NewAppModuleBasic(
+			paramsclient.ProposalHandler,
+			distr.ProposalHandler,
+			artist.ProposalHandler,
+			album.ProposalHandler,
+		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -184,7 +189,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(artist.RouterKey, artist.NewArtistVerifyProposalHandler(app.artistKeeper))
+		AddRoute(artist.RouterKey, artist.NewArtistVerifyProposalHandler(app.artistKeeper)).
+		AddRoute(album.RouterKey, album.NewAlbumVerifyProposalHandler(app.albumKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,

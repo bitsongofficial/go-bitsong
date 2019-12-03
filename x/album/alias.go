@@ -1,6 +1,7 @@
 package album
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/album/client"
 	"github.com/bitsongofficial/go-bitsong/x/album/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/album/types"
 )
@@ -22,7 +23,10 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	// Types
-	NewAlbum = types.NewAlbum
+	NewAlbum                      = types.NewAlbum
+	NewAlbumVerifyProposal        = types.NewAlbumVerifyProposal
+	NewAlbumVerifyProposalHandler = keeper.NewAlbumVerifyProposalHandler
+	ProposalHandler               = client.ProposalHandler
 
 	// Msgs
 	NewMsgCreateAlbum = types.NewMsgCreateAlbum
