@@ -7,8 +7,10 @@ import (
 const (
 	DefaultCodespace sdk.CodespaceType = ModuleName
 
-	CodeInvalidGenesis    sdk.CodeType = 0
-	CodeInvalidTrackTitle sdk.CodeType = 1
+	CodeInvalidGenesis     sdk.CodeType = 0
+	CodeInvalidTrackTitle  sdk.CodeType = 1
+	CodeUnknownTrack       sdk.CodeType = 2
+	CodeInvalidTrackStatus sdk.CodeType = 3
 )
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -17,4 +19,12 @@ func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
 
 func ErrInvalidTrackTitle(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidTrackTitle, msg)
+}
+
+func ErrUnknownTrack(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeUnknownTrack, msg)
+}
+
+func ErrInvalidTrackStatus(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidTrackStatus, msg)
 }

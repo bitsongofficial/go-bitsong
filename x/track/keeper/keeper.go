@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -129,4 +128,25 @@ func (keeper Keeper) CreateTrack(ctx sdk.Context, title string, owner sdk.AccAdd
 	)
 
 	return track, nil
+}
+
+// SetTrackStatus set Status of the Track {Nil, Verified, Rejected, Failed}
+func (keeper Keeper) SetTrackStatus(ctx sdk.Context, trackID uint64, status types.TrackStatus) sdk.Error {
+	track, ok := keeper.GetTrack(ctx, trackID)
+	if !ok {
+		return types.ErrUnknownTrack(keeper.codespace, "unknown track")
+	}
+
+	track.Status = status
+
+	keeper.SetTrack(ctx, track)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetTrackStatus,
+			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%d", trackID)),
+		),
+	)
+
+	return nil
 }

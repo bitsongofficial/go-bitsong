@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/spf13/viper"
 	"strings"
 
@@ -34,6 +35,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 
 	trackTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateTrack(cdc),
+		GetCmdSubmitProposal(cdc),
 	)...)
 
 	return trackTxCmd
@@ -73,6 +75,57 @@ $ %s tx track create --title "The Show Must Go On" --from mykey
 	}
 
 	cmd.Flags().String(FlagTitle, "", "the track title")
+
+	return cmd
+}
+
+// GetCmdSubmitProposal implements the command to submit a track verify proposal
+func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "verify-track [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a track verify proposal",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a track verify proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+Example:
+$ %s tx track verify-track <path/to/proposal.json> --from=<key_or_address>
+Where proposal.json contains:
+{
+  "title": "The Show Must Go On",
+  "description": "Please, verify my track. BTSG Topic: https://btsg.community/......",
+  "id":  1, 
+  "deposit": [
+    {
+      "denom": "ubtsg",
+      "amount": "10000"
+    }
+  ]
+}
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			proposal, err := ParseTrackVerifyProposalJSON(cdc, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := cliCtx.GetFromAddress()
+			content := types.NewTrackVerifyProposal(proposal.Title, proposal.Description, proposal.TrackID)
+
+			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 
 	return cmd
 }

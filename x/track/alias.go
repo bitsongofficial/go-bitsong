@@ -1,6 +1,7 @@
 package track
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/track/client"
 	"github.com/bitsongofficial/go-bitsong/x/track/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 )
@@ -22,7 +23,10 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	// Types
-	NewTrack = types.NewTrack
+	NewTrack                      = types.NewTrack
+	NewTrackVerifyProposal        = types.NewTrackVerifyProposal
+	NewTrackVerifyProposalHandler = keeper.NewTrackVerifyProposalHandler
+	ProposalHandler               = client.ProposalHandler
 
 	// Msgs
 	NewMsgCreateTrack = types.NewMsgCreateTrack

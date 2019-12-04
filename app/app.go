@@ -62,6 +62,7 @@ var (
 			distr.ProposalHandler,
 			artist.ProposalHandler,
 			album.ProposalHandler,
+			track.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -190,7 +191,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(artist.RouterKey, artist.NewArtistVerifyProposalHandler(app.artistKeeper)).
-		AddRoute(album.RouterKey, album.NewAlbumVerifyProposalHandler(app.albumKeeper))
+		AddRoute(album.RouterKey, album.NewAlbumVerifyProposalHandler(app.albumKeeper)).
+		AddRoute(track.RouterKey, track.NewTrackVerifyProposalHandler(app.trackKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
