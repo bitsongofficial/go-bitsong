@@ -16,6 +16,8 @@ const (
 // - 0x00<albumID_Bytes>: Album
 //
 // - 0x01: nextAlbumID
+//
+// - 0x10<albumID_Bytes><trackID_Bytes>: Track
 var (
 	AlbumsKeyPrefix = []byte{0x00}
 	AlbumIDKey      = []byte{0x01}

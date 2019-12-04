@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/spf13/viper"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,6 +36,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 
 	trackTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateTrack(cdc),
+		GetCmdPlay(cdc),
 		GetCmdSubmitProposal(cdc),
 	)...)
 
@@ -128,4 +130,44 @@ Where proposal.json contains:
 	}
 
 	return cmd
+}
+
+// GetCmdPlay implements creating a new play track command.
+func GetCmdPlay(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "play [track-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Add a play on a specific track",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Add a play on a specific track. You can
+find the track-id by running "%s query track all".
+Example:
+$ %s tx track play 1 --from mykey
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Get acc address
+			from := cliCtx.GetFromAddress()
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid int, please input a valid track-id", args[0])
+			}
+
+			// Build play message and run basic validation
+			msg := types.NewMsgPlay(trackID, from)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 }

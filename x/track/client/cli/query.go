@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,10 +36,47 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	trackQueryCmd.AddCommand(client.GetCommands(
 		GetCmdQueryTracks(queryRoute, cdc),
-		// TODO: create GetCmdQueryTrack
+		GetCmdQueryTrack(queryRoute, cdc),
+		GetCmdQueryPlays(queryRoute, cdc),
 	)...)
 
 	return trackQueryCmd
+}
+
+// GetCmdQueryTrack implements the query track command.
+func GetCmdQueryTrack(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "track [track-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a single track",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single track. You can find the
+track-id by running "%s query track all".
+Example:
+$ %s query track track 1
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid uint, please input a valid track-id", args[0])
+			}
+
+			res, err := QueryTrackByID(trackID, cliCtx, queryRoute)
+			if err != nil {
+				return err
+			}
+
+			var track types.Track
+			cdc.MustUnmarshalJSON(res, &track)
+			return cliCtx.PrintOutput(track) // nolint:errcheck
+		},
+	}
 }
 
 // GetCmdQueryTracks implements a query tracks command.
@@ -126,4 +164,70 @@ func NormalizeTrackStatus(status string) string {
 		return "Failed"
 	}
 	return ""
+}
+
+// QueryTrackByID takes a trackID and returns an track
+func QueryTrackByID(trackID uint64, cliCtx context.CLIContext, queryRoute string) ([]byte, error) {
+	params := types.NewQueryTrackParams(trackID)
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		return nil, err
+	}
+
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/track", queryRoute), bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, err
+}
+
+// GetCmdQueryPlays implements the command to query for track plays.
+func GetCmdQueryPlays(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "plays [track-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query plays on a single track",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query plays on a single track by its identifier.
+Example:
+$ %s query track plays 1
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid int, please input a valid track-id", args[0])
+			}
+
+			params := types.NewQueryTrackParams(trackID)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// check to see if the track is in the store
+			res, err := QueryTrackByID(trackID, cliCtx, queryRoute)
+			if err != nil {
+				return fmt.Errorf("failed to fetch track-id %d: %s", trackID, err)
+			}
+
+			var track types.Track
+			cdc.MustUnmarshalJSON(res, &track)
+
+			res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/plays", queryRoute), bz)
+			if err != nil {
+				return err
+			}
+
+			var plays types.Plays
+			cdc.MustUnmarshalJSON(res, &plays)
+			return cliCtx.PrintOutput(plays)
+		},
+	}
 }

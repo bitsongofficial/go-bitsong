@@ -16,6 +16,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateTrack:
 			return handleMsgCreateTrack(ctx, keeper, msg)
+		case types.MsgPlay:
+			return handleMsgPlay(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized track message type: %T", msg)
@@ -41,6 +43,26 @@ func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTra
 
 	return sdk.Result{
 		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(track.TrackID),
+		Events: ctx.EventManager().Events(),
+	}
+}
+
+// handleMsgPlay
+func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) sdk.Result {
+	err := keeper.Play(ctx, msg.TrackID, msg.AccAddr)
+	if err != nil {
+		return err.Result()
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.AccAddr.String()),
+		),
+	)
+
+	return sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}
 }

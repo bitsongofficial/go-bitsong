@@ -14,6 +14,7 @@ import (
 // Track messages types and routes
 const (
 	TypeMsgCreateTrack = "create_track"
+	TypeMsgPlayTrack   = "play_track"
 )
 
 /****************************************
@@ -72,4 +73,61 @@ func (msg MsgCreateTrack) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (msg MsgCreateTrack) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
+}
+
+/****************************************
+ * MsgPlay
+ ****************************************/
+
+var _ sdk.Msg = MsgPlay{}
+
+// MsgPlay defines PlayTrack message
+type MsgPlay struct {
+	TrackID uint64         "json:`track_id` yaml:`track_id`"
+	AccAddr sdk.AccAddress `json:"acc_addr"`
+}
+
+func NewMsgPlay(trackID uint64, accAddr sdk.AccAddress) MsgPlay {
+	return MsgPlay{
+		TrackID: trackID,
+		AccAddr: accAddr,
+	}
+}
+
+//nolint
+func (msg MsgPlay) Route() string { return RouterKey }
+func (msg MsgPlay) Type() string  { return TypeMsgPlayTrack }
+
+// ValidateBasic
+func (msg MsgPlay) ValidateBasic() sdk.Error {
+	// TODO:
+	// - improve check
+
+	if msg.TrackID == 0 {
+		return ErrUnknownTrack(DefaultCodespace, "album-id cannot be blank")
+	}
+
+	if msg.AccAddr.Empty() {
+		return sdk.ErrInvalidAddress(msg.AccAddr.String())
+	}
+
+	return nil
+}
+
+// Implements Msg.
+func (msg MsgPlay) String() string {
+	return fmt.Sprintf(`Play Track Message:
+  TrackID: %d
+  AccAddr: %s
+`, msg.TrackID, msg.AccAddr.String())
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgPlay) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgPlay) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.AccAddr}
 }
