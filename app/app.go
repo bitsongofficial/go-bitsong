@@ -183,7 +183,14 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 
 	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper)
 	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
-	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace)
+
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	app.stakingKeeper = *stakingKeeper.SetHooks(
+		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
+	)
+
+	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper)
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
@@ -196,12 +203,6 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
-	)
-
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
 	// NOTE: Any module instantiated in the module manager that is later modified

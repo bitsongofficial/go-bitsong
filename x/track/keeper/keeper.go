@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
@@ -11,17 +12,19 @@ import (
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeKey  sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
-	cdc       *codec.Codec      // The codec for binary encoding/decoding.
-	codespace sdk.CodespaceType // Reserved codespace
+	storeKey      sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
+	cdc           *codec.Codec      // The codec for binary encoding/decoding.
+	codespace     sdk.CodespaceType // Reserved codespace
+	stakingKeeper staking.Keeper    // Staking Keeper
 }
 
 // NewKeeper returns an track keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, sk staking.Keeper) Keeper {
 	return Keeper{
-		storeKey:  key,
-		cdc:       cdc,
-		codespace: codespace,
+		storeKey:      key,
+		cdc:           cdc,
+		codespace:     codespace,
+		stakingKeeper: sk,
 	}
 }
 
