@@ -14,6 +14,7 @@ import (
 // Album messages types and routes
 const (
 	TypeMsgCreateAlbum = "create_album"
+	TypeMsgAddTrack    = "add_track"
 )
 
 /****************************************
@@ -95,5 +96,69 @@ func (msg MsgCreateAlbum) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgCreateAlbum) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Owner}
+}
+
+/****************************************
+ * MsgAddTrackAlbum
+ ****************************************/
+
+var _ sdk.Msg = MsgAddTrackAlbum{}
+
+// MsgAddTrackAlbum defines AddTrackAlbum message
+type MsgAddTrackAlbum struct {
+	AlbumID uint64         "json:`album_id` yaml:`album_id`"
+	TrackID uint64         "json:`track_id` yaml:`track_id`"
+	Owner   sdk.AccAddress `json:"owner"` // Artist owner
+}
+
+func NewMsgAddTrackAlbum(albumID uint64, trackID uint64, owner sdk.AccAddress) MsgAddTrackAlbum {
+	return MsgAddTrackAlbum{
+		AlbumID: albumID,
+		TrackID: trackID,
+		Owner:   owner,
+	}
+}
+
+//nolint
+func (msg MsgAddTrackAlbum) Route() string { return RouterKey }
+func (msg MsgAddTrackAlbum) Type() string  { return TypeMsgCreateAlbum }
+
+// ValidateBasic
+func (msg MsgAddTrackAlbum) ValidateBasic() sdk.Error {
+	// TODO:
+	// - improve check
+
+	if msg.AlbumID == 0 {
+		return ErrUnknownAlbum(DefaultCodespace, "album-id cannot be blank")
+	}
+
+	if msg.TrackID == 0 {
+		return ErrUnknownTrack(DefaultCodespace, "track-id cannot be blank")
+	}
+
+	if msg.Owner.Empty() {
+		return sdk.ErrInvalidAddress(msg.Owner.String())
+	}
+
+	return nil
+}
+
+// Implements Msg.
+func (msg MsgAddTrackAlbum) String() string {
+	return fmt.Sprintf(`Add Track Album Message:
+  AlbumID: %d
+  TrackID: %d
+  Owner: %s
+`, msg.AlbumID, msg.TrackID, msg.Owner.String())
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgAddTrackAlbum) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgAddTrackAlbum) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
 }

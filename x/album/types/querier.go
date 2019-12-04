@@ -9,6 +9,8 @@ const (
 	QueryParams = "params"
 	QueryAlbums = "albums"
 	QueryAlbum  = "album"
+
+	QueryTracks = "tracks"
 )
 
 // Params for queries:

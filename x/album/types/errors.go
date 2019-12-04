@@ -14,6 +14,7 @@ const (
 	CodeInvalidGenesis                   sdk.CodeType = 4
 	CodeUnknownAlbum                     sdk.CodeType = 5
 	CodeInvalidAlbumStatus               sdk.CodeType = 6
+	CodeUnknownTrack                     sdk.CodeType = 20
 )
 
 func ErrInvalidAlbumType(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -42,4 +43,8 @@ func ErrUnknownAlbum(codespace sdk.CodespaceType, msg string) sdk.Error {
 
 func ErrInvalidAlbumStatus(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidAlbumStatus, msg)
+}
+
+func ErrUnknownTrack(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeUnknownTrack, msg)
 }

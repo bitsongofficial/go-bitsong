@@ -12,6 +12,7 @@ func init() {
 // RegisterCodec registers concrete types on the Amino codec
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateAlbum{}, "go-bitsong/MsgCreateAlbum", nil)
+	cdc.RegisterConcrete(MsgAddTrackAlbum{}, "go-bitsong/MsgAddTrackAlbum", nil)
 
 	cdc.RegisterConcrete(AlbumVerifyProposal{}, "go-bitsong/AlbumVerifyProposal", nil)
 }

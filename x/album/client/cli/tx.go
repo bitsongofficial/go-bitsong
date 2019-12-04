@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -37,6 +38,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 
 	albumTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateAlbum(cdc),
+		GetCmdAddTrack(cdc),
 		GetCmdSubmitProposal(cdc),
 	)...)
 
@@ -149,4 +151,56 @@ Where proposal.json contains:
 	}
 
 	return cmd
+}
+
+// GetCmdAddTrack implements creating a new add track command.
+func GetCmdAddTrack(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "add-track [album-id] [track-id]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Add a track on a specific album",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Add a track on a specific album. You can
+find the album-id by running "%s query album alls".
+Example:
+$ %s tx album add-track 1 1 --from mykey
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// Get voting address
+			from := cliCtx.GetFromAddress()
+
+			// validate that the album id is a uint
+			albumID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("album-id %s not a valid int, please input a valid album-id", args[0])
+			}
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid int, please input a valid track-id", args[1])
+			}
+
+			// Find out which vote option user chose
+			/*byteVoteOption, err := types.VoteOptionFromString(govutils.NormalizeVoteOption(args[1]))
+			if err != nil {
+				return err
+			}*/
+
+			// Build add-track message and run basic validation
+			msg := types.NewMsgAddTrackAlbum(albumID, trackID, from)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 }

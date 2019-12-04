@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,10 +36,48 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	albumQueryCmd.AddCommand(client.GetCommands(
 		GetCmdQueryAlbums(queryRoute, cdc),
-		// TODO: create GetCmdQueryAlbum
+		GetCmdQueryAlbum(queryRoute, cdc),
+		GetCmdQueryTracks(queryRoute, cdc),
 	)...)
 
 	return albumQueryCmd
+}
+
+// GetCmdQueryAlbum implements the query album command.
+func GetCmdQueryAlbum(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "album [album-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query details of a single album",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for a single album. You can find the
+album-id by running "%s query album all".
+Example:
+$ %s query album album 1
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the album id is a uint
+			albumID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("album-id %s not a valid uint, please input a valid album-id", args[0])
+			}
+
+			// Query the proposal
+			res, err := QueryAlbumByID(albumID, cliCtx, queryRoute)
+			if err != nil {
+				return err
+			}
+
+			var album types.Album
+			cdc.MustUnmarshalJSON(res, &album)
+			return cliCtx.PrintOutput(album) // nolint:errcheck
+		},
+	}
 }
 
 // GetCmdQueryAlbums implements a query albums command.
@@ -126,4 +165,70 @@ func NormalizeAlbumStatus(status string) string {
 		return "Failed"
 	}
 	return ""
+}
+
+// GetCmdQueryTracks implements the command to query for album tracks.
+func GetCmdQueryTracks(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "tracks [album-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query tracks on album",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query track details for a single album by its identifier.
+Example:
+$ %s query album tracks 1
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the album id is a uint
+			albumID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("album-id %s not a valid int, please input a valid album-id", args[0])
+			}
+
+			params := types.NewQueryAlbumParams(albumID)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// check to see if the album is in the store
+			res, err := QueryAlbumByID(albumID, cliCtx, queryRoute)
+			if err != nil {
+				return fmt.Errorf("failed to fetch album-id %d: %s", albumID, err)
+			}
+
+			var album types.Album
+			cdc.MustUnmarshalJSON(res, &album)
+
+			res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/tracks", queryRoute), bz)
+			if err != nil {
+				return err
+			}
+
+			var tracks types.Tracks
+			cdc.MustUnmarshalJSON(res, &tracks)
+			return cliCtx.PrintOutput(tracks)
+		},
+	}
+}
+
+// QueryAlbumByID takes a albumID and returns an album
+func QueryAlbumByID(albumID uint64, cliCtx context.CLIContext, queryRoute string) ([]byte, error) {
+	params := types.NewQueryAlbumParams(albumID)
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		return nil, err
+	}
+
+	res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/album", queryRoute), bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, err
 }

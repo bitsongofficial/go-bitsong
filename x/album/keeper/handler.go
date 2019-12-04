@@ -16,6 +16,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateAlbum:
 			return handleMsgCreateAlbum(ctx, keeper, msg)
+		case types.MsgAddTrackAlbum:
+			return handleMsgAddTrackAlbum(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized album message type: %T", msg)
@@ -41,6 +43,26 @@ func handleMsgCreateAlbum(ctx sdk.Context, keeper Keeper, msg types.MsgCreateAlb
 
 	return sdk.Result{
 		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(album.AlbumID),
+		Events: ctx.EventManager().Events(),
+	}
+}
+
+// handleMsgAddTrackAlbum
+func handleMsgAddTrackAlbum(ctx sdk.Context, keeper Keeper, msg types.MsgAddTrackAlbum) sdk.Result {
+	err := keeper.AddTrack(ctx, msg.AlbumID, msg.TrackID, 0)
+	if err != nil {
+		return err.Result()
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Owner.String()),
+		),
+	)
+
+	return sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}
 }
