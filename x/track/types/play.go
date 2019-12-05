@@ -61,7 +61,7 @@ func (p Plays) String() string {
 	}
 	out := fmt.Sprintf("Plays on Track %d:", p[0].TrackID)
 	for _, play := range p {
-		out += fmt.Sprintf("\n  %d: %d - %s", play.TrackID, play.CreatedAt, play.AccAddr)
+		out += fmt.Sprintf("\n  %d: %v - %s", play.TrackID, play.CreatedAt, play.AccAddr)
 	}
 	return out
 }
