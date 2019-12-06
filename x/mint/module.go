@@ -12,6 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	"github.com/bitsongofficial/go-bitsong/x/mint/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/mint/client/rest"
 )
 
 var (
@@ -19,109 +22,106 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the distribution module.
+// app module basics object
 type AppModuleBasic struct{}
 
 var _ module.AppModuleBasic = AppModuleBasic{}
 
-// Name returns the distribution module's name
+// module name
 func (AppModuleBasic) Name() string {
-	return CosmosAppModuleBasic{}.Name()
+	return ModuleName
 }
 
-// RegisterCodec registers the distribution module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	CosmosAppModuleBasic{}.RegisterCodec(cdc)
-}
+// register module codec
+func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {}
 
-// DefaultGenesis returns default genesis state as raw bytes for the distribution
-// module.
+// default genesis state
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return CosmosAppModuleBasic{}.DefaultGenesis()
+	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the distribution module.
+// module validate genesis
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
+	var data GenesisState
+	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	if err != nil {
+		return err
+	}
+	return ValidateGenesis(data)
 }
 
-// RegisterRESTRoutes registers the REST routes for the distribution module.
-func (AppModuleBasic) RegisterRESTRoutes(cliCtx context.CLIContext, route *mux.Router) {
-	CosmosAppModuleBasic{}.RegisterRESTRoutes(cliCtx, route)
+// register rest routes
+func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the distribution module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetTxCmd(cdc)
-}
+// get the root tx command of this module
+func (AppModuleBasic) GetTxCmd(_ *codec.Codec) *cobra.Command { return nil }
 
-// GetQueryCmd returns the root query command for the distribution module.
+// get the root query command of this module
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
+	return cli.GetQueryCmd(cdc)
 }
 
 //___________________________
-
-// AppModule implements an application module for the distribution module.
+// app module
 type AppModule struct {
 	AppModuleBasic
-	cosmosAppModule CosmosAppModule
 	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(keeper Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic:  AppModuleBasic{},
-		cosmosAppModule: NewCosmosAppModule(keeper),
+		AppModuleBasic: AppModuleBasic{},
 		keeper:         keeper,
 	}
 }
 
-// Name returns the distribution module's name.
-func (am AppModule) Name() string {
-	return am.cosmosAppModule.Name()
+// module name
+func (AppModule) Name() string {
+	return ModuleName
 }
 
-// RegisterInvariants registers the distribution module invariants.
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	am.cosmosAppModule.RegisterInvariants(ir)
+// register invariants
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// module message route name
+func (AppModule) Route() string { return "" }
+
+// module handler
+func (am AppModule) NewHandler() sdk.Handler { return nil }
+
+// module querier route name
+func (AppModule) QuerierRoute() string {
+	return QuerierRoute
 }
 
-// Route returns the message routing key for the distribution module.
-func (am AppModule) Route() string {
-	return am.cosmosAppModule.Route()
+// module querier
+func (am AppModule) NewQuerierHandler() sdk.Querier {
+	return NewQuerier(am.keeper)
 }
 
-// NewHandler returns an sdk.Handler for the distribution module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return am.cosmosAppModule.NewHandler()
-}
-
-// QuerierRoute returns the distribution module's querier route name.
-func (am AppModule) QuerierRoute() string { return am.cosmosAppModule.QuerierRoute() }
-
-// NewQuerierHandler returns the distribution module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier { return am.cosmosAppModule.NewQuerierHandler() }
-
-// InitGenesis performs genesis initialization for the distribution module.
+// module init-genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.InitGenesis(ctx, data)
+	var genesisState GenesisState
+	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
+	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the distribution
-// module.
+// module export genesis
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	return am.cosmosAppModule.ExportGenesis(ctx)
+	gs := ExportGenesis(ctx, am.keeper)
+	return ModuleCdc.MustMarshalJSON(gs)
 }
 
-// BeginBlock returns the begin blocker for the distribution module.
-func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	//am.cosmosAppModule.BeginBlock(ctx, rbb)
+// module begin-block
+func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 	BeginBlocker(ctx, am.keeper)
 }
 
-// EndBlock returns the end blocker for the distribution module.
-func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
+// module end-block
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }

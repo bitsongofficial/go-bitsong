@@ -1,9 +1,13 @@
 package mint
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bitsongofficial/go-bitsong/x/mint/types"
 )
 
+// BeginBlocker mints new tokens for the previous block.
 func BeginBlocker(ctx sdk.Context, k Keeper) {
 	// fetch stored minter & params
 	minter := k.GetMinter(ctx)
@@ -26,14 +30,25 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	// Calculate BitSong Reward Pool
-	rewardFraction, _ := sdk.NewDecFromStr("0.30") // TODO: get from parameters
+	rewardFraction, _ := sdk.NewDecFromStr("0.03") // TODO: (3%) get from parameters
 	rewardCoins, _ := sdk.NewDecCoins(mintedCoins).MulDecTruncate(rewardFraction).TruncateDecimal() // truncate decimals
-	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
 
 	// TODO:
-	// Add artistCoins to the rewardPool
-	// k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.feeCollectorName, fees)
+	// Add rewardCoins to the rewardPool
+	err = k.AddToRewardPool(ctx, rewardCoins)
+	if err != nil {
+		panic(err)
+	}
 
+	fmt.Println()
+	fmt.Println()
+	fmt.Printf("Reward Pool: %s", k.GetRewardPoolSupply(ctx))
+	fmt.Println()
+	fmt.Println()
+
+	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
+
+	// send the minted coins to the fee collector account
 	err = k.AddCollectedFees(ctx, remainingCoins)
 	if err != nil {
 		panic(err)
@@ -41,10 +56,10 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			EventTypeMint,
-			sdk.NewAttribute(AttributeKeyBondedRatio, bondedRatio.String()),
-			sdk.NewAttribute(AttributeKeyInflation, minter.Inflation.String()),
-			sdk.NewAttribute(AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
+			types.EventTypeMint,
+			sdk.NewAttribute(types.AttributeKeyBondedRatio, bondedRatio.String()),
+			sdk.NewAttribute(types.AttributeKeyInflation, minter.Inflation.String()),
+			sdk.NewAttribute(types.AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
 		),
 	)
