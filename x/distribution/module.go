@@ -117,10 +117,12 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 
 // BeginBlock returns the begin blocker for the distribution module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
-	am.cosmosAppModule.BeginBlock(ctx, rbb)
+	//am.cosmosAppModule.BeginBlock(ctx, rbb)
+	BeginBlocker(ctx, rbb)
 }
 
 // EndBlock returns the end blocker for the distribution module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return am.cosmosAppModule.EndBlock(ctx, rbb)
+	//return am.cosmosAppModule.EndBlock(ctx, rbb)
+	return []abci.ValidatorUpdate{}
 }

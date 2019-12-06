@@ -24,5 +24,5 @@ var (
 type (
 	CosmosAppModule = distr.AppModule
 	CosmosAppModuleBasic = distr.AppModuleBasic
-	Keeper                                 = distr.Keeper
+	Keeper = distr.Keeper
 )
