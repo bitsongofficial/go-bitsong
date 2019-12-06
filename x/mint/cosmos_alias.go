@@ -8,12 +8,16 @@ const (
 	ModuleName                       = mintCosmos.ModuleName
 	StoreKey                         = mintCosmos.StoreKey
 	DefaultParamspace                = mintCosmos.DefaultParamspace
+
+	EventTypeMint = mintCosmos.ModuleName
+	AttributeKeyBondedRatio      = "bonded_ratio"
+	AttributeKeyInflation        = "inflation"
+	AttributeKeyAnnualProvisions = "annual_provisions"
 )
 
-var(
-	NewCosmosAppModule    = mintCosmos.NewAppModule
-	NewKeeper                                  = mintCosmos.NewKeeper
-
+var (
+	NewKeeper             = mintCosmos.NewKeeper
+	NewCosmosAppModule                         = mintCosmos.NewAppModule
 )
 
 type (

@@ -30,7 +30,9 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterCodec registers the distribution module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {}
+func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+	CosmosAppModuleBasic{}.RegisterCodec(cdc)
+}
 
 // DefaultGenesis returns default genesis state as raw bytes for the distribution
 // module.
@@ -64,6 +66,7 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	cosmosAppModule CosmosAppModule
+	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -71,6 +74,7 @@ func NewAppModule(keeper Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic:  AppModuleBasic{},
 		cosmosAppModule: NewCosmosAppModule(keeper),
+		keeper:         keeper,
 	}
 }
 
@@ -114,10 +118,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 // BeginBlock returns the begin blocker for the distribution module.
 func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
 	//am.cosmosAppModule.BeginBlock(ctx, rbb)
-	BeginBlocker(ctx, Keeper{})
+	BeginBlocker(ctx, am.keeper)
 }
 
 // EndBlock returns the end blocker for the distribution module.
 func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
