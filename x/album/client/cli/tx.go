@@ -49,6 +49,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 func GetCmdCreateAlbum(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "create",
+		Args:  cobra.ExactArgs(1),
 		Short: "create new album initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Album initialized with status nil.
 The album details must be supplied via a JSON file.
