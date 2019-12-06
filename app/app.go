@@ -191,7 +191,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 
-	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper)
+	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.mintKeeper, app.supplyKeeper)
 	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper)
 	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace)
 

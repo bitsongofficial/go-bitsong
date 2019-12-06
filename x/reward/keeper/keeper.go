@@ -59,3 +59,7 @@ func (k Keeper) SetRewardPool(ctx sdk.Context, rewardPool types.RewardPool) {
 func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) exported.ModuleAccountI {
 	return k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
+
+func (k Keeper) AddCollectedCoins(ctx sdk.Context, coins sdk.Coins) sdk.Error {
+	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, "mint", types.ModuleName, coins)
+}

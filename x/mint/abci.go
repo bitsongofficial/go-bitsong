@@ -17,7 +17,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	k.SetMinter(ctx, minter)
 
 	// mint coins, update supply
-	/*mintedCoin := minter.BlockProvision(params)
+	mintedCoin := minter.BlockProvision(params)
 	mintedCoins := sdk.NewCoins(mintedCoin)
 
 	err := k.MintCoins(ctx, mintedCoins)
@@ -25,8 +25,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		panic(err)
 	}
 
-	// send the minted coins to the fee collector account
-	err = k.AddCollectedFees(ctx, mintedCoins)
+	// Calculate BitSong Reward Pool
+	rewardFraction, _ := sdk.NewDecFromStr("0.30") // TODO: get from parameters
+	rewardCoins, _ := sdk.NewDecCoins(mintedCoins).MulDecTruncate(rewardFraction).TruncateDecimal() // truncate decimals
+	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
+
+	// TODO:
+	// Add artistCoins to the rewardPool
+	// k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.feeCollectorName, fees)
+
+	err = k.AddCollectedFees(ctx, remainingCoins)
 	if err != nil {
 		panic(err)
 	}
@@ -39,5 +47,5 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 			sdk.NewAttribute(AttributeKeyAnnualProvisions, minter.AnnualProvisions.String()),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, mintedCoin.Amount.String()),
 		),
-	)*/
+	)
 }
