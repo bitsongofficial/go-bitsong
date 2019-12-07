@@ -19,11 +19,14 @@ const (
 // - 0x01: nextTrackID
 //
 // - 0x10<trackID_Bytes><accAddr_Bytes>: Play
+//
+// - 0x20<trackID_Bytes>: Share
 var (
 	TracksKeyPrefix = []byte{0x00}
 	TrackIDKey      = []byte{0x01}
 
-	PlaysKeyPrefix = []byte{0x10}
+	PlaysKeyPrefix  = []byte{0x10}
+	SharesKeyPrefix = []byte{0x20}
 )
 
 // PlaysKey gets the first part of the play key based on the trackID
@@ -36,4 +39,10 @@ func PlaysKey(trackId uint64) []byte {
 // PlayKey key of a specific play from the store
 func PlayKey(trackID uint64, accAddr sdk.AccAddress) []byte {
 	return append(PlaysKey(trackID), accAddr.Bytes()...)
+}
+
+func ShareKey(trackID uint64) []byte {
+	bz := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bz, trackID)
+	return append(SharesKeyPrefix, bz...)
 }

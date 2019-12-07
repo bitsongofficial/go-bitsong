@@ -38,6 +38,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryTracks(queryRoute, cdc),
 		GetCmdQueryTrack(queryRoute, cdc),
 		GetCmdQueryPlays(queryRoute, cdc),
+		GetCmdQueryShares(queryRoute, cdc),
 	)...)
 
 	return trackQueryCmd
@@ -228,6 +229,33 @@ $ %s query track plays 1
 			var plays types.Plays
 			cdc.MustUnmarshalJSON(res, &plays)
 			return cliCtx.PrintOutput(plays)
+		},
+	}
+}
+
+func GetCmdQueryShares(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "shares",
+		Short: "Query all track shares",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query all track shares.
+Example:
+$ %s query track shares
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			res, _, err := cliCtx.Query(fmt.Sprintf("custom/%s/shares", queryRoute))
+			if err != nil {
+				return err
+			}
+
+			var shares types.Shares
+			cdc.MustUnmarshalJSON(res, &shares)
+			return cliCtx.PrintOutput(shares)
 		},
 	}
 }

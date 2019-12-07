@@ -19,6 +19,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryTrack(ctx, path[1:], req, keeper)
 		case types.QueryPlays:
 			return queryPlays(ctx, path[1:], req, keeper)
+		case types.QueryShares:
+			return queryShares(ctx, path[1:], req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown track query endpoint")
 		}
@@ -74,6 +76,16 @@ func queryPlays(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Ke
 	plays := keeper.GetPlays(ctx, params.TrackID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, plays)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+}
+
+func queryShares(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	shares := keeper.GetAllShares(ctx)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, shares)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

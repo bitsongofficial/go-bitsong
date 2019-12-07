@@ -30,7 +30,7 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 	}
 
 	// Calculate BitSong Reward Pool
-	rewardFraction, _ := sdk.NewDecFromStr("0.03") // TODO: (3%) get from parameters
+	rewardFraction, _ := sdk.NewDecFromStr("0.03")                                                  // TODO: (3%) get from parameters
 	rewardCoins, _ := sdk.NewDecCoins(mintedCoins).MulDecTruncate(rewardFraction).TruncateDecimal() // truncate decimals
 
 	// TODO:

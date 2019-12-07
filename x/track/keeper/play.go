@@ -52,6 +52,8 @@ func (keeper Keeper) Play(ctx sdk.Context, trackID uint64, accAddr sdk.AccAddres
 			streams,
 			createdAt,
 		)
+
+		keeper.IncrementShare(ctx, trackID, shares)
 	} else {
 		play.Streams = play.Streams + streams
 	}
@@ -83,6 +85,22 @@ func (keeper Keeper) setPlay(ctx sdk.Context, trackID uint64, play types.Play) {
 func (keeper Keeper) GetPlaysIterator(ctx sdk.Context, trackID uint64) sdk.Iterator {
 	store := ctx.KVStore(keeper.storeKey)
 	return sdk.KVStorePrefixIterator(store, types.PlaysKey(trackID))
+}
+
+// IterateAllPlays iterates over the all the stored plays and performs a callback function
+func (keeper Keeper) IterateAllPlays(ctx sdk.Context, cb func(play types.Play) (stop bool)) {
+	store := ctx.KVStore(keeper.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.PlaysKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var play types.Play
+		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &play)
+
+		if cb(play) {
+			break
+		}
+	}
 }
 
 func (keeper Keeper) IteratePlays(ctx sdk.Context, trackID uint64, cb func(play types.Play) (stop bool)) {

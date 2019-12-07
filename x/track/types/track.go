@@ -19,11 +19,11 @@ const (
 
 // TODO: image, cid, duration
 type Track struct {
-	TrackID    uint64         `json:"id"`     // Track ID
-	Title      string         `json:"title"`  // Track Title
-	Status     TrackStatus    `json:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
-	Owner      sdk.AccAddress `json:"owner"`  // Album owner
-	TotalPlays uint64         `json:"total_plays"`
+	TrackID    uint64         `json:"id" yaml:"id"`         // Track ID
+	Title      string         `json:"title" yaml:"title"`   // Track Title
+	Status     TrackStatus    `json:"status" yaml:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
+	Owner      sdk.AccAddress `json:"owner" yaml:"owner"`   // Album owner
+	TotalPlays uint64         `json:"total_plays" yaml:"total_plays"`
 }
 
 // TrackKey gets a specific track from the store
@@ -49,7 +49,7 @@ func (t Track) String() string {
   Title:    %s
   Status:  %s
   Owner:   %s
-  Plays: %d`,
+  Total Plays: %d`,
 		t.TrackID, t.Title, t.Status.String(), t.Owner.String(), t.TotalPlays,
 	)
 }
