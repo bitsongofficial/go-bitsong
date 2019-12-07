@@ -13,10 +13,10 @@ const (
 // Keys for reward store
 // Items are stored with the following key: values
 //
-// - 0x00<accAddr_Bytes>: Reward
+// - 0x10<accAddr_Bytes>: Reward
 //
 var (
-	RewardsKeyPrefix = []byte{0x00}
+	RewardsKeyPrefix = []byte{0x10}
 )
 
 func RewardKey(accAddr sdk.AccAddress) []byte {

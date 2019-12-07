@@ -12,6 +12,7 @@ import (
 type GenesisState struct {
 	RewardPool types.RewardPool `json:"reward_pool" yaml:"reward_pool"`
 	RewardTax  sdk.Dec          `json:"reward_tax" yaml:"reward_tax"`
+	Rewards    types.Rewards    `json:"rewards" yaml:"rewards"`
 }
 
 func NewGenesisState(rewardPool types.RewardPool, rewardTax sdk.Dec) GenesisState {
@@ -24,7 +25,7 @@ func NewGenesisState(rewardPool types.RewardPool, rewardTax sdk.Dec) GenesisStat
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		RewardPool: types.InitialRewardPool(),
-		RewardTax:  sdk.NewDecWithPrec(30, 2), // 30%
+		RewardTax:  sdk.NewDecWithPrec(3, 2), // 3%
 	}
 }
 
@@ -41,6 +42,10 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper supply.Keep
 
 	keeper.SetRewardPool(ctx, data.RewardPool)
 	keeper.SetRewardTax(ctx, data.RewardTax)
+
+	for _, reward := range data.Rewards {
+		keeper.SetReward(ctx, reward.AccAddr, reward)
+	}
 
 	moduleHoldings = moduleHoldings.Add(data.RewardPool.Amount)
 	moduleHoldingsInt, _ := moduleHoldings.TruncateDecimal()

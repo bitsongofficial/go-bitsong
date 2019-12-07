@@ -89,36 +89,36 @@ func (k Keeper) AllocateToken(ctx sdk.Context, accAddr sdk.AccAddress, amt sdk.C
 	}
 
 	reward.TotalRewards = reward.TotalRewards.Add(amt)
-	k.setReward(ctx, accAddr, reward)
+	k.SetReward(ctx, accAddr, reward)
 
 	return nil
 }
 
-func (keeper Keeper) setReward(ctx sdk.Context, accAddr sdk.AccAddress, reward types.Reward) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(reward)
+func (k Keeper) SetReward(ctx sdk.Context, accAddr sdk.AccAddress, reward types.Reward) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reward)
 	store.Set(types.RewardKey(accAddr), bz)
 }
 
-func (keeper Keeper) GetReward(ctx sdk.Context, accAddr sdk.AccAddress) (reward types.Reward, found bool) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) GetReward(ctx sdk.Context, accAddr sdk.AccAddress) (reward types.Reward, found bool) {
+	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.RewardKey(accAddr))
 	if bz == nil {
 		return reward, false
 	}
 
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reward)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &reward)
 	return reward, true
 }
 
-func (keeper Keeper) IterateAllRewards(ctx sdk.Context, cb func(reward types.Reward) (stop bool)) {
-	store := ctx.KVStore(keeper.storeKey)
+func (k Keeper) IterateAllRewards(ctx sdk.Context, cb func(reward types.Reward) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.RewardsKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var reward types.Reward
-		keeper.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &reward)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &reward)
 
 		if cb(reward) {
 			break
@@ -126,10 +126,18 @@ func (keeper Keeper) IterateAllRewards(ctx sdk.Context, cb func(reward types.Rew
 	}
 }
 
-func (keeper Keeper) GetAllRewards(ctx sdk.Context) (rewards types.Rewards) {
-	keeper.IterateAllRewards(ctx, func(reward types.Reward) bool {
+func (k Keeper) GetAllRewards(ctx sdk.Context) (rewards types.Rewards) {
+	k.IterateAllRewards(ctx, func(reward types.Reward) bool {
 		rewards = append(rewards, reward)
 		return false
 	})
 	return
+}
+
+func (k Keeper) DeleteAllPlays(ctx sdk.Context) {
+	k.trackKeeper.DeleteAllPlays(ctx)
+}
+
+func (k Keeper) DeleteAllShares(ctx sdk.Context) {
+	k.trackKeeper.DeleteAllShares(ctx)
 }

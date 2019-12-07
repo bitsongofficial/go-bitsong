@@ -59,3 +59,12 @@ func (keeper Keeper) GetAllShares(ctx sdk.Context) (shares types.Shares) {
 	})
 	return
 }
+
+func (keeper Keeper) DeleteAllShares(ctx sdk.Context) {
+	store := ctx.KVStore(keeper.storeKey)
+
+	keeper.IterateAllShares(ctx, func(share types.Share) bool {
+		store.Delete(types.ShareKey(share.TrackID))
+		return false
+	})
+}

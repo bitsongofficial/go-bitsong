@@ -6,6 +6,10 @@ import (
 )
 
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
+	if ctx.BlockHeight()%2 != 1 {
+		return
+	}
+
 	logger := keeper.Logger(ctx)
 
 	logger.Info(
@@ -20,6 +24,10 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 	for _, t := range shares {
 		totalShares = totalShares.Add(t.TotalShare)
+	}
+
+	if !totalShares.IsPositive() {
+		return
 	}
 
 	// fetch rewardPool
@@ -42,6 +50,7 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 		// allocate reward
 		keeper.AllocateToken(ctx, track.Owner, reward)
+
 		fmt.Println()
 		fmt.Println()
 		fmt.Printf("Track ID: %d", t.TrackID)
@@ -59,6 +68,13 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 		fmt.Printf("TotalShare: %s", totalShares.TruncateInt().String())
 		fmt.Println()
 		fmt.Println()
+
+		// subtract reward from rewardPool storage
+		rewardPool.Amount = rewardPool.Amount.Sub(sdk.NewDecCoins(reward))
+		keeper.SetRewardPool(ctx, rewardPool)
 	}
 
+	// delete all plays and shares
+	keeper.DeleteAllPlays(ctx)
+	keeper.DeleteAllShares(ctx)
 }

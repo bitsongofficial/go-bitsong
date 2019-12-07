@@ -139,3 +139,12 @@ func (keeper Keeper) GetPlay(ctx sdk.Context, trackID uint64, accAddr sdk.AccAdd
 	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &play)
 	return play, true
 }
+
+func (keeper Keeper) DeleteAllPlays(ctx sdk.Context) {
+	store := ctx.KVStore(keeper.storeKey)
+
+	keeper.IterateAllPlays(ctx, func(play types.Play) bool {
+		store.Delete(types.PlayKey(play.TrackID, play.AccAddr))
+		return false
+	})
+}
