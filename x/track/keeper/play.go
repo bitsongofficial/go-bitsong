@@ -41,8 +41,12 @@ func (keeper Keeper) Play(ctx sdk.Context, trackID uint64, accAddr sdk.AccAddres
 	play, ok := keeper.GetPlay(ctx, trackID, accAddr)
 
 	createdAt := ctx.BlockHeader().Time
-	shares := keeper.GetAccPower(ctx, accAddr)
 	streams := uint64(1)
+	shares := keeper.GetAccPower(ctx, accAddr)
+	if !shares.IsPositive() {
+		// TODO: change error
+		return types.ErrInvalidTrackStatus(keeper.codespace, fmt.Sprintf("user share must be positive"))
+	}
 
 	if !ok {
 		play = types.NewPlay(

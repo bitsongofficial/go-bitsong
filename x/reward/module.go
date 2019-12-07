@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/bitsongofficial/go-bitsong/x/reward/client/cli"
 	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 )
 
@@ -60,8 +61,7 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // get the root query command of this module
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetQueryCmd(StoreKey, cdc)
-	return nil
+	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
 // app module
@@ -103,14 +103,12 @@ func (am AppModule) NewHandler() sdk.Handler {
 
 // module querier route name
 func (AppModule) QuerierRoute() string {
-	//return QuerierRoute
 	return ModuleName
 }
 
 // module querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	//return NewQuerier(am.keeper)
-	return nil
+	return NewQuerier(am.keeper)
 }
 
 // module init-genesis
@@ -133,6 +131,7 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 }
 
 // module end-block
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	EndBlocker(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
 }

@@ -3,6 +3,8 @@ package keeper
 
 import (
 	"github.com/bitsongofficial/go-bitsong/x/reward"
+	"github.com/bitsongofficial/go-bitsong/x/track"
+	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
 	"os"
 	"testing"
 	"time"
@@ -43,6 +45,7 @@ func newTestInput(t *testing.T) testInput {
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keyMint := sdk.NewKVStoreKey(types.StoreKey)
 	keyReward := sdk.NewKVStoreKey(reward.StoreKey)
+	keyTrack := sdk.NewKVStoreKey(track.StoreKey)
 
 	ms := store.NewCommitMultiStore(db)
 	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
@@ -84,8 +87,11 @@ func newTestInput(t *testing.T) testInput {
 		types.ModuleCdc, keyStaking, tkeyStaking, supplyKeeper, paramsKeeper.Subspace(staking.DefaultParamspace), staking.DefaultCodespace,
 	)
 
+	// app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper)
+	trackKeeper := track.NewKeeper(types.ModuleCdc, keyTrack, trackTypes.DefaultCodespace, stakingKeeper)
+
 	//app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper)
-	rewardKeeper := reward.NewKeeper(types.ModuleCdc, keyReward, paramsKeeper.Subspace(reward.DefaultParamspace), supplyKeeper)
+	rewardKeeper := reward.NewKeeper(types.ModuleCdc, keyReward, paramsKeeper.Subspace(reward.DefaultParamspace), supplyKeeper, trackKeeper)
 	mintKeeper := NewKeeper(types.ModuleCdc, keyMint, paramsKeeper.Subspace(types.DefaultParamspace), &stakingKeeper, supplyKeeper, auth.FeeCollectorName, rewardKeeper)
 
 	// set module accounts

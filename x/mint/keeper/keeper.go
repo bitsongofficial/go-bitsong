@@ -22,7 +22,7 @@ type Keeper struct {
 	sk               types.StakingKeeper
 	supplyKeeper     types.SupplyKeeper
 	feeCollectorName string
-	rewardKeeper reward.Keeper
+	rewardKeeper     reward.Keeper
 }
 
 // NewKeeper creates a new mint Keeper instance
@@ -42,7 +42,7 @@ func NewKeeper(
 		sk:               sk,
 		supplyKeeper:     supplyKeeper,
 		feeCollectorName: feeCollectorName,
-		rewardKeeper: rewardKeeper,
+		rewardKeeper:     rewardKeeper,
 	}
 }
 
@@ -116,6 +116,10 @@ func (k Keeper) AddCollectedFees(ctx sdk.Context, fees sdk.Coins) sdk.Error {
 }
 
 func (k Keeper) AddToRewardPool(ctx sdk.Context, coins sdk.Coins) sdk.Error {
+	rewardPool := k.rewardKeeper.GetRewardPool(ctx)
+	rewardPool.Amount = rewardPool.Amount.Add(sdk.NewDecCoins(coins))
+	k.rewardKeeper.SetRewardPool(ctx, rewardPool)
+
 	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, rewardTypes.ModuleName, coins)
 }
 
