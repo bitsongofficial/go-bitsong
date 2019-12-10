@@ -22,7 +22,7 @@ type Artist struct {
 	Name     string         `json:"name"` // Artist Name
 	Image    ArtistImage    `json:"image" // Artist Image`
 	Status   ArtistStatus   `json:"status"` // Status of the Artist {Nil, Verified, Rejected, Failed}
-	Owner    sdk.AccAddress `json:"owner"`  // Artist Owner
+	Owner    sdk.AccAddress `json:"owner"`  // Artist Address
 }
 
 // ArtistKey gets a specific artist from the store
@@ -56,7 +56,7 @@ func (a Artist) String() string {
 	return fmt.Sprintf(`ArtistID %d:
   Name:    %s
   Status:  %s
-  Owner:   %s`,
+  Address:   %s`,
 		a.ArtistID, a.Name, a.Status.String(), a.Owner.String(),
 	)
 }

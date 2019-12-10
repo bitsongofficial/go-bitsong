@@ -33,7 +33,7 @@ func queryAlbumsWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
 		// Param object
 		params := types.QueryAlbumsParams{}
 
-		// Check bech32 Owner Address
+		// Check bech32 Address Address
 		if len(bechOwnerAddr) != 0 {
 			ownerAddr, err := sdk.AccAddressFromBech32(bechOwnerAddr)
 			if err != nil {

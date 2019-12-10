@@ -85,7 +85,7 @@ func (msg MsgCreateAlbum) String() string {
   Title: %s
   Release Date: %s
   Release Date Precision: %s
-  Owner: %s
+  Address: %s
 `, msg.AlbumType.String(), msg.Title, msg.ReleaseDate, msg.ReleaseDatePrecision, msg.Owner.String())
 }
 
@@ -149,7 +149,7 @@ func (msg MsgAddTrackAlbum) String() string {
 	return fmt.Sprintf(`Add Track Album Message:
   AlbumID: %d
   TrackID: %d
-  Owner: %s
+  Address: %s
 `, msg.AlbumID, msg.TrackID, msg.Owner.String())
 }
 

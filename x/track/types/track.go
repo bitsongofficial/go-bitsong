@@ -48,7 +48,7 @@ func (t Track) String() string {
 	return fmt.Sprintf(`TrackID %d:
   Title:    %s
   Status:  %s
-  Owner:   %s
+  Address:   %s
   Total Plays: %d`,
 		t.TrackID, t.Title, t.Status.String(), t.Owner.String(), t.TotalPlays,
 	)

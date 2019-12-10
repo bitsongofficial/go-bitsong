@@ -61,7 +61,7 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 func (msg MsgCreateTrack) String() string {
 	return fmt.Sprintf(`Create Track Message:
   Title: %s
-  Owner: %s
+  Address: %s
 `, msg.Title, msg.Owner.String())
 }
 

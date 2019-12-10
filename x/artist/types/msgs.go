@@ -62,7 +62,7 @@ func (msg MsgCreateArtist) ValidateBasic() sdk.Error {
 func (msg MsgCreateArtist) String() string {
 	return fmt.Sprintf(`Create Artist Message:
   Name:         %s
-  Owner: %s
+  Address: %s
 `, msg.Name, msg.Owner.String())
 }
 
@@ -88,7 +88,7 @@ type MsgSetArtistImage struct {
 	Height   uint64         `json:"height"`    // Image height
 	Width    uint64         `json:"width"`     // Image width
 	CID      string         `json:"cid"`       // Image cid
-	Owner    sdk.AccAddress `json:"owner"`     // Artist Owner
+	Owner    sdk.AccAddress `json:"owner"`     // Artist Address
 }
 
 func NewMsgSetArtistImage(artistID uint64, height uint64, width uint64, cid string, owner sdk.AccAddress) MsgSetArtistImage {
@@ -138,7 +138,7 @@ func (msg MsgSetArtistImage) String() string {
   Height: %d
   Width: %d
   Cid: %s
-  Owner: %s
+  Address: %s
 `, msg.ArtistID, msg.Height, msg.Width, msg.CID, msg.Owner.String())
 }
 

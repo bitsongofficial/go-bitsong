@@ -54,7 +54,7 @@ func (a Album) String() string {
   Release Date:    %s
   Release Date Precision:    %s
   Status:  %s
-  Owner:   %s`,
+  Address:   %s`,
 		a.AlbumID, a.AlbumType.String(), a.Title, a.ReleaseDate, a.ReleaseDatePrecision, a.Status.String(), a.Owner.String(),
 	)
 }

@@ -40,6 +40,9 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/x/reward"
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
+
+	"github.com/bitsongofficial/go-bitsong/x/distributor"
+	distributorTypes "github.com/bitsongofficial/go-bitsong/x/distributor/types"
 )
 
 const appName = "GoBitsong"
@@ -77,6 +80,7 @@ var (
 		artist.AppModuleBasic{},
 		album.AppModuleBasic{},
 		track.AppModuleBasic{},
+		distributor.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -127,10 +131,11 @@ type GoBitsong struct {
 	paramsKeeper   params.Keeper
 
 	// bitsong keepers
-	rewardKeeper reward.Keeper
-	artistKeeper artist.Keeper
-	albumKeeper  album.Keeper
-	trackKeeper  track.Keeper
+	rewardKeeper      reward.Keeper
+	artistKeeper      artist.Keeper
+	albumKeeper       album.Keeper
+	trackKeeper       track.Keeper
+	distributorKeeper distributor.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -150,7 +155,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, rewardTypes.StoreKey, artistTypes.StoreKey,
-		albumTypes.StoreKey, trackTypes.StoreKey,
+		albumTypes.StoreKey, trackTypes.StoreKey, distributorTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -198,6 +203,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	)
 
 	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper)
+	app.distributorKeeper = distributor.NewKeeper(app.cdc, keys[distributorTypes.StoreKey], distributorTypes.DefaultCodespace)
 
 	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper, app.trackKeeper)
 	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName, app.rewardKeeper)
@@ -236,6 +242,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		artist.NewAppModule(app.artistKeeper),
 		album.NewAppModule(app.albumKeeper),
 		track.NewAppModule(app.trackKeeper),
+		distributor.NewAppModule(app.distributorKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -250,7 +257,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
-		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
+		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName, distributorTypes.ModuleName,
 		rewardTypes.ModuleName, artistTypes.ModuleName, albumTypes.ModuleName, trackTypes.ModuleName,
 	)
 
