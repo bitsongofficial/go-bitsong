@@ -12,8 +12,7 @@ import (
 )
 
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group track queries under a subcommand
-	trackQueryCmd := &cobra.Command{
+	distributorQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the distributor module",
 		DisableFlagParsing:         true,
@@ -21,11 +20,11 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	trackQueryCmd.AddCommand(client.GetCommands(
+	distributorQueryCmd.AddCommand(client.GetCommands(
 		GetCmdQueryAllDistributors(queryRoute, cdc),
 	)...)
 
-	return trackQueryCmd
+	return distributorQueryCmd
 }
 
 func GetCmdQueryAllDistributors(queryRoute string, cdc *codec.Codec) *cobra.Command {

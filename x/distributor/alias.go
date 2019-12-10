@@ -1,6 +1,7 @@
 package distributor
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/distributor/client"
 	"github.com/bitsongofficial/go-bitsong/x/distributor/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/distributor/types"
 )
@@ -22,7 +23,10 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	// Types
-	NewDistributor = types.NewDistributor
+	NewDistributor                      = types.NewDistributor
+	NewDistributorVerifyProposal        = types.NewDistributorVerifyProposal
+	NewDistributorVerifyProposalHandler = keeper.NewDistributorVerifyProposalHandler
+	ProposalHandler                     = client.ProposalHandler
 
 	// Msgs
 	NewMsgCreateDistributor = types.NewMsgCreateDistributor

@@ -32,9 +32,9 @@ func (k Keeper) SetDistributor(ctx sdk.Context, distributor types.Distributor) {
 	store.Set(types.DistributorKey(distributor.Address), bz)
 }
 
-func (k Keeper) GetDistributor(ctx sdk.Context, addr sdk.AccAddress) (distributor types.Distributor, ok bool) {
+func (k Keeper) GetDistributor(ctx sdk.Context, accAddr sdk.AccAddress) (distributor types.Distributor, ok bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.DistributorKey(addr))
+	bz := store.Get(types.DistributorKey(accAddr))
 	if bz == nil {
 		return
 	}
@@ -42,21 +42,20 @@ func (k Keeper) GetDistributor(ctx sdk.Context, addr sdk.AccAddress) (distributo
 	return distributor, true
 }
 
-func (k Keeper) CreateDistributor(ctx sdk.Context, name string, owner sdk.AccAddress) (types.Distributor, sdk.Error) {
-	distributor, ok := k.GetDistributor(ctx, owner)
+func (k Keeper) CreateDistributor(ctx sdk.Context, name string, accAddr sdk.AccAddress) (types.Distributor, sdk.Error) {
+	distributor, ok := k.GetDistributor(ctx, accAddr)
 	if ok {
-		// TODO: add duplicate distributor error
-		return types.Distributor{}, nil
+		return types.Distributor{}, types.ErrInvalidDistributor(k.codespace, "distributor already exist")
 	}
 
-	distributor = types.NewDistributor(name, owner)
+	distributor = types.NewDistributor(name, accAddr)
 	k.SetDistributor(ctx, distributor)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateDistributor,
 			sdk.NewAttribute(types.AttributeKeyDistributorName, name),
-			sdk.NewAttribute(types.AttributeKeyDistributorOwner, fmt.Sprintf("%s", owner.String())),
+			sdk.NewAttribute(types.AttributeKeyDistributorAddr, fmt.Sprintf("%s", accAddr.String())),
 		),
 	)
 
@@ -84,4 +83,23 @@ func (k Keeper) GetAllDistributors(ctx sdk.Context) (distributors types.Distribu
 		return false
 	})
 	return
+}
+
+func (k Keeper) SetStatus(ctx sdk.Context, accAddr sdk.AccAddress, status types.DistributorStatus) sdk.Error {
+	distributor, ok := k.GetDistributor(ctx, accAddr)
+	if !ok {
+		return types.ErrInvalidDistributor(k.codespace, "unknown distributor")
+	}
+
+	distributor.Status = status
+	k.SetDistributor(ctx, distributor)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSetDistributorStatus,
+			sdk.NewAttribute(types.AttributeKeyDistributorAddr, fmt.Sprintf("%s", accAddr.String())),
+		),
+	)
+
+	return nil
 }

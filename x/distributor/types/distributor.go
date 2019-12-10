@@ -11,12 +11,13 @@ const (
 )
 
 type Distributor struct {
-	Name    string         `json:"name"`
-	Address sdk.AccAddress `json:"address"`
+	Name    string            `json:"name"`
+	Address sdk.AccAddress    `json:"address"`
+	Status  DistributorStatus `json:"status"` // Status of the Distributor {Nil, Verified, Rejected, Failed}
 }
 
 func NewDistributor(name string, owner sdk.AccAddress) Distributor {
-	return Distributor{Name: name, Address: owner}
+	return Distributor{Name: name, Address: owner, Status: StatusNil}
 }
 
 func (d Distributor) String() string {
