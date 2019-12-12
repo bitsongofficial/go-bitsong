@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/artist/types"
+	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -50,7 +50,7 @@ func postProposalHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		content := types.NewArtistVerifyProposal(req.Title, req.Description, req.TrackID)
+		content := types.NewTrackVerifyProposal(req.Title, req.Description, req.TrackID)
 
 		msg := gov.NewMsgSubmitProposal(content, req.Deposit, req.Proposer)
 		if err := msg.ValidateBasic(); err != nil {

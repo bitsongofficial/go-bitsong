@@ -15,8 +15,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateArtist:
 			return handleMsgCreateArtist(ctx, keeper, msg)
-		case types.MsgSetArtistImage:
-			return handleMsgSetArtistImage(ctx, keeper, msg)
+		case types.MsgDeposit:
+			return handleMsgDeposit(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized artist message type: %T", msg)
@@ -27,7 +27,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 // handleMsgCreateArtist handles the creation of a new artist
 func handleMsgCreateArtist(ctx sdk.Context, keeper Keeper, msg types.MsgCreateArtist) sdk.Result {
-	artist, err := keeper.CreateArtist(ctx, msg.Name, msg.Owner)
+	artist, err := keeper.CreateArtist(ctx, msg.Name, msg.MetadataURI, msg.Owner)
 	if err != nil {
 		return err.Result()
 	}
@@ -46,11 +46,8 @@ func handleMsgCreateArtist(ctx sdk.Context, keeper Keeper, msg types.MsgCreateAr
 	}
 }
 
-// handleMsgSetArtistImage handles the image of an artist
-func handleMsgSetArtistImage(ctx sdk.Context, keeper Keeper, msg types.MsgSetArtistImage) sdk.Result {
-	image := types.NewArtistImage(msg.Height, msg.Width, msg.CID)
-
-	err := keeper.SetArtistImage(ctx, msg.ArtistID, image, msg.Owner)
+func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) sdk.Result {
+	err, verified := keeper.AddDeposit(ctx, msg.ArtistID, msg.Depositor, msg.Amount)
 	if err != nil {
 		return err.Result()
 	}
@@ -59,11 +56,18 @@ func handleMsgSetArtistImage(ctx sdk.Context, keeper Keeper, msg types.MsgSetArt
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Owner.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
 		),
 	)
 
-	return sdk.Result{
-		Events: ctx.EventManager().Events(),
+	if verified {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDepositArtist,
+				sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", msg.ArtistID)),
+			),
+		)
 	}
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
 }

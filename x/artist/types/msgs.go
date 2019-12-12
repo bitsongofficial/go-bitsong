@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	c "github.com/ipsn/go-ipfs/gxlibs/github.com/ipfs/go-cid"
 )
 
 /****
@@ -14,8 +13,8 @@ import (
 
 // Artist messages types and routes
 const (
-	TypeMsgCreateArtist   = "create_artist"
-	TypeMsgSetArtistImage = "set_artist_image"
+	TypeMsgCreateArtist = "create_artist"
+	TypeMsgDeposit      = "deposit"
 )
 
 /****************************************
@@ -26,14 +25,16 @@ var _ sdk.Msg = MsgCreateArtist{}
 
 // MsgCreateArtist defines CreateArtist message
 type MsgCreateArtist struct {
-	Name  string         `json:"name"`  // Artist name
-	Owner sdk.AccAddress `json:"owner"` // Artist owner
+	Name        string         `json:"name"` // Artist name
+	MetadataURI string         `json:"metadata_uri"`
+	Owner       sdk.AccAddress `json:"owner"` // Artist owner
 }
 
-func NewMsgCreateArtist(name string, owner sdk.AccAddress) MsgCreateArtist {
+func NewMsgCreateArtist(name string, metadataUri string, owner sdk.AccAddress) MsgCreateArtist {
 	return MsgCreateArtist{
-		Name:  name,
-		Owner: owner,
+		Name:        name,
+		MetadataURI: metadataUri,
+		Owner:       owner,
 	}
 }
 
@@ -51,6 +52,12 @@ func (msg MsgCreateArtist) ValidateBasic() sdk.Error {
 		return ErrInvalidArtistName(DefaultCodespace, fmt.Sprintf("artist name is longer than max length of %d", MaxNameLength))
 	}
 
+	// TODO:
+	// - Add more check for CID (Metadata uri ipfs:)
+	if len(strings.TrimSpace(msg.MetadataURI)) == 0 {
+		return ErrInvalidArtistMetadataURI(DefaultCodespace, "artist metadata uri cannot be blank")
+	}
+
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
@@ -62,8 +69,9 @@ func (msg MsgCreateArtist) ValidateBasic() sdk.Error {
 func (msg MsgCreateArtist) String() string {
 	return fmt.Sprintf(`Create Artist Message:
   Name:         %s
+  MetadataURI: %s
   Address: %s
-`, msg.Name, msg.Owner.String())
+`, msg.Name, msg.MetadataURI, msg.Owner.String())
 }
 
 // GetSignBytes encodes the message for signing
@@ -77,77 +85,56 @@ func (msg MsgCreateArtist) GetSigners() []sdk.AccAddress {
 }
 
 /****************************************
- * MsgSetArtistImage
+ * MsgDeposit
  ****************************************/
 
-var _ sdk.Msg = MsgSetArtistImage{}
+var _ sdk.Msg = MsgDeposit{}
 
-// MsgCreateArtist defines CreateArtist message
-type MsgSetArtistImage struct {
-	ArtistID uint64         `json:"artist_id"` // Artist ID
-	Height   uint64         `json:"height"`    // Image height
-	Width    uint64         `json:"width"`     // Image width
-	CID      string         `json:"cid"`       // Image cid
-	Owner    sdk.AccAddress `json:"owner"`     // Artist Address
+type MsgDeposit struct {
+	ArtistID  uint64         `json:"artist_id" yaml:"artist_id"` // ID of the artist
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` // Address of the depositor
+	Amount    sdk.Coins      `json:"amount" yaml:"amount"`       // Coins to add to the proposal's deposit
 }
 
-func NewMsgSetArtistImage(artistID uint64, height uint64, width uint64, cid string, owner sdk.AccAddress) MsgSetArtistImage {
-	return MsgSetArtistImage{
-		ArtistID: artistID,
-		Height:   height,
-		Width:    width,
-		CID:      cid,
-		Owner:    owner,
-	}
+func NewMsgDeposit(depositor sdk.AccAddress, artistID uint64, amount sdk.Coins) MsgDeposit {
+	return MsgDeposit{artistID, depositor, amount}
 }
 
-//nolint
-func (msg MsgSetArtistImage) Route() string { return RouterKey }
-func (msg MsgSetArtistImage) Type() string  { return TypeMsgSetArtistImage }
+// Implements Msg.
+// nolint
+func (msg MsgDeposit) Route() string { return RouterKey }
+func (msg MsgDeposit) Type() string  { return TypeMsgDeposit }
 
-// ValidateBasic
-func (msg MsgSetArtistImage) ValidateBasic() sdk.Error {
-	if msg.ArtistID == 0 {
-		return ErrUnknownArtist(DefaultCodespace, "unknown artist")
+// Implements Msg.
+func (msg MsgDeposit) ValidateBasic() sdk.Error {
+	if msg.Depositor.Empty() {
+		return sdk.ErrInvalidAddress(msg.Depositor.String())
 	}
-
-	if msg.Height == 0 {
-		return ErrInvalidArtistImageHeight(DefaultCodespace, "image height cannot be blank")
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
-
-	if msg.Width == 0 {
-		return ErrInvalidArtistImageWidth(DefaultCodespace, "image width cannot be blank")
-	}
-
-	if len(strings.TrimSpace(msg.CID)) == 0 {
-		return ErrInvalidArtistImageCid(DefaultCodespace, "image cid cannot be blank")
-	}
-
-	_, err := c.Decode(msg.CID)
-	if err != nil {
-		return ErrInvalidArtistImageCid(DefaultCodespace, fmt.Sprintf("invalid artist image cid: %s", msg.CID))
+	if msg.Amount.IsAnyNegative() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
 	}
 
 	return nil
 }
 
+func (msg MsgDeposit) String() string {
+	return fmt.Sprintf(`Deposit Message:
+  Depositer:   %s
+  Artist ID: %d
+  Amount:      %s
+`, msg.Depositor, msg.ArtistID, msg.Amount)
+}
+
 // Implements Msg.
-func (msg MsgSetArtistImage) String() string {
-	return fmt.Sprintf(`Set Artist Image Message:
-  ArtistID:         %d
-  Height: %d
-  Width: %d
-  Cid: %s
-  Address: %s
-`, msg.ArtistID, msg.Height, msg.Width, msg.CID, msg.Owner.String())
+func (msg MsgDeposit) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }
 
-// GetSignBytes encodes the message for signing
-func (msg MsgSetArtistImage) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
-}
-
-// GetSigners defines whose signature is required
-func (msg MsgSetArtistImage) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Owner}
+// Implements Msg.
+func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Depositor}
 }

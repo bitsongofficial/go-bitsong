@@ -1,7 +1,6 @@
 package artist
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/artist/client"
 	"github.com/bitsongofficial/go-bitsong/x/artist/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/artist/types"
 )
@@ -10,6 +9,8 @@ const (
 	ModuleName = types.ModuleName
 	RouterKey  = types.RouterKey
 	StoreKey   = types.StoreKey
+
+	DefaultParamspace = types.DefaultParamspace
 )
 
 var (
@@ -24,11 +25,6 @@ var (
 
 	// Types
 	NewArtist = types.NewArtist
-
-	// Msgs
-	NewArtistVerifyProposalHandler = keeper.NewArtistVerifyProposalHandler
-	HandleVerifyArtistProposal     = keeper.HandleVerifyArtistProposal
-	ProposalHandler                = client.ProposalHandler
 )
 
 type (
@@ -36,10 +32,12 @@ type (
 	Keeper = keeper.Keeper
 
 	// Types
-	ArtistStatus         = types.ArtistStatus
-	Artist               = types.Artist
-	Artists              = types.Artists
-	ArtistVerifyProposal = types.ArtistVerifyProposal
+	ArtistStatus = types.ArtistStatus
+	Artist       = types.Artist
+	Artists      = types.Artists
+
+	Deposits      = types.Deposits
+	DepositParams = types.DepositParams
 
 	// Msgs
 	MsgCreateArtist = types.MsgCreateArtist

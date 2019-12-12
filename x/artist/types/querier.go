@@ -6,9 +6,10 @@ import (
 
 // query endpoints supported by the Artist Querier
 const (
-	QueryParams  = "params"
-	QueryArtists = "artists"
-	QueryArtist  = "artist"
+	QueryParams   = "params"
+	QueryArtists  = "artists"
+	QueryArtist   = "artist"
+	QueryDeposits = "deposits"
 )
 
 // Params for queries:
@@ -37,5 +38,18 @@ func NewQueryArtistsParams(owner sdk.AccAddress, status ArtistStatus, limit uint
 		Owner:        owner,
 		ArtistStatus: status,
 		Limit:        limit,
+	}
+}
+
+type QueryDepositParams struct {
+	ArtistID  uint64
+	Depositor sdk.AccAddress
+}
+
+// creates a new instance of QueryDepositParams
+func NewQueryDepositParams(artistID uint64, depositor sdk.AccAddress) QueryDepositParams {
+	return QueryDepositParams{
+		ArtistID:  artistID,
+		Depositor: depositor,
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,21 +17,23 @@ import (
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeKey  sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
-	cdc       *codec.Codec       // The codec for binary encoding/decoding.
-	codespace sdk.CodespaceType  // Reserved codespace
-	ak        auth.AccountKeeper // Cosmos-SDK Account Keeper
-	sk        supply.Keeper      // Cosmos-SDK Supply Keeper
+	storeKey   sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
+	cdc        *codec.Codec       // The codec for binary encoding/decoding.
+	codespace  sdk.CodespaceType  // Reserved codespace
+	ak         auth.AccountKeeper // Cosmos-SDK Account Keeper
+	Sk         supply.Keeper      // Cosmos-SDK Supply Keeper
+	paramSpace params.Subspace
 }
 
 // NewKeeper returns an artist keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, ak auth.AccountKeeper, sk supply.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
-		storeKey:  key,
-		cdc:       cdc,
-		codespace: codespace,
-		ak:        ak,
-		sk:        sk,
+		storeKey:   key,
+		cdc:        cdc,
+		codespace:  codespace,
+		ak:         ak,
+		Sk:         sk,
+		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
@@ -140,7 +143,7 @@ func (keeper Keeper) PayFee(ctx sdk.Context, owner sdk.AccAddress, amt sdk.Coins
 	}
 
 	// Send fee from account to distribution module
-	if err := keeper.sk.SendCoinsFromAccountToModule(ctx, owner, distribution.ModuleName, amt); err != nil {
+	if err := keeper.Sk.SendCoinsFromAccountToModule(ctx, owner, distribution.ModuleName, amt); err != nil {
 		return err
 	}
 
@@ -148,7 +151,7 @@ func (keeper Keeper) PayFee(ctx sdk.Context, owner sdk.AccAddress, amt sdk.Coins
 }
 
 // CreateArtist create new artist
-func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAddress) (types.Artist, sdk.Error) {
+func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, metadataUri string, owner sdk.AccAddress) (types.Artist, sdk.Error) {
 	artistID, err := keeper.GetArtistID(ctx)
 	if err != nil {
 		return types.Artist{}, err
@@ -163,7 +166,10 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	// }
 	//////////////////////////////////////////
 
-	artist := types.NewArtist(artistID, name, owner)
+	submitTime := ctx.BlockHeader().Time
+	depositPeriod := keeper.GetDepositParams(ctx).MaxDepositPeriod
+
+	artist := types.NewArtist(artistID, name, metadataUri, owner, submitTime, submitTime.Add(depositPeriod))
 
 	keeper.SetArtist(ctx, artist)
 	keeper.SetArtistID(ctx, artistID+1)
@@ -178,34 +184,6 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, owner sdk.AccAdd
 	)
 
 	return artist, nil
-}
-
-// SetArtistImage set artist image
-func (keeper Keeper) SetArtistImage(ctx sdk.Context, artistID uint64, image types.ArtistImage, owner sdk.AccAddress) sdk.Error {
-	artist, ok := keeper.GetArtist(ctx, artistID)
-	if !ok {
-		return types.ErrUnknownArtist(keeper.codespace, "unknown artist")
-	}
-
-	if artist.Owner.String() != owner.String() {
-		return types.ErrUnknownOwner(keeper.codespace, "unknown owner")
-	}
-
-	artist.Image = image
-
-	keeper.SetArtist(ctx, artist)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSetArtistImage,
-			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
-			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", artist.Name)),
-			sdk.NewAttribute(types.AttributeKeyArtistImage, fmt.Sprintf("%s", artist.Image.CID)),
-			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", artist.Owner.String())),
-		),
-	)
-
-	return nil
 }
 
 // SetArtistStatus set Status of the Artist {Nil, Verified, Rejected, Failed}

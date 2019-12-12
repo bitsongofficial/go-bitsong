@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,8 +36,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	artistQueryCmd.AddCommand(client.GetCommands(
 		GetCmdQueryArtists(queryRoute, cdc),
+		GetCmdQueryDeposits(queryRoute, cdc),
 		// TODO: create GetCmdQueryArtist
-		//GetCmdQueryArtist(queryRoute),
 	)...)
 
 	return artistQueryCmd
@@ -119,6 +120,8 @@ $ %s query artist all --limit 10
 //NormalizeArtistStatus - normalize user specified artist status
 func NormalizeArtistStatus(status string) string {
 	switch status {
+	/*case "DepositPeriod", "deposit-period":
+	return "DepositPeriod"*/
 	case "Verified", "verified":
 		return "Verified"
 	case "Rejected", "rejected":
@@ -126,5 +129,62 @@ func NormalizeArtistStatus(status string) string {
 	case "Failed", "failed":
 		return "Failed"
 	}
-	return ""
+	//return ""
+	return "DepositPeriod"
+}
+
+func GetCmdQueryDeposits(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposits [artist-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query deposits on a specific artist",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for all deposits on a specific artist.
+You can find the artist-id by running "%s query artist all".
+Example:
+$ %s query artist deposits 1
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the artist id is a uint
+			artistID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("artist-id %s not a valid uint, please input a valid artist-id", args[0])
+			}
+
+			params := types.NewQueryArtistParams(artistID)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// check to see if the proposal is in the store
+			res, err := QueryArtistByID(artistID, cliCtx, queryRoute)
+			if err != nil {
+				return fmt.Errorf("failed to fetch artist with id %d: %s", artistID, err)
+			}
+
+			var artist types.Artist
+			cdc.MustUnmarshalJSON(res, &artist)
+
+			artistStatus := artist.Status
+			if !(artistStatus == types.StatusDepositPeriod) {
+				res, err = QueryDepositsByTxQuery(cliCtx, params)
+			} else {
+				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/deposits", queryRoute), bz)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			var dep types.Deposits
+			cdc.MustUnmarshalJSON(res, &dep)
+			return cliCtx.PrintOutput(dep)
+		},
+	}
 }

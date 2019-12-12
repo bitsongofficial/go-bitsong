@@ -9,12 +9,10 @@ const (
 
 	CodeInvalidGenesis           sdk.CodeType = 1
 	CodeInvalidArtistName        sdk.CodeType = 2
-	CodeUnknownArtist            sdk.CodeType = 3
-	CodeInvalidArtistImageHeight sdk.CodeType = 4
-	CodeInvalidArtistImageWidth  sdk.CodeType = 5
-	CodeInvalidArtistImageCid    sdk.CodeType = 6
-	CodeUnknownOwner             sdk.CodeType = 7
-	CodeInvalidArtistStatus      sdk.CodeType = 8
+	CodeInvalidArtistMetadataURI sdk.CodeType = 3
+	CodeInvalidArtistStatus      sdk.CodeType = 4
+	CodeUnknownArtist            sdk.CodeType = 5
+	CodeUnknownOwner             sdk.CodeType = 6
 )
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -25,20 +23,12 @@ func ErrInvalidArtistName(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidArtistName, msg)
 }
 
+func ErrInvalidArtistMetadataURI(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidArtistMetadataURI, msg)
+}
+
 func ErrUnknownArtist(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeUnknownArtist, msg)
-}
-
-func ErrInvalidArtistImageHeight(codespace sdk.CodespaceType, msg string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidArtistImageHeight, msg)
-}
-
-func ErrInvalidArtistImageWidth(codespace sdk.CodespaceType, msg string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidArtistImageWidth, msg)
-}
-
-func ErrInvalidArtistImageCid(codespace sdk.CodespaceType, msg string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidArtistImageCid, msg)
 }
 
 func ErrInvalidArtistStatus(codespace sdk.CodespaceType, msg string) sdk.Error {

@@ -3,9 +3,9 @@ package types
 import (
 	"encoding/binary"
 	"fmt"
-	"strings"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
+	"time"
 )
 
 /************************************
@@ -18,11 +18,15 @@ const (
 )
 
 type Artist struct {
-	ArtistID uint64         `json:"id"`   // Artist ID
-	Name     string         `json:"name"` // Artist Name
-	Image    ArtistImage    `json:"image" // Artist Image`
-	Status   ArtistStatus   `json:"status"` // Status of the Artist {Nil, Verified, Rejected, Failed}
-	Owner    sdk.AccAddress `json:"owner"`  // Artist Address
+	ArtistID    uint64         `json:"id"`           // Artist ID
+	Name        string         `json:"name"`         // Artist Name
+	MetadataURI string         `json:"metadata_uri"` // Metadata uri example: ipfs:QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u
+	Status      ArtistStatus   `json:"status"`       // Status of the Artist {Nil, Verified, Rejected, Failed}
+	Owner       sdk.AccAddress `json:"owner"`        // Artist Address
+
+	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
+	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
+	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
 }
 
 // ArtistKey gets a specific artist from the store
@@ -32,22 +36,17 @@ func ArtistKey(artistID uint64) []byte {
 	return append(ArtistsKeyPrefix, bz...)
 }
 
-// Split keys function; used for iterators
-// SplitArtistKey split the artist key and returns the artist id
-func SplitArtistKey(key []byte) (artistID uint64) {
-	if len(key[1:]) != 8 {
-		panic(fmt.Sprintf("unexpected key length (%d ≠ 8)", len(key[1:])))
-	}
-
-	return binary.LittleEndian.Uint64(key[1:])
-}
-
-func NewArtist(id uint64, name string, owner sdk.AccAddress) Artist {
+func NewArtist(id uint64, name string, uri string, owner sdk.AccAddress, submitTime, depositEndTime time.Time) Artist {
+	// TODO: first status NIL, then when addDesposit change status to StatusDepositPeriod
 	return Artist{
-		ArtistID: id,
-		Name:     name,
-		Status:   StatusNil,
-		Owner:    owner,
+		ArtistID:       id,
+		Name:           name,
+		MetadataURI:    uri,
+		Status:         StatusDepositPeriod,
+		Owner:          owner,
+		TotalDeposit:   sdk.NewCoins(),
+		SubmitTime:     submitTime,
+		DepositEndTime: depositEndTime,
 	}
 }
 
@@ -55,9 +54,13 @@ func NewArtist(id uint64, name string, owner sdk.AccAddress) Artist {
 func (a Artist) String() string {
 	return fmt.Sprintf(`ArtistID %d:
   Name:    %s
+  Metadata: %s
   Status:  %s
-  Address:   %s`,
-		a.ArtistID, a.Name, a.Status.String(), a.Owner.String(),
+  Address:   %s
+  Submit Time:        %s
+  Deposit End Time:   %s
+  Total Deposit:      %s`,
+		a.ArtistID, a.Name, a.MetadataURI, a.Status.String(), a.Owner.String(), a.SubmitTime, a.DepositEndTime, a.TotalDeposit,
 	)
 }
 
