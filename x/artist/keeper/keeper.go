@@ -167,9 +167,8 @@ func (keeper Keeper) CreateArtist(ctx sdk.Context, name string, metadataUri stri
 	//////////////////////////////////////////
 
 	submitTime := ctx.BlockHeader().Time
-	depositPeriod := keeper.GetDepositParams(ctx).MaxDepositPeriod
 
-	artist := types.NewArtist(artistID, name, metadataUri, owner, submitTime, submitTime.Add(depositPeriod))
+	artist := types.NewArtist(artistID, name, metadataUri, owner, submitTime)
 
 	keeper.SetArtist(ctx, artist)
 	keeper.SetArtistID(ctx, artistID+1)

@@ -44,7 +44,7 @@ func ArtistStatusFromString(str string) (ArtistStatus, error) {
 
 // Valid tells if the artist status can be used
 func (status ArtistStatus) Valid() bool {
-	if status == StatusDepositPeriod ||
+	if status == StatusNil || status == StatusDepositPeriod ||
 		status == StatusVerified ||
 		status == StatusRejected ||
 		status == StatusFailed {

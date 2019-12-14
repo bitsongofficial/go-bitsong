@@ -120,8 +120,8 @@ $ %s query artist all --limit 10
 //NormalizeArtistStatus - normalize user specified artist status
 func NormalizeArtistStatus(status string) string {
 	switch status {
-	/*case "DepositPeriod", "deposit-period":
-	return "DepositPeriod"*/
+	case "DepositPeriod", "deposit-period":
+		return "DepositPeriod"
 	case "Verified", "verified":
 		return "Verified"
 	case "Rejected", "rejected":
@@ -129,8 +129,7 @@ func NormalizeArtistStatus(status string) string {
 	case "Failed", "failed":
 		return "Failed"
 	}
-	//return ""
-	return "DepositPeriod"
+	return ""
 }
 
 func GetCmdQueryDeposits(queryRoute string, cdc *codec.Codec) *cobra.Command {

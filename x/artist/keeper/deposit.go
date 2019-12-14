@@ -43,9 +43,17 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, artistID uint64, depositorAddr 
 	}
 
 	// Check if artist is still depositable
-	if artist.Status != types.StatusDepositPeriod {
+	if !(artist.Status == types.StatusNil || artist.Status == types.StatusDepositPeriod) {
 		return sdk.ErrUnknownRequest(fmt.Sprintf("artistID %d already deposited", artistID)), false
 	}
+
+	// If status is Nil enable deposit period
+	artist.Status = types.StatusDepositPeriod
+
+	// Set deposit end time
+	blockTime := ctx.BlockHeader().Time
+	depositPeriod := keeper.GetDepositParams(ctx).MaxDepositPeriod
+	artist.DepositEndTime = blockTime.Add(depositPeriod)
 
 	// update the artist module's account coins pool
 	err := keeper.Sk.SendCoinsFromAccountToModule(ctx, depositorAddr, types.ModuleName, depositAmount)
@@ -60,6 +68,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, artistID uint64, depositorAddr 
 	verified := false
 	if artist.Status == types.StatusDepositPeriod && artist.TotalDeposit.IsAllGTE(keeper.GetDepositParams(ctx).MinDeposit) {
 		artist.Status = types.StatusVerified
+		artist.VerifiedTime = blockTime
 		verified = true
 	}
 

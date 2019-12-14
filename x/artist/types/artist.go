@@ -27,6 +27,7 @@ type Artist struct {
 	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
 	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
 	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
+	VerifiedTime   time.Time `json:"verified_time" yaml:"verified_time"`
 }
 
 // ArtistKey gets a specific artist from the store
@@ -36,17 +37,16 @@ func ArtistKey(artistID uint64) []byte {
 	return append(ArtistsKeyPrefix, bz...)
 }
 
-func NewArtist(id uint64, name string, uri string, owner sdk.AccAddress, submitTime, depositEndTime time.Time) Artist {
+func NewArtist(id uint64, name string, uri string, owner sdk.AccAddress, submitTime time.Time) Artist {
 	// TODO: first status NIL, then when addDesposit change status to StatusDepositPeriod
 	return Artist{
-		ArtistID:       id,
-		Name:           name,
-		MetadataURI:    uri,
-		Status:         StatusDepositPeriod,
-		Owner:          owner,
-		TotalDeposit:   sdk.NewCoins(),
-		SubmitTime:     submitTime,
-		DepositEndTime: depositEndTime,
+		ArtistID:     id,
+		Name:         name,
+		MetadataURI:  uri,
+		Status:       StatusNil,
+		Owner:        owner,
+		TotalDeposit: sdk.NewCoins(),
+		SubmitTime:   submitTime,
 	}
 }
 
