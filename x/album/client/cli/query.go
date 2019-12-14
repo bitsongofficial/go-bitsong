@@ -38,6 +38,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryAlbums(queryRoute, cdc),
 		GetCmdQueryAlbum(queryRoute, cdc),
 		GetCmdQueryTracks(queryRoute, cdc),
+		GetCmdQueryDeposits(queryRoute, cdc),
 	)...)
 
 	return albumQueryCmd
@@ -157,6 +158,8 @@ $ %s query album all --limit 10
 //NormalizeAlbumStatus - normalize user specified album status
 func NormalizeAlbumStatus(status string) string {
 	switch status {
+	case "DepositPeriod", "deposit-period":
+		return "DepositPeriod"
 	case "Verified", "verified":
 		return "Verified"
 	case "Rejected", "rejected":
@@ -231,4 +234,60 @@ func QueryAlbumByID(albumID uint64, cliCtx context.CLIContext, queryRoute string
 	}
 
 	return res, err
+}
+
+func GetCmdQueryDeposits(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposits [album-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query deposits on a specific album",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for all deposits on a specific album.
+You can find the album-id by running "%s query album all".
+Example:
+$ %s query album deposits 1
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the album id is a uint
+			albumID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("album-id %s not a valid uint, please input a valid album-id", args[0])
+			}
+
+			params := types.NewQueryAlbumParams(albumID)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// check to see if the proposal is in the store
+			res, err := QueryAlbumByID(albumID, cliCtx, queryRoute)
+			if err != nil {
+				return fmt.Errorf("failed to fetch album with id %d: %s", albumID, err)
+			}
+
+			var album types.Album
+			cdc.MustUnmarshalJSON(res, &album)
+
+			artistStatus := album.Status
+			if !(artistStatus == types.StatusDepositPeriod) {
+				res, err = QueryDepositsByTxQuery(cliCtx, params)
+			} else {
+				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/deposits", queryRoute), bz)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			var dep types.Deposits
+			cdc.MustUnmarshalJSON(res, &dep)
+			return cliCtx.PrintOutput(dep)
+		},
+	}
 }

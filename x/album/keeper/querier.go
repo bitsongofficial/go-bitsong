@@ -13,6 +13,8 @@ import (
 func NewQuerier(keeper Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
 		switch path[0] {
+		case types.QueryDeposits:
+			return queryDeposits(ctx, path[1:], req, keeper)
 		case types.QueryAlbums:
 			return queryAlbums(ctx, path[1:], req, keeper)
 		case types.QueryAlbum:
@@ -74,6 +76,22 @@ func queryTracks(ctx sdk.Context, path []string, req abci.RequestQuery, keeper K
 	tracks := keeper.GetTracks(ctx, params.AlbumID)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, tracks)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+}
+
+func queryDeposits(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var params types.QueryAlbumParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+	}
+
+	deposits := keeper.GetDeposits(ctx, params.AlbumID)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, deposits)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

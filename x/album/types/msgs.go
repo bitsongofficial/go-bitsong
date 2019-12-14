@@ -15,6 +15,7 @@ import (
 const (
 	TypeMsgCreateAlbum = "create_album"
 	TypeMsgAddTrack    = "add_track"
+	TypeMsgDeposit     = "deposit"
 )
 
 /****************************************
@@ -25,20 +26,18 @@ var _ sdk.Msg = MsgCreateAlbum{}
 
 // MsgCreateAlbum defines CreateAlbum message
 type MsgCreateAlbum struct {
-	AlbumType            AlbumType      `json:"album_type"`             // The type of the album: one of 'album', 'single', or 'compilation'.
-	Title                string         `json:"title"`                  // Artist name
-	ReleaseDate          string         `json:"release_date"`           // The date the album was first released, for example '1981-12-15'. Depending on the precision, it might be shown as '1981' or '1981-12'.
-	ReleaseDatePrecision string         `json:"release_date_precision"` // The precision with which release_date value is known: 'year', 'month', or 'day'.
-	Owner                sdk.AccAddress `json:"owner"`                  // Artist owner
+	AlbumType   AlbumType      `json:"album_type"` // The type of the album: one of 'album', 'single', or 'compilation'.
+	Title       string         `json:"title"`      // Album name
+	MetadataURI string         `json:"metadata_uri"`
+	Owner       sdk.AccAddress `json:"owner"` // Album owner
 }
 
-func NewMsgCreateAlbum(albumType AlbumType, title string, releaseDate string, releasePrecision string, owner sdk.AccAddress) MsgCreateAlbum {
+func NewMsgCreateAlbum(albumType AlbumType, title string, metadataUri string, owner sdk.AccAddress) MsgCreateAlbum {
 	return MsgCreateAlbum{
-		AlbumType:            albumType,
-		Title:                title,
-		ReleaseDate:          releaseDate,
-		ReleaseDatePrecision: releasePrecision,
-		Owner:                owner,
+		AlbumType:   albumType,
+		Title:       title,
+		MetadataURI: metadataUri,
+		Owner:       owner,
 	}
 }
 
@@ -61,14 +60,9 @@ func (msg MsgCreateAlbum) ValidateBasic() sdk.Error {
 	}
 
 	// TODO:
-	// - improve check on release_date
-	// - improve check on release_date_precision
-	if len(strings.TrimSpace(msg.ReleaseDate)) == 0 {
-		return ErrInvalidAlbumReleaseDate(DefaultCodespace, "album release date cannot be blank")
-	}
-
-	if len(strings.TrimSpace(msg.ReleaseDatePrecision)) == 0 {
-		return ErrInvalidAlbumReleaseDatePrecision(DefaultCodespace, "album release date precision cannot be blank")
+	// - Add more check for CID (Metadata uri ipfs:)
+	if len(strings.TrimSpace(msg.MetadataURI)) == 0 {
+		return ErrInvalidAlbumMetadataURI(DefaultCodespace, "artist metadata uri cannot be blank")
 	}
 
 	if msg.Owner.Empty() {
@@ -83,10 +77,9 @@ func (msg MsgCreateAlbum) String() string {
 	return fmt.Sprintf(`Create Album Message:
   Album Type:         %s
   Title: %s
-  Release Date: %s
-  Release Date Precision: %s
-  Address: %s
-`, msg.AlbumType.String(), msg.Title, msg.ReleaseDate, msg.ReleaseDatePrecision, msg.Owner.String())
+  Metadata URI: %s
+  Owner: %s
+`, msg.AlbumType.String(), msg.Title, msg.MetadataURI, msg.Owner.String())
 }
 
 // GetSignBytes encodes the message for signing
@@ -122,7 +115,7 @@ func NewMsgAddTrackAlbum(albumID uint64, trackID uint64, owner sdk.AccAddress) M
 
 //nolint
 func (msg MsgAddTrackAlbum) Route() string { return RouterKey }
-func (msg MsgAddTrackAlbum) Type() string  { return TypeMsgCreateAlbum }
+func (msg MsgAddTrackAlbum) Type() string  { return TypeMsgAddTrack }
 
 // ValidateBasic
 func (msg MsgAddTrackAlbum) ValidateBasic() sdk.Error {
@@ -161,4 +154,59 @@ func (msg MsgAddTrackAlbum) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (msg MsgAddTrackAlbum) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Owner}
+}
+
+/****************************************
+ * MsgDeposit
+ ****************************************/
+
+var _ sdk.Msg = MsgDeposit{}
+
+type MsgDeposit struct {
+	AlbumID   uint64         `json:"album_id" yaml:"album_id"`   // ID of the album
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` // Address of the depositor
+	Amount    sdk.Coins      `json:"amount" yaml:"amount"`       // Coins to add to the proposal's deposit
+}
+
+func NewMsgDeposit(depositor sdk.AccAddress, albumID uint64, amount sdk.Coins) MsgDeposit {
+	return MsgDeposit{albumID, depositor, amount}
+}
+
+// Implements Msg.
+// nolint
+func (msg MsgDeposit) Route() string { return RouterKey }
+func (msg MsgDeposit) Type() string  { return TypeMsgDeposit }
+
+// Implements Msg.
+func (msg MsgDeposit) ValidateBasic() sdk.Error {
+	if msg.Depositor.Empty() {
+		return sdk.ErrInvalidAddress(msg.Depositor.String())
+	}
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+	if msg.Amount.IsAnyNegative() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+
+	return nil
+}
+
+func (msg MsgDeposit) String() string {
+	return fmt.Sprintf(`Deposit Message:
+  Depositer:   %s
+  Album ID: %d
+  Amount:      %s
+`, msg.Depositor, msg.AlbumID, msg.Amount)
+}
+
+// Implements Msg.
+func (msg MsgDeposit) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// Implements Msg.
+func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Depositor}
 }

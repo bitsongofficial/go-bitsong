@@ -5,6 +5,7 @@ const (
 	EventTypeCreateAlbum    = "create_album"
 	EventTypeSetAlbumStatus = "set_album_status"
 	EventTypeAddTrackAlbum  = "add_track_album"
+	EventTypeDepositAlbum   = "deposit_album"
 
 	// Album attributes
 	AttributeValueCategory                = ModuleName

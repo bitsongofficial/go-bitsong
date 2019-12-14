@@ -71,7 +71,7 @@ func (keeper Keeper) SetArtist(ctx sdk.Context, artist types.Artist) {
 	store.Set(types.ArtistKey(artist.ArtistID), bz)
 }
 
-// GetArtist get Artist from store by ArtistID
+// GetArtist get Artist from store by AlbumID
 func (keeper Keeper) GetArtist(ctx sdk.Context, artistID uint64) (artist types.Artist, ok bool) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := store.Get(types.ArtistKey(artistID))
@@ -82,7 +82,7 @@ func (keeper Keeper) GetArtist(ctx sdk.Context, artistID uint64) (artist types.A
 	return artist, true
 }
 
-// GetArtistsFiltered get Artists from store by ArtistID
+// GetArtistsFiltered get Artists from store by AlbumID
 // status will filter artists by status
 // numLatest will fetch a specified number of the most recent artists, or 0 for all artists
 func (keeper Keeper) GetArtistsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress, status types.ArtistStatus, numLatest uint64) []types.Artist {

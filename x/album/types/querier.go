@@ -10,7 +10,8 @@ const (
 	QueryAlbums = "albums"
 	QueryAlbum  = "album"
 
-	QueryTracks = "tracks"
+	QueryTracks   = "tracks"
+	QueryDeposits = "deposits"
 )
 
 // Params for queries:
@@ -39,5 +40,18 @@ func NewQueryAlbumsParams(owner sdk.AccAddress, status AlbumStatus, limit uint64
 		Owner:       owner,
 		AlbumStatus: status,
 		Limit:       limit,
+	}
+}
+
+type QueryDepositParams struct {
+	ArtistID  uint64
+	Depositor sdk.AccAddress
+}
+
+// creates a new instance of QueryDepositParams
+func NewQueryDepositParams(artistID uint64, depositor sdk.AccAddress) QueryDepositParams {
+	return QueryDepositParams{
+		ArtistID:  artistID,
+		Depositor: depositor,
 	}
 }

@@ -1,7 +1,6 @@
 package album
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/album/client"
 	"github.com/bitsongofficial/go-bitsong/x/album/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/album/types"
 )
@@ -10,6 +9,8 @@ const (
 	ModuleName = types.ModuleName
 	RouterKey  = types.RouterKey
 	StoreKey   = types.StoreKey
+
+	DefaultParamspace = types.DefaultParamspace
 )
 
 var (
@@ -23,10 +24,7 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	// Types
-	NewAlbum                      = types.NewAlbum
-	NewAlbumVerifyProposal        = types.NewAlbumVerifyProposal
-	NewAlbumVerifyProposalHandler = keeper.NewAlbumVerifyProposalHandler
-	ProposalHandler               = client.ProposalHandler
+	NewAlbum = types.NewAlbum
 
 	// Msgs
 	NewMsgCreateAlbum = types.NewMsgCreateAlbum
@@ -40,6 +38,9 @@ type (
 	AlbumStatus = types.AlbumStatus
 	Album       = types.Album
 	Albums      = types.Albums
+
+	Deposits      = types.Deposits
+	DepositParams = types.DepositParams
 
 	// Msgs
 	MsgCreateAlbum = types.MsgCreateAlbum

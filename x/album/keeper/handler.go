@@ -18,6 +18,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgCreateAlbum(ctx, keeper, msg)
 		case types.MsgAddTrackAlbum:
 			return handleMsgAddTrackAlbum(ctx, keeper, msg)
+		case types.MsgDeposit:
+			return handleMsgDeposit(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized album message type: %T", msg)
@@ -28,7 +30,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 // handleMsgCreateAlbum handles the creation of a new album
 func handleMsgCreateAlbum(ctx sdk.Context, keeper Keeper, msg types.MsgCreateAlbum) sdk.Result {
-	album, err := keeper.CreateAlbum(ctx, msg.Title, msg.AlbumType, msg.ReleaseDate, msg.ReleaseDatePrecision, msg.Owner)
+	album, err := keeper.CreateAlbum(ctx, msg.Title, msg.AlbumType, msg.MetadataURI, msg.Owner)
 	if err != nil {
 		return err.Result()
 	}
@@ -65,4 +67,30 @@ func handleMsgAddTrackAlbum(ctx sdk.Context, keeper Keeper, msg types.MsgAddTrac
 	return sdk.Result{
 		Events: ctx.EventManager().Events(),
 	}
+}
+
+func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) sdk.Result {
+	err, verified := keeper.AddDeposit(ctx, msg.AlbumID, msg.Depositor, msg.Amount)
+	if err != nil {
+		return err.Result()
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
+		),
+	)
+
+	if verified {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeDepositAlbum,
+				sdk.NewAttribute(types.AttributeKeyAlbumID, fmt.Sprintf("%d", msg.AlbumID)),
+			),
+		)
+	}
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
 }

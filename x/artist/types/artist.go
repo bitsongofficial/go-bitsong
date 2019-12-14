@@ -38,7 +38,6 @@ func ArtistKey(artistID uint64) []byte {
 }
 
 func NewArtist(id uint64, name string, uri string, owner sdk.AccAddress, submitTime time.Time) Artist {
-	// TODO: first status NIL, then when addDesposit change status to StatusDepositPeriod
 	return Artist{
 		ArtistID:     id,
 		Name:         name,
@@ -52,7 +51,7 @@ func NewArtist(id uint64, name string, uri string, owner sdk.AccAddress, submitT
 
 // nolint
 func (a Artist) String() string {
-	return fmt.Sprintf(`ArtistID %d:
+	return fmt.Sprintf(`AlbumID %d:
   Name:    %s
   Metadata: %s
   Status:  %s

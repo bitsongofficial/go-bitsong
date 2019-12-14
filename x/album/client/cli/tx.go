@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/gov"
+	"github.com/spf13/viper"
 	"strconv"
 	"strings"
 
@@ -20,10 +20,9 @@ import (
 )
 
 const (
-	FlagTitle                = "title"
-	FlagAlbumType            = "album_type"
-	FlagReleaseDate          = "release_date"
-	FlagReleaseDatePrecision = "release_date_precision"
+	FlagTitle       = "title"
+	FlagAlbumType   = "album-type"
+	FlagMetadataURI = "metadata-uri"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -39,7 +38,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	albumTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateAlbum(cdc),
 		GetCmdAddTrack(cdc),
-		GetCmdSubmitProposal(cdc),
+		GetCmdDeposit(cdc),
 	)...)
 
 	return albumTxCmd
@@ -47,21 +46,12 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 
 // GetCmdCreateAlbum implements the create album command handler.
 func GetCmdCreateAlbum(cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "create",
-		Args:  cobra.ExactArgs(1),
 		Short: "create new album initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Album initialized with status nil.
-The album details must be supplied via a JSON file.
 Example:
-$ %s tx album create <path/to/album.json> --from=<key_or_address>
-Where album.json contains:
-{
-  "title": "Innuendo",
-  "album_type": "Album",
-  "release_date": "2018-12-12",
-  "release_date_precision": "day"
-}
+$ %s tx album create --title="Innuendo" --album-type="Single" --metadata-uri="ipfs:QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --from mykey
 `,
 			version.ClientName,
 		)),
@@ -69,7 +59,12 @@ Where album.json contains:
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			album, err := ParseCreateAlbumJSON(cdc, args[0])
+			// Get flags
+			flagTitle := viper.GetString(FlagTitle)             // Get album title
+			flagMetadataURI := viper.GetString(FlagMetadataURI) // Get album metadata uri
+			flagAlbumType := viper.GetString(FlagAlbumType)
+
+			albumType, err := types.AlbumTypeFromString(flagAlbumType)
 			if err != nil {
 				return err
 			}
@@ -78,7 +73,7 @@ Where album.json contains:
 			from := cliCtx.GetFromAddress() // Get owner
 
 			// Build create artist message
-			msg := types.NewMsgCreateAlbum(album.AlbumType, album.Title, album.ReleaseDate, album.ReleaseDatePrecision, from)
+			msg := types.NewMsgCreateAlbum(albumType, flagTitle, flagMetadataURI, from)
 
 			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
@@ -88,6 +83,12 @@ Where album.json contains:
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+
+	cmd.Flags().String(FlagTitle, "", "the album title")
+	cmd.Flags().String(FlagMetadataURI, "", "the album metadata uri")
+	cmd.Flags().String(FlagAlbumType, "", "the album type")
+
+	return cmd
 }
 
 //NormalizeAlbumType - normalize user specified album type
@@ -101,57 +102,6 @@ func NormalizeAlbumType(albumType string) string {
 		return "Compilation"
 	}
 	return ""
-}
-
-// GetCmdSubmitProposal implements the command to submit an album verify proposal
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "verify-album [proposal-file]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Submit an album verify proposal",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit an album verify proposal along with an initial deposit.
-The proposal details must be supplied via a JSON file.
-Example:
-$ %s tx album verify-album <path/to/proposal.json> --from=<key_or_address>
-Where proposal.json contains:
-{
-  "title": "My new alkbum",
-  "description": "Please, verify my new album. BTSG Topic: https://btsg.community/......",
-  "id":  1, 
-  "deposit": [
-    {
-      "denom": "ubtsg",
-      "amount": "10000"
-    }
-  ]
-}
-`,
-				version.ClientName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			proposal, err := ParseAlbumVerifyProposalJSON(cdc, args[0])
-			if err != nil {
-				return err
-			}
-
-			from := cliCtx.GetFromAddress()
-			content := types.NewAlbumVerifyProposal(proposal.Title, proposal.Description, proposal.AlbumID)
-
-			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-
-	return cmd
 }
 
 // GetCmdAddTrack implements creating a new add track command.
@@ -196,6 +146,50 @@ $ %s tx album add-track 1 1 --from mykey
 
 			// Build add-track message and run basic validation
 			msg := types.NewMsgAddTrackAlbum(albumID, trackID, from)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposit [album-id] [deposit]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Deposit tokens for an unverified album",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a deposit for an unverified album. You can
+find the album-id by running "%s query album all".
+Example:
+$ %s tx album deposit 1 10ubtsg --from mykey
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the album id is a uint
+			albumID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("artist-id %s not a valid uint, please input a valid artist-id", args[0])
+			}
+
+			// Get depositor address
+			from := cliCtx.GetFromAddress()
+
+			// Get amount of coins
+			amount, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeposit(from, albumID, amount)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

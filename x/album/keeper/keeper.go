@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/album/types"
@@ -11,17 +14,23 @@ import (
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeKey  sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
-	cdc       *codec.Codec      // The codec for binary encoding/decoding.
-	codespace sdk.CodespaceType // Reserved codespace
+	storeKey   sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
+	cdc        *codec.Codec       // The codec for binary encoding/decoding.
+	codespace  sdk.CodespaceType  // Reserved codespace
+	ak         auth.AccountKeeper // Cosmos-SDK Account Keeper
+	Sk         supply.Keeper      // Cosmos-SDK Supply Keeper
+	paramSpace params.Subspace
 }
 
 // NewKeeper returns an album keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
-		storeKey:  key,
-		cdc:       cdc,
-		codespace: codespace,
+		storeKey:   key,
+		cdc:        cdc,
+		codespace:  codespace,
+		ak:         ak,
+		Sk:         sk,
+		paramSpace: paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
@@ -107,13 +116,15 @@ func (keeper Keeper) GetAlbumsFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress
 }
 
 // CreateAlbum create new album
-func (keeper Keeper) CreateAlbum(ctx sdk.Context, title string, albumType types.AlbumType, releaseDate string, releasePrecision string, owner sdk.AccAddress) (types.Album, sdk.Error) {
+func (keeper Keeper) CreateAlbum(ctx sdk.Context, title string, albumType types.AlbumType, metadataUri string, owner sdk.AccAddress) (types.Album, sdk.Error) {
 	albumID, err := keeper.GetAlbumID(ctx)
 	if err != nil {
 		return types.Album{}, err
 	}
 
-	album := types.NewAlbum(albumID, title, albumType, releaseDate, releasePrecision, owner)
+	submitTime := ctx.BlockHeader().Time
+
+	album := types.NewAlbum(albumID, title, albumType, metadataUri, owner, submitTime)
 
 	keeper.SetAlbum(ctx, album)
 	keeper.SetAlbumID(ctx, albumID+1)
@@ -123,9 +134,6 @@ func (keeper Keeper) CreateAlbum(ctx sdk.Context, title string, albumType types.
 			types.EventTypeCreateAlbum,
 			sdk.NewAttribute(types.AttributeKeyAlbumID, fmt.Sprintf("%d", albumID)),
 			sdk.NewAttribute(types.AttributeKeyAlbumTitle, fmt.Sprintf("%s", title)),
-			//sdk.NewAttribute(types.AttributeKeyAlbumType, fmt.Sprintf("%s", albumType.String())),
-			//sdk.NewAttribute(types.AttributeKeyAlbumReleaseDate, fmt.Sprintf("%s", releaseDate)),
-			//sdk.NewAttribute(types.AttributeKeyAlbumReleaseDatePrecision, fmt.Sprintf("%s", releasePrecision)),
 			sdk.NewAttribute(types.AttributeKeyAlbumOwner, fmt.Sprintf("%s", owner.String())),
 		),
 	)

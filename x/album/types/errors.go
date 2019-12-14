@@ -7,14 +7,13 @@ import (
 const (
 	DefaultCodespace sdk.CodespaceType = ModuleName
 
-	CodeInvalidAlbumType                 sdk.CodeType = 0
-	CodeInvalidAlbumName                 sdk.CodeType = 1
-	CodeInvalidAlbumReleaseDate          sdk.CodeType = 2
-	CodeInvalidAlbumReleaseDatePrecision sdk.CodeType = 3
-	CodeInvalidGenesis                   sdk.CodeType = 4
-	CodeUnknownAlbum                     sdk.CodeType = 5
-	CodeInvalidAlbumStatus               sdk.CodeType = 6
-	CodeUnknownTrack                     sdk.CodeType = 20
+	CodeInvalidAlbumType        sdk.CodeType = 0
+	CodeInvalidAlbumName        sdk.CodeType = 1
+	CodeInvalidGenesis          sdk.CodeType = 2
+	CodeUnknownAlbum            sdk.CodeType = 3
+	CodeInvalidAlbumStatus      sdk.CodeType = 4
+	CodeInvalidAlbumMetadataUri sdk.CodeType = 5
+	CodeUnknownTrack            sdk.CodeType = 20
 )
 
 func ErrInvalidAlbumType(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -23,14 +22,6 @@ func ErrInvalidAlbumType(codespace sdk.CodespaceType, msg string) sdk.Error {
 
 func ErrInvalidAlbumName(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeInvalidAlbumName, msg)
-}
-
-func ErrInvalidAlbumReleaseDate(codespace sdk.CodespaceType, msg string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidAlbumReleaseDate, msg)
-}
-
-func ErrInvalidAlbumReleaseDatePrecision(codespace sdk.CodespaceType, msg string) sdk.Error {
-	return sdk.NewError(codespace, CodeInvalidAlbumReleaseDatePrecision, msg)
 }
 
 func ErrInvalidGenesis(codespace sdk.CodespaceType, msg string) sdk.Error {
@@ -47,4 +38,8 @@ func ErrInvalidAlbumStatus(codespace sdk.CodespaceType, msg string) sdk.Error {
 
 func ErrUnknownTrack(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return sdk.NewError(codespace, CodeUnknownTrack, msg)
+}
+
+func ErrInvalidAlbumMetadataURI(codespace sdk.CodespaceType, msg string) sdk.Error {
+	return sdk.NewError(codespace, CodeInvalidAlbumMetadataUri, msg)
 }
