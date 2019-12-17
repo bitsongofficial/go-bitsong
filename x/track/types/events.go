@@ -5,13 +5,14 @@ const (
 	EventTypeCreateTrack    = "create_track"
 	EventTypePlayTrack      = "play_track"
 	EventTypeSetTrackStatus = "set_track_status"
+	EventTypeDepositTrack   = "deposit_track"
 
 	// Track attributes
 	AttributeValueCategory  = ModuleName
-	AttributeKeyTrackID     = ModuleName + "_id"
-	AttributeKeyTrackTitle  = ModuleName + "_title"
-	AttributeKeyTrackOwner  = ModuleName + "_owner"
-	AttributeKeyTrackStatus = ModuleName + "_status"
+	AttributeKeyTrackID     = "id"
+	AttributeKeyTrackTitle  = "title"
+	AttributeKeyTrackOwner  = "owner"
+	AttributeKeyTrackStatus = "status"
 
-	AttributeKeyPlayAccAddr = ModuleName + "play_acc_addr"
+	AttributeKeyPlayAccAddr = "play_acc_addr"
 )

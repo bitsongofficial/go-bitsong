@@ -1,34 +1,51 @@
 package cli
 
 import (
-	"io/ioutil"
+	"fmt"
+	"github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type (
-	// TrackVerifyProposalJSON defines a TrackVerifyProposal with a deposit
-	TrackVerifyProposalJSON struct {
-		Title       string    `json:"title" yaml:"title"`
-		Description string    `json:"description" yaml:"description"`
-		TrackID     uint64    `json:"id" yaml:"id"`
-		Deposit     sdk.Coins `json:"deposit" yaml:"deposit"`
-	}
+const (
+	defaultPage  = 1
+	defaultLimit = 30 // should be consistent with tendermint/tendermint/rpc/core/pipe.go:19
 )
 
-// ParseArtistVerifyProposalJSON reads and parses a ArtistVerifyProposalJSON from a file.
-func ParseTrackVerifyProposalJSON(cdc *codec.Codec, proposalFile string) (TrackVerifyProposalJSON, error) {
-	proposal := TrackVerifyProposalJSON{}
+func QueryDepositsByTxQuery(cliCtx context.CLIContext, params types.QueryTrackParams) ([]byte, error) {
+	events := []string{
+		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgDeposit),
+		fmt.Sprintf("%s.%s='%s'", types.EventTypeDepositTrack, types.AttributeKeyTrackID, []byte(fmt.Sprintf("%d", params.TrackID))),
+	}
 
-	contents, err := ioutil.ReadFile(proposalFile)
+	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
+	// support configurable pagination.
+	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
 	if err != nil {
-		return proposal, err
+		return nil, err
 	}
 
-	if err := cdc.UnmarshalJSON(contents, &proposal); err != nil {
-		return proposal, err
+	var deposits []types.Deposit
+
+	for _, info := range searchResult.Txs {
+		for _, msg := range info.Tx.GetMsgs() {
+			if msg.Type() == types.TypeMsgDeposit {
+				depMsg := msg.(types.MsgDeposit)
+
+				deposits = append(deposits, types.Deposit{
+					Depositor: depMsg.Depositor,
+					TrackID:   params.TrackID,
+					Amount:    depMsg.Amount,
+				})
+			}
+		}
 	}
 
-	return proposal, nil
+	if cliCtx.Indent {
+		return cliCtx.Codec.MarshalJSONIndent(deposits, "", "  ")
+	}
+
+	return cliCtx.Codec.MarshalJSON(deposits)
 }

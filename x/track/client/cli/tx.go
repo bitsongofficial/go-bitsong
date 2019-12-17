@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/spf13/viper"
 	"strconv"
 	"strings"
@@ -21,7 +20,8 @@ import (
 )
 
 const (
-	FlagTitle = "title"
+	FlagTitle       = "title"
+	FlagMetadataURI = "metadata-uri"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -37,7 +37,7 @@ func GetTxCmd(storeKey string, cdc *codec.Codec) *cobra.Command {
 	trackTxCmd.AddCommand(client.PostCommands(
 		GetCmdCreateTrack(cdc),
 		GetCmdPlay(cdc),
-		GetCmdSubmitProposal(cdc),
+		GetCmdDeposit(cdc),
 	)...)
 
 	return trackTxCmd
@@ -50,7 +50,7 @@ func GetCmdCreateTrack(cdc *codec.Codec) *cobra.Command {
 		Short: "create new track initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Track initialized with status nil.
 Example:
-$ %s tx track create --title "The Show Must Go On" --from mykey
+$ %s tx track create --title "The Show Must Go On" --metadata-uri="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --from mykey
 `,
 			version.ClientName,
 		)),
@@ -60,12 +60,13 @@ $ %s tx track create --title "The Show Must Go On" --from mykey
 
 			// Get flags
 			flagTitle := viper.GetString(FlagTitle) // Get track title
+			flatMetadataUri := viper.GetString(FlagMetadataURI)
 
 			// Get params
 			from := cliCtx.GetFromAddress() // Get owner
 
 			// Build create track message
-			msg := types.NewMsgCreateTrack(flagTitle, from)
+			msg := types.NewMsgCreateTrack(flagTitle, flatMetadataUri, from)
 
 			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
@@ -77,57 +78,7 @@ $ %s tx track create --title "The Show Must Go On" --from mykey
 	}
 
 	cmd.Flags().String(FlagTitle, "", "the track title")
-
-	return cmd
-}
-
-// GetCmdSubmitProposal implements the command to submit a track verify proposal
-func GetCmdSubmitProposal(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "verify-track [proposal-file]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Submit a track verify proposal",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Submit a track verify proposal along with an initial deposit.
-The proposal details must be supplied via a JSON file.
-Example:
-$ %s tx track verify-track <path/to/proposal.json> --from=<key_or_address>
-Where proposal.json contains:
-{
-  "title": "The Show Must Go On",
-  "description": "Please, verify my track. BTSG Topic: https://btsg.community/......",
-  "id":  1, 
-  "deposit": [
-    {
-      "denom": "ubtsg",
-      "amount": "10000"
-    }
-  ]
-}
-`,
-				version.ClientName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			proposal, err := ParseTrackVerifyProposalJSON(cdc, args[0])
-			if err != nil {
-				return err
-			}
-
-			from := cliCtx.GetFromAddress()
-			content := types.NewTrackVerifyProposal(proposal.Title, proposal.Description, proposal.TrackID)
-
-			msg := gov.NewMsgSubmitProposal(content, proposal.Deposit, from)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
+	cmd.Flags().String(FlagMetadataURI, "", "the track metadata")
 
 	return cmd
 }
@@ -162,6 +113,50 @@ $ %s tx track play 1 --from mykey
 
 			// Build play message and run basic validation
 			msg := types.NewMsgPlay(trackID, from)
+			err = msg.ValidateBasic()
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+}
+
+func GetCmdDeposit(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposit [track-id] [deposit]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Deposit tokens for an unverified track",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit a deposit for an unverified track. You can
+find the track-id by running "%s query track all".
+Example:
+$ %s tx track deposit 1 10ubtsg --from mykey
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid uint, please input a valid track-id", args[0])
+			}
+
+			// Get depositor address
+			from := cliCtx.GetFromAddress()
+
+			// Get amount of coins
+			amount, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeposit(from, trackID, amount)
 			err = msg.ValidateBasic()
 			if err != nil {
 				return err

@@ -68,7 +68,6 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distr.ProposalHandler,
-			track.ProposalHandler,
 			distributor.ProposalHandler,
 		),
 		params.AppModuleBasic{},
@@ -92,6 +91,7 @@ var (
 		gov.ModuleName:            {supply.Burner},
 		artist.ModuleName:         {supply.Burner},
 		album.ModuleName:          {supply.Burner},
+		track.ModuleName:          {supply.Burner},
 		reward.ModuleName:         nil,
 	}
 )
@@ -182,6 +182,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	rewardSubspace := app.paramsKeeper.Subspace(reward.DefaultParamspace)
 	artistSubspace := app.paramsKeeper.Subspace(artist.DefaultParamspace)
 	albumSubspace := app.paramsKeeper.Subspace(album.DefaultParamspace)
+	trackSubspace := app.paramsKeeper.Subspace(track.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
@@ -205,7 +206,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper)
+	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper, app.accountKeeper, app.supplyKeeper, trackSubspace)
 	app.distributorKeeper = distributor.NewKeeper(app.cdc, keys[distributorTypes.StoreKey], distributorTypes.DefaultCodespace)
 
 	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper, app.trackKeeper)
@@ -219,7 +220,6 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(track.RouterKey, track.NewTrackVerifyProposalHandler(app.trackKeeper)).
 		AddRoute(distributor.RouterKey, distributor.NewDistributorVerifyProposalHandler(app.distributorKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
@@ -260,7 +260,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName, artistTypes.ModuleName,
-		albumTypes.ModuleName, distributorTypes.ModuleName, rewardTypes.ModuleName, trackTypes.ModuleName,
+		trackTypes.ModuleName, albumTypes.ModuleName, distributorTypes.ModuleName, rewardTypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

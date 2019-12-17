@@ -10,8 +10,9 @@ const (
 	QueryTracks = "tracks"
 	QueryTrack  = "track"
 
-	QueryPlays  = "plays"
-	QueryShares = "shares"
+	QueryPlays    = "plays"
+	QueryShares   = "shares"
+	QueryDeposits = "deposits"
 )
 
 // Params for queries:

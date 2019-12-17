@@ -13,6 +13,5 @@ func init() {
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateTrack{}, "go-bitsong/MsgCreateTrack", nil)
 	cdc.RegisterConcrete(MsgPlay{}, "go-bitsong/MsgPlay", nil)
-
-	cdc.RegisterConcrete(TrackVerifyProposal{}, "go-bitsong/TrackVerifyProposal", nil)
+	cdc.RegisterConcrete(MsgDeposit{}, "go-bitsong/MsgDepositTrack", nil)
 }

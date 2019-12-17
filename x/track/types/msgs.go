@@ -15,6 +15,7 @@ import (
 const (
 	TypeMsgCreateTrack = "create_track"
 	TypeMsgPlayTrack   = "play_track"
+	TypeMsgDeposit     = "deposit"
 )
 
 /****************************************
@@ -25,14 +26,16 @@ var _ sdk.Msg = MsgCreateTrack{}
 
 // MsgCreateTrack defines CreateTrack message
 type MsgCreateTrack struct {
-	Title string         `json:"title"` // Track title
-	Owner sdk.AccAddress `json:"owner"` // Track owner
+	Title       string         `json:"title"` // Track title
+	MetadataURI string         `json:"metadata_uri"`
+	Owner       sdk.AccAddress `json:"owner"` // Track owner
 }
 
-func NewMsgCreateTrack(title string, owner sdk.AccAddress) MsgCreateTrack {
+func NewMsgCreateTrack(title string, metadataUri string, owner sdk.AccAddress) MsgCreateTrack {
 	return MsgCreateTrack{
-		Title: title,
-		Owner: owner,
+		Title:       title,
+		MetadataURI: metadataUri,
+		Owner:       owner,
 	}
 }
 
@@ -48,6 +51,12 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 
 	if len(msg.Title) > MaxTitleLength {
 		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track title is longer than max length of %d", MaxTitleLength))
+	}
+
+	// TODO:
+	// - Add more check for CID (Metadata uri ipfs:)
+	if len(strings.TrimSpace(msg.MetadataURI)) == 0 {
+		return ErrInvalidTrackMetadataURI(DefaultCodespace, "track metadata uri cannot be blank")
 	}
 
 	if msg.Owner.Empty() {
@@ -130,4 +139,59 @@ func (msg MsgPlay) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (msg MsgPlay) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.AccAddr}
+}
+
+/****************************************
+ * MsgDeposit
+ ****************************************/
+
+var _ sdk.Msg = MsgDeposit{}
+
+type MsgDeposit struct {
+	TrackID   uint64         `json:"track_id" yaml:"track_id"`   // ID
+	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"` // Address of the depositor
+	Amount    sdk.Coins      `json:"amount" yaml:"amount"`       // Coins to add to the proposal's deposit
+}
+
+func NewMsgDeposit(depositor sdk.AccAddress, trackID uint64, amount sdk.Coins) MsgDeposit {
+	return MsgDeposit{trackID, depositor, amount}
+}
+
+// Implements Msg.
+// nolint
+func (msg MsgDeposit) Route() string { return RouterKey }
+func (msg MsgDeposit) Type() string  { return TypeMsgDeposit }
+
+// Implements Msg.
+func (msg MsgDeposit) ValidateBasic() sdk.Error {
+	if msg.Depositor.Empty() {
+		return sdk.ErrInvalidAddress(msg.Depositor.String())
+	}
+	if !msg.Amount.IsValid() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+	if msg.Amount.IsAnyNegative() {
+		return sdk.ErrInvalidCoins(msg.Amount.String())
+	}
+
+	return nil
+}
+
+func (msg MsgDeposit) String() string {
+	return fmt.Sprintf(`Deposit Message:
+  Depositer:   %s
+  Track ID: %d
+  Amount:      %s
+`, msg.Depositor, msg.TrackID, msg.Amount)
+}
+
+// Implements Msg.
+func (msg MsgDeposit) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// Implements Msg.
+func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Depositor}
 }

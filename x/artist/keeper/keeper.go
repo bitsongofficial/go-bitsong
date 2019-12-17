@@ -207,9 +207,6 @@ func (keeper Keeper) SetArtistStatus(ctx sdk.Context, artistID uint64, status ty
 		sdk.NewEvent(
 			types.EventTypeSetArtistStatus,
 			sdk.NewAttribute(types.AttributeKeyArtistID, fmt.Sprintf("%d", artistID)),
-			sdk.NewAttribute(types.AttributeKeyArtistName, fmt.Sprintf("%s", artist.Name)),
-			sdk.NewAttribute(types.AttributeKeyArtistStatus, fmt.Sprintf("%s", artist.Status.String())),
-			sdk.NewAttribute(types.AttributeKeyArtistOwner, fmt.Sprintf("%s", artist.Owner.String())),
 		),
 	)
 

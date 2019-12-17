@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
@@ -12,19 +15,25 @@ import (
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	storeKey      sdk.StoreKey      // The (unexposed) keys used to access the stores from the Context.
-	cdc           *codec.Codec      // The codec for binary encoding/decoding.
-	codespace     sdk.CodespaceType // Reserved codespace
-	stakingKeeper staking.Keeper    // Staking Keeper
+	storeKey      sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
+	cdc           *codec.Codec       // The codec for binary encoding/decoding.
+	codespace     sdk.CodespaceType  // Reserved codespace
+	stakingKeeper staking.Keeper     // Staking Keeper
+	ak            auth.AccountKeeper // Cosmos-SDK Account Keeper
+	Sk            supply.Keeper      // Cosmos-SDK Supply Keeper
+	paramSpace    params.Subspace
 }
 
 // NewKeeper returns an track keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, sk staking.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, stakingKeeper staking.Keeper, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		codespace:     codespace,
-		stakingKeeper: sk,
+		stakingKeeper: stakingKeeper,
+		ak:            ak,
+		Sk:            sk,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }
 
@@ -110,13 +119,15 @@ func (keeper Keeper) GetTracksFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress
 }
 
 // CreateTrack create new track
-func (keeper Keeper) CreateTrack(ctx sdk.Context, title string, owner sdk.AccAddress) (types.Track, sdk.Error) {
+func (keeper Keeper) CreateTrack(ctx sdk.Context, title string, metadataUri string, owner sdk.AccAddress) (types.Track, sdk.Error) {
 	trackID, err := keeper.GetTrackID(ctx)
 	if err != nil {
 		return types.Track{}, err
 	}
 
-	track := types.NewTrack(trackID, title, owner)
+	submitTime := ctx.BlockHeader().Time
+
+	track := types.NewTrack(trackID, title, metadataUri, owner, submitTime)
 
 	keeper.SetTrack(ctx, track)
 	keeper.SetTrackID(ctx, trackID+1)

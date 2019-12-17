@@ -88,7 +88,7 @@ func newTestInput(t *testing.T) testInput {
 	)
 
 	// app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper)
-	trackKeeper := track.NewKeeper(types.ModuleCdc, keyTrack, trackTypes.DefaultCodespace, stakingKeeper)
+	trackKeeper := track.NewKeeper(types.ModuleCdc, keyTrack, trackTypes.DefaultCodespace, stakingKeeper, accountKeeper, supplyKeeper, paramsKeeper.Subspace(track.DefaultParamspace))
 
 	//app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper)
 	rewardKeeper := reward.NewKeeper(types.ModuleCdc, keyReward, paramsKeeper.Subspace(reward.DefaultParamspace), supplyKeeper, trackKeeper)

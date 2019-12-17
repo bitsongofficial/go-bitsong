@@ -1,7 +1,6 @@
 package track
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/track/client"
 	"github.com/bitsongofficial/go-bitsong/x/track/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 )
@@ -10,6 +9,8 @@ const (
 	ModuleName = types.ModuleName
 	RouterKey  = types.RouterKey
 	StoreKey   = types.StoreKey
+
+	DefaultParamspace = types.DefaultParamspace
 )
 
 var (
@@ -23,10 +24,7 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	// Types
-	NewTrack                      = types.NewTrack
-	NewTrackVerifyProposal        = types.NewTrackVerifyProposal
-	NewTrackVerifyProposalHandler = keeper.NewTrackVerifyProposalHandler
-	ProposalHandler               = client.ProposalHandler
+	NewTrack = types.NewTrack
 
 	// Msgs
 	NewMsgCreateTrack = types.NewMsgCreateTrack
@@ -40,6 +38,9 @@ type (
 	TrackStatus = types.TrackStatus
 	Track       = types.Track
 	Tracks      = types.Tracks
+
+	Deposits      = types.Deposits
+	DepositParams = types.DepositParams
 
 	// Msgs
 	MsgCreateTrack = types.MsgCreateTrack

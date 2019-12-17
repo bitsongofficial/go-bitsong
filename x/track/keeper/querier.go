@@ -21,6 +21,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 			return queryPlays(ctx, path[1:], req, keeper)
 		case types.QueryShares:
 			return queryShares(ctx, path[1:], req, keeper)
+		case types.QueryDeposits:
+			return queryDeposits(ctx, path[1:], req, keeper)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown track query endpoint")
 		}
@@ -86,6 +88,22 @@ func queryShares(ctx sdk.Context, path []string, req abci.RequestQuery, keeper K
 	shares := keeper.GetAllShares(ctx)
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, shares)
+	if err != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+	}
+	return bz, nil
+}
+
+func queryDeposits(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
+	var params types.QueryTrackParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+	}
+
+	deposits := keeper.GetDeposits(ctx, params.TrackID)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, deposits)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

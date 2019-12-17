@@ -39,6 +39,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		GetCmdQueryTrack(queryRoute, cdc),
 		GetCmdQueryPlays(queryRoute, cdc),
 		GetCmdQueryShares(queryRoute, cdc),
+		GetCmdQueryDeposits(queryRoute, cdc),
 	)...)
 
 	return trackQueryCmd
@@ -89,7 +90,7 @@ func GetCmdQueryTracks(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Query for all tracks. You can filter the returns with the following flags.
 Example:
 $ %s query track all --owner cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
-$ %s query track all --status (Verified|Rejected|Failed)
+$ %s query track all --status (DepositPeriod|Verified|Rejected|Failed)
 $ %s query track all --limit 10
 `,
 				version.ClientName, version.ClientName, version.ClientName,
@@ -157,6 +158,8 @@ $ %s query track all --limit 10
 //NormalizeTrackStatus - normalize user specified track status
 func NormalizeTrackStatus(status string) string {
 	switch status {
+	case "DepositPeriod", "deposit-period":
+		return "DepositPeriod"
 	case "Verified", "verified":
 		return "Verified"
 	case "Rejected", "rejected":
@@ -256,6 +259,62 @@ $ %s query track shares
 			var shares types.Shares
 			cdc.MustUnmarshalJSON(res, &shares)
 			return cliCtx.PrintOutput(shares)
+		},
+	}
+}
+
+func GetCmdQueryDeposits(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "deposits [track-id]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query deposits on a specific trackID",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query details for all deposits on a specific track.
+You can find the track-id by running "%s query track all".
+Example:
+$ %s query track deposits 1
+`,
+				version.ClientName, version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// validate that the track id is a uint
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("track-id %s not a valid uint, please input a valid track-id", args[0])
+			}
+
+			params := types.NewQueryTrackParams(trackID)
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			// check to see if the track is in the store
+			res, err := QueryTrackByID(trackID, cliCtx, queryRoute)
+			if err != nil {
+				return fmt.Errorf("failed to track track with id %d: %s", trackID, err)
+			}
+
+			var track types.Track
+			cdc.MustUnmarshalJSON(res, &track)
+
+			trackStatus := track.Status
+			if !(trackStatus == types.StatusDepositPeriod) {
+				res, err = QueryDepositsByTxQuery(cliCtx, params)
+			} else {
+				res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/deposits", queryRoute), bz)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			var dep types.Deposits
+			cdc.MustUnmarshalJSON(res, &dep)
+			return cliCtx.PrintOutput(dep)
 		},
 	}
 }

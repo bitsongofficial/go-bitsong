@@ -12,15 +12,18 @@ type (
 
 //nolint
 const (
-	StatusNil      TrackStatus = 0x00
-	StatusVerified TrackStatus = 0x01
-	StatusRejected TrackStatus = 0x02
-	StatusFailed   TrackStatus = 0x03
+	StatusNil           TrackStatus = 0x00
+	StatusDepositPeriod TrackStatus = 0x01
+	StatusVerified      TrackStatus = 0x02
+	StatusRejected      TrackStatus = 0x03
+	StatusFailed        TrackStatus = 0x04
 )
 
 // TrackStatusFromString turns a string into a AlbumStatus
 func TrackStatusFromString(str string) (TrackStatus, error) {
 	switch str {
+	case "DepositPeriod":
+		return StatusDepositPeriod, nil
 	case "Verified":
 		return StatusVerified, nil
 
@@ -41,6 +44,7 @@ func TrackStatusFromString(str string) (TrackStatus, error) {
 // Valid tells if the track status can be used
 func (status TrackStatus) Valid() bool {
 	if status == StatusNil ||
+		status == StatusDepositPeriod ||
 		status == StatusVerified ||
 		status == StatusRejected ||
 		status == StatusFailed {
@@ -85,6 +89,9 @@ func (status *TrackStatus) UnmarshalJSON(data []byte) error {
 // String implements the Stringer interface.
 func (status TrackStatus) String() string {
 	switch status {
+	case StatusDepositPeriod:
+		return "DepositPeriod"
+
 	case StatusVerified:
 		return "Verified"
 
