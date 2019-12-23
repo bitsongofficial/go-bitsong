@@ -27,6 +27,8 @@ type Track struct {
 	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`   // Album owner
 	TotalPlays  uint64         `json:"total_plays" yaml:"total_plays"`
 
+	TotalRewards sdk.Coins `json:"total_rewards" yaml:"total_rewards"`
+
 	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
 	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
 	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
@@ -48,6 +50,7 @@ func NewTrack(id uint64, title string, uri string, owner sdk.AccAddress, submitT
 		Status:       StatusNil,
 		Owner:        owner,
 		TotalPlays:   0,
+		TotalRewards: sdk.NewCoins(),
 		TotalDeposit: sdk.NewCoins(),
 		SubmitTime:   submitTime,
 	}
@@ -61,10 +64,11 @@ func (t Track) String() string {
   Status:  %s
   Owner:   %s
   Total Plays: %d
+  Total Rewards: %s
   Submit Time:        %s
   Deposit End Time:   %s
   Total Deposit:      %s`,
-		t.TrackID, t.Title, t.MetadataURI, t.Status.String(), t.Owner.String(), t.TotalPlays, t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
+		t.TrackID, t.Title, t.MetadataURI, t.Status.String(), t.Owner.String(), t.TotalPlays, t.TotalRewards.String(), t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
 	)
 }
 

@@ -81,15 +81,18 @@ func (k Keeper) GetTrack(ctx sdk.Context, trackID uint64) (track trackTypes.Trac
 	return k.trackKeeper.GetTrack(ctx, trackID)
 }
 
-func (k Keeper) AllocateToken(ctx sdk.Context, accAddr sdk.AccAddress, amt sdk.Coins) sdk.Error {
-	reward, ok := k.GetReward(ctx, accAddr)
+func (k Keeper) AllocateToken(ctx sdk.Context, track trackTypes.Track, amt sdk.Coins) sdk.Error {
+	track.TotalRewards = track.TotalRewards.Add(amt)
+	k.trackKeeper.SetTrack(ctx, track)
+
+	reward, ok := k.GetReward(ctx, track.Owner)
 
 	if !ok {
-		reward = types.NewReward(accAddr)
+		reward = types.NewReward(track.Owner)
 	}
 
 	reward.TotalRewards = reward.TotalRewards.Add(amt)
-	k.SetReward(ctx, accAddr, reward)
+	k.SetReward(ctx, track.Owner, reward)
 
 	return nil
 }

@@ -49,7 +49,7 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 		}
 
 		// allocate reward
-		keeper.AllocateToken(ctx, track.Owner, reward)
+		keeper.AllocateToken(ctx, track, reward)
 
 		fmt.Println()
 		fmt.Println()
