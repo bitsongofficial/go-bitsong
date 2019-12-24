@@ -21,7 +21,10 @@ import (
 
 const (
 	FlagTitle       = "title"
-	FlagMetadataURI = "metadata-uri"
+	FlagDescription = "description"
+	FlagAudio       = "audio"
+	FlagImage       = "image"
+	FlagDuration    = "duration"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -50,7 +53,7 @@ func GetCmdCreateTrack(cdc *codec.Codec) *cobra.Command {
 		Short: "create new track initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Track initialized with status nil.
 Example:
-$ %s tx track create --title "The Show Must Go On" --metadata-uri="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --from mykey
+$ %s tx track create --title "The Show Must Go On" --description="The track description" --audio="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --image="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --duration 385 --from mykey
 `,
 			version.ClientName,
 		)),
@@ -60,13 +63,16 @@ $ %s tx track create --title "The Show Must Go On" --metadata-uri="QmWATWQ7fVPP2
 
 			// Get flags
 			flagTitle := viper.GetString(FlagTitle) // Get track title
-			flatMetadataUri := viper.GetString(FlagMetadataURI)
+			flagDescription := viper.GetString(FlagDescription)
+			flagAudio := viper.GetString(FlagAudio)
+			flagImage := viper.GetString(FlagImage)
+			flagDuration := viper.GetString(FlagDuration)
 
 			// Get params
 			from := cliCtx.GetFromAddress() // Get owner
 
 			// Build create track message
-			msg := types.NewMsgCreateTrack(flagTitle, flatMetadataUri, from)
+			msg := types.NewMsgCreateTrack(flagTitle, flagDescription, flagAudio, flagImage, flagDuration, from)
 
 			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
@@ -78,7 +84,10 @@ $ %s tx track create --title "The Show Must Go On" --metadata-uri="QmWATWQ7fVPP2
 	}
 
 	cmd.Flags().String(FlagTitle, "", "the track title")
-	cmd.Flags().String(FlagMetadataURI, "", "the track metadata")
+	cmd.Flags().String(FlagDescription, "", "the track description")
+	cmd.Flags().String(FlagAudio, "", "the track audio")
+	cmd.Flags().String(FlagImage, "", "the track image")
+	cmd.Flags().String(FlagDuration, "", "the track duration")
 
 	return cmd
 }

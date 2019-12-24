@@ -26,15 +26,22 @@ var _ sdk.Msg = MsgCreateTrack{}
 
 // MsgCreateTrack defines CreateTrack message
 type MsgCreateTrack struct {
-	Title       string         `json:"title"` // Track title
-	MetadataURI string         `json:"metadata_uri"`
-	Owner       sdk.AccAddress `json:"owner"` // Track owner
+	Title       string `json:"title"` // Track title
+	Description string `json:"description"`
+	Audio       string `json:"audio"`
+	Image       string `json:"image"`
+	Duration    string `json:"duration"`
+
+	Owner sdk.AccAddress `json:"owner"` // Track owner
 }
 
-func NewMsgCreateTrack(title string, metadataUri string, owner sdk.AccAddress) MsgCreateTrack {
+func NewMsgCreateTrack(title string, description, audio, image, duration string, owner sdk.AccAddress) MsgCreateTrack {
 	return MsgCreateTrack{
 		Title:       title,
-		MetadataURI: metadataUri,
+		Description: description,
+		Audio:       audio,
+		Image:       image,
+		Duration:    duration,
 		Owner:       owner,
 	}
 }
@@ -45,6 +52,9 @@ func (msg MsgCreateTrack) Type() string  { return TypeMsgCreateTrack }
 
 // ValidateBasic
 func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
+	// TODO:
+	// - Add more check for CID (Metadata uri ipfs:)
+
 	if len(strings.TrimSpace(msg.Title)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track title cannot be blank")
 	}
@@ -53,10 +63,24 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track title is longer than max length of %d", MaxTitleLength))
 	}
 
-	// TODO:
-	// - Add more check for CID (Metadata uri ipfs:)
-	if len(strings.TrimSpace(msg.MetadataURI)) == 0 {
-		return ErrInvalidTrackMetadataURI(DefaultCodespace, "track metadata uri cannot be blank")
+	if len(strings.TrimSpace(msg.Description)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track description cannot be blank")
+	}
+
+	if len(msg.Description) > MaxDescriptionLength {
+		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track description is longer than max length of %d", MaxDescriptionLength))
+	}
+
+	if len(strings.TrimSpace(msg.Audio)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track audio cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Image)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track image cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Duration)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track duration cannot be blank")
 	}
 
 	if msg.Owner.Empty() {

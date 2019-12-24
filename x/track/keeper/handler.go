@@ -30,7 +30,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 // handleMsgCreateTrack handles the creation of a new track
 func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTrack) sdk.Result {
-	track, err := keeper.CreateTrack(ctx, msg.Title, msg.MetadataURI, msg.Owner)
+	track, err := keeper.CreateTrack(ctx, msg.Title, msg.Description, msg.Audio, msg.Image, msg.Duration, msg.Owner)
 	if err != nil {
 		return err.Result()
 	}

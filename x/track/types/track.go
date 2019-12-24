@@ -15,19 +15,23 @@ import (
 
 // Constants pertaining to an Track object
 const (
-	MaxTitleLength int = 140
+	MaxTitleLength       int = 140
+	MaxDescriptionLength int = 280
 )
 
 // TODO: image, cid, duration
 type Track struct {
-	TrackID     uint64         `json:"id" yaml:"id"`         // Track ID
-	Title       string         `json:"title" yaml:"title"`   // Track Title
-	Status      TrackStatus    `json:"status" yaml:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
-	MetadataURI string         `json:"metadata_uri"`         // Metadata uri example: ipfs:QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u
-	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`   // Album owner
-	TotalPlays  uint64         `json:"total_plays" yaml:"total_plays"`
+	TrackID     uint64      `json:"id" yaml:"id"`       // Track ID
+	Title       string      `json:"title" yaml:"title"` // Track Title
+	Description string      `json:"description"`
+	Status      TrackStatus `json:"status" yaml:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
+	Audio       string      `json:"audio"`
+	Image       string      `json:"image"`
+	Duration    string      `json:"duration"`
 
-	TotalRewards sdk.Coins `json:"total_rewards" yaml:"total_rewards"`
+	Owner        sdk.AccAddress `json:"owner" yaml:"owner"` // Album owner
+	TotalPlays   uint64         `json:"total_plays" yaml:"total_plays"`
+	TotalRewards sdk.Coins      `json:"total_rewards" yaml:"total_rewards"`
 
 	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
 	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
@@ -42,12 +46,15 @@ func TrackKey(trackID uint64) []byte {
 	return append(TracksKeyPrefix, bz...)
 }
 
-func NewTrack(id uint64, title string, uri string, owner sdk.AccAddress, submitTime time.Time) Track {
+func NewTrack(id uint64, title string, description string, audio string, image string, duration string, owner sdk.AccAddress, submitTime time.Time) Track {
 	return Track{
 		TrackID:      id,
 		Title:        title,
-		MetadataURI:  uri,
+		Description:  description,
 		Status:       StatusNil,
+		Audio:        audio,
+		Image:        image,
+		Duration:     duration,
 		Owner:        owner,
 		TotalPlays:   0,
 		TotalRewards: sdk.NewCoins(),
@@ -60,15 +67,18 @@ func NewTrack(id uint64, title string, uri string, owner sdk.AccAddress, submitT
 func (t Track) String() string {
 	return fmt.Sprintf(`TrackID %d:
   Title:    %s
-  Metadata: %s
+  Description: %s
   Status:  %s
+  Audio: %s
+  Image: %s
+  Duration: %s
   Owner:   %s
   Total Plays: %d
   Total Rewards: %s
   Submit Time:        %s
   Deposit End Time:   %s
   Total Deposit:      %s`,
-		t.TrackID, t.Title, t.MetadataURI, t.Status.String(), t.Owner.String(), t.TotalPlays, t.TotalRewards.String(), t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
+		t.TrackID, t.Title, t.Description, t.Audio, t.Image, t.Duration, t.Status.String(), t.Owner.String(), t.TotalPlays, t.TotalRewards.String(), t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
 	)
 }
 
