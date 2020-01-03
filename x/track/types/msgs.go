@@ -94,15 +94,15 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track genre cannot be blank")
 	}
 
-	if len(strings.TrimSpace(msg.Mood)) == 0 {
+	/*if len(strings.TrimSpace(msg.Mood)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track mood cannot be blank")
-	}
+	}*/
 
 	if len(strings.TrimSpace(msg.Artists)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track artists cannot be blank")
 	}
 
-	if len(strings.TrimSpace(msg.Featuring)) == 0 {
+	/*if len(strings.TrimSpace(msg.Featuring)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track featuring cannot be blank")
 	}
 
@@ -112,7 +112,7 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 
 	if len(strings.TrimSpace(msg.Description)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track description cannot be blank")
-	}
+	}*/
 
 	if len(msg.Description) > MaxDescriptionLength {
 		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track description is longer than max length of %d", MaxDescriptionLength))
