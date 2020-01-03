@@ -119,7 +119,7 @@ func (keeper Keeper) GetTracksFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress
 }
 
 // CreateTrack create new track
-func (keeper Keeper) CreateTrack(ctx sdk.Context, title string, description, audio, image, duration string, owner sdk.AccAddress) (types.Track, sdk.Error) {
+func (keeper Keeper) CreateTrack(ctx sdk.Context, title, audio, image, duration string, hidden, explicit bool, genre, mood, artists, featuring, producers, description, copyright string, owner sdk.AccAddress) (types.Track, sdk.Error) {
 	trackID, err := keeper.GetTrackID(ctx)
 	if err != nil {
 		return types.Track{}, err
@@ -127,7 +127,24 @@ func (keeper Keeper) CreateTrack(ctx sdk.Context, title string, description, aud
 
 	submitTime := ctx.BlockHeader().Time
 
-	track := types.NewTrack(trackID, title, description, audio, image, duration, owner, submitTime)
+	track := types.NewTrack(
+		trackID,
+		title,
+		audio,
+		image,
+		duration,
+		hidden,
+		explicit,
+		genre,
+		mood,
+		artists,
+		featuring,
+		producers,
+		description,
+		copyright,
+		owner,
+		submitTime,
+	)
 
 	keeper.SetTrack(ctx, track)
 	keeper.SetTrackID(ctx, trackID+1)

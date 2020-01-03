@@ -33,16 +33,11 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/x/album"
 	albumTypes "github.com/bitsongofficial/go-bitsong/x/album/types"
-	"github.com/bitsongofficial/go-bitsong/x/artist"
-	artistTypes "github.com/bitsongofficial/go-bitsong/x/artist/types"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/reward"
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/distributor"
-	distributorTypes "github.com/bitsongofficial/go-bitsong/x/distributor/types"
 )
 
 const appName = "GoBitsong"
@@ -68,17 +63,14 @@ var (
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
 			distr.ProposalHandler,
-			distributor.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		reward.AppModuleBasic{},
-		artist.AppModuleBasic{},
 		album.AppModuleBasic{},
 		track.AppModuleBasic{},
-		distributor.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -89,7 +81,6 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		artist.ModuleName:         {supply.Burner},
 		album.ModuleName:          {supply.Burner},
 		track.ModuleName:          {supply.Burner},
 		reward.ModuleName:         nil,
@@ -132,11 +123,9 @@ type GoBitsong struct {
 	paramsKeeper   params.Keeper
 
 	// bitsong keepers
-	rewardKeeper      reward.Keeper
-	artistKeeper      artist.Keeper
-	albumKeeper       album.Keeper
-	trackKeeper       track.Keeper
-	distributorKeeper distributor.Keeper
+	rewardKeeper reward.Keeper
+	albumKeeper  album.Keeper
+	trackKeeper  track.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -155,8 +144,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, rewardTypes.StoreKey, artistTypes.StoreKey,
-		albumTypes.StoreKey, trackTypes.StoreKey, distributorTypes.StoreKey,
+		gov.StoreKey, params.StoreKey, rewardTypes.StoreKey,
+		albumTypes.StoreKey, trackTypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -180,7 +169,6 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
 	rewardSubspace := app.paramsKeeper.Subspace(reward.DefaultParamspace)
-	artistSubspace := app.paramsKeeper.Subspace(artist.DefaultParamspace)
 	albumSubspace := app.paramsKeeper.Subspace(album.DefaultParamspace)
 	trackSubspace := app.paramsKeeper.Subspace(track.DefaultParamspace)
 
@@ -207,20 +195,17 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	)
 
 	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper, app.accountKeeper, app.supplyKeeper, trackSubspace)
-	app.distributorKeeper = distributor.NewKeeper(app.cdc, keys[distributorTypes.StoreKey], distributorTypes.DefaultCodespace)
 
 	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper, app.trackKeeper)
 	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName, app.rewardKeeper)
 
-	app.artistKeeper = artist.NewKeeper(app.cdc, keys[artistTypes.StoreKey], artistTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper, artistSubspace)
 	app.albumKeeper = album.NewKeeper(app.cdc, keys[albumTypes.StoreKey], albumTypes.DefaultCodespace, app.accountKeeper, app.supplyKeeper, albumSubspace)
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(distributor.RouterKey, distributor.NewDistributorVerifyProposalHandler(app.distributorKeeper))
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
 		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
@@ -241,10 +226,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper),
-		artist.NewAppModule(app.artistKeeper),
 		album.NewAppModule(app.albumKeeper),
 		track.NewAppModule(app.trackKeeper),
-		distributor.NewAppModule(app.distributorKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -259,8 +242,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	app.mm.SetOrderInitGenesis(
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
-		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName, artistTypes.ModuleName,
-		trackTypes.ModuleName, albumTypes.ModuleName, distributorTypes.ModuleName, rewardTypes.ModuleName,
+		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
+		trackTypes.ModuleName, albumTypes.ModuleName, rewardTypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

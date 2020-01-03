@@ -6,7 +6,8 @@ import (
 )
 
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	if ctx.BlockHeight()%2 != 1 {
+	// Payout: 60 blocks
+	if ctx.BlockHeight()%60 != 1 {
 		return
 	}
 

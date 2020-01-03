@@ -21,10 +21,18 @@ import (
 
 const (
 	FlagTitle       = "title"
-	FlagDescription = "description"
 	FlagAudio       = "audio"
 	FlagImage       = "image"
 	FlagDuration    = "duration"
+	FlagHidden      = "hidden"
+	FlagExplicit    = "explicit"
+	FlagGenre       = "genre"
+	FlagMood        = "mood"
+	FlagArtists     = "artists"
+	FlagFeaturing   = "featuring"
+	FlagProducers   = "producers"
+	FlagDescription = "description"
+	FlagCopyright   = "copyright"
 )
 
 // GetTxCmd returns the transaction commands for this module.
@@ -63,16 +71,39 @@ $ %s tx track create --title "The Show Must Go On" --description="The track desc
 
 			// Get flags
 			flagTitle := viper.GetString(FlagTitle) // Get track title
-			flagDescription := viper.GetString(FlagDescription)
 			flagAudio := viper.GetString(FlagAudio)
 			flagImage := viper.GetString(FlagImage)
 			flagDuration := viper.GetString(FlagDuration)
+			flagHidden := viper.GetBool(FlagHidden)
+			flagExplicit := viper.GetBool(FlagExplicit)
+			flagGenre := viper.GetString(FlagGenre)
+			flagMood := viper.GetString(FlagMood)
+			flagArtists := viper.GetString(FlagArtists)
+			flagFeaturing := viper.GetString(FlagFeaturing)
+			flagProducers := viper.GetString(FlagProducers)
+			flagDescription := viper.GetString(FlagDescription)
+			flagCopyright := viper.GetString(FlagCopyright)
 
 			// Get params
 			from := cliCtx.GetFromAddress() // Get owner
 
 			// Build create track message
-			msg := types.NewMsgCreateTrack(flagTitle, flagDescription, flagAudio, flagImage, flagDuration, from)
+			msg := types.NewMsgCreateTrack(
+				flagTitle,
+				flagAudio,
+				flagImage,
+				flagDuration,
+				flagHidden,
+				flagExplicit,
+				flagGenre,
+				flagMood,
+				flagArtists,
+				flagFeaturing,
+				flagProducers,
+				flagDescription,
+				flagCopyright,
+				from,
+			)
 
 			// Run basic validation
 			if err := msg.ValidateBasic(); err != nil {
@@ -84,10 +115,18 @@ $ %s tx track create --title "The Show Must Go On" --description="The track desc
 	}
 
 	cmd.Flags().String(FlagTitle, "", "the track title")
-	cmd.Flags().String(FlagDescription, "", "the track description")
 	cmd.Flags().String(FlagAudio, "", "the track audio")
 	cmd.Flags().String(FlagImage, "", "the track image")
 	cmd.Flags().String(FlagDuration, "", "the track duration")
+	cmd.Flags().Bool(FlagHidden, false, "track is hidden?")
+	cmd.Flags().Bool(FlagExplicit, false, "track is explicit?")
+	cmd.Flags().String(FlagGenre, "", "the track genre")
+	cmd.Flags().String(FlagMood, "", "the track mood")
+	cmd.Flags().String(FlagArtists, "", "the track artists")
+	cmd.Flags().String(FlagFeaturing, "", "the track featuring")
+	cmd.Flags().String(FlagProducers, "", "the track producers")
+	cmd.Flags().String(FlagDescription, "", "the track description")
+	cmd.Flags().String(FlagCopyright, "", "the track copyright")
 
 	return cmd
 }

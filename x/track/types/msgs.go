@@ -26,22 +26,37 @@ var _ sdk.Msg = MsgCreateTrack{}
 
 // MsgCreateTrack defines CreateTrack message
 type MsgCreateTrack struct {
-	Title       string `json:"title"` // Track title
-	Description string `json:"description"`
-	Audio       string `json:"audio"`
-	Image       string `json:"image"`
-	Duration    string `json:"duration"`
-
-	Owner sdk.AccAddress `json:"owner"` // Track owner
+	Title       string         `json:"title" yaml:"title"` // Track title
+	Audio       string         `json:"audio" yaml:"audio"`
+	Image       string         `json:"image" yaml:"image"`
+	Duration    string         `json:"duration" yaml:"duration"`
+	Hidden      bool           `json:"hidden" yaml:"hidden"`
+	Explicit    bool           `json:"explicit" yaml:"explicit"`
+	Genre       string         `json:"genre" yaml:"genre"`
+	Mood        string         `json:"mood" yaml:"mood"`
+	Artists     string         `json:"artists" yaml:"artists"`
+	Featuring   string         `json:"featuring" yaml:"featuring"`
+	Producers   string         `json:"producers" yaml:"producers"`
+	Description string         `json:"description" yaml:"description"`
+	Copyright   string         `json:"copyright" yaml:"copyright"`
+	Owner       sdk.AccAddress `json:"owner" yaml:"owner"` // Track owner
 }
 
-func NewMsgCreateTrack(title string, description, audio, image, duration string, owner sdk.AccAddress) MsgCreateTrack {
+func NewMsgCreateTrack(title, audio, image, duration string, hidden, explicit bool, genre, mood, artists, featuring, producers, description, copyright string, owner sdk.AccAddress) MsgCreateTrack {
 	return MsgCreateTrack{
 		Title:       title,
-		Description: description,
 		Audio:       audio,
 		Image:       image,
 		Duration:    duration,
+		Hidden:      hidden,
+		Explicit:    explicit,
+		Genre:       genre,
+		Mood:        mood,
+		Artists:     artists,
+		Featuring:   featuring,
+		Producers:   producers,
+		Description: description,
+		Copyright:   copyright,
 		Owner:       owner,
 	}
 }
@@ -53,7 +68,7 @@ func (msg MsgCreateTrack) Type() string  { return TypeMsgCreateTrack }
 // ValidateBasic
 func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 	// TODO:
-	// - Add more check for CID (Metadata uri ipfs:)
+	// - Add more check
 
 	if len(strings.TrimSpace(msg.Title)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track title cannot be blank")
@@ -61,14 +76,6 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 
 	if len(msg.Title) > MaxTitleLength {
 		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track title is longer than max length of %d", MaxTitleLength))
-	}
-
-	if len(strings.TrimSpace(msg.Description)) == 0 {
-		return ErrInvalidTrackTitle(DefaultCodespace, "track description cannot be blank")
-	}
-
-	if len(msg.Description) > MaxDescriptionLength {
-		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track description is longer than max length of %d", MaxDescriptionLength))
 	}
 
 	if len(strings.TrimSpace(msg.Audio)) == 0 {
@@ -81,6 +88,42 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 
 	if len(strings.TrimSpace(msg.Duration)) == 0 {
 		return ErrInvalidTrackTitle(DefaultCodespace, "track duration cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Genre)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track genre cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Mood)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track mood cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Artists)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track artists cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Featuring)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track featuring cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Producers)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track producers cannot be blank")
+	}
+
+	if len(strings.TrimSpace(msg.Description)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track description cannot be blank")
+	}
+
+	if len(msg.Description) > MaxDescriptionLength {
+		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track description is longer than max length of %d", MaxDescriptionLength))
+	}
+
+	/*if len(strings.TrimSpace(msg.Description)) == 0 {
+		return ErrInvalidTrackTitle(DefaultCodespace, "track description cannot be blank")
+	}*/
+
+	if len(msg.Copyright) > MaxCopyrightLength {
+		return ErrInvalidTrackTitle(DefaultCodespace, fmt.Sprintf("track copyright is longer than max length of %d", MaxCopyrightLength))
 	}
 
 	if msg.Owner.Empty() {
