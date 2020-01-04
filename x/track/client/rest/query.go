@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 
@@ -13,6 +15,7 @@ import (
 )
 
 const (
+	RestTrackID     = "track-id"
 	RestOwner       = "owner"
 	RestTrackStatus = "status"
 	RestNumLimit    = "limit"
@@ -20,6 +23,7 @@ const (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/track/all", queryTracksWithParameterFn(cliCtx)).Methods("GET")
+	r.HandleFunc(fmt.Sprintf("/track/{%s}", RestTrackID), queryTrackHandlerFn(cliCtx)).Methods("GET")
 }
 
 // HTTP request handler to query albums with parameters
@@ -81,6 +85,46 @@ func queryTracksWithParameterFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		// Response
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryTrackHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		strTrackID := vars[RestTrackID]
+
+		if len(strTrackID) == 0 {
+			err := errors.New("trackId required but not specified")
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		trackID, ok := rest.ParseUint64OrReturnBadRequest(w, strTrackID)
+		if !ok {
+			return
+		}
+
+		cliCtx, ok = rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		params := types.NewQueryTrackParams(trackID)
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		res, height, err := cliCtx.QueryWithData("custom/track/track", bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
