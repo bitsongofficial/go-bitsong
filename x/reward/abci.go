@@ -6,8 +6,7 @@ import (
 )
 
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
-	//blockPeriodPayout := int64(60) // Payout each x block
-	blockPeriodPayout := int64(5) // Payout each x block
+	blockPeriodPayout := int64(60) // Payout each x block
 
 	if ctx.BlockHeight()%blockPeriodPayout != 0 {
 		return
