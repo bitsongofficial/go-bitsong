@@ -89,9 +89,8 @@ func GetCmdQueryTracks(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query for all tracks. You can filter the returns with the following flags.
 Example:
-$ %s query track all --owner cosmos1skjwj5whet0lpe65qaq4rpq03hjxlwd9nf39lk
+$ %s query track all --owner bitsong14s033e0ehf0lluafrayaam7un7kkv9a0n3rjeh
 $ %s query track all --status (DepositPeriod|Verified|Rejected|Failed)
-$ %s query track all --limit 10
 `,
 				version.ClientName, version.ClientName, version.ClientName,
 			),

@@ -5,9 +5,9 @@ PASSWORD="12345678"
 rm -rf ~/.bitsong*
 
 # Initialize the genesis.json file that will help you to bootstrap the network
-bitsongd init MyValidator --chain-id=bitsong-dev-network-2
+bitsongd init MyValidator --chain-id=bitsong-dev-network-3
 
-bitsongcli config chain-id bitsong-dev-network-2
+bitsongcli config chain-id bitsong-dev-network-3
 bitsongcli config output json
 bitsongcli config indent true
 bitsongcli config trust-node true

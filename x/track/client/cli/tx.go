@@ -61,7 +61,18 @@ func GetCmdCreateTrack(cdc *codec.Codec) *cobra.Command {
 		Short: "create new track initialized with status nil",
 		Long: strings.TrimSpace(fmt.Sprintf(`Create a new Track initialized with status nil.
 Example:
-$ %s tx track create --title "The Show Must Go On" --description="The track description" --audio="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --image="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" --duration 385 --from mykey
+$ %s tx track create --title "The Show Must Go On" \
+  --audio="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" \
+  --image="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" \
+  --duration 385 \
+  --genre "Pop" \
+  --mood "Happy" \
+  --artists "Queen" \
+  --featuring "Angelo" \
+  --producers "Angelo" \
+  --description="The track description" \
+  --copyright="My Copyright info" \
+  --from mykey
 `,
 			version.ClientName,
 		)),
