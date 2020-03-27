@@ -11,13 +11,13 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/proxy"
 	tmsm "github.com/tendermint/tendermint/state"
 	tmstore "github.com/tendermint/tendermint/store"
 	tm "github.com/tendermint/tendermint/types"
 
-	"github.com/bitsongofficial/go-bitsong/app"
+	"github.com/cosmos/gaia/app"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -28,7 +28,7 @@ import (
 func replayCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "replay <root-dir>",
-		Short: "Replay bitsong transactions",
+		Short: "Replay gaia transactions",
 		RunE: func(_ *cobra.Command, args []string) error {
 			return replayTxs(args[0])
 		},
@@ -42,10 +42,12 @@ func replayTxs(rootDir string) error {
 		// Copy the rootDir to a new directory, to preserve the old one.
 		fmt.Fprintln(os.Stderr, "Copying rootdir over")
 		oldRootDir := rootDir
+
 		rootDir = oldRootDir + "_replay"
-		if cmn.FileExists(rootDir) {
-			cmn.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
+		if tmos.FileExists(rootDir) {
+			tmos.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
 		}
+
 		if err := cpm.Copy(oldRootDir, rootDir); err != nil {
 			return err
 		}
@@ -92,8 +94,8 @@ func replayTxs(rootDir string) error {
 
 	// Application
 	fmt.Fprintln(os.Stderr, "Creating application")
-	myapp := app.NewBitsongApp(
-		ctx.Logger, appDB, traceStoreWriter, true, uint(1),
+	gapp := app.NewGaiaApp(
+		ctx.Logger, appDB, traceStoreWriter, true, uint(1), map[int64]bool{}, "",
 		baseapp.SetPruning(store.PruneEverything), // nothing
 	)
 
@@ -109,14 +111,17 @@ func replayTxs(rootDir string) error {
 	}
 	// tmsm.SaveState(tmDB, genState)
 
-	cc := proxy.NewLocalClientCreator(myapp)
+	cc := proxy.NewLocalClientCreator(gapp)
 	proxyApp := proxy.NewAppConns(cc)
 	err = proxyApp.Start()
 	if err != nil {
 		return err
 	}
 	defer func() {
-		_ = proxyApp.Stop()
+		err = proxyApp.Stop()
+		if err != nil {
+			return
+		}
 	}()
 
 	state := tmsm.LoadState(tmDB)

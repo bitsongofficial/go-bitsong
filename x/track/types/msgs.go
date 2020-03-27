@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 /****
@@ -66,7 +67,7 @@ func (msg MsgCreateTrack) Route() string { return RouterKey }
 func (msg MsgCreateTrack) Type() string  { return TypeMsgCreateTrack }
 
 // ValidateBasic
-func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
+func (msg MsgCreateTrack) ValidateBasic() error {
 	// TODO:
 	// - Add more check
 
@@ -127,7 +128,7 @@ func (msg MsgCreateTrack) ValidateBasic() sdk.Error {
 	}
 
 	if msg.Owner.Empty() {
-		return sdk.ErrInvalidAddress(msg.Owner.String())
+		return sdkerr.Wrap(sdkerr.ErrInvalidAddress, msg.Owner.String())
 	}
 
 	return nil
@@ -159,7 +160,7 @@ var _ sdk.Msg = MsgPlay{}
 
 // MsgPlay defines PlayTrack message
 type MsgPlay struct {
-	TrackID uint64         "json:`track_id` yaml:`track_id`"
+	TrackID uint64         `json:"track_id",yaml:"track_id"`
 	AccAddr sdk.AccAddress `json:"acc_addr"`
 }
 
@@ -175,7 +176,7 @@ func (msg MsgPlay) Route() string { return RouterKey }
 func (msg MsgPlay) Type() string  { return TypeMsgPlayTrack }
 
 // ValidateBasic
-func (msg MsgPlay) ValidateBasic() sdk.Error {
+func (msg MsgPlay) ValidateBasic() error {
 	// TODO:
 	// - improve check
 
@@ -184,7 +185,7 @@ func (msg MsgPlay) ValidateBasic() sdk.Error {
 	}
 
 	if msg.AccAddr.Empty() {
-		return sdk.ErrInvalidAddress(msg.AccAddr.String())
+		return sdkerr.Wrap(sdkerr.ErrInvalidAddress, msg.AccAddr.String())
 	}
 
 	return nil
@@ -230,15 +231,15 @@ func (msg MsgDeposit) Route() string { return RouterKey }
 func (msg MsgDeposit) Type() string  { return TypeMsgDeposit }
 
 // Implements Msg.
-func (msg MsgDeposit) ValidateBasic() sdk.Error {
+func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Depositor.Empty() {
-		return sdk.ErrInvalidAddress(msg.Depositor.String())
+		return sdkerr.Wrap(sdkerr.ErrInvalidAddress, msg.Depositor.String())
 	}
 	if !msg.Amount.IsValid() {
-		return sdk.ErrInvalidCoins(msg.Amount.String())
+		return sdkerr.Wrap(sdkerr.ErrInvalidCoins, msg.Amount.String())
 	}
 	if msg.Amount.IsAnyNegative() {
-		return sdk.ErrInvalidCoins(msg.Amount.String())
+		return sdkerr.Wrap(sdkerr.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	return nil

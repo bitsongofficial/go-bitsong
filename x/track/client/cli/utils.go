@@ -2,16 +2,17 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 )
 
 const (
-	defaultPage  = 1
-	defaultLimit = 30 // should be consistent with tendermint/tendermint/rpc/core/pipe.go:19
+	defaultPage    = 1
+	defaultLimit   = 30 // should be consistent with tendermint/tendermint/rpc/core/pipe.go:19
+	defaultOrderBy = "asc"
 )
 
 func QueryDepositsByTxQuery(cliCtx context.CLIContext, params types.QueryTrackParams) ([]byte, error) {
@@ -22,7 +23,7 @@ func QueryDepositsByTxQuery(cliCtx context.CLIContext, params types.QueryTrackPa
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
 	// support configurable pagination.
-	searchResult, err := utils.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit)
+	searchResult, err := authclient.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, defaultOrderBy)
 	if err != nil {
 		return nil, err
 	}

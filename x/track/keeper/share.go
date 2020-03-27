@@ -22,7 +22,7 @@ func (keeper Keeper) GetShare(ctx sdk.Context, trackID uint64) (share types.Shar
 	return share, true
 }
 
-func (keeper Keeper) IncrementShare(ctx sdk.Context, trackID uint64, amt sdk.Dec) sdk.Error {
+func (keeper Keeper) IncrementShare(ctx sdk.Context, trackID uint64, amt sdk.Dec) error {
 	// TODO:
 	// improve checks
 

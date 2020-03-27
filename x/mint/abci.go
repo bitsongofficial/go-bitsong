@@ -2,36 +2,37 @@ package mint
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/go-bitsong/x/mint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // BeginBlocker mints new tokens for the previous block.
-func BeginBlocker(ctx sdk.Context, k Keeper) {
+func BeginBlocker(ctx sdk.Context, cmintKeeper mint.Keeper, k Keeper) {
 	// fetch stored minter & params
-	minter := k.GetMinter(ctx)
-	params := k.GetParams(ctx)
+	minter := cmintKeeper.GetMinter(ctx)
+	params := cmintKeeper.GetParams(ctx)
 
 	// recalculate inflation rate
-	totalStakingSupply := k.StakingTokenSupply(ctx)
-	bondedRatio := k.BondedRatio(ctx)
+	totalStakingSupply := cmintKeeper.StakingTokenSupply(ctx)
+	bondedRatio := cmintKeeper.BondedRatio(ctx)
 	minter.Inflation = minter.NextInflationRate(params, bondedRatio)
 	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalStakingSupply)
-	k.SetMinter(ctx, minter)
+	cmintKeeper.SetMinter(ctx, minter)
 
 	// mint coins, update supply
 	mintedCoin := minter.BlockProvision(params)
 	mintedCoins := sdk.NewCoins(mintedCoin)
 
-	err := k.MintCoins(ctx, mintedCoins)
+	err := cmintKeeper.MintCoins(ctx, mintedCoins)
 	if err != nil {
 		panic(err)
 	}
 
 	// Calculate BitSong Reward Pool
-	rewardFraction, _ := sdk.NewDecFromStr("0.03")                                                  // TODO: (3%) get from parameters
-	rewardCoins, _ := sdk.NewDecCoins(mintedCoins).MulDecTruncate(rewardFraction).TruncateDecimal() // truncate decimals
+	rewardFraction, _ := sdk.NewDecFromStr("0.03")                                                          // TODO: (3%) get from parameters
+	rewardCoins, _ := sdk.NewDecCoinsFromCoins(mintedCoin).MulDecTruncate(rewardFraction).TruncateDecimal() // truncate decimals
 
 	// TODO:
 	// Add rewardCoins to the rewardPool
@@ -40,16 +41,16 @@ func BeginBlocker(ctx sdk.Context, k Keeper) {
 		panic(err)
 	}
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Printf("Reward Pool: %s", k.GetRewardPoolSupply(ctx))
-	fmt.Println()
-	fmt.Println()
+	fmt.Printf(`
+
+Reward Pool: %s
+
+`, k.GetRewardPoolSupply(ctx))
 
 	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
 
 	// send the minted coins to the fee collector account
-	err = k.AddCollectedFees(ctx, remainingCoins)
+	err = cmintKeeper.AddCollectedFees(ctx, remainingCoins)
 	if err != nil {
 		panic(err)
 	}

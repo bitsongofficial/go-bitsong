@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -34,7 +35,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	trackQueryCmd.AddCommand(client.GetCommands(
+	trackQueryCmd.AddCommand(flags.GetCommands(
 		GetCmdQueryTracks(queryRoute, cdc),
 		GetCmdQueryTrack(queryRoute, cdc),
 		GetCmdQueryPlays(queryRoute, cdc),

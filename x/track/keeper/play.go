@@ -23,7 +23,7 @@ func (keeper Keeper) GetAccPower(ctx sdk.Context, address sdk.AccAddress) sdk.De
 }
 
 // Play Add a play on a specific track
-func (keeper Keeper) Play(ctx sdk.Context, trackID uint64, accAddr sdk.AccAddress) sdk.Error {
+func (keeper Keeper) Play(ctx sdk.Context, trackID uint64, accAddr sdk.AccAddress) error {
 	track, ok := keeper.GetTrack(ctx, trackID)
 	if !ok {
 		return types.ErrUnknownTrack(keeper.codespace, fmt.Sprintf("unknown trackID %d", trackID))

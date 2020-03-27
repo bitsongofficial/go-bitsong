@@ -5,6 +5,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"strings"
@@ -22,7 +23,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	trackQueryCmd.AddCommand(client.GetCommands(
+	trackQueryCmd.AddCommand(flags.GetCommands(
 		GetCmdQueryAllRewards(queryRoute, cdc),
 	)...)
 

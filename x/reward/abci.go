@@ -2,6 +2,7 @@ package reward
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -53,26 +54,21 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 		// allocate reward
 		keeper.AllocateToken(ctx, track, reward)
 
-		fmt.Println()
-		fmt.Println()
-		fmt.Printf("Track ID: %d", t.TrackID)
-		fmt.Println()
-		fmt.Printf("Reward Pool Supply: %s", rewardPoolSupply.String())
-		fmt.Println()
-		fmt.Printf("Reward Pool: %s", rewardPool.Amount.String())
-		fmt.Println()
-		fmt.Printf("Reward Portion: %s", rewardPortion.String())
-		fmt.Println()
-		fmt.Printf("Reward Track: %s", reward.String())
-		fmt.Println()
-		fmt.Printf("TotalShare Track: %s", t.TotalShare.TruncateInt().String())
-		fmt.Println()
-		fmt.Printf("TotalShare: %s", totalShares.TruncateInt().String())
-		fmt.Println()
-		fmt.Println()
+		fmt.Printf(`
+
+Track ID: %d
+Reward Pool Supply: %s
+Reward Pool: %s
+Reward Portion: %s
+Reward Track: %s
+TotalShare Track: %s
+TotalShare: %s
+
+`, t.TrackID, rewardPoolSupply, rewardPool.Amount, rewardPortion,
+			reward, t.TotalShare.TruncateInt(), totalShares.TruncateInt())
 
 		// subtract reward from rewardPool storage
-		rewardPool.Amount = rewardPool.Amount.Sub(sdk.NewDecCoins(reward))
+		rewardPool.Amount = rewardPool.Amount.Sub(sdk.NewDecCoinsFromCoins(reward...))
 		keeper.SetRewardPool(ctx, rewardPool)
 	}
 
