@@ -5,6 +5,8 @@ import (
 	"fmt"
 	btsg "github.com/bitsongofficial/go-bitsong/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+
 	"time"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
@@ -75,7 +77,7 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 // InitGenesis - store genesis parameters
-func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, k Keeper, bankKeeper bank.Keeper, data GenesisState) {
 	k.SetTrackID(ctx, data.StartingTrackID)
 	k.SetDepositParams(ctx, data.DepositParams)
 
@@ -85,10 +87,10 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	var totalDeposits sdk.Coins
+	totalDeposits := sdk.NewCoins()
 	for _, deposit := range data.Deposits {
 		k.SetDeposit(ctx, deposit.TrackID, deposit.Depositor, deposit)
-		totalDeposits = totalDeposits.Add(deposit.Amount)
+		totalDeposits = totalDeposits.Add(deposit.Amount...)
 	}
 
 	for _, track := range data.Tracks {
@@ -96,8 +98,9 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
 	}
 
 	// add coins if not provided on genesis
-	if moduleAcc.GetCoins().IsZero() {
-		if err := moduleAcc.SetCoins(totalDeposits); err != nil {
+	coins := bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
+	if coins.IsZero() {
+		if err := bankKeeper.SetBalances(ctx, moduleAcc.GetAddress(), totalDeposits); err != nil {
 			panic(err)
 		}
 		k.Sk.SetModuleAccount(ctx, moduleAcc)

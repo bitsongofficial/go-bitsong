@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -17,7 +18,7 @@ import (
 type Keeper struct {
 	storeKey      sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
 	cdc           *codec.Codec       // The codec for binary encoding/decoding.
-	codespace     sdk.CodespaceType  // Reserved codespace
+	codespace     string             // Reserved codespace
 	stakingKeeper staking.Keeper     // Staking Keeper
 	ak            auth.AccountKeeper // Cosmos-SDK Account Keeper
 	Sk            supply.Keeper      // Cosmos-SDK Supply Keeper
@@ -25,7 +26,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns an track keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace sdk.CodespaceType, stakingKeeper staking.Keeper, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace string, stakingKeeper staking.Keeper, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
@@ -54,7 +55,7 @@ func (keeper Keeper) SetTrackID(ctx sdk.Context, trackID uint64) {
 }
 
 // GetTrackID gets the highest track ID
-func (keeper Keeper) GetTrackID(ctx sdk.Context) (trackID uint64, err sdk.Error) {
+func (keeper Keeper) GetTrackID(ctx sdk.Context) (trackID uint64, err error) {
 	store := ctx.KVStore(keeper.storeKey)
 	bz := store.Get(types.TrackIDKey)
 	if bz == nil {
@@ -119,7 +120,11 @@ func (keeper Keeper) GetTracksFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress
 }
 
 // CreateTrack create new track
-func (keeper Keeper) CreateTrack(ctx sdk.Context, title, audio, image, duration string, hidden, explicit bool, genre, mood, artists, featuring, producers, description, copyright string, owner sdk.AccAddress) (types.Track, sdk.Error) {
+func (keeper Keeper) CreateTrack(ctx sdk.Context,
+	title, audio, image, duration string, hidden, explicit bool,
+	genre, mood, artists, featuring, producers, description, copyright string,
+	owner sdk.AccAddress,
+) (types.Track, error) {
 	trackID, err := keeper.GetTrackID(ctx)
 	if err != nil {
 		return types.Track{}, err
@@ -162,7 +167,7 @@ func (keeper Keeper) CreateTrack(ctx sdk.Context, title, audio, image, duration 
 }
 
 // SetTrackStatus set Status of the Track {Nil, Verified, Rejected, Failed}
-func (keeper Keeper) SetTrackStatus(ctx sdk.Context, trackID uint64, status types.TrackStatus) sdk.Error {
+func (keeper Keeper) SetTrackStatus(ctx sdk.Context, trackID uint64, status types.TrackStatus) error {
 	track, ok := keeper.GetTrack(ctx, trackID)
 	if !ok {
 		return types.ErrUnknownTrack(keeper.codespace, "unknown track")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // GetDepositParams returns the current DepositParams from the global param store
@@ -35,7 +36,7 @@ func (keeper Keeper) SetDeposit(ctx sdk.Context, trackID uint64, depositorAddr s
 	store.Set(types.DepositKey(trackID, depositorAddr), bz)
 }
 
-func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr sdk.AccAddress, depositAmount sdk.Coins) (sdk.Error, bool) {
+func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr sdk.AccAddress, depositAmount sdk.Coins) (error, bool) {
 	track, ok := keeper.GetTrack(ctx, trackID)
 	if !ok {
 		return types.ErrUnknownTrack(keeper.codespace, fmt.Sprintf("unknown trackID: %d", trackID)), false
@@ -43,7 +44,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr s
 
 	// Check if track is still depositable
 	if !(track.Status == types.StatusNil || track.Status == types.StatusDepositPeriod) {
-		return sdk.ErrUnknownRequest(fmt.Sprintf("trackID %d already deposited", trackID)), false
+		return sdkerr.Wrap(sdkerr.ErrUnknownRequest, fmt.Sprintf("trackID %d already deposited", trackID)), false
 	}
 
 	// If status is Nil enable deposit period
@@ -61,7 +62,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr s
 	}
 
 	// Increment total deposit
-	track.TotalDeposit = track.TotalDeposit.Add(depositAmount)
+	track.TotalDeposit = track.TotalDeposit.Add(depositAmount...)
 
 	// Check if deposit has provided sufficient total funds to transition the artist into the verified state
 	verified := false
@@ -77,7 +78,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr s
 	// Add or update deposit object
 	deposit, found := keeper.GetDeposit(ctx, trackID, depositorAddr)
 	if found {
-		deposit.Amount = deposit.Amount.Add(depositAmount)
+		deposit.Amount = deposit.Amount.Add(depositAmount...)
 	} else {
 		deposit = types.NewDeposit(trackID, depositorAddr, depositAmount)
 	}

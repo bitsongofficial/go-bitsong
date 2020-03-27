@@ -23,7 +23,7 @@ func (app *GoBitsong) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	genState := app.mm.ExportGenesis(ctx)
+	genState := app.mm.ExportGenesis(ctx, app.cdc)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
 		return nil, nil, err
@@ -86,7 +86,7 @@ func (app *GoBitsong) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps := app.distrKeeper.GetValidatorOutstandingRewards(ctx, val.GetOperator())
 		feePool := app.distrKeeper.GetFeePool(ctx)
-		feePool.CommunityPool = feePool.CommunityPool.Add(scraps)
+		feePool.CommunityPool = feePool.CommunityPool.Add(scraps.GetRewards()...)
 		app.distrKeeper.SetFeePool(ctx, feePool)
 
 		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
@@ -137,7 +137,7 @@ func (app *GoBitsong) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []
 		}
 
 		validator.UnbondingHeight = 0
-		valConsAddrs = append(valConsAddrs, validator.ConsAddress())
+		valConsAddrs = append(valConsAddrs, validator.GetConsAddr())
 		if applyWhiteList && !whiteListMap[addr.String()] {
 			validator.Jailed = true
 		}

@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -22,9 +24,11 @@ type Keeper struct {
 	paramSpace   params.Subspace
 	supplyKeeper supply.Keeper
 	trackKeeper  track.Keeper
+	bankKeeper   bank.Keeper
 }
 
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, supplyKeeper supply.Keeper, trackKeeper track.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
+	supplyKeeper supply.Keeper, trackKeeper track.Keeper, bankKeeper bank.Keeper) Keeper {
 	// ensure distribution module account is set
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -36,6 +40,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, s
 		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
 		supplyKeeper: supplyKeeper,
 		trackKeeper:  trackKeeper,
+		bankKeeper:   bankKeeper,
 	}
 }
 
@@ -64,13 +69,13 @@ func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) exported.ModuleAccountI 
 	return k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
 
-func (k Keeper) AddCollectedCoins(ctx sdk.Context, coins sdk.Coins) sdk.Error {
+func (k Keeper) AddCollectedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, "mint", types.ModuleName, coins)
 }
 
 func (k Keeper) GetRewardPoolSupply(ctx sdk.Context) sdk.Coins {
 	account := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	return account.GetCoins()
+	return k.bankKeeper.GetAllBalances(ctx, account.GetAddress())
 }
 
 func (k Keeper) GetAllShares(ctx sdk.Context) trackTypes.Shares {
@@ -81,8 +86,8 @@ func (k Keeper) GetTrack(ctx sdk.Context, trackID uint64) (track trackTypes.Trac
 	return k.trackKeeper.GetTrack(ctx, trackID)
 }
 
-func (k Keeper) AllocateToken(ctx sdk.Context, track trackTypes.Track, amt sdk.Coins) sdk.Error {
-	track.TotalRewards = track.TotalRewards.Add(amt)
+func (k Keeper) AllocateToken(ctx sdk.Context, track trackTypes.Track, amt sdk.Coins) error {
+	track.TotalRewards = track.TotalRewards.Add(amt...)
 	k.trackKeeper.SetTrack(ctx, track)
 
 	reward, ok := k.GetReward(ctx, track.Owner)
@@ -91,7 +96,7 @@ func (k Keeper) AllocateToken(ctx sdk.Context, track trackTypes.Track, amt sdk.C
 		reward = types.NewReward(track.Owner)
 	}
 
-	reward.TotalRewards = reward.TotalRewards.Add(amt)
+	reward.TotalRewards = reward.TotalRewards.Add(amt...)
 	k.SetReward(ctx, track.Owner, reward)
 
 	return nil

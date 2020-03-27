@@ -6,9 +6,12 @@ import (
 )
 
 func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable(
-		ParamStoreKeyRewardTax, sdk.Dec{},
-	)
+	keyTable := params.KeyTable{}
+	keyTable.RegisterType(params.ParamSetPair{
+		Key:   ParamStoreKeyRewardTax,
+		Value: sdk.Dec{},
+	})
+	return keyTable
 }
 
 func (k Keeper) GetRewardTax(ctx sdk.Context) sdk.Dec {

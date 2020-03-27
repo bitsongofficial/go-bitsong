@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 )
 
 // Handle all "track" type messages.
 func NewHandler(keeper Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
@@ -23,13 +24,13 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized track message type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerr.Wrap(sdkerr.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
 // handleMsgCreateTrack handles the creation of a new track
-func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTrack) sdk.Result {
+func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTrack) (*sdk.Result, error) {
 	track, err := keeper.CreateTrack(
 		ctx,
 		msg.Title,
@@ -48,7 +49,7 @@ func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTra
 		msg.Owner,
 	)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -59,17 +60,17 @@ func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTra
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(track.TrackID),
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
 // handleMsgPlay
-func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) sdk.Result {
+func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) (*sdk.Result, error) {
 	err := keeper.Play(ctx, msg.TrackID, msg.AccAddr)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -80,15 +81,15 @@ func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) sdk.Result
 		),
 	)
 
-	return sdk.Result{
+	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
-	}
+	}, nil
 }
 
-func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) sdk.Result {
+func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) (*sdk.Result, error) {
 	err, verified := keeper.AddDeposit(ctx, msg.TrackID, msg.Depositor, msg.Amount)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -108,5 +109,5 @@ func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) sdk.
 		)
 	}
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

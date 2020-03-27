@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"time"
 )
 
 // Parameter store key
@@ -14,9 +15,13 @@ var (
 
 // Key declaration for parameters
 func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable(
-		ParamStoreKeyDepositParams, DepositParams{},
-	)
+	keyTable := params.KeyTable{}
+	keyTable.RegisterType(params.ParamSetPair{
+		Key:   ParamStoreKeyDepositParams,
+		Value: DepositParams{},
+	})
+
+	return keyTable
 }
 
 // Param around deposits for artists

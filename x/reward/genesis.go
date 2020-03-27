@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
 	"github.com/bitsongofficial/go-bitsong/x/reward/keeper"
@@ -37,8 +38,8 @@ func ValidateGenesis(data GenesisState) error {
 	return data.RewardPool.ValidateGenesis()
 }
 
-func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper supply.Keeper, data GenesisState) {
-	var moduleHoldings sdk.DecCoins
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper supply.Keeper, bankKeeper bank.Keeper, data GenesisState) {
+	var moduleHoldings = sdk.NewDecCoins()
 
 	keeper.SetRewardPool(ctx, data.RewardPool)
 	keeper.SetRewardTax(ctx, data.RewardTax)
@@ -47,7 +48,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper supply.Keep
 		keeper.SetReward(ctx, reward.AccAddr, reward)
 	}
 
-	moduleHoldings = moduleHoldings.Add(data.RewardPool.Amount)
+	moduleHoldings = moduleHoldings.Add(data.RewardPool.Amount...)
 	moduleHoldingsInt, _ := moduleHoldings.TruncateDecimal()
 
 	// check if the module account exists
@@ -56,8 +57,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, supplyKeeper supply.Keep
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	if moduleAcc.GetCoins().IsZero() {
-		if err := moduleAcc.SetCoins(moduleHoldingsInt); err != nil {
+	coins := bankKeeper.GetAllBalances(ctx, moduleAcc.GetAddress())
+	if coins.IsZero() {
+		if err := bankKeeper.SetBalances(ctx, moduleAcc.GetAddress(), moduleHoldingsInt); err != nil {
 			panic(err)
 		}
 		supplyKeeper.SetModuleAccount(ctx, moduleAcc)
