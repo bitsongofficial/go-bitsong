@@ -37,7 +37,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
 	return Keeper{
 		storeKey:     key,
 		cdc:          cdc,
-		paramSpace:   paramSpace.WithKeyTable(ParamKeyTable()),
+		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
 		supplyKeeper: supplyKeeper,
 		trackKeeper:  trackKeeper,
 		bankKeeper:   bankKeeper,

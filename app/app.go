@@ -157,6 +157,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		invCheckPeriod: invCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
+		subspaces:      make(map[string]params.Subspace),
 	}
 
 	// Init params keeper and subspaces
