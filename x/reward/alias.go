@@ -19,24 +19,24 @@ const (
 
 var (
 	// functions aliases
+	NewReward         = types.NewReward
+	RegisterCodec     = types.RegisterCodec
+	RewardKey         = types.RewardKey
+	InitialRewardPool = types.InitialRewardPool
 	NewKeeper         = keeper.NewKeeper
 	ParamKeyTable     = keeper.ParamKeyTable
 	NewQuerier        = keeper.NewQuerier
-	RewardKey         = types.RewardKey
-	InitialRewardPool = types.InitialRewardPool
-	NewReward         = types.NewReward
-	RegisterCodec     = types.RegisterCodec
 
 	// variable aliases
 	RewardPoolKey          = keeper.RewardPoolKey
 	ParamStoreKeyRewardTax = keeper.ParamStoreKeyRewardTax
-	RewardsKeyPrefix       = types.RewardsKeyPrefix
 	ModuleCdc              = types.ModuleCdc
+	RewardsKeyPrefix       = types.RewardsKeyPrefix
 )
 
 type (
 	Keeper     = keeper.Keeper
-	RewardPool = types.RewardPool
 	Reward     = types.Reward
 	Rewards    = types.Rewards
+	RewardPool = types.RewardPool
 )

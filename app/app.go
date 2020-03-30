@@ -15,6 +15,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
+	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc_desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -121,8 +122,9 @@ type GoBitsong struct {
 	ibcKeeper      ibc.Keeper
 
 	// bitsong keepers
-	rewardKeeper reward.Keeper
-	trackKeeper  track.Keeper
+	rewardKeeper    reward.Keeper
+	trackKeeper     track.Keeper
+	desmosIBCKeeper desmosibc.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -228,6 +230,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		app.subspaces[track.ModuleName],
 	)
 	app.mintKeeper = mint.NewKeeper(app.rewardKeeper)
+	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -246,6 +249,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 
 		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper, app.bankKeeper),
 		track.NewAppModule(app.trackKeeper, app.bankKeeper),
+		desmosibc.NewAppModule(app.desmosIBCKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

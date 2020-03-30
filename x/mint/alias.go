@@ -14,7 +14,7 @@ var (
 	// functions aliases
 	NewKeeper = keeper.NewKeeper
 
-	// variable aliases
+// variable aliases
 )
 
 type (
