@@ -9,8 +9,6 @@ const (
 	ModuleName = "track"    // ModuleName is the name of the module
 	StoreKey   = ModuleName // StoreKey is the store key string for track
 	RouterKey  = ModuleName // RouterKey is the message route for track
-
-	DefaultParamspace = ModuleName // DefaultParamspace default name for parameter store
 )
 
 // Keys for track store

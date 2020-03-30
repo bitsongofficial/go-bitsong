@@ -8,17 +8,14 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-// DefaultParamspace defines the default auth module parameter subspace
+// DefaultParamspace defines the default reward module parameter subspace
 const DefaultParamspace = ModuleName
 
 // Default parameter values
 var (
-	DefaultRewardTx = sdk.NewDecWithPrec(1, 2)
-)
-
-// Parameter keys
-var (
 	ParamStoreKeyRewardTax = []byte("rewardtax")
+
+	DefaultRewardTx = sdk.NewDecWithPrec(1, 2)
 )
 
 var _ paramtypes.ParamSet = &Params{}

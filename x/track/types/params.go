@@ -6,22 +6,64 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
+
+// DefaultParamspace defines the default track module parameter subspace
+const DefaultParamspace = ModuleName
 
 // Parameter store key
 var (
-	ParamStoreKeyDepositParams = []byte("depositparams")
+	ParamStoreKeyDepositParams = []byte("trackdepositparams")
+
+	DefaultDepositParams = DepositParams{}
 )
+
+var _ paramtypes.ParamSet = &Params{}
+
+// Params defines the parameters for the track module.
+type Params struct {
+	DepositParams DepositParams
+}
 
 // Key declaration for parameters
 func ParamKeyTable() params.KeyTable {
-	keyTable := params.KeyTable{}
-	keyTable.RegisterType(params.ParamSetPair{
-		Key:   ParamStoreKeyDepositParams,
-		Value: DepositParams{},
-	})
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
+}
 
-	return keyTable
+// ParamSetPairs implements the ParamSet interface and returns all the key/value pairs
+// pairs of reward module's parameters.
+// nolint
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(ParamStoreKeyDepositParams, &p.DepositParams, validateDepositParams),
+	}
+}
+
+// DefaultParams returns a default set of parameters.
+func DefaultParams() Params {
+	return Params{
+		DepositParams: DefaultDepositParams,
+	}
+}
+
+func validateDepositParams(i interface{}) error {
+	v, ok := i.(DepositParams)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.MinDeposit.IsAnyNegative() {
+		return fmt.Errorf("invalid min deposit value: %s", v)
+	}
+
+	if v.MaxDepositPeriod.Microseconds() == 0 {
+		return fmt.Errorf("invalid max deposit period: %s", v.MaxDepositPeriod)
+	}
+
+	// TODO: Add other validations
+
+	return nil
 }
 
 // Param around deposits for artists

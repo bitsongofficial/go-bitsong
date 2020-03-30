@@ -29,6 +29,6 @@ var (
 )
 
 type (
-	Keeper           = keeper.Keeper
 	MsgCreteSongPost = types.MsgCreteSongPost
+	Keeper           = keeper.Keeper
 )

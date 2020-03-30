@@ -10,11 +10,21 @@ import (
 )
 
 const (
-	StatusNil                   = types.StatusNil
-	StatusDepositPeriod         = types.StatusDepositPeriod
-	StatusVerified              = types.StatusVerified
-	StatusRejected              = types.StatusRejected
-	StatusFailed                = types.StatusFailed
+	DefaultCodespace            = types.DefaultCodespace
+	CodeInvalidGenesis          = types.CodeInvalidGenesis
+	CodeInvalidTrackTitle       = types.CodeInvalidTrackTitle
+	CodeUnknownTrack            = types.CodeUnknownTrack
+	CodeInvalidTrackStatus      = types.CodeInvalidTrackStatus
+	CodeInvalidTrackMetadataURI = types.CodeInvalidTrackMetadataURI
+	QueryParams                 = types.QueryParams
+	QueryTracks                 = types.QueryTracks
+	QueryTrack                  = types.QueryTrack
+	QueryPlays                  = types.QueryPlays
+	QueryShares                 = types.QueryShares
+	QueryDeposits               = types.QueryDeposits
+	MaxTitleLength              = types.MaxTitleLength
+	MaxDescriptionLength        = types.MaxDescriptionLength
+	MaxCopyrightLength          = types.MaxCopyrightLength
 	EventTypeCreateTrack        = types.EventTypeCreateTrack
 	EventTypePlayTrack          = types.EventTypePlayTrack
 	EventTypeSetTrackStatus     = types.EventTypeSetTrackStatus
@@ -28,31 +38,33 @@ const (
 	ModuleName                  = types.ModuleName
 	StoreKey                    = types.StoreKey
 	RouterKey                   = types.RouterKey
-	DefaultParamspace           = types.DefaultParamspace
 	TypeMsgCreateTrack          = types.TypeMsgCreateTrack
 	TypeMsgPlayTrack            = types.TypeMsgPlayTrack
 	TypeMsgDeposit              = types.TypeMsgDeposit
-	MaxTitleLength              = types.MaxTitleLength
-	MaxDescriptionLength        = types.MaxDescriptionLength
-	MaxCopyrightLength          = types.MaxCopyrightLength
-	DefaultCodespace            = types.DefaultCodespace
-	CodeInvalidGenesis          = types.CodeInvalidGenesis
-	CodeInvalidTrackTitle       = types.CodeInvalidTrackTitle
-	CodeUnknownTrack            = types.CodeUnknownTrack
-	CodeInvalidTrackStatus      = types.CodeInvalidTrackStatus
-	CodeInvalidTrackMetadataURI = types.CodeInvalidTrackMetadataURI
-	QueryParams                 = types.QueryParams
-	QueryTracks                 = types.QueryTracks
-	QueryTrack                  = types.QueryTrack
-	QueryPlays                  = types.QueryPlays
-	QueryShares                 = types.QueryShares
-	QueryDeposits               = types.QueryDeposits
+	DefaultParamspace           = types.DefaultParamspace
+	StatusNil                   = types.StatusNil
+	StatusDepositPeriod         = types.StatusDepositPeriod
+	StatusVerified              = types.StatusVerified
+	StatusRejected              = types.StatusRejected
+	StatusFailed                = types.StatusFailed
 )
 
 var (
 	// functions aliases
-	TrackStatusFromString      = types.TrackStatusFromString
+	NewKeeper                  = keeper.NewKeeper
+	NewQuerier                 = keeper.NewQuerier
+	NewHandler                 = keeper.NewHandler
 	RegisterCodec              = types.RegisterCodec
+	ErrInvalidGenesis          = types.ErrInvalidGenesis
+	ErrInvalidTrackTitle       = types.ErrInvalidTrackTitle
+	ErrUnknownTrack            = types.ErrUnknownTrack
+	ErrInvalidTrackStatus      = types.ErrInvalidTrackStatus
+	ErrInvalidTrackMetadataURI = types.ErrInvalidTrackMetadataURI
+	NewQueryTrackParams        = types.NewQueryTrackParams
+	NewQueryTracksParams       = types.NewQueryTracksParams
+	NewShare                   = types.NewShare
+	TrackKey                   = types.TrackKey
+	NewTrack                   = types.NewTrack
 	NewDeposit                 = types.NewDeposit
 	PlaysKey                   = types.PlaysKey
 	PlayKey                    = types.PlayKey
@@ -63,21 +75,10 @@ var (
 	NewMsgPlay                 = types.NewMsgPlay
 	NewMsgDeposit              = types.NewMsgDeposit
 	ParamKeyTable              = types.ParamKeyTable
+	DefaultParams              = types.DefaultParams
 	NewDepositParams           = types.NewDepositParams
-	TrackKey                   = types.TrackKey
-	NewTrack                   = types.NewTrack
-	ErrInvalidGenesis          = types.ErrInvalidGenesis
-	ErrInvalidTrackTitle       = types.ErrInvalidTrackTitle
-	ErrUnknownTrack            = types.ErrUnknownTrack
-	ErrInvalidTrackStatus      = types.ErrInvalidTrackStatus
-	ErrInvalidTrackMetadataURI = types.ErrInvalidTrackMetadataURI
 	NewPlay                    = types.NewPlay
-	NewQueryTrackParams        = types.NewQueryTrackParams
-	NewQueryTracksParams       = types.NewQueryTracksParams
-	NewShare                   = types.NewShare
-	NewKeeper                  = keeper.NewKeeper
-	NewQuerier                 = keeper.NewQuerier
-	NewHandler                 = keeper.NewHandler
+	TrackStatusFromString      = types.TrackStatusFromString
 
 	// variable aliases
 	ModuleCdc                  = types.ModuleCdc
@@ -87,23 +88,25 @@ var (
 	SharesKeyPrefix            = types.SharesKeyPrefix
 	DepositsKeyPrefix          = types.DepositsKeyPrefix
 	ParamStoreKeyDepositParams = types.ParamStoreKeyDepositParams
+	DefaultDepositParams       = types.DefaultDepositParams
 )
 
 type (
 	Keeper            = keeper.Keeper
-	TrackStatus       = types.TrackStatus
+	QueryTrackParams  = types.QueryTrackParams
+	QueryTracksParams = types.QueryTracksParams
+	Share             = types.Share
+	Shares            = types.Shares
+	Track             = types.Track
+	Tracks            = types.Tracks
 	Deposit           = types.Deposit
 	Deposits          = types.Deposits
 	MsgCreateTrack    = types.MsgCreateTrack
 	MsgPlay           = types.MsgPlay
 	MsgDeposit        = types.MsgDeposit
+	Params            = types.Params
 	DepositParams     = types.DepositParams
-	Track             = types.Track
-	Tracks            = types.Tracks
 	Play              = types.Play
 	Plays             = types.Plays
-	QueryTrackParams  = types.QueryTrackParams
-	QueryTracksParams = types.QueryTracksParams
-	Share             = types.Share
-	Shares            = types.Shares
+	TrackStatus       = types.TrackStatus
 )

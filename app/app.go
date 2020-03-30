@@ -10,7 +10,6 @@ import (
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	cmint "github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -144,10 +143,11 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
+		bam.MainStoreKey, auth.StoreKey, staking.StoreKey, bank.StoreKey,
 		supply.StoreKey, cmint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, reward.StoreKey,
-		track.StoreKey,
+		gov.StoreKey, params.StoreKey, ibc.StoreKey,
+
+		reward.StoreKey, track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -168,7 +168,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	app.subspaces[cmint.ModuleName] = app.paramsKeeper.Subspace(cmint.DefaultParamspace)
 	app.subspaces[distr.ModuleName] = app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
-	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace)
+	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
 	app.subspaces[reward.ModuleName] = app.paramsKeeper.Subspace(reward.DefaultParamspace)
@@ -179,7 +179,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		appCodec, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
-		appCodec, keys[bank.ModuleName], app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs(),
+		appCodec, keys[bank.ModuleName], app.accountKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
 	)
 	app.supplyKeeper = supply.NewKeeper(
 		appCodec, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms,
@@ -256,7 +256,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, cmint.ModuleName, distr.ModuleName, slashing.ModuleName, staking.ModuleName)
+	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName, staking.ModuleName, supply.ModuleName, cmint.ModuleName)
 
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
