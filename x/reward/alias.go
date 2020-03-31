@@ -10,36 +10,36 @@ import (
 )
 
 const (
+	QueryRewards      = types.QueryRewards
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
 	RouterKey         = types.RouterKey
 	DefaultParamspace = types.DefaultParamspace
-	QueryRewards      = types.QueryRewards
 )
 
 var (
 	// functions aliases
+	NewQuerier        = keeper.NewQuerier
+	NewKeeper         = keeper.NewKeeper
+	NewReward         = types.NewReward
+	RegisterCodec     = types.RegisterCodec
 	RewardKey         = types.RewardKey
 	ParamKeyTable     = types.ParamKeyTable
 	DefaultParams     = types.DefaultParams
 	InitialRewardPool = types.InitialRewardPool
-	NewReward         = types.NewReward
-	RegisterCodec     = types.RegisterCodec
-	NewKeeper         = keeper.NewKeeper
-	NewQuerier        = keeper.NewQuerier
 
 	// variable aliases
+	RewardPoolKey          = keeper.RewardPoolKey
+	ModuleCdc              = types.ModuleCdc
 	RewardsKeyPrefix       = types.RewardsKeyPrefix
 	ParamStoreKeyRewardTax = types.ParamStoreKeyRewardTax
 	DefaultRewardTx        = types.DefaultRewardTx
-	ModuleCdc              = types.ModuleCdc
-	RewardPoolKey          = keeper.RewardPoolKey
 )
 
 type (
 	Keeper     = keeper.Keeper
-	Params     = types.Params
-	RewardPool = types.RewardPool
 	Reward     = types.Reward
 	Rewards    = types.Rewards
+	Params     = types.Params
+	RewardPool = types.RewardPool
 )

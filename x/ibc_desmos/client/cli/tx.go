@@ -33,7 +33,7 @@ func GetIBCDesmosTxCommand(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreteSongPost(srcPort, srcChannel, uint64(destHeight), sender)
+			msg := types.NewMsgCreateSongPost(srcPort, srcChannel, uint64(destHeight), sender)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

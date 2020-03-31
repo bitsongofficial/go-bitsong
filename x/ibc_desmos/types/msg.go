@@ -6,7 +6,7 @@ import (
 	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
 )
 
-type MsgCreteSongPost struct {
+type MsgCreateSongPost struct {
 	SourcePort    string         `json:"source_port" yaml:"source_port"`       // the port on which the packet will be sent
 	SourceChannel string         `json:"source_channel" yaml:"source_channel"` // the channel by which the packet will be sent
 	DestHeight    uint64         `json:"dest_height" yaml:"dest_height"`       // the current height of the destination chain
@@ -15,11 +15,11 @@ type MsgCreteSongPost struct {
 	// TODO: Add other data
 }
 
-// NewMsgCreteSongPost creates a new MsgCreteSongPost instance
-func NewMsgCreteSongPost(
+// NewMsgCreateSongPost creates a new MsgCreateSongPost instance
+func NewMsgCreateSongPost(
 	sourcePort, sourceChannel string, destHeight uint64, sender sdk.AccAddress,
-) MsgCreteSongPost {
-	return MsgCreteSongPost{
+) MsgCreateSongPost {
+	return MsgCreateSongPost{
 		SourcePort:    sourcePort,
 		SourceChannel: sourceChannel,
 		DestHeight:    destHeight,
@@ -28,17 +28,17 @@ func NewMsgCreteSongPost(
 }
 
 // Route implements sdk.Msg
-func (MsgCreteSongPost) Route() string {
+func (MsgCreateSongPost) Route() string {
 	return RouterKey
 }
 
 // Type implements sdk.Msg
-func (MsgCreteSongPost) Type() string {
+func (MsgCreateSongPost) Type() string {
 	return "create-post"
 }
 
 // ValidateBasic implements sdk.Msg
-func (msg MsgCreteSongPost) ValidateBasic() error {
+func (msg MsgCreateSongPost) ValidateBasic() error {
 	if err := host.DefaultPortIdentifierValidator(msg.SourcePort); err != nil {
 		return sdkerrors.Wrap(err, "invalid source port ID")
 	}
@@ -52,11 +52,11 @@ func (msg MsgCreteSongPost) ValidateBasic() error {
 }
 
 // GetSignBytes implements sdk.Msg
-func (msg MsgCreteSongPost) GetSignBytes() []byte {
+func (msg MsgCreateSongPost) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners implements sdk.Msg
-func (msg MsgCreteSongPost) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateSongPost) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Sender}
 }

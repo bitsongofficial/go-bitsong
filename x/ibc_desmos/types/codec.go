@@ -9,7 +9,7 @@ var ModuleCdc = codec.New()
 
 // RegisterCodec registers the IBC transfer types
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreteSongPost{}, "bitsong/ibc/MsgCreateSongPost", nil)
+	cdc.RegisterConcrete(MsgCreateSongPost{}, "bitsong/ibc/MsgCreateSongPost", nil)
 }
 
 func init() {
