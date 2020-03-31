@@ -37,6 +37,9 @@ func main() {
 	// Instantiate the codec for the command line application
 	cdc := app.MakeCodec()
 
+	// Initialize the app overriding the various methods we want to customize
+	app.Init()
+
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(util.Bech32PrefixAccAddr, util.Bech32PrefixAccPub)

@@ -36,6 +36,9 @@ func main() {
 	cdc := codecstd.MakeCodec(app.ModuleBasics)
 	appCodec := codecstd.NewAppCodec(cdc)
 
+	// Initialize the app overriding the various methods we want to customize
+	app.Init()
+
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(util.Bech32PrefixAccAddr, util.Bech32PrefixAccPub)
 	config.SetBech32PrefixForValidator(util.Bech32PrefixValAddr, util.Bech32PrefixValPub)
@@ -68,7 +71,7 @@ func main() {
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
 
 	// prepare and add flags
-	executor := cli.PrepareBaseCmd(rootCmd, "GA", app.DefaultNodeHome)
+	executor := cli.PrepareBaseCmd(rootCmd, "BS", app.DefaultNodeHome)
 	rootCmd.PersistentFlags().UintVar(&invCheckPeriod, flagInvCheckPeriod,
 		0, "Assert registered invariants every N blocks")
 	err := executor.Execute()

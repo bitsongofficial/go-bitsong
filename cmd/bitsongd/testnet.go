@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	tmconfig "github.com/tendermint/tendermint/config"
@@ -60,6 +61,8 @@ Example:
 	bitsongd testnet --v 4 --output-dir ./output --starting-ip-address 192.168.10.2
 	`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			app.Init()
+
 			config := ctx.Config
 
 			outputDir := viper.GetString(flagOutputDir)
