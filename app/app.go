@@ -5,7 +5,6 @@ import (
 	"os"
 
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
-	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
@@ -230,7 +229,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		app.stakingKeeper, app.accountKeeper, app.supplyKeeper,
 		app.subspaces[track.ModuleName],
 	)
-	app.mintKeeper = mint.NewKeeper(app.rewardKeeper)
+	app.mintKeeper = mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
 	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -256,8 +255,7 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(distr.ModuleName, slashing.ModuleName, staking.ModuleName, supply.ModuleName, cmint.ModuleName)
-
+	app.mm.SetOrderBeginBlockers(cmint.ModuleName, distr.ModuleName, slashing.ModuleName, staking.ModuleName)
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -266,7 +264,8 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		distr.ModuleName, staking.ModuleName, auth.ModuleName, bank.ModuleName,
 		slashing.ModuleName, gov.ModuleName, cmint.ModuleName, supply.ModuleName,
 		crisis.ModuleName, genutil.ModuleName,
-		trackTypes.ModuleName, rewardTypes.ModuleName,
+
+		track.ModuleName, reward.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

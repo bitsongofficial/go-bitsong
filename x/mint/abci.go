@@ -42,7 +42,6 @@ func BeginBlocker(ctx sdk.Context, cmintKeeper mint.Keeper, k Keeper) {
 	}
 
 	fmt.Printf(`
-
 Reward Pool: %s
 
 `, k.GetRewardPoolSupply(ctx))

@@ -16,9 +16,10 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new mint Keeper instance
-func NewKeeper(keeper reward.Keeper) Keeper {
+func NewKeeper(rk reward.Keeper, sk supply.Keeper) Keeper {
 	return Keeper{
-		rewardKeeper: keeper,
+		rewardKeeper: rk,
+		supplyKeeper: sk,
 	}
 }
 
