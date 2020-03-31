@@ -325,15 +325,7 @@ func (app *GoBitsong) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci
 func (app *GoBitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-
-	res := app.mm.InitGenesis(ctx, app.cdc, genesisState)
-
-	// Set Historical infos in InitChain to ignore genesis params
-	stakingParams := staking.DefaultParams()
-	stakingParams.HistoricalEntries = 1000
-	app.stakingKeeper.SetParams(ctx, stakingParams)
-
-	return res
+	return app.mm.InitGenesis(ctx, app.cdc, genesisState)
 }
 
 // LoadHeight loads a particular height
