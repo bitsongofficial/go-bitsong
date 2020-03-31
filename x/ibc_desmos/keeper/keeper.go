@@ -68,7 +68,7 @@ func (k Keeper) createOutgoingPacket(
 ) error {
 
 	// TODO: Change this test data
-	data := posts.NewCreationData(
+	data := posts.NewPostCreationData(
 		"Test message",
 		posts.PostID(0),
 		true,
@@ -82,10 +82,10 @@ func (k Keeper) createOutgoingPacket(
 		nil,
 	)
 
-	packetData := posts.CreatePostPacketData{
-		CreationData: data,
-		Timeout:      destHeight + DefaultPacketTimeout,
-	}
+	packetData := posts.NewCreatePostPacketData(
+		data,
+		destHeight+DefaultPacketTimeout,
+	)
 
 	packet := channel.NewPacket(
 		packetData,

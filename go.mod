@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20200327170214-3b48464bb4dc
 	github.com/cosmos/gaia v0.0.1-0.20200324214546-276e9b764765
-	github.com/desmos-labs/desmos v0.3.1-0.20200330104729-8de0df42e12a
+	github.com/desmos-labs/desmos v0.3.1-0.20200331141317-dbe6af1dbc51
 	github.com/gorilla/mux v1.7.4
 	github.com/otiai10/copy v1.0.2
 	github.com/spf13/cobra v0.0.6
