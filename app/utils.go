@@ -42,6 +42,6 @@ func NewBitsongAppUNSAFE(logger log.Logger, db dbm.DB, traceStore io.Writer, loa
 	invCheckPeriod uint, baseAppOptions ...func(*baseapp.BaseApp),
 ) (gapp *GoBitsong, keyMain, keyStaking *sdk.KVStoreKey, stakingKeeper staking.Keeper) {
 
-	gapp = NewBitsongApp(logger, db, traceStore, loadLatest, invCheckPeriod, baseAppOptions...)
+	gapp = NewBitsongApp(logger, db, traceStore, loadLatest, invCheckPeriod, "", baseAppOptions...)
 	return gapp, gapp.keys[baseapp.MainStoreKey], gapp.keys[staking.StoreKey], gapp.stakingKeeper
 }

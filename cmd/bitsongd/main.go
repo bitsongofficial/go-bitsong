@@ -78,11 +78,25 @@ func main() {
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
+	var cache sdk.MultiStorePersistentCache
+
+	if viper.GetBool(server.FlagInterBlockCache) {
+		cache = store.NewCommitKVStoreCacheManager()
+	}
+
+	skipUpgradeHeights := make(map[int64]bool)
+	for _, h := range viper.GetIntSlice(server.FlagUnsafeSkipUpgrades) {
+		skipUpgradeHeights[int64(h)] = true
+	}
+
 	return app.NewBitsongApp(
 		logger, db, traceStore, true, invCheckPeriod,
+		viper.GetString(flags.FlagHome),
 		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
-		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
+		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
+		baseapp.SetHaltTime(viper.GetUint64(server.FlagHaltTime)),
+		baseapp.SetInterBlockCache(cache),
 	)
 }
 
@@ -91,13 +105,13 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		gApp := app.NewBitsongApp(logger, db, traceStore, false, uint(1))
+		gApp := app.NewBitsongApp(logger, db, traceStore, false, uint(1), "")
 		err := gApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	gApp := app.NewBitsongApp(logger, db, traceStore, true, uint(1))
+	gApp := app.NewBitsongApp(logger, db, traceStore, true, uint(1), "")
 	return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

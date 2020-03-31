@@ -5,7 +5,6 @@ import (
 	"os"
 
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	cmint "github.com/cosmos/cosmos-sdk/x/mint"
@@ -66,6 +65,7 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 
 		reward.AppModuleBasic{},
 		track.AppModuleBasic{},
@@ -129,8 +129,9 @@ type GoBitsong struct {
 }
 
 // NewBitsongApp returns a reference to an initialized GoBitsong.
-func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp),
+func NewBitsongApp(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+	invCheckPeriod uint, home string, baseAppOptions ...func(*bam.BaseApp),
 ) *GoBitsong {
 	// First define the top level codec that will be shared by the different modules
 	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
@@ -278,7 +279,10 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(ante.NewAnteHandler(app.accountKeeper, app.supplyKeeper, app.ibcKeeper, ante.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(auth.NewAnteHandler(
+		app.accountKeeper, app.supplyKeeper, app.ibcKeeper,
+		auth.DefaultSigVerificationGasConsumer,
+	))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
