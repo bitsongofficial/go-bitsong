@@ -2,28 +2,12 @@ package app
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-)
-
-const (
-	BondDenom = "ubtsg"
-
-	// gov
-	DefaultStartingProposalID uint64 = 1
-)
-
-var (
-	DefaultMinDepositTokens = sdk.TokensFromConsensusPower(10)
-	DefaultQuorum           = sdk.NewDecWithPrec(334, 3)
-	DefaultThreshold        = sdk.NewDecWithPrec(5, 1)
-	DefaultVeto             = sdk.NewDecWithPrec(334, 3)
 )
 
 // Init initializes the application, overriding the default genesis states that should be changed
 func Init() {
 	staking.DefaultGenesisState = stakingGenesisState
-	gov.DefaultGenesisState = govGenesisState
 }
 
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
@@ -35,19 +19,7 @@ func stakingGenesisState() staking.GenesisState {
 			staking.DefaultMaxValidators,
 			staking.DefaultMaxEntries,
 			1,
-			BondDenom,
+			sdk.DefaultBondDenom,
 		),
 	}
-}
-
-func govGenesisState() gov.GenesisState {
-	return gov.NewGenesisState(
-		DefaultStartingProposalID,
-		gov.NewDepositParams(
-			sdk.NewCoins(sdk.NewCoin(BondDenom, DefaultMinDepositTokens)),
-			gov.DefaultPeriod,
-		),
-		gov.NewVotingParams(gov.DefaultPeriod),
-		gov.NewTallyParams(DefaultQuorum, DefaultThreshold, DefaultVeto),
-	)
 }
