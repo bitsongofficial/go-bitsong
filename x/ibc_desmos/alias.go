@@ -10,12 +10,12 @@ import (
 )
 
 const (
+	DefaultPacketTimeout  = keeper.DefaultPacketTimeout
+	DesmosBitsongSubspace = keeper.DesmosBitsongSubspace
 	ModuleName            = types.ModuleName
 	StoreKey              = types.StoreKey
 	RouterKey             = types.RouterKey
 	QuerierRoute          = types.QuerierRoute
-	DefaultPacketTimeout  = keeper.DefaultPacketTimeout
-	DesmosBitsongSubspace = keeper.DesmosBitsongSubspace
 )
 
 var (
@@ -29,6 +29,6 @@ var (
 )
 
 type (
-	Keeper            = keeper.Keeper
 	MsgCreateSongPost = types.MsgCreateSongPost
+	Keeper            = keeper.Keeper
 )

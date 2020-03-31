@@ -10,7 +10,7 @@ import (
 func NewHandler(k Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case MsgCreteSongPost:
+		case MsgCreateSongPost:
 			return handleMsgCreatePost(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized ICS-20 transfer message type: %T", msg)
@@ -18,7 +18,7 @@ func NewHandler(k Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreatePost(ctx sdk.Context, k Keeper, msg MsgCreteSongPost) (*sdk.Result, error) {
+func handleMsgCreatePost(ctx sdk.Context, k Keeper, msg MsgCreateSongPost) (*sdk.Result, error) {
 	if err := k.SendPostCreation(
 		ctx, msg.SourcePort, msg.SourceChannel, msg.DestHeight, msg.Sender,
 	); err != nil {

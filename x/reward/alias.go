@@ -21,12 +21,12 @@ var (
 	// functions aliases
 	NewQuerier        = keeper.NewQuerier
 	NewKeeper         = keeper.NewKeeper
+	InitialRewardPool = types.InitialRewardPool
 	NewReward         = types.NewReward
 	RegisterCodec     = types.RegisterCodec
 	RewardKey         = types.RewardKey
 	ParamKeyTable     = types.ParamKeyTable
 	DefaultParams     = types.DefaultParams
-	InitialRewardPool = types.InitialRewardPool
 
 	// variable aliases
 	RewardPoolKey          = keeper.RewardPoolKey
@@ -38,8 +38,8 @@ var (
 
 type (
 	Keeper     = keeper.Keeper
+	RewardPool = types.RewardPool
 	Reward     = types.Reward
 	Rewards    = types.Rewards
 	Params     = types.Params
-	RewardPool = types.RewardPool
 )
