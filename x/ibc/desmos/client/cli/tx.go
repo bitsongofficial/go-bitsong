@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"strconv"
+	"time"
 
 	"github.com/bitsongofficial/go-bitsong/x/ibc/desmos/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -17,9 +18,9 @@ import (
 // GetTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func GetIBCDesmosTxCommand(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer [src-port] [src-channel] [dest-height]",
+		Use:   "transfer [src-port] [src-channel] [dest-height] [song-id]",
 		Short: "Transfer fungible token through IBC",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
@@ -33,7 +34,7 @@ func GetIBCDesmosTxCommand(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateSongPost(srcPort, srcChannel, uint64(destHeight), sender)
+			msg := types.NewMsgCreateSongPost(srcPort, srcChannel, uint64(destHeight), args[3], time.Now(), sender)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
