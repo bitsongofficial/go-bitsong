@@ -11,7 +11,7 @@ import (
 // returns a new PostCreationData object
 func NewSongCreationData(songID string, creationTime time.Time, sender sdk.AccAddress) posts.PostCreationData {
 	return posts.NewPostCreationData(
-		"",
+		songID,
 		posts.PostID(0),
 		true,
 		DesmosBitsongSubspace,
