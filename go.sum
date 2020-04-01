@@ -102,6 +102,10 @@ github.com/desmos-labs/desmos v0.3.1-0.20200401065323-6c68946f9838 h1:7Vv4w+rtPr
 github.com/desmos-labs/desmos v0.3.1-0.20200401065323-6c68946f9838/go.mod h1:w3iWFgoml12uhW3UDohaKSQnzJxLvD693u6g6X7QOqM=
 github.com/desmos-labs/desmos v0.3.1-0.20200401075749-37c04e1f2bba h1:54qxkdpzoB03ZleqreLDdEebH57VdOFh8S+cVwsSeT4=
 github.com/desmos-labs/desmos v0.3.1-0.20200401075749-37c04e1f2bba/go.mod h1:w3iWFgoml12uhW3UDohaKSQnzJxLvD693u6g6X7QOqM=
+github.com/desmos-labs/desmos v0.3.1-0.20200401080748-270852fb3231 h1:GlOGLeKjQhim10K0vT9bA4/QZu8a70ZEMDbvkIJiDbs=
+github.com/desmos-labs/desmos v0.3.1-0.20200401080748-270852fb3231/go.mod h1:w3iWFgoml12uhW3UDohaKSQnzJxLvD693u6g6X7QOqM=
+github.com/desmos-labs/desmos v0.3.1-0.20200401080908-3ca02daab1ed h1:cXkqFnJB0x2bejTskmjIiMODsh8xPaAb6Zvqn9byyz0=
+github.com/desmos-labs/desmos v0.3.1-0.20200401080908-3ca02daab1ed/go.mod h1:w3iWFgoml12uhW3UDohaKSQnzJxLvD693u6g6X7QOqM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
