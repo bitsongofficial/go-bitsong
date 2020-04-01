@@ -2,7 +2,7 @@ package types
 
 const (
 	// ModuleName defines the IBC transfer name
-	ModuleName = "desmos-ibc"
+	ModuleName = "desmosibc"
 
 	// StoreKey is the store key string for IBC transfer
 	StoreKey = ModuleName
