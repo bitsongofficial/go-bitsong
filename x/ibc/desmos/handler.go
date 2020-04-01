@@ -3,7 +3,6 @@ package desmos
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ibcxfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer/types"
 )
 
 // NewHandler returns sdk.Handler for IBC token transfer module messages
@@ -25,13 +24,14 @@ func handleMsgCreatePost(ctx sdk.Context, k Keeper, msg MsgCreateSongPost) (*sdk
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, ibcxfer.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
-		),
-	)
+	// TODO: Replace with custom event
+	//ctx.EventManager().EmitEvent(
+	//sdk.NewEvent(
+	//	sdk.EventTypeMessage,
+	//	sdk.NewAttribute(sdk.AttributeKeyModule, ibcxfer.AttributeValueCategory),
+	//	sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
+	//),
+	//)
 
 	return &sdk.Result{
 		Events: ctx.EventManager().Events(),
