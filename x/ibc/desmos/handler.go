@@ -20,7 +20,7 @@ func NewHandler(k Keeper) sdk.Handler {
 
 func handleMsgCreatePost(ctx sdk.Context, k Keeper, msg MsgCreateSongPost) (*sdk.Result, error) {
 	if err := k.SendPostCreation(
-		ctx, msg.SourcePort, msg.SourceChannel, msg.DestHeight, msg.Sender,
+		ctx, msg.SourcePort, msg.SourceChannel, msg.DestHeight, msg.SongID, msg.CreationTime, msg.Sender,
 	); err != nil {
 		return nil, err
 	}

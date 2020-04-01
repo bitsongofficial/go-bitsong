@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	"github.com/bitsongofficial/go-bitsong/x/ibc/desmos/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,8 +15,6 @@ import (
 const (
 	// DefaultPacketTimeout is the default packet timeout relative to the current block height
 	DefaultPacketTimeout = 1000 // NOTE: in blocks
-
-	DesmosBitsongSubspace = "a31be8a1946fb15200d7081163bf3c41eae3b8b745e8bbf7d96e04e57c9ddf9b"
 )
 
 // Represents the keeper that is used to perform IBC operations
@@ -37,6 +36,9 @@ func (k Keeper) SendPostCreation(
 	sourcePort,
 	sourceChannel string,
 	destHeight uint64,
+
+	songID string,
+	creationTime time.Time,
 	sender sdk.AccAddress,
 ) error {
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
@@ -54,7 +56,8 @@ func (k Keeper) SendPostCreation(
 	}
 
 	return k.createOutgoingPacket(
-		ctx, sequence, sourcePort, sourceChannel, destinationPort, destinationChannel, destHeight, sender,
+		ctx, sequence, sourcePort, sourceChannel, destinationPort, destinationChannel, destHeight,
+		songID, creationTime, sender,
 	)
 }
 
@@ -64,26 +67,13 @@ func (k Keeper) createOutgoingPacket(
 	sourcePort, sourceChannel,
 	destinationPort, destinationChannel string,
 	destHeight uint64,
+
+	songID string,
+	creationTime time.Time,
 	sender sdk.AccAddress,
 ) error {
-
-	// TODO: Change this test data
-	data := posts.NewPostCreationData(
-		"Test message",
-		posts.PostID(0),
-		true,
-		DesmosBitsongSubspace,
-		map[string]string{
-			// TODO: Add reference to the song
-		},
-		sender,
-		time.Now(),
-		nil,
-		nil,
-	)
-
 	packetData := posts.NewCreatePostPacketData(
-		data,
+		types.NewSongCreationData(songID, creationTime, sender),
 		destHeight+DefaultPacketTimeout,
 	)
 

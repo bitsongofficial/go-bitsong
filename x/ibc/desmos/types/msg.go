@@ -1,18 +1,21 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	host "github.com/cosmos/cosmos-sdk/x/ibc/24-host"
 )
 
 type MsgCreateSongPost struct {
-	SourcePort    string         `json:"source_port" yaml:"source_port"`       // the port on which the packet will be sent
-	SourceChannel string         `json:"source_channel" yaml:"source_channel"` // the channel by which the packet will be sent
-	DestHeight    uint64         `json:"dest_height" yaml:"dest_height"`       // the current height of the destination chain
-	Sender        sdk.AccAddress `json:"sender" yaml:"sender"`                 // the sender address
+	SourcePort    string `json:"source_port" yaml:"source_port"`       // the port on which the packet will be sent
+	SourceChannel string `json:"source_channel" yaml:"source_channel"` // the channel by which the packet will be sent
+	DestHeight    uint64 `json:"dest_height" yaml:"dest_height"`       // the current height of the destination chain
 
-	// TODO: Add other data
+	SongID       string         `json:"song_id" yaml:"song_id"`             // Song ID
+	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"` // Post creation time
+	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`               // Post creator
 }
 
 // NewMsgCreateSongPost creates a new MsgCreateSongPost instance
