@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,13 +21,17 @@ type MsgCreateSongPost struct {
 
 // NewMsgCreateSongPost creates a new MsgCreateSongPost instance
 func NewMsgCreateSongPost(
-	sourcePort, sourceChannel string, destHeight uint64, sender sdk.AccAddress,
+	sourcePort, sourceChannel string, destHeight uint64,
+	songID string, creationTime time.Time, sender sdk.AccAddress,
 ) MsgCreateSongPost {
 	return MsgCreateSongPost{
 		SourcePort:    sourcePort,
 		SourceChannel: sourceChannel,
 		DestHeight:    destHeight,
-		Sender:        sender,
+
+		SongID:       songID,
+		CreationTime: creationTime,
+		Sender:       sender,
 	}
 }
 
@@ -47,6 +52,12 @@ func (msg MsgCreateSongPost) ValidateBasic() error {
 	}
 	if err := host.DefaultChannelIdentifierValidator(msg.SourceChannel); err != nil {
 		return sdkerrors.Wrap(err, "invalid source channel ID")
+	}
+	if len(strings.TrimSpace(msg.SongID)) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "song id cannot be empty")
+	}
+	if msg.CreationTime.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "creation time cannot be empty")
 	}
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
