@@ -12,7 +12,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc_desmos"
+	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -67,8 +67,12 @@ var (
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 
+		// Custom modules
 		reward.AppModuleBasic{},
 		track.AppModuleBasic{},
+
+		// Custom IBC modules
+		desmosibc.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -231,6 +235,8 @@ func NewBitsongApp(
 		app.subspaces[track.ModuleName],
 	)
 	app.mintKeeper = mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
+
+	// Custom IBC modules
 	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -248,8 +254,11 @@ func NewBitsongApp(
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 
+		// Custom modules
 		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper, app.bankKeeper),
 		track.NewAppModule(app.trackKeeper, app.bankKeeper),
+
+		// Custom IBC modules
 		desmosibc.NewAppModule(app.desmosIBCKeeper),
 	)
 

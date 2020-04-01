@@ -1,9 +1,9 @@
-package ibc_desmos
+package desmos
 
 import (
 	"encoding/json"
 
-	"github.com/bitsongofficial/go-bitsong/x/ibc_desmos/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/ibc/desmos/client/cli"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

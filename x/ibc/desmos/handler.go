@@ -1,4 +1,4 @@
-package ibc_desmos
+package desmos
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
