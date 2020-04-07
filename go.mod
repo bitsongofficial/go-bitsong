@@ -3,7 +3,7 @@ module github.com/bitsongofficial/go-bitsong
 go 1.13
 
 require (
-	github.com/cosmos/cosmos-sdk v0.34.4-0.20200327170214-3b48464bb4dc
+	github.com/cosmos/cosmos-sdk v0.34.4-0.20200406170659-df5badaf4c2b
 	github.com/cosmos/gaia v0.0.1-0.20200324214546-276e9b764765
 	github.com/desmos-labs/desmos v0.3.1-0.20200401084845-8ad3a778f445
 	github.com/gorilla/mux v1.7.4
@@ -15,3 +15,5 @@ require (
 	github.com/tendermint/tendermint v0.33.2
 	github.com/tendermint/tm-db v0.5.0
 )
+
+replace github.com/cosmos/cosmos-sdk => /sda1/Coding/Cosmos/SDK
