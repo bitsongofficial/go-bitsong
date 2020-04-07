@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
 	ibcxfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer/types"
-	"github.com/desmos-labs/desmos/x/posts"
 )
 
 const (
@@ -72,12 +71,8 @@ func (k Keeper) createOutgoingPacket(
 	creationTime time.Time,
 	sender sdk.AccAddress,
 ) error {
-	packetData := posts.NewCreatePostPacketData(
-		types.NewSongCreationData(songID, creationTime, sender),
-	)
-
 	packet := channel.NewPacket(
-		packetData.GetBytes(),
+		types.NewSongCreationData(songID, creationTime, sender).GetBytes(),
 		seq,
 		sourcePort,
 		sourceChannel,
