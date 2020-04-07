@@ -74,16 +74,16 @@ func (k Keeper) createOutgoingPacket(
 ) error {
 	packetData := posts.NewCreatePostPacketData(
 		types.NewSongCreationData(songID, creationTime, sender),
-		destHeight+DefaultPacketTimeout,
 	)
 
 	packet := channel.NewPacket(
-		packetData,
+		packetData.GetBytes(),
 		seq,
 		sourcePort,
 		sourceChannel,
 		destinationPort,
 		destinationChannel,
+		destHeight+DefaultPacketTimeout,
 	)
 
 	return k.channelKeeper.SendPacket(ctx, packet)

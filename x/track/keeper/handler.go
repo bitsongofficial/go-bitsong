@@ -62,7 +62,7 @@ func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTra
 
 	return &sdk.Result{
 		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(track.TrackID),
-		Events: ctx.EventManager().Events(),
+		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }
 
@@ -82,7 +82,7 @@ func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) (*sdk.Resu
 	)
 
 	return &sdk.Result{
-		Events: ctx.EventManager().Events(),
+		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }
 
@@ -109,5 +109,5 @@ func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) (*sd
 		)
 	}
 
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
