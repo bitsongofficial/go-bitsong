@@ -6,6 +6,7 @@ import (
 
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	cmint "github.com/cosmos/cosmos-sdk/x/mint"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -110,18 +111,19 @@ type GoBitsong struct {
 	subspaces map[string]params.Subspace
 
 	// keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	supplyKeeper   supply.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	cmintKeeper    cmint.Keeper
-	mintKeeper     mint.Keeper
-	distrKeeper    distr.Keeper
-	govKeeper      gov.Keeper
-	crisisKeeper   crisis.Keeper
-	paramsKeeper   params.Keeper
-	ibcKeeper      ibc.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bank.Keeper
+	supplyKeeper     supply.Keeper
+	stakingKeeper    staking.Keeper
+	slashingKeeper   slashing.Keeper
+	cmintKeeper      cmint.Keeper
+	mintKeeper       mint.Keeper
+	distrKeeper      distr.Keeper
+	govKeeper        gov.Keeper
+	crisisKeeper     crisis.Keeper
+	paramsKeeper     params.Keeper
+	ibcKeeper        ibc.Keeper
+	capabilityKeeper *capability.Keeper
 
 	// bitsong keepers
 	rewardKeeper    reward.Keeper
@@ -149,7 +151,7 @@ func NewBitsongApp(
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey, bank.StoreKey,
 		supply.StoreKey, cmint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, ibc.StoreKey,
+		gov.StoreKey, params.StoreKey, ibc.StoreKey, capability.StoreKey,
 
 		reward.StoreKey, track.StoreKey,
 	)
@@ -177,6 +179,10 @@ func NewBitsongApp(
 
 	app.subspaces[reward.ModuleName] = app.paramsKeeper.Subspace(reward.DefaultParamspace)
 	app.subspaces[track.ModuleName] = app.paramsKeeper.Subspace(track.DefaultParamspace)
+
+	// add capability keeper and ScopeToModule for ibc module
+	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
 
 	// Add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -222,7 +228,7 @@ func NewBitsongApp(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.ibcKeeper = ibc.NewKeeper(app.cdc, keys[ibc.StoreKey], stakingKeeper)
+	app.ibcKeeper = ibc.NewKeeper(app.cdc, keys[ibc.StoreKey], stakingKeeper, scopedIBCKeeper)
 
 	// Custom modules
 	app.rewardKeeper = reward.NewKeeper(

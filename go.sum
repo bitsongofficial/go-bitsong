@@ -72,6 +72,8 @@ github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfc
 github.com/cosmos/cosmos-sdk v0.34.4-0.20200324184639-0ed9ed648788/go.mod h1:j3Huu0BGDmHaFMbcR7mdmtI7jDHLL6tU6t3iHt35lVM=
 github.com/cosmos/cosmos-sdk v0.34.4-0.20200406170659-df5badaf4c2b h1:PxgSe3L4LPIW7/OL4mymRoxdUxK4GkQs0bkh1UPqXcY=
 github.com/cosmos/cosmos-sdk v0.34.4-0.20200406170659-df5badaf4c2b/go.mod h1:U8H6q3cxInRPpW8IGI/AJFLKFVAHh3WKCRNK6lQPCsE=
+github.com/cosmos/cosmos-sdk v0.34.4-0.20200407112048-9448610d9c59 h1:rXCf0jjzbhXBa1HdQDbHgBCyErOKyk4VzY+CwfjOWFQ=
+github.com/cosmos/cosmos-sdk v0.34.4-0.20200407112048-9448610d9c59/go.mod h1:U8H6q3cxInRPpW8IGI/AJFLKFVAHh3WKCRNK6lQPCsE=
 github.com/cosmos/gaia v0.0.1-0.20200324214546-276e9b764765 h1:Qn600ZPaJ7jGMtaWAaszNO8oNeVbCI35HOhKQtKC/KM=
 github.com/cosmos/gaia v0.0.1-0.20200324214546-276e9b764765/go.mod h1:kZ16FpXRA8JaBcw0jKF2U0SmmXdkttnvONWJzwO0Yns=
 github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d h1:49RLWk1j44Xu4fjHb6JFYmeUnDORVwHNkDxaQ0ctCVU=
