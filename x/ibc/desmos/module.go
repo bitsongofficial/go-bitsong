@@ -7,7 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/capability"
+	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
+	channelexported "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/exported"
+	channeltypes "github.com/cosmos/cosmos-sdk/x/ibc/04-channel/types"
+	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
+	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -114,4 +121,101 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // EndBlock implements the AppModule interface
 func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
+}
+
+//____________________________________________________________________________
+
+// Implement IBCModule callbacks
+func (am AppModule) OnChanOpenInit(
+	ctx sdk.Context,
+	order channelexported.Order,
+	connectionHops []string,
+	portID string,
+	channelID string,
+	chanCap *capability.Capability,
+	counterparty channeltypes.Counterparty,
+	version string,
+) error {
+	// TODO: Enforce ordering, currently relayers use ORDERED channels
+
+	if counterparty.PortID != PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", PortID, counterparty.PortID)
+	}
+
+	if version != Version {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid version: %s, expected %s", version, "ics20-1")
+	}
+
+	// Claim channel capability passed back by IBC module
+	if err := am.keeper.ClaimCapability(ctx, chanCap, ibctypes.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, err.Error())
+	}
+
+	// TODO: escrow
+	return nil
+}
+
+func (am AppModule) OnChanOpenTry(
+	ctx sdk.Context,
+	order channelexported.Order,
+	connectionHops []string,
+	portID,
+	channelID string,
+	chanCap *capability.Capability,
+	counterparty channeltypes.Counterparty,
+	version,
+	counterpartyVersion string,
+) error {
+	// TODO: Enforce ordering, currently relayers use ORDERED channels
+
+	if counterparty.PortID != PortID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", PortID, counterparty.PortID)
+	}
+
+	if version != Version {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid version: %s, expected %s", version, "ics20-1")
+	}
+
+	if counterpartyVersion != Version {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty version: %s, expected %s", counterpartyVersion, "ics20-1")
+	}
+
+	// Claim channel capability passed back by IBC module
+	if err := am.keeper.ClaimCapability(ctx, chanCap, ibctypes.ChannelCapabilityPath(portID, channelID)); err != nil {
+		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, err.Error())
+	}
+
+	// TODO: escrow
+	return nil
+}
+
+func (am AppModule) OnChanOpenAck(ctx sdk.Context, portID, channelID string, counterpartyVersion string) error {
+	if counterpartyVersion != Version {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty version: %s, expected %s", counterpartyVersion, "ics20-1")
+	}
+	return nil
+}
+
+func (am AppModule) OnChanOpenConfirm(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+func (am AppModule) OnChanCloseInit(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+func (am AppModule) OnChanCloseConfirm(ctx sdk.Context, portID, channelID string) error {
+	return nil
+}
+
+func (am AppModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
+	return nil, nil
+}
+
+func (am AppModule) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledment []byte) (*sdk.Result, error) {
+	return nil, nil
+}
+
+func (am AppModule) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet) (*sdk.Result, error) {
+	return nil, nil
 }

@@ -8,6 +8,7 @@ import (
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
+	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 	cmint "github.com/cosmos/cosmos-sdk/x/mint"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -111,19 +112,21 @@ type GoBitsong struct {
 	subspaces map[string]params.Subspace
 
 	// keepers
-	accountKeeper    auth.AccountKeeper
-	bankKeeper       bank.Keeper
-	supplyKeeper     supply.Keeper
-	stakingKeeper    staking.Keeper
-	slashingKeeper   slashing.Keeper
-	cmintKeeper      cmint.Keeper
-	mintKeeper       mint.Keeper
-	distrKeeper      distr.Keeper
-	govKeeper        gov.Keeper
-	crisisKeeper     crisis.Keeper
-	paramsKeeper     params.Keeper
-	ibcKeeper        ibc.Keeper
-	capabilityKeeper *capability.Keeper
+	accountKeeper      auth.AccountKeeper
+	bankKeeper         bank.Keeper
+	supplyKeeper       supply.Keeper
+	stakingKeeper      staking.Keeper
+	slashingKeeper     slashing.Keeper
+	cmintKeeper        cmint.Keeper
+	mintKeeper         mint.Keeper
+	distrKeeper        distr.Keeper
+	govKeeper          gov.Keeper
+	crisisKeeper       crisis.Keeper
+	paramsKeeper       params.Keeper
+	ibcKeeper          ibc.Keeper
+	capabilityKeeper   *capability.Keeper
+	scopedIBCKeeper    capability.ScopedKeeper
+	scopedDesmosKeeper capability.ScopedKeeper
 
 	// bitsong keepers
 	rewardKeeper    reward.Keeper
@@ -245,6 +248,12 @@ func NewBitsongApp(
 
 	// Custom IBC modules
 	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper, scopedDesmosKeeper)
+	desmosModule := desmosibc.NewAppModule(app.desmosIBCKeeper)
+
+	// Create static IBC router, add desmos route, then set and seal it
+	ibcRouter := port.NewRouter()
+	ibcRouter.AddRoute(desmosibc.ModuleName, desmosModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -252,6 +261,7 @@ func NewBitsongApp(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper, app.supplyKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(*app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.bankKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
@@ -307,6 +317,15 @@ func NewBitsongApp(
 			tmos.Exit(err.Error())
 		}
 	}
+
+	// Initialize and seal the capability keeper so all persistent capabilities
+	// are loaded in-memory and prevent any further modules from creating scoped
+	// sub-keepers.
+	ctx := app.BaseApp.NewContext(true, abci.Header{})
+	app.capabilityKeeper.InitializeAndSeal(ctx)
+
+	app.scopedIBCKeeper = scopedIBCKeeper
+	app.scopedDesmosKeeper = scopedDesmosKeeper
 
 	return app
 }

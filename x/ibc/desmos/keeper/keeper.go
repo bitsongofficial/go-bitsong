@@ -92,3 +92,9 @@ func (k Keeper) createOutgoingPacket(
 
 	return k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
+
+// ClaimCapability allows the transfer module that can claim a capability that IBC module
+// passes to it
+func (k Keeper) ClaimCapability(ctx sdk.Context, cap *capability.Capability, name string) error {
+	return k.scopedKeeper.ClaimCapability(ctx, cap, name)
+}
