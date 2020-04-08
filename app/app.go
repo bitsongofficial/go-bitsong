@@ -155,7 +155,7 @@ func NewBitsongApp(
 
 		reward.StoreKey, track.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
 	app := &GoBitsong{
 		BaseApp:        bApp,
@@ -183,6 +183,7 @@ func NewBitsongApp(
 	// add capability keeper and ScopeToModule for ibc module
 	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
+	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(desmosibc.ModuleName)
 
 	// Add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -243,7 +244,7 @@ func NewBitsongApp(
 	app.mintKeeper = mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
 
 	// Custom IBC modules
-	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper)
+	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper, scopedDesmosKeeper)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.

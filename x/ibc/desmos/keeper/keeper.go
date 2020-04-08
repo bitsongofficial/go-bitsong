@@ -7,8 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/capability"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
 	ibcxfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer/types"
+	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
 )
 
 const (
@@ -20,12 +22,14 @@ const (
 type Keeper struct {
 	cdc           *codec.Codec
 	channelKeeper ibcxfer.ChannelKeeper
+	scopedKeeper  capability.ScopedKeeper
 }
 
-func NewKeeper(cdc *codec.Codec, ck ibcxfer.ChannelKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, ck ibcxfer.ChannelKeeper, sk capability.ScopedKeeper) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		channelKeeper: ck,
+		scopedKeeper:  sk,
 	}
 }
 
@@ -71,6 +75,11 @@ func (k Keeper) createOutgoingPacket(
 	creationTime time.Time,
 	sender sdk.AccAddress,
 ) error {
+	channelCap, ok := k.scopedKeeper.GetCapability(ctx, ibctypes.ChannelCapabilityPath(sourcePort, sourceChannel))
+	if !ok {
+		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, "module does not own channel capability")
+	}
+
 	packet := channel.NewPacket(
 		types.NewSongCreationData(songID, creationTime, sender).GetBytes(),
 		seq,
@@ -81,5 +90,5 @@ func (k Keeper) createOutgoingPacket(
 		destHeight+DefaultPacketTimeout,
 	)
 
-	return k.channelKeeper.SendPacket(ctx, packet)
+	return k.channelKeeper.SendPacket(ctx, channelCap, packet)
 }
