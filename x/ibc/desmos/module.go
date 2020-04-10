@@ -106,6 +106,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 // InitGenesis performs genesis initialization for the ibc desmos module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONMarshaler, _ json.RawMessage) []abci.ValidatorUpdate {
+	InitGenesis(ctx, am.keeper)
 	return nil
 }
 

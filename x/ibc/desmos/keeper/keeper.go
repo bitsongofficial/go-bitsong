@@ -9,7 +9,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
-	ibcxfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer/types"
+	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
+	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
 	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
 )
 
@@ -21,14 +22,16 @@ const (
 // Represents the keeper that is used to perform IBC operations
 type Keeper struct {
 	cdc           *codec.Codec
-	channelKeeper ibcxfer.ChannelKeeper
+	channelKeeper channel.Keeper
+	portKeeper    port.Keeper
 	scopedKeeper  capability.ScopedKeeper
 }
 
-func NewKeeper(cdc *codec.Codec, ck ibcxfer.ChannelKeeper, sk capability.ScopedKeeper) Keeper {
+func NewKeeper(cdc *codec.Codec, ck channel.Keeper, portK port.Keeper, sk capability.ScopedKeeper) Keeper {
 	return Keeper{
 		cdc:           cdc,
 		channelKeeper: ck,
+		portKeeper:    portK,
 		scopedKeeper:  sk,
 	}
 }
@@ -91,6 +94,13 @@ func (k Keeper) createOutgoingPacket(
 	)
 
 	return k.channelKeeper.SendPacket(ctx, channelCap, packet)
+}
+
+// BindPort defines a wrapper function for the ort Keeper's function in
+// order to expose it to module's InitGenesis function
+func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
+	cap := k.portKeeper.BindPort(ctx, portID)
+	return k.ClaimCapability(ctx, cap, porttypes.PortPath(portID))
 }
 
 // ClaimCapability allows the transfer module that can claim a capability that IBC module

@@ -132,13 +132,10 @@ type GoBitsong struct {
 	trackKeeper  track.Keeper
 
 	// IBC modules
-	ibcKeeper        ibc.Keeper
+	ibcKeeper        *ibc.Keeper
 	capabilityKeeper *capability.Keeper
 	transferKeeper   transfer.Keeper
 	desmosIBCKeeper  desmosibc.Keeper
-
-	scopedIBCKeeper    capability.ScopedKeeper
-	scopedDesmosKeeper capability.ScopedKeeper
 
 	// the module manager
 	mm *module.Manager
@@ -258,12 +255,12 @@ func NewBitsongApp(
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
 		app.cdc, keys[transfer.StoreKey],
-		app.ibcKeeper.ChannelKeeper, app.bankKeeper, app.supplyKeeper,
-		scopedTransferKeeper,
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.bankKeeper, app.supplyKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
-	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper, scopedDesmosKeeper)
+	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper, app.ibcKeeper.PortKeeper, scopedDesmosKeeper)
 	desmosModule := desmosibc.NewAppModule(app.desmosIBCKeeper)
 
 	// Create static IBC router, add desmos route, then set and seal it
@@ -286,13 +283,13 @@ func NewBitsongApp(
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
-		ibc.NewAppModule(app.ibcKeeper),
 
 		// Custom modules
 		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper, app.bankKeeper),
 		track.NewAppModule(app.trackKeeper, app.bankKeeper),
 
 		// IBC modules
+		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 		desmosModule,
 	)
@@ -310,7 +307,11 @@ func NewBitsongApp(
 		slashing.ModuleName, gov.ModuleName, cmint.ModuleName, supply.ModuleName,
 		crisis.ModuleName, genutil.ModuleName,
 
-		track.ModuleName, reward.ModuleName,
+		// Custom modules
+		reward.ModuleName,
+
+		// IBC Modules
+		track.ModuleName, desmosibc.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -324,7 +325,7 @@ func NewBitsongApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetAnteHandler(auth.NewAnteHandler(
-		app.accountKeeper, app.supplyKeeper, app.ibcKeeper,
+		app.accountKeeper, app.supplyKeeper, *app.ibcKeeper,
 		auth.DefaultSigVerificationGasConsumer,
 	))
 	app.SetEndBlocker(app.EndBlocker)
@@ -335,15 +336,6 @@ func NewBitsongApp(
 			tmos.Exit(err.Error())
 		}
 	}
-
-	// Initialize and seal the capability keeper so all persistent capabilities
-	// are loaded in-memory and prevent any further modules from creating scoped
-	// sub-keepers.
-	ctx := app.BaseApp.NewContext(true, abci.Header{})
-	app.capabilityKeeper.InitializeAndSeal(ctx)
-
-	app.scopedIBCKeeper = scopedIBCKeeper
-	app.scopedDesmosKeeper = scopedDesmosKeeper
 
 	return app
 }
