@@ -308,10 +308,10 @@ func NewBitsongApp(
 		crisis.ModuleName, genutil.ModuleName,
 
 		// Custom modules
-		reward.ModuleName,
+		reward.ModuleName, track.ModuleName,
 
 		// IBC Modules
-		track.ModuleName, desmosibc.ModuleName,
+		transfer.ModuleName, desmosibc.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
