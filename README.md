@@ -35,7 +35,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
     cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout v0.3.0
+    git checkout v0.3.1
     ```
   3. **Compile**
 		```bash
