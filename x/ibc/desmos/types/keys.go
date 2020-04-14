@@ -1,5 +1,9 @@
 package types
 
+import (
+	desmosibcposts "github.com/desmos-labs/desmos/x/ibc/xposts"
+)
+
 const (
 	// ModuleName defines the desmos IBC name
 	ModuleName = "desmosibc"
@@ -18,5 +22,5 @@ const (
 	Version = "ics20-1"
 
 	// PortID that desmos module binds to
-	PortID = "desmos"
+	PortID = desmosibcposts.PortID
 )
