@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -27,7 +28,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 	transfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer"
-	cmint "github.com/cosmos/cosmos-sdk/x/mint"
+	stdmint "github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -55,37 +56,39 @@ var (
 		supply.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
-		cmint.AppModuleBasic{},
+		stdmint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			paramsclient.ProposalHandler,
-			distr.ProposalHandler,
+			paramsclient.ProposalHandler, distr.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		ibc.AppModuleBasic{},
 
 		// Custom modules
 		reward.AppModuleBasic{},
 		track.AppModuleBasic{},
 
 		// IBC modules
-		ibc.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:           nil,
-		distr.ModuleName:                nil,
-		cmint.ModuleName:                {supply.Minter},
-		staking.BondedPoolName:          {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName:       {supply.Burner, supply.Staking},
-		gov.ModuleName:                  {supply.Burner},
-		track.ModuleName:                {supply.Burner},
-		reward.ModuleName:               nil,
+		auth.FeeCollectorName:     nil,
+		distr.ModuleName:          nil,
+		stdmint.ModuleName:        {supply.Minter},
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		gov.ModuleName:            {supply.Burner},
+
+		track.ModuleName:  {supply.Burner},
+		reward.ModuleName: nil,
+
 		transfer.GetModuleAccountName(): {supply.Minter, supply.Burner},
 	}
 
@@ -105,34 +108,34 @@ type GoBitsong struct {
 	invCheckPeriod uint
 
 	// sdk keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
 
 	// subspaces
 	subspaces map[string]params.Subspace
 
 	// keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	supplyKeeper   supply.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	cmintKeeper    cmint.Keeper
-	mintKeeper     mint.Keeper
-	distrKeeper    distr.Keeper
-	govKeeper      gov.Keeper
-	crisisKeeper   crisis.Keeper
-	paramsKeeper   params.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bank.Keeper
+	capabilityKeeper *capability.Keeper
+	supplyKeeper     supply.Keeper
+	stakingKeeper    staking.Keeper
+	slashingKeeper   slashing.Keeper
+	mintKeeper       stdmint.Keeper
+	distrKeeper      distr.Keeper
+	govKeeper        gov.Keeper
+	crisisKeeper     crisis.Keeper
+	paramsKeeper     params.Keeper
+	ibcKeeper        *ibc.Keeper
 
 	// Custom modules
 	rewardKeeper reward.Keeper
 	trackKeeper  track.Keeper
 
 	// IBC modules
-	ibcKeeper        *ibc.Keeper
-	capabilityKeeper *capability.Keeper
-	transferKeeper   transfer.Keeper
-	desmosIBCKeeper  desmosibc.Keeper
+	transferKeeper  transfer.Keeper
+	desmosIBCKeeper desmosibc.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -153,14 +156,15 @@ func NewBitsongApp(
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, auth.StoreKey, staking.StoreKey, bank.StoreKey,
-		supply.StoreKey, cmint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		auth.StoreKey, bank.StoreKey, staking.StoreKey,
+		supply.StoreKey, stdmint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, ibc.StoreKey,
 		transfer.StoreKey, capability.StoreKey,
 
 		reward.StoreKey, track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
 
 	app := &GoBitsong{
 		BaseApp:        bApp,
@@ -168,6 +172,7 @@ func NewBitsongApp(
 		invCheckPeriod: invCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
+		memKeys:        memKeys,
 		subspaces:      make(map[string]params.Subspace),
 	}
 
@@ -176,7 +181,7 @@ func NewBitsongApp(
 	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	app.subspaces[cmint.ModuleName] = app.paramsKeeper.Subspace(cmint.DefaultParamspace)
+	app.subspaces[stdmint.ModuleName] = app.paramsKeeper.Subspace(stdmint.DefaultParamspace)
 	app.subspaces[distr.ModuleName] = app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
@@ -185,8 +190,11 @@ func NewBitsongApp(
 	app.subspaces[reward.ModuleName] = app.paramsKeeper.Subspace(reward.DefaultParamspace)
 	app.subspaces[track.ModuleName] = app.paramsKeeper.Subspace(track.DefaultParamspace)
 
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))
+
 	// add capability keeper and ScopeToModule for ibc module
-	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey])
+	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
 	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(desmosibc.ModuleName)
@@ -204,8 +212,8 @@ func NewBitsongApp(
 	stakingKeeper := staking.NewKeeper(
 		appCodec, keys[staking.StoreKey], app.bankKeeper, app.supplyKeeper, app.subspaces[staking.ModuleName],
 	)
-	app.cmintKeeper = cmint.NewKeeper(
-		appCodec, keys[cmint.StoreKey], app.subspaces[cmint.ModuleName], &stakingKeeper,
+	app.mintKeeper = stdmint.NewKeeper(
+		appCodec, keys[stdmint.StoreKey], app.subspaces[stdmint.ModuleName], &stakingKeeper,
 		app.supplyKeeper, auth.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
@@ -225,8 +233,8 @@ func NewBitsongApp(
 		AddRoute(paramsproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(
-		appCodec, keys[gov.StoreKey], app.subspaces[gov.ModuleName],
-		app.supplyKeeper, &stakingKeeper, govRouter,
+		appCodec, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
+		&stakingKeeper, govRouter,
 	)
 
 	// register the staking hooks
@@ -235,7 +243,9 @@ func NewBitsongApp(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.ibcKeeper = ibc.NewKeeper(app.cdc, keys[ibc.StoreKey], stakingKeeper, scopedIBCKeeper)
+	app.ibcKeeper = ibc.NewKeeper(
+		app.cdc, keys[ibc.StoreKey], stakingKeeper, scopedIBCKeeper,
+	)
 
 	// Custom modules
 	app.rewardKeeper = reward.NewKeeper(
@@ -247,7 +257,7 @@ func NewBitsongApp(
 		app.stakingKeeper, app.accountKeeper, app.supplyKeeper,
 		app.subspaces[track.ModuleName],
 	)
-	app.mintKeeper = mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
+	stdMintKeeper := mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
@@ -257,7 +267,9 @@ func NewBitsongApp(
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
-	app.desmosIBCKeeper = desmosibc.NewKeeper(app.cdc, app.ibcKeeper.ChannelKeeper, app.ibcKeeper.PortKeeper, scopedDesmosKeeper)
+	app.desmosIBCKeeper = desmosibc.NewKeeper(
+		app.cdc, app.ibcKeeper.ChannelKeeper, app.ibcKeeper.PortKeeper, scopedDesmosKeeper,
+	)
 	desmosModule := desmosibc.NewAppModule(app.desmosIBCKeeper)
 
 	// Create static IBC router, add desmos route, then set and seal it
@@ -276,17 +288,18 @@ func NewBitsongApp(
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.bankKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
-		mint.NewAppModule(cmint.NewAppModule(app.cmintKeeper, app.supplyKeeper), app.cmintKeeper, app.mintKeeper),
+		mint.NewAppModule(stdmint.NewAppModule(app.mintKeeper, app.supplyKeeper), app.mintKeeper, stdMintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
+		params.NewAppModule(app.paramsKeeper),
 
 		// Custom modules
 		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper, app.bankKeeper),
 		track.NewAppModule(app.trackKeeper, app.bankKeeper),
 
 		// IBC modules
-		ibc.NewAppModule(app.ibcKeeper),
 		transferModule,
 		desmosModule,
 	)
@@ -294,15 +307,18 @@ func NewBitsongApp(
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(cmint.ModuleName, distr.ModuleName, slashing.ModuleName, staking.ModuleName)
+	app.mm.SetOrderBeginBlockers(
+		stdmint.ModuleName, distr.ModuleName, slashing.ModuleName,
+		staking.ModuleName, ibc.ModuleName,
+	)
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		distr.ModuleName, staking.ModuleName, auth.ModuleName, bank.ModuleName,
-		slashing.ModuleName, gov.ModuleName, cmint.ModuleName, supply.ModuleName,
-		crisis.ModuleName, genutil.ModuleName,
+		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
+		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, supply.ModuleName,
+		crisis.ModuleName, ibc.ModuleName, genutil.ModuleName,
 
 		// Custom modules
 		reward.ModuleName, track.ModuleName,
@@ -328,7 +344,7 @@ func NewBitsongApp(
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
+		err := app.LoadLatestVersion()
 		if err != nil {
 			tmos.Exit(err.Error())
 		}
@@ -372,7 +388,7 @@ func (app *GoBitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) ab
 
 // LoadHeight loads a particular height
 func (app *GoBitsong) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
