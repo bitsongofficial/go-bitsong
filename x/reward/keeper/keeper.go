@@ -5,42 +5,41 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 
+	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 type Keeper struct {
-	storeKey     sdk.StoreKey
-	cdc          *codec.Codec
-	paramSpace   params.Subspace
-	supplyKeeper supply.Keeper
-	trackKeeper  track.Keeper
-	bankKeeper   bank.Keeper
+	storeKey      sdk.StoreKey
+	cdc           *codec.Codec
+	paramSpace    params.Subspace
+	accountKeeper auth.AccountKeeper
+	trackKeeper   track.Keeper
+	bankKeeper    bank.Keeper
 }
 
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
-	supplyKeeper supply.Keeper, trackKeeper track.Keeper, bankKeeper bank.Keeper) Keeper {
+	accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper, trackKeeper track.Keeper) Keeper {
 	// ensure distribution module account is set
-	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
 	return Keeper{
-		storeKey:     key,
-		cdc:          cdc,
-		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
-		supplyKeeper: supplyKeeper,
-		trackKeeper:  trackKeeper,
-		bankKeeper:   bankKeeper,
+		storeKey:      key,
+		cdc:           cdc,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper: accountKeeper,
+		trackKeeper:   trackKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -66,15 +65,15 @@ func (k Keeper) SetRewardPool(ctx sdk.Context, rewardPool types.RewardPool) {
 }
 
 func (k Keeper) GetRewardModuleAccount(ctx sdk.Context) exported.ModuleAccountI {
-	return k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	return k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
 
 func (k Keeper) AddCollectedCoins(ctx sdk.Context, coins sdk.Coins) error {
-	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, "mint", types.ModuleName, coins)
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, "mint", types.ModuleName, coins)
 }
 
 func (k Keeper) GetRewardPoolSupply(ctx sdk.Context) sdk.Coins {
-	account := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
+	account := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	return k.bankKeeper.GetAllBalances(ctx, account.GetAddress())
 }
 

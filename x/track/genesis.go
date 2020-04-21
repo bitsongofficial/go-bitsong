@@ -82,7 +82,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, bankKeeper bank.Keeper, data Genesis
 	k.SetDepositParams(ctx, data.DepositParams)
 
 	// check if the deposits pool account exists
-	moduleAcc := k.Sk.GetModuleAccount(ctx, ModuleName)
+	moduleAcc := k.AccountKeeper.GetModuleAccount(ctx, ModuleName)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
@@ -103,7 +103,7 @@ func InitGenesis(ctx sdk.Context, k Keeper, bankKeeper bank.Keeper, data Genesis
 		if err := bankKeeper.SetBalances(ctx, moduleAcc.GetAddress(), totalDeposits); err != nil {
 			panic(err)
 		}
-		k.Sk.SetModuleAccount(ctx, moduleAcc)
+		k.AccountKeeper.SetModuleAccount(ctx, moduleAcc)
 	}
 }
 

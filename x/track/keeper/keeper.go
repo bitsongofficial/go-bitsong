@@ -6,9 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
@@ -20,20 +20,24 @@ type Keeper struct {
 	cdc           *codec.Codec       // The codec for binary encoding/decoding.
 	codespace     string             // Reserved codespace
 	stakingKeeper staking.Keeper     // Staking Keeper
-	ak            auth.AccountKeeper // Cosmos-SDK Account Keeper
-	Sk            supply.Keeper      // Cosmos-SDK Supply Keeper
+	AccountKeeper auth.AccountKeeper // Cosmos-SDK Account Keeper
+	BankKeeper    bank.Keeper
 	paramSpace    params.Subspace
 }
 
 // NewKeeper returns an track keeper.
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, codespace string, stakingKeeper staking.Keeper, ak auth.AccountKeeper, sk supply.Keeper, paramSpace params.Subspace) Keeper {
+func NewKeeper(
+	cdc *codec.Codec, key sdk.StoreKey, codespace string,
+	stakingKeeper staking.Keeper, ak auth.AccountKeeper, bk bank.Keeper,
+	paramSpace params.Subspace,
+) Keeper {
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		codespace:     codespace,
 		stakingKeeper: stakingKeeper,
-		ak:            ak,
-		Sk:            sk,
+		AccountKeeper: ak,
+		BankKeeper:    bk,
 		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
 	}
 }

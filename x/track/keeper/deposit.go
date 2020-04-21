@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerr "github.com/cosmos/cosmos-sdk/types/errors"
@@ -56,7 +57,7 @@ func (keeper Keeper) AddDeposit(ctx sdk.Context, trackID uint64, depositorAddr s
 	track.DepositEndTime = blockTime.Add(depositPeriod)
 
 	// update the track module's account coins pool
-	err := keeper.Sk.SendCoinsFromAccountToModule(ctx, depositorAddr, types.ModuleName, depositAmount)
+	err := keeper.BankKeeper.SendCoinsFromAccountToModule(ctx, depositorAddr, types.ModuleName, depositAmount)
 	if err != nil {
 		return err, false
 	}
@@ -153,7 +154,7 @@ func (keeper Keeper) RefundDeposits(ctx sdk.Context, trackID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 
 	keeper.IterateDeposits(ctx, trackID, func(deposit types.Deposit) bool {
-		err := keeper.Sk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, deposit.Depositor, deposit.Amount)
+		err := keeper.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, deposit.Depositor, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}
@@ -168,7 +169,7 @@ func (keeper Keeper) DeleteDeposits(ctx sdk.Context, trackID uint64) {
 	store := ctx.KVStore(keeper.storeKey)
 
 	keeper.IterateDeposits(ctx, trackID, func(deposit types.Deposit) bool {
-		err := keeper.Sk.BurnCoins(ctx, types.ModuleName, deposit.Amount)
+		err := keeper.BankKeeper.BurnCoins(ctx, types.ModuleName, deposit.Amount)
 		if err != nil {
 			panic(err)
 		}

@@ -2,24 +2,23 @@ package keeper
 
 import (
 	"github.com/bitsongofficial/go-bitsong/x/reward"
-	cmint "github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
 	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	cmint "github.com/cosmos/cosmos-sdk/x/mint"
 )
 
 // Keeper of the mint store
 type Keeper struct {
-	supplyKeeper supply.Keeper
+	bankKeeper   bank.Keeper
 	rewardKeeper reward.Keeper
 }
 
 // NewKeeper creates a new mint Keeper instance
-func NewKeeper(rk reward.Keeper, sk supply.Keeper) Keeper {
+func NewKeeper(rk reward.Keeper, bk bank.Keeper) Keeper {
 	return Keeper{
 		rewardKeeper: rk,
-		supplyKeeper: sk,
+		bankKeeper:   bk,
 	}
 }
 
@@ -28,7 +27,7 @@ func (k Keeper) AddToRewardPool(ctx sdk.Context, coins sdk.Coins) error {
 	rewardPool.Amount = rewardPool.Amount.Add(sdk.NewDecCoinsFromCoins(coins...)...)
 	k.rewardKeeper.SetRewardPool(ctx, rewardPool)
 
-	return k.supplyKeeper.SendCoinsFromModuleToModule(ctx, cmint.ModuleName, rewardTypes.ModuleName, coins)
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, cmint.ModuleName, rewardTypes.ModuleName, coins)
 }
 
 func (k Keeper) GetRewardPoolSupply(ctx sdk.Context) sdk.Coins {

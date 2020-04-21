@@ -34,7 +34,6 @@ import (
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -53,7 +52,6 @@ var (
 	// ModuleBasics is in charge of setting up basic module elements
 	ModuleBasics = module.NewBasicManager(
 		auth.AppModuleBasic{},
-		supply.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
@@ -81,15 +79,15 @@ var (
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
-		stdmint.ModuleName:        {supply.Minter},
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-		gov.ModuleName:            {supply.Burner},
+		stdmint.ModuleName:        {auth.Minter},
+		staking.BondedPoolName:    {auth.Burner, auth.Staking},
+		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
+		gov.ModuleName:            {auth.Burner},
 
-		track.ModuleName:  {supply.Burner},
+		track.ModuleName:  {auth.Burner},
 		reward.ModuleName: nil,
 
-		transfer.GetModuleAccountName(): {supply.Minter, supply.Burner},
+		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -119,7 +117,6 @@ type GoBitsong struct {
 	accountKeeper    auth.AccountKeeper
 	bankKeeper       bank.Keeper
 	capabilityKeeper *capability.Keeper
-	supplyKeeper     supply.Keeper
 	stakingKeeper    staking.Keeper
 	slashingKeeper   slashing.Keeper
 	mintKeeper       stdmint.Keeper
@@ -157,7 +154,7 @@ func NewBitsongApp(
 	bApp.SetAppVersion(version.Version)
 	keys := sdk.NewKVStoreKeys(
 		auth.StoreKey, bank.StoreKey, staking.StoreKey,
-		supply.StoreKey, stdmint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		stdmint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey, ibc.StoreKey,
 		transfer.StoreKey, capability.StoreKey,
 
@@ -201,30 +198,27 @@ func NewBitsongApp(
 
 	// Add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
-		appCodec, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount,
+		appCodec, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount, maccPerms,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
 		appCodec, keys[bank.ModuleName], app.accountKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
 	)
-	app.supplyKeeper = supply.NewKeeper(
-		appCodec, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms,
-	)
 	stakingKeeper := staking.NewKeeper(
-		appCodec, keys[staking.StoreKey], app.bankKeeper, app.supplyKeeper, app.subspaces[staking.ModuleName],
+		appCodec, keys[staking.StoreKey], app.accountKeeper, app.bankKeeper, app.subspaces[staking.ModuleName],
 	)
 	app.mintKeeper = stdmint.NewKeeper(
 		appCodec, keys[stdmint.StoreKey], app.subspaces[stdmint.ModuleName], &stakingKeeper,
-		app.supplyKeeper, auth.FeeCollectorName,
+		app.accountKeeper, app.bankKeeper, auth.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
-		appCodec, keys[distr.StoreKey], app.subspaces[distr.ModuleName], app.bankKeeper, &stakingKeeper,
-		app.supplyKeeper, auth.FeeCollectorName, app.ModuleAccountAddrs(),
+		appCodec, keys[distr.StoreKey], app.subspaces[distr.ModuleName], app.accountKeeper, app.bankKeeper,
+		&stakingKeeper, auth.FeeCollectorName, app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashing.NewKeeper(
 		appCodec, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName],
 	)
 	app.crisisKeeper = crisis.NewKeeper(
-		app.subspaces[crisis.ModuleName], invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName,
+		app.subspaces[crisis.ModuleName], invCheckPeriod, app.bankKeeper, auth.FeeCollectorName,
 	)
 
 	// register the proposal types
@@ -233,7 +227,7 @@ func NewBitsongApp(
 		AddRoute(paramsproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(
-		appCodec, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
+		appCodec, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.accountKeeper, app.bankKeeper,
 		&stakingKeeper, govRouter,
 	)
 
@@ -250,20 +244,20 @@ func NewBitsongApp(
 	// Custom modules
 	app.rewardKeeper = reward.NewKeeper(
 		app.cdc, keys[rewardTypes.StoreKey], app.subspaces[reward.ModuleName],
-		app.supplyKeeper, app.trackKeeper, app.bankKeeper,
+		app.accountKeeper, app.bankKeeper, app.trackKeeper,
 	)
 	app.trackKeeper = track.NewKeeper(
 		app.cdc, app.keys[track.ModuleName], "track", // TODO: Change this
-		app.stakingKeeper, app.accountKeeper, app.supplyKeeper,
+		app.stakingKeeper, app.accountKeeper, app.bankKeeper,
 		app.subspaces[track.ModuleName],
 	)
-	stdMintKeeper := mint.NewKeeper(app.rewardKeeper, app.supplyKeeper)
+	stdMintKeeper := mint.NewKeeper(app.rewardKeeper, app.bankKeeper)
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
 		app.cdc, keys[transfer.StoreKey],
 		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
-		app.bankKeeper, app.supplyKeeper,
+		app.accountKeeper, app.bankKeeper,
 		scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
@@ -283,21 +277,20 @@ func NewBitsongApp(
 	// must be passed by reference here.
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper, app.supplyKeeper),
+		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(*app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.bankKeeper, app.accountKeeper),
-		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
-		mint.NewAppModule(stdmint.NewAppModule(app.mintKeeper, app.supplyKeeper), app.mintKeeper, stdMintKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(stdmint.NewAppModule(app.mintKeeper, app.accountKeeper), app.mintKeeper, stdMintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		params.NewAppModule(app.paramsKeeper),
 
 		// Custom modules
-		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper, app.bankKeeper),
+		reward.NewAppModule(app.rewardKeeper, app.accountKeeper, app.bankKeeper),
 		track.NewAppModule(app.trackKeeper, app.bankKeeper),
 
 		// IBC modules
@@ -318,14 +311,14 @@ func NewBitsongApp(
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
-		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, supply.ModuleName,
-		crisis.ModuleName, ibc.ModuleName, genutil.ModuleName,
+		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, crisis.ModuleName,
+		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
 		reward.ModuleName, track.ModuleName,
 
 		// IBC Modules
-		transfer.ModuleName, desmosibc.ModuleName,
+		desmosibc.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -340,7 +333,7 @@ func NewBitsongApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetAnteHandler(auth.NewAnteHandler(
-		app.accountKeeper, app.supplyKeeper, *app.ibcKeeper,
+		app.accountKeeper, app.bankKeeper, *app.ibcKeeper,
 		auth.DefaultSigVerificationGasConsumer,
 	))
 	app.SetEndBlocker(app.EndBlocker)
@@ -403,7 +396,7 @@ func (app *GoBitsong) LoadHeight(height int64) error {
 func (app *GoBitsong) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
@@ -424,7 +417,7 @@ func (app *GoBitsong) SimulationManager() *module.SimulationManager {
 func (app *GoBitsong) BlacklistedAccAddrs() map[string]bool {
 	blacklistedAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
 	}
 
 	return blacklistedAddrs
