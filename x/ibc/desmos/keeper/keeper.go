@@ -17,6 +17,10 @@ import (
 const (
 	// DefaultPacketTimeout is the default packet timeout relative to the current block height
 	DefaultPacketTimeout = 1000 // NOTE: in blocks
+
+	// DefaultPacketTimeoutTimestamp is the default packet timeout timestamp relative
+	// to the current block timestamp. The timeout is disabled when set to 0.
+	DefaultPacketTimeoutTimestamp = 0 // NOTE: in nanoseconds
 )
 
 // Represents the keeper that is used to perform IBC operations
@@ -91,6 +95,7 @@ func (k Keeper) createOutgoingPacket(
 		destinationPort,
 		destinationChannel,
 		destHeight+DefaultPacketTimeout,
+		DefaultPacketTimeoutTimestamp,
 	)
 
 	return k.channelKeeper.SendPacket(ctx, channelCap, packet)
