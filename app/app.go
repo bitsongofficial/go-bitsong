@@ -6,8 +6,6 @@ import (
 
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
-	"github.com/bitsongofficial/go-bitsong/x/reward"
-	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -67,7 +65,6 @@ var (
 		ibc.AppModuleBasic{},
 
 		// Custom modules
-		reward.AppModuleBasic{},
 		track.AppModuleBasic{},
 
 		// IBC modules
@@ -84,8 +81,7 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		track.ModuleName:  {auth.Burner},
-		reward.ModuleName: nil,
+		track.ModuleName: {auth.Burner},
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -141,8 +137,7 @@ type GoBitsong struct {
 	ibcKeeper        *ibc.Keeper
 
 	// Custom modules
-	rewardKeeper reward.Keeper
-	trackKeeper  track.Keeper
+	trackKeeper track.Keeper
 
 	// IBC modules
 	transferKeeper  transfer.Keeper
@@ -173,7 +168,7 @@ func NewBitsongApp(
 		capability.StoreKey,
 
 		// Custom modules
-		reward.StoreKey, track.StoreKey,
+		track.StoreKey,
 
 		// IBC modules
 		desmosibc.StoreKey,
@@ -202,7 +197,6 @@ func NewBitsongApp(
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	app.subspaces[reward.ModuleName] = app.paramsKeeper.Subspace(reward.DefaultParamspace)
 	app.subspaces[track.ModuleName] = app.paramsKeeper.Subspace(track.DefaultParamspace)
 
 	// set the BaseApp's parameter store
@@ -260,16 +254,10 @@ func NewBitsongApp(
 	)
 
 	// Custom modules
-	app.rewardKeeper = reward.NewKeeper(
-		app.cdc, keys[rewardTypes.StoreKey], app.subspaces[reward.ModuleName],
-		app.accountKeeper, app.bankKeeper, app.trackKeeper,
-	)
 	app.trackKeeper = track.NewKeeper(
-		app.cdc, app.keys[track.ModuleName], "track", // TODO: Change this
-		app.stakingKeeper, app.accountKeeper, app.bankKeeper,
-		app.subspaces[track.ModuleName],
+		app.cdc, app.keys[track.ModuleName],
 	)
-	stdMintKeeper := mint.NewKeeper(app.rewardKeeper, app.bankKeeper)
+	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
@@ -309,8 +297,7 @@ func NewBitsongApp(
 		params.NewAppModule(app.paramsKeeper),
 
 		// Custom modules
-		reward.NewAppModule(app.rewardKeeper, app.accountKeeper, app.bankKeeper),
-		track.NewAppModule(app.trackKeeper, app.bankKeeper),
+		track.NewAppModule(app.trackKeeper),
 
 		// IBC modules
 		transferModule,
@@ -334,7 +321,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		reward.ModuleName, track.ModuleName,
+		track.ModuleName,
 
 		// IBC Modules
 		desmosibc.ModuleName,

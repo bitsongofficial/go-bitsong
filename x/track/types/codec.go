@@ -1,17 +1,20 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/codec"
+import (
+	"github.com/cosmos/cosmos-sdk/codec"
+)
 
-// ModuleCdc is the codec
-var ModuleCdc = codec.New()
-
-func init() {
-	RegisterCodec(ModuleCdc)
+// RegisterCodec registers concrete types on codec
+func RegisterCodec(cdc *codec.Codec) {
+	cdc.RegisterConcrete(MsgCreate{}, "go-bitsong/MsgCreateTrack", nil)
 }
 
-// RegisterCodec registers concrete types on the Amino codec
-func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreateTrack{}, "go-bitsong/MsgCreateTrack", nil)
-	cdc.RegisterConcrete(MsgPlay{}, "go-bitsong/MsgPlay", nil)
-	cdc.RegisterConcrete(MsgDeposit{}, "go-bitsong/MsgDepositTrack", nil)
+// ModuleCdc defines the module codec
+var ModuleCdc *codec.Codec
+
+func init() {
+	ModuleCdc = codec.New()
+	RegisterCodec(ModuleCdc)
+	codec.RegisterCrypto(ModuleCdc)
+	ModuleCdc.Seal()
 }

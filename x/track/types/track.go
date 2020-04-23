@@ -1,103 +1,102 @@
 package types
 
 import (
-	"encoding/binary"
 	"fmt"
+	"github.com/bitsongofficial/go-bitsong/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
 	"strings"
 	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 /************************************
  * Track
  ************************************/
 
-// Constants pertaining to an Track object
-const (
-	MaxTitleLength       int = 140
-	MaxDescriptionLength int = 500
-	MaxCopyrightLength   int = 500
-)
-
-// TODO: image, cid, duration
 type Track struct {
-	TrackID     uint64      `json:"id" yaml:"id"`       // Track ID
-	Title       string      `json:"title" yaml:"title"` // Track Title
-	Description string      `json:"description" yaml:"description"`
-	Status      TrackStatus `json:"status" yaml:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
-	Audio       string      `json:"audio" yaml:"audio"`
-	Image       string      `json:"image" yaml:"image"`
-	Duration    string      `json:"duration" yaml:"duration"`
-
-	Owner        sdk.AccAddress `json:"owner" yaml:"owner"` // Album owner
-	TotalPlays   uint64         `json:"total_plays" yaml:"total_plays"`
-	TotalRewards sdk.Coins      `json:"total_rewards" yaml:"total_rewards"`
-
-	Hidden    bool   `json:"hidden" yaml:"hidden"`
-	Explicit  bool   `json:"explicit" yaml:"explicit"`
-	Genre     string `json:"genre" yaml:"genre"`
-	Mood      string `json:"mood" yaml:"mood"`
-	Artists   string `json:"artists" yaml:"artists"`
-	Featuring string `json:"featuring" yaml:"featuring"`
-	Producers string `json:"producers" yaml:"producers"`
-	Copyright string `json:"copyright" yaml:"copyright"`
-
-	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
-	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
-	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
-	VerifiedTime   time.Time `json:"verified_time" yaml:"verified_time"`
+	Title         string         `json:"title" yaml:"title"`
+	Address       crypto.Address `json:"address" yaml:"address"`
+	Attributes    Attributes     `json:"attributes,omitempty" yaml:"attributes,omitempty"`
+	Media         TrackMedia     `json:"media" yaml:"media"`
+	Rewards       TrackRewards   `json:"rewards" yaml:"rewards"`
+	RightsHolders RightsHolders  `json:"rights_holders" yaml:"rights_holders"`
+	Totals        TrackTotals    `json:"totals" yaml:"totals"`
+	SubmitTime    time.Time      `json:"submit_time" yaml:"submit_time"`
+	Owner         sdk.AccAddress `json:"owner" yaml:"owner"`
 }
 
-// TrackKey gets a specific track from the store
-func TrackKey(trackID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, trackID)
-	return append(TracksKeyPrefix, bz...)
-}
-
-func NewTrack(id uint64, title, audio, image, duration string, hidden bool, explicit bool, genre, mood, artists, featuring, producers, description, copyright string, owner sdk.AccAddress, submitTime time.Time) Track {
+func NewTrack(title string, media TrackMedia, attrs Attributes, rewards TrackRewards,
+	rightsHolders RightsHolders, submitTime time.Time, owner sdk.AccAddress) Track {
 	return Track{
-		TrackID:      id,
-		Title:        title,
-		Description:  description,
-		Status:       StatusNil,
-		Audio:        audio,
-		Image:        image,
-		Duration:     duration,
-		Genre:        genre,
-		Mood:         mood,
-		Artists:      artists,
-		Featuring:    featuring,
-		Producers:    producers,
-		Copyright:    copyright,
-		Owner:        owner,
-		TotalPlays:   0,
-		TotalRewards: sdk.NewCoins(),
-		TotalDeposit: sdk.NewCoins(),
-		Hidden:       hidden,
-		Explicit:     explicit,
-		SubmitTime:   submitTime,
+		Title:         title,
+		Rewards:       rewards,
+		RightsHolders: rightsHolders,
+		Media:         media,
+		Attributes:    attrs,
+		Owner:         owner,
+		SubmitTime:    submitTime,
+		Totals: TrackTotals{
+			Streams:  0,
+			Rewards:  sdk.NewCoin(types.BondDenom, sdk.ZeroInt()),
+			Accounts: 0,
+		},
 	}
+}
+
+func (t Track) Validate() error {
+	if len(strings.TrimSpace(t.Title)) == 0 {
+		return fmt.Errorf("track title cannot be empty")
+	}
+
+	if len(t.Title) > MaxTitleLength {
+		return fmt.Errorf("track title cannot be longer than %d characters", MaxTitleLength)
+	}
+
+	if err := t.Rewards.Validate(); err != nil {
+		return err
+	}
+
+	if err := t.Media.Validate(); err != nil {
+		return err
+	}
+
+	if err := t.RightsHolders.Validate(); err != nil {
+		return err
+	}
+
+	if t.Owner == nil {
+		return fmt.Errorf("invalid track owner: %s", t.Owner)
+	}
+
+	return nil
 }
 
 // nolint
 func (t Track) String() string {
-	return fmt.Sprintf(`TrackID %d:
-  Title:    %s
-  Description: %s
-  Status:  %s
-  Audio: %s
-  Image: %s
-  Duration: %s
-  Owner:   %s
-  Total Plays: %d
-  Total Rewards: %s
-  Submit Time:        %s
-  Deposit End Time:   %s
-  Total Deposit:      %s`,
-		t.TrackID, t.Title, t.Description, t.Audio, t.Image, t.Duration, t.Status.String(), t.Owner.String(), t.TotalPlays, t.TotalRewards.String(), t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
+	return fmt.Sprintf(`Address: %s
+Title: %s
+%s
+Rewards - %s
+Rights Holders
+%s
+Submit Time: %s
+Owner: %s
+Attributes
+%s
+Totals
+%s`,
+		t.Address.String(), t.Title, t.Media.String(), t.Rewards.String(), t.RightsHolders,
+		t.SubmitTime, t.Owner.String(), t.Attributes.String(), t.Totals.String(),
 	)
+}
+
+func (t Track) Equals(track Track) bool {
+	return t.Address.String() == track.Address.String() &&
+		t.Title == track.Title &&
+		t.Media.Equals(track.Media) &&
+		t.Rewards.Equals(track.Rewards) &&
+		t.RightsHolders.Equals(track.RightsHolders) &&
+		t.Owner.Equals(track.Owner)
 }
 
 /************************************
@@ -109,10 +108,10 @@ type Tracks []Track
 
 // nolint
 func (t Tracks) String() string {
-	out := "ID - (Status) Title\n"
+	out := "Address - Title\n"
 	for _, track := range t {
-		out += fmt.Sprintf("%d - (%s) %s\n",
-			track.TrackID, track.Status.String(), track.Title)
+		out += fmt.Sprintf("%s - %s\n",
+			track.Address, track.Title)
 	}
 	return strings.TrimSpace(out)
 }

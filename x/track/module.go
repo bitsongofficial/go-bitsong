@@ -3,42 +3,40 @@ package track
 import (
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/types/module"
-
-	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/client/cli"
 	"github.com/bitsongofficial/go-bitsong/x/track/client/rest"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
 )
 
-// type check to ensure the interface is properly implemented
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic is the 20-transfer appmodulebasic
+// AppModuleBasic defines the basic application module used by the track module.
 type AppModuleBasic struct{}
 
-// Name implements AppModuleBasic interface
+// Name returns the track module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec implements AppModuleBasic interface
+// RegisterCodec registers the track module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	RegisterCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the ibc
-// transfer module.
+// DefaultGenesis returns default genesis state as raw bytes for the track
+// module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
 	return cdc.MustMarshalJSON(DefaultGenesisState())
 }
@@ -53,59 +51,62 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessag
 	return ValidateGenesis(data)
 }
 
-// RegisterRESTRoutes implements AppModuleBasic interface
-func (a AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
+// RegisterRESTRoutes registers the REST routes for the track module.
+func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd implements AppModuleBasic interface
-func (a AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(StoreKey, cdc)
+// GetTxCmd returns the root tx command for the track module.
+func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetTxCmd(cdc)
 }
 
-// GetQueryCmd implements AppModuleBasic interface
+// GetQueryCmd returns no root query command for the track module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+	return cli.GetQueryCmd(cdc)
 }
 
 //____________________________________________________________________________
 
-// AppModule represents the AppModule for this module
+// AppModule implements an application module for the track module.
 type AppModule struct {
 	AppModuleBasic
-	keeper     Keeper
-	bankKeeper bank.Keeper
+
+	keeper Keeper
 }
 
-// NewAppModule creates a new 20-transfer module
-func NewAppModule(keeper Keeper, bankKeeper bank.Keeper) AppModule {
+// NewAppModule creates a new AppModule object
+func NewAppModule(k Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
-		bankKeeper:     bankKeeper,
+		keeper:         k,
 	}
 }
 
-// RegisterInvariants implements the AppModule interface
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {
+// Name returns the track module's name.
+func (AppModule) Name() string {
+	return ModuleName
 }
 
-// Route implements the AppModule interface
+// RegisterInvariants registers the track module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+
+// Route returns the message routing key for the track module.
 func (AppModule) Route() string {
 	return RouterKey
 }
 
-// NewHandler implements the AppModule interface
+// NewHandler returns an sdk.Handler for the track module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// QuerierRoute implements the AppModule interface
+// QuerierRoute returns the track module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return ModuleName
+	return QuerierRoute
 }
 
-// NewQuerierHandler implements the AppModule interface
+// NewQuerierHandler returns the track module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
 	return NewQuerier(am.keeper)
 }
@@ -115,11 +116,11 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
 	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.bankKeeper, genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the ibc
+// ExportGenesis returns the exported genesis state as raw bytes for the track
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
@@ -127,10 +128,10 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json
 }
 
 // BeginBlock returns the begin blocker for the track module.
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {}
 
 // EndBlock returns the end blocker for the track module. It returns no validator
 // updates.
-func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

@@ -1,192 +1,119 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
+	"github.com/tendermint/tendermint/crypto"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
+// Keeper of the track store
 type Keeper struct {
-	storeKey      sdk.StoreKey       // The (unexposed) keys used to access the stores from the Context.
-	cdc           *codec.Codec       // The codec for binary encoding/decoding.
-	codespace     string             // Reserved codespace
-	stakingKeeper staking.Keeper     // Staking Keeper
-	AccountKeeper auth.AccountKeeper // Cosmos-SDK Account Keeper
-	BankKeeper    bank.Keeper
-	paramSpace    params.Subspace
+	storeKey sdk.StoreKey
+	cdc      *codec.Codec
 }
 
-// NewKeeper returns an track keeper.
-func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, codespace string,
-	stakingKeeper staking.Keeper, ak auth.AccountKeeper, bk bank.Keeper,
-	paramSpace params.Subspace,
-) Keeper {
-	return Keeper{
-		storeKey:      key,
-		cdc:           cdc,
-		codespace:     codespace,
-		stakingKeeper: stakingKeeper,
-		AccountKeeper: ak,
-		BankKeeper:    bk,
-		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+// NewKeeper creates a track keeper
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey) Keeper {
+	keeper := Keeper{
+		storeKey: key,
+		cdc:      cdc,
 	}
+	return keeper
 }
 
 // Logger returns a module-specific logger.
-func (keeper Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-/****************************************
- * Track
- ****************************************/
-
-// Set the track ID
-func (keeper Keeper) SetTrackID(ctx sdk.Context, trackID uint64) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(trackID)
-	store.Set(types.TrackIDKey, bz)
-}
-
-// GetTrackID gets the highest track ID
-func (keeper Keeper) GetTrackID(ctx sdk.Context) (trackID uint64, err error) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := store.Get(types.TrackIDKey)
-	if bz == nil {
-		return 0, types.ErrInvalidGenesis(keeper.codespace, "initial track ID hasn't been set")
+func (k Keeper) autoIncrementID(ctx sdk.Context) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.KeyLastTrackID)
+	id := uint64(1)
+	if bz != nil {
+		id = binary.BigEndian.Uint64(bz)
 	}
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &trackID)
-	return trackID, nil
+	bz = sdk.Uint64ToBigEndian(id + 1)
+	store.Set(types.KeyLastTrackID, bz)
+	return id
 }
 
-// SetTrack set an track to store
-func (keeper Keeper) SetTrack(ctx sdk.Context, track types.Track) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := keeper.cdc.MustMarshalBinaryLengthPrefixed(track)
-	store.Set(types.TrackKey(track.TrackID), bz)
+func (k Keeper) GetLastTrackID(ctx sdk.Context) (lastTrackID uint64, err error) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.KeyLastTrackID)
+	if bz == nil {
+		return 0, fmt.Errorf("initial track ID hasn't been set")
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &lastTrackID)
+	return lastTrackID, nil
+}
+
+func (k Keeper) SetLastTrackID(ctx sdk.Context, lastTrackID uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(lastTrackID)
+	store.Set(types.KeyLastTrackID, bz)
+}
+
+func generateTrackAddress(id uint64) crypto.Address {
+	addr := make([]byte, 20)
+	addr[0] = 'T' // TrackAddress prefix
+	binary.PutUvarint(addr[1:], id)
+	return crypto.AddressHash(addr)
 }
 
 // GetTrack get Track from store by TrackID
-func (keeper Keeper) GetTrack(ctx sdk.Context, trackID uint64) (track types.Track, ok bool) {
-	store := ctx.KVStore(keeper.storeKey)
-	bz := store.Get(types.TrackKey(trackID))
+func (k Keeper) GetTrack(ctx sdk.Context, addr crypto.Address) (track types.Track, ok bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTrackKey(addr))
 	if bz == nil {
 		return
 	}
-	keeper.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &track)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &track)
 	return track, true
 }
 
-// GetTracksFiltered get Tracks from store by TrackID
-// status will filter tracks by status
-// numLatest will fetch a specified number of the most recent tracks, or 0 for all tracks
-func (keeper Keeper) GetTracksFiltered(ctx sdk.Context, ownerAddr sdk.AccAddress, status types.TrackStatus, numLatest uint64) []types.Track {
-
-	maxTrackID, err := keeper.GetTrackID(ctx)
-	if err != nil {
-		return []types.Track{}
-	}
-
-	var matchingTracks []types.Track
-
-	if numLatest == 0 {
-		numLatest = maxTrackID
-	}
-
-	for trackID := maxTrackID - numLatest; trackID < maxTrackID; trackID++ {
-		track, ok := keeper.GetTrack(ctx, trackID)
-		if !ok {
-			continue
-		}
-
-		if track.Status.Valid() && track.Status != status {
-			continue
-		}
-
-		if ownerAddr != nil && len(ownerAddr) != 0 && track.Owner.String() != ownerAddr.String() {
-			continue
-		}
-
-		matchingTracks = append(matchingTracks, track)
-	}
-
-	return matchingTracks
+func (k Keeper) SetTrack(ctx sdk.Context, track types.Track) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(track)
+	store.Set(types.GetTrackKey(track.Address), bz)
 }
 
-// CreateTrack create new track
-func (keeper Keeper) CreateTrack(ctx sdk.Context,
-	title, audio, image, duration string, hidden, explicit bool,
-	genre, mood, artists, featuring, producers, description, copyright string,
-	owner sdk.AccAddress,
-) (types.Track, error) {
-	trackID, err := keeper.GetTrackID(ctx)
-	if err != nil {
-		return types.Track{}, err
+// IterateTracks iterates through the tracks set and performs the provided function
+func (k Keeper) IterateTracks(ctx sdk.Context, fn func(track types.Track) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.TrackKeyPrefix)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var track types.Track
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &track)
+		if fn(track) {
+			break
+		}
 	}
-
-	submitTime := ctx.BlockHeader().Time
-
-	track := types.NewTrack(
-		trackID,
-		title,
-		audio,
-		image,
-		duration,
-		hidden,
-		explicit,
-		genre,
-		mood,
-		artists,
-		featuring,
-		producers,
-		description,
-		copyright,
-		owner,
-		submitTime,
-	)
-
-	keeper.SetTrack(ctx, track)
-	keeper.SetTrackID(ctx, trackID+1)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeCreateTrack,
-			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%d", trackID)),
-			sdk.NewAttribute(types.AttributeKeyTrackTitle, fmt.Sprintf("%s", title)),
-			sdk.NewAttribute(types.AttributeKeyTrackOwner, fmt.Sprintf("%s", owner.String())),
-		),
-	)
-
-	return track, nil
 }
 
-// SetTrackStatus set Status of the Track {Nil, Verified, Rejected, Failed}
-func (keeper Keeper) SetTrackStatus(ctx sdk.Context, trackID uint64, status types.TrackStatus) error {
-	track, ok := keeper.GetTrack(ctx, trackID)
-	if !ok {
-		return types.ErrUnknownTrack(keeper.codespace, "unknown track")
-	}
+func (k Keeper) GetTracks(ctx sdk.Context) types.Tracks {
+	var tracks types.Tracks
+	k.IterateTracks(ctx, func(track types.Track) (stop bool) {
+		tracks = append(tracks, track)
+		return false
+	})
+	return tracks
+}
 
-	track.Status = status
+func (k Keeper) Create(ctx sdk.Context, track types.Track) crypto.Address {
+	trackID := k.autoIncrementID(ctx)
 
-	keeper.SetTrack(ctx, track)
+	track.Address = generateTrackAddress(trackID)
+	track.SubmitTime = ctx.BlockHeader().Time
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSetTrackStatus,
-			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%d", trackID)),
-		),
-	)
+	k.SetTrack(ctx, track)
 
-	return nil
+	return track.Address
 }
