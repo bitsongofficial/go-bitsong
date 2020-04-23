@@ -96,6 +96,20 @@ var (
 	}
 )
 
+// MakeCodec generates the necessary codecs for Amino
+func MakeCodec() *codec.Codec {
+	var cdc = codec.New()
+
+	ModuleBasics.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	codec.RegisterEvidences(cdc)
+	authvesting.RegisterCodec(cdc)
+
+	return cdc.Seal()
+}
+
+// Verify app interface at compile time
 var _ simapp.App = (*GoBitsong)(nil)
 
 // Extended ABCI application
@@ -155,10 +169,14 @@ func NewBitsongApp(
 	keys := sdk.NewKVStoreKeys(
 		auth.StoreKey, bank.StoreKey, staking.StoreKey,
 		stdmint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, ibc.StoreKey,
-		transfer.StoreKey, capability.StoreKey,
+		gov.StoreKey, params.StoreKey, ibc.StoreKey, transfer.StoreKey,
+		capability.StoreKey,
 
+		// Custom modules
 		reward.StoreKey, track.StoreKey,
+
+		// IBC modules
+		desmosibc.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
@@ -238,7 +256,7 @@ func NewBitsongApp(
 	)
 
 	app.ibcKeeper = ibc.NewKeeper(
-		app.cdc, keys[ibc.StoreKey], stakingKeeper, scopedIBCKeeper,
+		app.cdc, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
 
 	// Custom modules
@@ -257,13 +275,14 @@ func NewBitsongApp(
 	app.transferKeeper = transfer.NewKeeper(
 		app.cdc, keys[transfer.StoreKey],
 		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
-		app.accountKeeper, app.bankKeeper,
-		scopedTransferKeeper,
+		app.accountKeeper, app.bankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
 	app.desmosIBCKeeper = desmosibc.NewKeeper(
-		app.cdc, app.ibcKeeper.ChannelKeeper, app.ibcKeeper.PortKeeper, scopedDesmosKeeper,
+		app.cdc, app.keys[desmosibc.StoreKey],
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		scopedDesmosKeeper,
 	)
 	desmosModule := desmosibc.NewAppModule(app.desmosIBCKeeper)
 
@@ -310,7 +329,7 @@ func NewBitsongApp(
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
+		capability.ModuleName, auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
 		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, crisis.ModuleName,
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
@@ -333,14 +352,12 @@ func NewBitsongApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetAnteHandler(auth.NewAnteHandler(
-		app.accountKeeper, app.bankKeeper, *app.ibcKeeper,
-		auth.DefaultSigVerificationGasConsumer,
+		app.accountKeeper, app.bankKeeper, *app.ibcKeeper, auth.DefaultSigVerificationGasConsumer,
 	))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		err := app.LoadLatestVersion()
-		if err != nil {
+		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
 	}
@@ -352,19 +369,6 @@ func NewBitsongApp(
 	app.capabilityKeeper.InitializeAndSeal(ctx)
 
 	return app
-}
-
-// custom tx codec
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
-	authvesting.RegisterCodec(cdc)
-
-	return cdc
 }
 
 // Name returns the name of the App

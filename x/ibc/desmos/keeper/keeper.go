@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	channel "github.com/cosmos/cosmos-sdk/x/ibc/04-channel"
-	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 	porttypes "github.com/cosmos/cosmos-sdk/x/ibc/05-port/types"
 	ibctypes "github.com/cosmos/cosmos-sdk/x/ibc/types"
 )
@@ -25,19 +24,33 @@ const (
 
 // Represents the keeper that is used to perform IBC operations
 type Keeper struct {
-	cdc           *codec.Codec
-	channelKeeper channel.Keeper
-	portKeeper    port.Keeper
+	cdc      *codec.Codec
+	storeKey sdk.StoreKey
+
+	channelKeeper types.ChannelKeeper
+	portKeeper    types.PortKeeper
 	scopedKeeper  capability.ScopedKeeper
 }
 
-func NewKeeper(cdc *codec.Codec, ck channel.Keeper, portK port.Keeper, sk capability.ScopedKeeper) Keeper {
+func NewKeeper(
+	cdc *codec.Codec, storeKey sdk.StoreKey,
+	ck types.ChannelKeeper, portK types.PortKeeper,
+	sk capability.ScopedKeeper,
+) Keeper {
 	return Keeper{
-		cdc:           cdc,
+		cdc:      cdc,
+		storeKey: storeKey,
+
 		channelKeeper: ck,
 		portKeeper:    portK,
 		scopedKeeper:  sk,
 	}
+}
+
+// GetPort returns the portID for the IBC posts module.
+func (k Keeper) GetPort(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+	return string(store.Get([]byte(types.PortKey)))
 }
 
 // SendPostCreation handles the creation of a post to a Desmos-based chain.
@@ -104,6 +117,10 @@ func (k Keeper) createOutgoingPacket(
 // BindPort defines a wrapper function for the ort Keeper's function in
 // order to expose it to module's InitGenesis function
 func (k Keeper) BindPort(ctx sdk.Context, portID string) error {
+	// Set the portID into our store so we can retrieve it later
+	store := ctx.KVStore(k.storeKey)
+	store.Set([]byte(types.PortKey), []byte(portID))
+
 	cap := k.portKeeper.BindPort(ctx, portID)
 	return k.ClaimCapability(ctx, cap, porttypes.PortPath(portID))
 }

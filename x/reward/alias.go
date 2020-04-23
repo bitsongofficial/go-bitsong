@@ -19,14 +19,14 @@ const (
 
 var (
 	// functions aliases
-	NewKeeper         = keeper.NewKeeper
-	NewQuerier        = keeper.NewQuerier
 	RewardKey         = types.RewardKey
 	ParamKeyTable     = types.ParamKeyTable
 	DefaultParams     = types.DefaultParams
 	InitialRewardPool = types.InitialRewardPool
 	NewReward         = types.NewReward
 	RegisterCodec     = types.RegisterCodec
+	NewKeeper         = keeper.NewKeeper
+	NewQuerier        = keeper.NewQuerier
 
 	// variable aliases
 	RewardPoolKey          = keeper.RewardPoolKey
