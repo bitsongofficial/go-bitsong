@@ -175,16 +175,14 @@ func (am AppModule) OnChanOpenTry(
 ) error {
 	// TODO: Enforce ordering, currently relayers use ORDERED channels
 
-	if counterparty.PortID != PortID {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "counterparty has invalid portid. expected: %s, got %s", PortID, counterparty.PortID)
+	// Require portID is the portID the posts module is bound to
+	boundPort := am.keeper.GetPort(ctx)
+	if boundPort != portID {
+		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
 	}
 
 	if version != Version {
 		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid version: %s, expected %s", version, "ics20-1")
-	}
-
-	if counterpartyVersion != Version {
-		return sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid counterparty version: %s, expected %s", counterpartyVersion, "ics20-1")
 	}
 
 	// Claim channel capability passed back by IBC module
@@ -192,7 +190,6 @@ func (am AppModule) OnChanOpenTry(
 		return sdkerrors.Wrap(channel.ErrChannelCapabilityNotFound, err.Error())
 	}
 
-	// TODO: escrow
 	return nil
 }
 
