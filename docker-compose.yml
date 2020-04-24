@@ -10,7 +10,7 @@ services:
       - ID=0
       - LOG=${LOG:-bitsongd.log}
     volumes:
-      - ./build:/bitsongd:Z
+      - ./build:/desmosd:Z
     networks:
       localnet:
         ipv4_address: 192.168.10.2
