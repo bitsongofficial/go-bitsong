@@ -10,8 +10,11 @@ import (
 )
 
 const (
+	TypeMsgCreate            = types.TypeMsgCreate
 	EventTypeTrackCreated    = types.EventTypeTrackCreated
 	AttributeKeyTrackAddr    = types.AttributeKeyTrackAddr
+	QueryParams              = types.QueryParams
+	QueryTrack               = types.QueryTrack
 	ModuleName               = types.ModuleName
 	StoreKey                 = types.StoreKey
 	RouterKey                = types.RouterKey
@@ -19,52 +22,49 @@ const (
 	MaxTitleLength           = types.MaxTitleLength
 	MaxAttributesLength      = types.MaxAttributesLength
 	MaxAttributesValueLength = types.MaxAttributesValueLength
-	TypeMsgCreate            = types.TypeMsgCreate
 	DefaultParamspace        = types.DefaultParamspace
-	QueryParams              = types.QueryParams
-	QueryTrack               = types.QueryTrack
 )
 
 var (
 	// functions aliases
+	NewHandler          = keeper.NewHandler
 	NewKeeper           = keeper.NewKeeper
 	NewQuerier          = keeper.NewQuerier
-	NewHandler          = keeper.NewHandler
-	RegisterCodec       = types.RegisterCodec
-	GetTrackKey         = types.GetTrackKey
-	NewTrack            = types.NewTrack
 	NewMsgCreate        = types.NewMsgCreate
+	NewTrack            = types.NewTrack
 	NewRightHolder      = types.NewRightHolder
 	NewGenesisState     = types.NewGenesisState
 	DefaultGenesisState = types.DefaultGenesisState
 	ValidateGenesis     = types.ValidateGenesis
+	NewQueryTrackParams = types.NewQueryTrackParams
+	GetTrackKey         = types.GetTrackKey
 	ParamKeyTable       = types.ParamKeyTable
 	NewParams           = types.NewParams
 	DefaultParams       = types.DefaultParams
-	NewQueryTrackParams = types.NewQueryTrackParams
+	RegisterCodec       = types.RegisterCodec
 
 	// variable aliases
-	ModuleCdc      = types.ModuleCdc
 	PathRegEx      = types.PathRegEx
 	KeyLastTrackID = types.KeyLastTrackID
 	TrackKeyPrefix = types.TrackKeyPrefix
+	ModuleCdc      = types.ModuleCdc
 )
 
 type (
 	Keeper           = keeper.Keeper
-	TrackRewards     = types.TrackRewards
-	Track            = types.Track
-	Tracks           = types.Tracks
 	Attributes       = types.Attributes
 	KeyValue         = types.KeyValue
 	MsgCreate        = types.MsgCreate
-	RightHolder      = types.RightHolder
-	RightsHolders    = types.RightsHolders
-	ParamSubspace    = types.ParamSubspace
-	GenesisState     = types.GenesisState
-	Params           = types.Params
-	QueryTrackParams = types.QueryTrackParams
+	Track            = types.Track
+	Tracks           = types.Tracks
 	Content          = types.Content
 	TrackMedia       = types.TrackMedia
+	TrackRewards     = types.TrackRewards
+	RightHolder      = types.RightHolder
+	RightsHolders    = types.RightsHolders
+	GenesisState     = types.GenesisState
+	QueryTrackParams = types.QueryTrackParams
+	Params           = types.Params
 	TrackTotals      = types.TrackTotals
+	ParamSubspace    = types.ParamSubspace
 )

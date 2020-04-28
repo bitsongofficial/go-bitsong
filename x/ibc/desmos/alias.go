@@ -5,42 +5,20 @@ package desmos
 // based on functionality in github.com/rigelrozanski/multitool
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/ibc/desmos/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/ibc/desmos/types"
 )
 
 const (
-	DefaultPacketTimeout          = keeper.DefaultPacketTimeout
-	DefaultPacketTimeoutTimestamp = keeper.DefaultPacketTimeoutTimestamp
-	ModuleName                    = types.ModuleName
-	Version                       = types.Version
-	PortID                        = types.PortID
-	StoreKey                      = types.StoreKey
-	RouterKey                     = types.RouterKey
-	PortKey                       = types.PortKey
-	QuerierRoute                  = types.QuerierRoute
-	DesmosBitsongSubspace         = types.DesmosBitsongSubspace
-	DesmosSongIDAttribute         = types.DesmosSongIDAttribute
-	AttributeKeySongID            = types.AttributeKeySongID
+	ModuleName            = types.ModuleName
+	DesmosBitsongSubspace = types.DesmosBitsongSubspace
+	DesmosSongIDAttribute = types.DesmosSongIDAttribute
 )
 
 var (
 	// functions aliases
-	NewKeeper            = keeper.NewKeeper
-	DefaultGenesis       = types.DefaultGenesis
-	NewMsgCreateSongPost = types.NewMsgCreateSongPost
-	NewSongCreationData  = types.NewSongCreationData
-	RegisterCodec        = types.RegisterCodec
+	NewSongCreationData = types.NewSongCreationData
 
-	// variable aliases
-	ModuleCdc              = types.ModuleCdc
-	AttributeValueCategory = types.AttributeValueCategory
+// variable aliases
 )
 
-type (
-	GenesisState      = types.GenesisState
-	MsgCreateSongPost = types.MsgCreateSongPost
-	ChannelKeeper     = types.ChannelKeeper
-	PortKeeper        = types.PortKeeper
-	Keeper            = keeper.Keeper
-)
+type ()

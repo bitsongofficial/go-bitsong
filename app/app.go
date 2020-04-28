@@ -32,6 +32,8 @@ import (
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	ibcposts "github.com/desmos-labs/desmos/x/ibc/posts"
+	"github.com/desmos-labs/desmos/x/posts"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -66,10 +68,11 @@ var (
 
 		// Custom modules
 		track.AppModuleBasic{},
+		desmosibc.AppModuleBasic{},
 
 		// IBC modules
 		transfer.AppModuleBasic{},
-		desmosibc.AppModuleBasic{},
+		ibcposts.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -141,7 +144,7 @@ type GoBitsong struct {
 
 	// IBC modules
 	transferKeeper  transfer.Keeper
-	desmosIBCKeeper desmosibc.Keeper
+	desmosIBCKeeper ibcposts.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -171,7 +174,7 @@ func NewBitsongApp(
 		track.StoreKey,
 
 		// IBC modules
-		desmosibc.StoreKey,
+		posts.StoreKey, ibcposts.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
@@ -206,7 +209,7 @@ func NewBitsongApp(
 	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
-	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(desmosibc.ModuleName)
+	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(ibcposts.ModuleName)
 
 	// Add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -267,17 +270,18 @@ func NewBitsongApp(
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
-	app.desmosIBCKeeper = desmosibc.NewKeeper(
-		app.cdc, app.keys[desmosibc.StoreKey],
+	postsKeeper := posts.NewKeeper(app.cdc, app.keys[posts.StoreKey])
+	app.desmosIBCKeeper = ibcposts.NewKeeper(
+		app.cdc, app.keys[ibcposts.StoreKey], postsKeeper,
 		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
 		scopedDesmosKeeper,
 	)
-	desmosModule := desmosibc.NewAppModule(app.desmosIBCKeeper)
+	desmosModule := ibcposts.NewAppModule(app.desmosIBCKeeper)
 
 	// Create static IBC router, add desmos route, then set and seal it
 	ibcRouter := port.NewRouter()
 	ibcRouter.AddRoute(transfer.ModuleName, transferModule)
-	ibcRouter.AddRoute(desmosibc.ModuleName, desmosModule)
+	ibcRouter.AddRoute(ibcposts.ModuleName, desmosModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -324,7 +328,7 @@ func NewBitsongApp(
 		track.ModuleName,
 
 		// IBC Modules
-		desmosibc.ModuleName,
+		ibcposts.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

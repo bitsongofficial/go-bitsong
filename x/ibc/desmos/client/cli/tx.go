@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ibcposts "github.com/desmos-labs/desmos/x/ibc/posts"
 	"github.com/spf13/cobra"
 )
 
@@ -31,15 +32,11 @@ func GetIBCDesmosTxCommand(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateSongPost(
-				args[0],
-				args[1],
-				uint64(destHeight),
-				args[3],
-				time.Now(),
-				args[4],
-				cliCtx.GetFromAddress(),
-			)
+			// Create the post data
+			data := types.NewSongCreationData(args[3], time.Now().UTC(), args[4])
+
+			// Create and validate the message
+			msg := ibcposts.NewMsgCrossPost(args[0], args[1], uint64(destHeight), data, cliCtx.GetFromAddress())
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
