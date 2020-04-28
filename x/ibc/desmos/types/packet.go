@@ -3,8 +3,7 @@ package types
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/desmos-labs/desmos/x/posts"
+	ibcposts "github.com/desmos-labs/desmos/x/ibc/posts"
 )
 
 const (
@@ -14,16 +13,16 @@ const (
 
 // Utility method that, given a songID, a creationTime and a sender address
 // returns a new PostCreationData object
-func NewSongCreationData(songID string, creationTime time.Time, sender sdk.AccAddress) posts.PostCreationData {
-	return posts.NewPostCreationData(
+func NewSongCreationData(songID string, creationTime time.Time, postOwner string) ibcposts.PostCreationPacketData {
+	return ibcposts.NewPostCreationPacketData(
 		songID,
-		posts.PostID(0),
+		0,
 		true,
 		DesmosBitsongSubspace,
 		map[string]string{
 			DesmosSongIDAttribute: songID,
 		},
-		sender,
+		postOwner,
 		creationTime,
 		nil,
 		nil,

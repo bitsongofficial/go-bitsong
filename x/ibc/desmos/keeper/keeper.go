@@ -62,7 +62,7 @@ func (k Keeper) SendPostCreation(
 
 	songID string,
 	creationTime time.Time,
-	sender sdk.AccAddress,
+	postOwner string,
 ) error {
 	sourceChannelEnd, found := k.channelKeeper.GetChannel(ctx, sourcePort, sourceChannel)
 	if !found {
@@ -80,7 +80,7 @@ func (k Keeper) SendPostCreation(
 
 	return k.createOutgoingPacket(
 		ctx, sequence, sourcePort, sourceChannel, destinationPort, destinationChannel, destHeight,
-		songID, creationTime, sender,
+		songID, creationTime, postOwner,
 	)
 }
 
@@ -93,7 +93,7 @@ func (k Keeper) createOutgoingPacket(
 
 	songID string,
 	creationTime time.Time,
-	sender sdk.AccAddress,
+	sender string,
 ) error {
 	channelCap, ok := k.scopedKeeper.GetCapability(ctx, ibctypes.ChannelCapabilityPath(sourcePort, sourceChannel))
 	if !ok {

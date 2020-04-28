@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	DefaultPacketTimeout          = keeper.DefaultPacketTimeout
+	DefaultPacketTimeoutTimestamp = keeper.DefaultPacketTimeoutTimestamp
 	ModuleName                    = types.ModuleName
 	Version                       = types.Version
 	PortID                        = types.PortID
@@ -19,24 +21,26 @@ const (
 	QuerierRoute                  = types.QuerierRoute
 	DesmosBitsongSubspace         = types.DesmosBitsongSubspace
 	DesmosSongIDAttribute         = types.DesmosSongIDAttribute
-	DefaultPacketTimeout          = keeper.DefaultPacketTimeout
-	DefaultPacketTimeoutTimestamp = keeper.DefaultPacketTimeoutTimestamp
+	AttributeKeySongID            = types.AttributeKeySongID
 )
 
 var (
 	// functions aliases
 	NewKeeper            = keeper.NewKeeper
-	RegisterCodec        = types.RegisterCodec
 	DefaultGenesis       = types.DefaultGenesis
 	NewMsgCreateSongPost = types.NewMsgCreateSongPost
 	NewSongCreationData  = types.NewSongCreationData
+	RegisterCodec        = types.RegisterCodec
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	ModuleCdc              = types.ModuleCdc
+	AttributeValueCategory = types.AttributeValueCategory
 )
 
 type (
-	Keeper            = keeper.Keeper
 	GenesisState      = types.GenesisState
 	MsgCreateSongPost = types.MsgCreateSongPost
+	ChannelKeeper     = types.ChannelKeeper
+	PortKeeper        = types.PortKeeper
+	Keeper            = keeper.Keeper
 )

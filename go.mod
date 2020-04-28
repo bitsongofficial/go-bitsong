@@ -3,7 +3,6 @@ module github.com/bitsongofficial/go-bitsong
 go 1.13
 
 require (
-	github.com/bartekn/go-bip39 v0.0.0-20171116152956-a05967ea095d // indirect
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20200422222342-f6e9ee762358
 	github.com/desmos-labs/desmos v0.3.1-0.20200423112645-fa54b3cf2cc8
 	github.com/gorilla/mux v1.7.4
@@ -15,3 +14,5 @@ require (
 	github.com/tendermint/tendermint v0.33.4
 	github.com/tendermint/tm-db v0.5.1
 )
+
+replace github.com/desmos-labs/desmos => /sda1/Coding/Desmos/Chain

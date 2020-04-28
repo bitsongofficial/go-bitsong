@@ -18,23 +18,28 @@ import (
 // GetTransferTxCmd returns the command to create a NewMsgTransfer transaction
 func GetIBCDesmosTxCommand(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer [src-port] [src-channel] [dest-height] [song-id]",
+		Use:   "transfer [src-port] [src-channel] [dest-height] [song-id] [post-owner]",
 		Short: "Transfer fungible token through IBC",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := authtypes.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc).WithBroadcastMode(flags.BroadcastBlock)
 
-			sender := cliCtx.GetFromAddress()
-			srcPort := args[0]
-			srcChannel := args[1]
 			destHeight, err := strconv.Atoi(args[2])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateSongPost(srcPort, srcChannel, uint64(destHeight), args[3], time.Now(), sender)
+			msg := types.NewMsgCreateSongPost(
+				args[0],
+				args[1],
+				uint64(destHeight),
+				args[3],
+				time.Now(),
+				args[4],
+				cliCtx.GetFromAddress(),
+			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}

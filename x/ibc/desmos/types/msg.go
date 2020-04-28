@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,15 +15,18 @@ type MsgCreateSongPost struct {
 	SourceChannel string `json:"source_channel" yaml:"source_channel"` // the channel by which the packet will be sent
 	DestHeight    uint64 `json:"dest_height" yaml:"dest_height"`       // the current height of the destination chain
 
-	SongID       string         `json:"song_id" yaml:"song_id"`             // Song ID
-	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"` // Post creation time
-	Sender       sdk.AccAddress `json:"sender" yaml:"sender"`               // Post creator
+	SongID       string    `json:"song_id" yaml:"song_id"`             // Song ID
+	CreationTime time.Time `json:"creation_time" yaml:"creation_time"` // Post creation time
+	PostOwner    string    `json:"post_owner"`                         // Post creator
+
+	Sender sdk.AccAddress `json:"sender" yaml:"sender"` // Message sender
 }
 
 // NewMsgCreateSongPost creates a new MsgCreateSongPost instance
 func NewMsgCreateSongPost(
 	sourcePort, sourceChannel string, destHeight uint64,
-	songID string, creationTime time.Time, sender sdk.AccAddress,
+	songID string, creationTime time.Time, postOwner string,
+	sender sdk.AccAddress,
 ) MsgCreateSongPost {
 	return MsgCreateSongPost{
 		SourcePort:    sourcePort,
@@ -31,7 +35,9 @@ func NewMsgCreateSongPost(
 
 		SongID:       songID,
 		CreationTime: creationTime,
-		Sender:       sender,
+		PostOwner:    postOwner,
+
+		Sender: sender,
 	}
 }
 
@@ -58,6 +64,9 @@ func (msg MsgCreateSongPost) ValidateBasic() error {
 	}
 	if msg.CreationTime.IsZero() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "creation time cannot be empty")
+	}
+	if len(strings.TrimSpace(msg.PostOwner)) == 0 {
+		return fmt.Errorf("invalid post owner %s", msg.PostOwner)
 	}
 	if msg.Sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
