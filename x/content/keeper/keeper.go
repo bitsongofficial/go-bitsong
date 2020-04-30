@@ -56,3 +56,25 @@ func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
 
 	return content.Uri, nil
 }
+
+func (k Keeper) IterateContents(ctx sdk.Context, fn func(content types.Content) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ContentKeyPrefix)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var content types.Content
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &content)
+		if fn(content) {
+			break
+		}
+	}
+}
+
+func (k Keeper) GetContents(ctx sdk.Context) []types.Content {
+	var contents []types.Content
+	k.IterateContents(ctx, func(content types.Content) (stop bool) {
+		contents = append(contents, content)
+		return false
+	})
+	return contents
+}
