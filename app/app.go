@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
+	"github.com/bitsongofficial/go-bitsong/x/content"
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
-	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
@@ -67,7 +67,7 @@ var (
 		ibc.AppModuleBasic{},
 
 		// Custom modules
-		track.AppModuleBasic{},
+		content.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 
 		// IBC modules
@@ -84,7 +84,7 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		track.ModuleName: {auth.Burner},
+		//track.ModuleName: {auth.Burner},
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -140,7 +140,7 @@ type GoBitsong struct {
 	ibcKeeper        *ibc.Keeper
 
 	// Custom modules
-	trackKeeper track.Keeper
+	contentKeeper content.Keeper
 
 	// IBC modules
 	transferKeeper  transfer.Keeper
@@ -171,7 +171,7 @@ func NewBitsongApp(
 		capability.StoreKey,
 
 		// Custom modules
-		track.StoreKey,
+		content.StoreKey,
 
 		// IBC modules
 		posts.StoreKey, ibcposts.StoreKey,
@@ -200,7 +200,7 @@ func NewBitsongApp(
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	app.subspaces[track.ModuleName] = app.paramsKeeper.Subspace(track.DefaultParamspace)
+	app.subspaces[content.ModuleName] = app.paramsKeeper.Subspace(content.DefaultParamspace)
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))
@@ -257,8 +257,8 @@ func NewBitsongApp(
 	)
 
 	// Custom modules
-	app.trackKeeper = track.NewKeeper(
-		app.cdc, app.keys[track.ModuleName],
+	app.contentKeeper = content.NewKeeper(
+		app.cdc, app.keys[content.ModuleName],
 	)
 	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
 
@@ -301,7 +301,7 @@ func NewBitsongApp(
 		params.NewAppModule(app.paramsKeeper),
 
 		// Custom modules
-		track.NewAppModule(app.trackKeeper),
+		content.NewAppModule(app.contentKeeper),
 
 		// IBC modules
 		transferModule,
@@ -325,7 +325,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		track.ModuleName,
+		content.ModuleName,
 
 		// IBC Modules
 		ibcposts.ModuleName,
