@@ -1,8 +1,8 @@
 package types
 
 const (
-	QueryParams  = "params"
-	QueryContent = "content"
+	QueryParams = "params"
+	QueryUri    = "uri"
 )
 
 // Params for queries
