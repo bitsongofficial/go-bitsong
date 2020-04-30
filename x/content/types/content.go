@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
+	"time"
 )
 
 type Content struct {
@@ -12,7 +13,7 @@ type Content struct {
 	MetaUri    string         `json:"meta_uri" yaml:"meta_uri"`
 	ContentUri string         `json:"content_uri" yaml:"content_uri"`
 	Denom      string         `json:"denom" yaml:"denom"`
-	CreatedAt  string         `json:"created_at" yaml:"created_at"`
+	CreatedAt  time.Time      `json:"created_at" yaml:"created_at"`
 	Creator    sdk.AccAddress `json:"creator" yaml:"creator"`
 }
 
