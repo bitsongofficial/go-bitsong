@@ -200,7 +200,7 @@ func NewBitsongApp(
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	app.subspaces[content.ModuleName] = app.paramsKeeper.Subspace(content.DefaultParamspace)
+	//app.subspaces[content.ModuleName] = app.paramsKeeper.Subspace(content.DefaultParamspace)
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))

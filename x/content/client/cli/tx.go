@@ -14,11 +14,11 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strings"
 )
 
 const (
 	flagName       = "name"
-	flagUri        = "uri"
 	flagMetaUri    = "meta-uri"
 	flagContentUri = "content-uri"
 	flagDenom      = "denom"
@@ -45,15 +45,22 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new content",
-		Long:  fmt.Sprintf(`%s`, version.ClientName),
-		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Add a new content inside bitsong.
+Example:
+$ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[content-uri] --denom=[denom]
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			name := viper.GetString(flagName)
-			uri := viper.GetString(flagUri)
+			uri := args[0]
 			metaUri := viper.GetString(flagMetaUri)
 			contentUri := viper.GetString(flagContentUri)
 			denom := viper.GetString(flagDenom)
@@ -64,7 +71,6 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	cmd.Flags().String(flagName, "", "Name of the content")
-	cmd.Flags().String(flagUri, "", "Uri of the content")
 	cmd.Flags().String(flagMetaUri, "", "Meta Uri of the content")
 	cmd.Flags().String(flagContentUri, "", "Content Uri of the content")
 	cmd.Flags().String(flagDenom, "", "Denom of the content")
