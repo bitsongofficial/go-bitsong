@@ -21,10 +21,16 @@ const (
 // Items are stored with the following key: values
 //
 // - 0x00<uri_Bytes>: Content
+// - 0x01<denom_Bytes>: Denom
 var (
 	ContentKeyPrefix = []byte{0x00}
+	DenomKeyPrefix   = []byte{0x01}
 )
 
 func GetContentKey(uri string) []byte {
 	return append(ContentKeyPrefix, uri...)
+}
+
+func GetDenomKey(denom string) []byte {
+	return append(DenomKeyPrefix, denom...)
 }

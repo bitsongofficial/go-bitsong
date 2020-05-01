@@ -102,3 +102,111 @@ Creator: %s`,
 		msg.Name, msg.Uri, msg.MetaUri, msg.ContentUri, msg.Denom, msg.Creator,
 	)
 }
+
+var _ sdk.Msg = MsgMintContent{}
+
+type MsgMintContent struct {
+	Uri    string         `json:"uri" yaml:"uri"`
+	Amount sdk.Int        `json:"amount" yaml:"amount"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+func NewMsgMintContent(uri string, amt sdk.Int, from sdk.AccAddress) MsgMintContent {
+	return MsgMintContent{
+		Uri:    uri,
+		Amount: amt,
+		From:   from,
+	}
+}
+
+func (msg MsgMintContent) Route() string { return RouterKey }
+func (msg MsgMintContent) Type() string  { return TypeMsgAddContent }
+
+func (msg MsgMintContent) ValidateBasic() error {
+	if len(strings.TrimSpace(msg.Uri)) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("uri cannot be empty"))
+	}
+
+	if msg.Amount.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("amount cannot be zero"))
+	}
+
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid from: %s", msg.From.String()))
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgMintContent) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgMintContent) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+func (msg MsgMintContent) String() string {
+	return fmt.Sprintf(`Msg Mint Content
+Uri: %s
+Amount: %s
+From: %s`,
+		msg.Uri, msg.Amount, msg.From,
+	)
+}
+
+var _ sdk.Msg = MsgBurnContent{}
+
+type MsgBurnContent struct {
+	Uri    string         `json:"uri" yaml:"uri"`
+	Amount sdk.Int        `json:"amount" yaml:"amount"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+func NewMsgBurnContent(uri string, amt sdk.Int, from sdk.AccAddress) MsgBurnContent {
+	return MsgBurnContent{
+		Uri:    uri,
+		Amount: amt,
+		From:   from,
+	}
+}
+
+func (msg MsgBurnContent) Route() string { return RouterKey }
+func (msg MsgBurnContent) Type() string  { return TypeMsgAddContent }
+
+func (msg MsgBurnContent) ValidateBasic() error {
+	if len(strings.TrimSpace(msg.Uri)) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("uri cannot be empty"))
+	}
+
+	if msg.Amount.IsZero() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("amount cannot be zero"))
+	}
+
+	if msg.From.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid from: %s", msg.From.String()))
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgBurnContent) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgBurnContent) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+func (msg MsgBurnContent) String() string {
+	return fmt.Sprintf(`Msg Mint Content
+Uri: %s
+Amount: %s
+From: %s`,
+		msg.Uri, msg.Amount, msg.From,
+	)
+}

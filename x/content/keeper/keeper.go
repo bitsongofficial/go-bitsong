@@ -2,23 +2,27 @@ package keeper
 
 import (
 	"fmt"
+	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/content/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of the track store
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      *codec.Codec
+	bankKeeper bank.Keeper
+	storeKey   sdk.StoreKey
+	cdc        *codec.Codec
 }
 
 // NewKeeper creates a content keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey) Keeper {
+func NewKeeper(bk bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
 	keeper := Keeper{
-		storeKey: key,
-		cdc:      cdc,
+		bankKeeper: bk,
+		storeKey:   key,
+		cdc:        cdc,
 	}
 	return keeper
 }
@@ -45,16 +49,20 @@ func (k Keeper) SetContent(ctx sdk.Context, content types.Content) {
 	store.Set(types.GetContentKey(content.Uri), bz)
 }
 
-func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
-	_, uriExists := k.GetContent(ctx, content.Uri)
-	if uriExists {
-		return "", fmt.Errorf("uri %s is not avalable", content.Uri)
+func (k Keeper) GetDenom(ctx sdk.Context, denom string) (_ string, ok bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetDenomKey(denom))
+	if bz == nil {
+		return
 	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
+	return denom, true
+}
 
-	content.CreatedAt = ctx.BlockHeader().Time
-	k.SetContent(ctx, content)
-
-	return content.Uri, nil
+func (k Keeper) SetDenom(ctx sdk.Context, denom string) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(denom)
+	store.Set(types.GetDenomKey(denom), bz)
 }
 
 func (k Keeper) IterateContents(ctx sdk.Context, fn func(content types.Content) (stop bool)) {
@@ -77,4 +85,65 @@ func (k Keeper) GetContents(ctx sdk.Context) []types.Content {
 		return false
 	})
 	return contents
+}
+
+func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
+	_, uriExists := k.GetContent(ctx, content.Uri)
+	if uriExists {
+		return "", fmt.Errorf("uri %s is not avalable", content.Uri)
+	}
+
+	// check if denom is duplicated
+	_, denomExists := k.GetDenom(ctx, content.Denom)
+	if denomExists {
+		return "", fmt.Errorf("denom %s is not avalable", content.Denom)
+	}
+	k.SetDenom(ctx, content.Denom)
+
+	content.CreatedAt = ctx.BlockHeader().Time
+	k.SetContent(ctx, content)
+
+	return content.Uri, nil
+}
+
+func (k Keeper) Mint(ctx sdk.Context, uri string, amount sdk.Int, from sdk.AccAddress) error {
+	content, uriExists := k.GetContent(ctx, uri)
+	if !uriExists {
+		return fmt.Errorf("uri %s is not avalable", uri)
+	}
+
+	// subtract coins from address (btsg)
+	_, err := k.bankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(btsg.BondDenom, amount)))
+	if err != nil {
+		return err
+	}
+
+	// mint token to address (denom)
+	_, err = k.bankKeeper.AddCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(content.Denom, amount)))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) Burn(ctx sdk.Context, uri string, amount sdk.Int, from sdk.AccAddress) error {
+	content, uriExists := k.GetContent(ctx, uri)
+	if !uriExists {
+		return fmt.Errorf("uri %s is not avalable", uri)
+	}
+
+	// subtract coins from address (denom)
+	_, err := k.bankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(content.Denom, amount)))
+	if err != nil {
+		return err
+	}
+
+	// mint token to address (btsg)
+	_, err = k.bankKeeper.AddCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(btsg.BondDenom, amount)))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -258,7 +258,7 @@ func NewBitsongApp(
 
 	// Custom modules
 	app.contentKeeper = content.NewKeeper(
-		app.cdc, app.keys[content.ModuleName],
+		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
 	)
 	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
 

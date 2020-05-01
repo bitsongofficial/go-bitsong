@@ -14,6 +14,7 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strconv"
 	"strings"
 )
 
@@ -36,6 +37,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdAdd(cdc),
+		GetCmdMint(cdc),
+		GetCmdBurn(cdc),
 	)...)
 
 	return contentTxCmd
@@ -74,6 +77,70 @@ $ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[con
 	cmd.Flags().String(flagMetaUri, "", "Meta Uri of the content")
 	cmd.Flags().String(flagContentUri, "", "Content Uri of the content")
 	cmd.Flags().String(flagDenom, "", "Denom of the content")
+
+	return cmd
+}
+
+func GetCmdMint(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mint",
+		Short: "Mint a new content",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Mint a new content.
+Example:
+$ %s tx content mint [uri] [amount]
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			uri := args[0]
+			amount, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMintContent(uri, sdk.NewInt(amount), cliCtx.FromAddress)
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
+}
+
+func GetCmdBurn(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "burn",
+		Short: "Burn a new content",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Burn a new content.
+Example:
+$ %s tx content burn [uri] [amount]
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			uri := args[0]
+			amount, err := strconv.ParseInt(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgBurnContent(uri, sdk.NewInt(amount), cliCtx.FromAddress)
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 
 	return cmd
 }
