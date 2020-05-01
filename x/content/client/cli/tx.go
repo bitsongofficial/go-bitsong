@@ -31,7 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE: client.ValidateCmd,
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
