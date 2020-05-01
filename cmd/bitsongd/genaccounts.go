@@ -151,7 +151,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 			appState[auth.ModuleName] = authGenStateBz
 			appState[bank.ModuleName] = bankGenStateBz
 
-			bankGenState = bank.GetGenesisStateFromAppState(depCdc, appState)
+			/*bankGenState = bank.GetGenesisStateFromAppState(depCdc, appState)
 			bankGenState.Balances = append(bankGenState.Balances, balances)
 			bankGenState.Balances = bank.SanitizeGenesisBalances(bankGenState.Balances)
 
@@ -160,7 +160,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to marshal bank genesis state: %w", err)
 			}
 
-			appState[bank.ModuleName] = bankGenStateBz
+			appState[bank.ModuleName] = bankGenStateBz*/
 
 			appStateJSON, err := cdc.MarshalJSON(appState)
 			if err != nil {
