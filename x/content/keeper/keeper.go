@@ -118,6 +118,7 @@ func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 		return err
 	}
 
+	// TODO: change burn with send to rights_holders
 	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.StreamPrice))
 	if err != nil {
 		return err
@@ -153,6 +154,7 @@ func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error
 		return err
 	}
 
+	// TODO: change burn with send to rights_holders
 	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
 	if err != nil {
 		return err
