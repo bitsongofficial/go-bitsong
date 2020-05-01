@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
+	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/bitsongofficial/go-bitsong/types/util"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -30,15 +32,18 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app"
 )
 
+var (
+	cdc      = codecstd.MakeCodec(app.ModuleBasics)
+	appCodec = codecstd.NewAppCodec(cdc)
+)
+
+func init() {
+	authclient.Codec = appCodec
+}
+
 func main() {
 	// Configure cobra to sort commands
 	cobra.EnableCommandSorting = false
-
-	// Instantiate the codec for the command line application
-	cdc := app.MakeCodec()
-
-	// Initialize the app overriding the various methods we want to customize
-	app.Init()
 
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
