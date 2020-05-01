@@ -14,15 +14,16 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strconv"
 	"strings"
 )
 
 const (
-	flagName       = "name"
-	flagMetaUri    = "meta-uri"
-	flagContentUri = "content-uri"
-	flagDenom      = "denom"
+	flagName          = "name"
+	flagMetaUri       = "meta-uri"
+	flagContentUri    = "content-uri"
+	flagDenom         = "denom"
+	flagStreamPrice   = "stream-price"
+	flagDownloadPrice = "download-price"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -37,8 +38,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdAdd(cdc),
-		GetCmdMint(cdc),
-		GetCmdBurn(cdc),
+		GetCmdStream(cdc),
+		GetCmdDownload(cdc),
 	)...)
 
 	return contentTxCmd
@@ -51,7 +52,7 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Add a new content inside bitsong.
 Example:
-$ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[content-uri] --denom=[denom]
+$ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[content-uri] --denom=[denom] --stream-price=[streamPrice] --download-price=[downloadPrice]
 `,
 				version.ClientName,
 			),
@@ -67,8 +68,10 @@ $ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[con
 			metaUri := viper.GetString(flagMetaUri)
 			contentUri := viper.GetString(flagContentUri)
 			denom := viper.GetString(flagDenom)
+			streamPrice := viper.GetString(flagStreamPrice)
+			downloadPrice := viper.GetString(flagDownloadPrice)
 
-			msg := types.NewMsgAddContent(name, uri, metaUri, contentUri, denom, cliCtx.FromAddress)
+			msg := types.NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice, cliCtx.FromAddress)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -77,35 +80,33 @@ $ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[con
 	cmd.Flags().String(flagMetaUri, "", "Meta Uri of the content")
 	cmd.Flags().String(flagContentUri, "", "Content Uri of the content")
 	cmd.Flags().String(flagDenom, "", "Denom of the content")
+	cmd.Flags().String(flagStreamPrice, "", "Stream Price of the content")
+	cmd.Flags().String(flagDownloadPrice, "", "Download Price of the content")
 
 	return cmd
 }
 
-func GetCmdMint(cdc *codec.Codec) *cobra.Command {
+func GetCmdStream(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mint",
-		Short: "Mint a new content",
+		Use:   "stream",
+		Short: "Stream a content",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Mint a new content.
+			fmt.Sprintf(`Stream a content.
 Example:
-$ %s tx content mint [uri] [amount]
+$ %s tx content stream [uri]
 `,
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			uri := args[0]
-			amount, err := strconv.ParseInt(args[1], 10, 64)
-			if err != nil {
-				return err
-			}
 
-			msg := types.NewMsgMintContent(uri, sdk.NewInt(amount), cliCtx.FromAddress)
+			msg := types.NewMsgStream(uri, cliCtx.FromAddress)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -113,31 +114,27 @@ $ %s tx content mint [uri] [amount]
 	return cmd
 }
 
-func GetCmdBurn(cdc *codec.Codec) *cobra.Command {
+func GetCmdDownload(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "burn",
-		Short: "Burn a new content",
+		Use:   "download",
+		Short: "Download a new content",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Burn a new content.
+			fmt.Sprintf(`Download a new content.
 Example:
-$ %s tx content burn [uri] [amount]
+$ %s tx content download [uri]
 `,
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			uri := args[0]
-			amount, err := strconv.ParseInt(args[1], 10, 64)
-			if err != nil {
-				return err
-			}
 
-			msg := types.NewMsgBurnContent(uri, sdk.NewInt(amount), cliCtx.FromAddress)
+			msg := types.NewMsgDownload(uri, cliCtx.FromAddress)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

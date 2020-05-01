@@ -13,10 +13,10 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgAddContent:
 			return handleMsgAddContent(ctx, keeper, msg)
-		case types.MsgMintContent:
-			return handleMsgMintContent(ctx, keeper, msg)
-		case types.MsgBurnContent:
-			return handleMsgBurnContent(ctx, keeper, msg)
+		case types.MsgStream:
+			return handleMsgStream(ctx, keeper, msg)
+		case types.MsgDownload:
+			return handleMsgDownload(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
@@ -26,12 +26,24 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgAddContent(ctx sdk.Context, keeper Keeper, msg types.MsgAddContent) (*sdk.Result, error) {
+	streamPrice, err := sdk.ParseCoin(msg.StreamPrice)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
+	downloadPrice, err := sdk.ParseCoin(msg.DownloadPrice)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
 	content := types.NewContent(
 		msg.Name,
 		msg.Uri,
 		msg.MetaUri,
 		msg.ContentUri,
 		msg.Denom,
+		streamPrice,
+		downloadPrice,
 		msg.Creator,
 	)
 
@@ -53,17 +65,16 @@ func handleMsgAddContent(ctx sdk.Context, keeper Keeper, msg types.MsgAddContent
 	}, nil
 }
 
-func handleMsgMintContent(ctx sdk.Context, keeper Keeper, msg types.MsgMintContent) (*sdk.Result, error) {
-	err := keeper.Mint(ctx, msg.Uri, msg.Amount, msg.From)
+func handleMsgStream(ctx sdk.Context, keeper Keeper, msg types.MsgStream) (*sdk.Result, error) {
+	err := keeper.Stream(ctx, msg.Uri, msg.From)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeContentMinted,
+			types.EventTypeContentStreamed,
 			sdk.NewAttribute(types.AttributeKeyContentUri, msg.Uri),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
 
@@ -73,17 +84,16 @@ func handleMsgMintContent(ctx sdk.Context, keeper Keeper, msg types.MsgMintConte
 	}, nil
 }
 
-func handleMsgBurnContent(ctx sdk.Context, keeper Keeper, msg types.MsgBurnContent) (*sdk.Result, error) {
-	err := keeper.Burn(ctx, msg.Uri, msg.Amount, msg.From)
+func handleMsgDownload(ctx sdk.Context, keeper Keeper, msg types.MsgDownload) (*sdk.Result, error) {
+	err := keeper.Download(ctx, msg.Uri, msg.From)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeContentBurned,
+			types.EventTypeContentDownloaded,
 			sdk.NewAttribute(types.AttributeKeyContentUri, msg.Uri),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
 

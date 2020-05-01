@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/content/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -106,20 +105,34 @@ func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
 	return content.Uri, nil
 }
 
-func (k Keeper) Mint(ctx sdk.Context, uri string, amount sdk.Int, from sdk.AccAddress) error {
+func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
+	// get content
 	content, uriExists := k.GetContent(ctx, uri)
 	if !uriExists {
 		return fmt.Errorf("uri %s is not avalable", uri)
 	}
 
-	// subtract coins from address (btsg)
-	_, err := k.bankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(btsg.BondDenom, amount)))
+	// subtract stream-price from requester and burn coins
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.StreamPrice))
 	if err != nil {
 		return err
 	}
 
-	// mint token to address (denom)
-	_, err = k.bankKeeper.AddCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(content.Denom, amount)))
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.StreamPrice))
+	if err != nil {
+		return err
+	}
+
+	// mint stream to requester (1 * 10^0)
+	unit := sdk.NewInt(1)
+	coins := sdk.NewCoins(sdk.NewCoin(content.Denom, unit))
+
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, coins)
 	if err != nil {
 		return err
 	}
@@ -127,20 +140,34 @@ func (k Keeper) Mint(ctx sdk.Context, uri string, amount sdk.Int, from sdk.AccAd
 	return nil
 }
 
-func (k Keeper) Burn(ctx sdk.Context, uri string, amount sdk.Int, from sdk.AccAddress) error {
+func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error {
+	// get content
 	content, uriExists := k.GetContent(ctx, uri)
 	if !uriExists {
 		return fmt.Errorf("uri %s is not avalable", uri)
 	}
 
-	// subtract coins from address (denom)
-	_, err := k.bankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(content.Denom, amount)))
+	// subtract download-price from requester and burn coins
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
 	if err != nil {
 		return err
 	}
 
-	// mint token to address (btsg)
-	_, err = k.bankKeeper.AddCoins(ctx, from, sdk.NewCoins(sdk.NewCoin(btsg.BondDenom, amount)))
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
+	if err != nil {
+		return err
+	}
+
+	// mint download to requester (1 * 10^6)
+	unit := sdk.NewInt(1000000)
+	coins := sdk.NewCoins(sdk.NewCoin(content.Denom, unit))
+
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, coins)
 	if err != nil {
 		return err
 	}

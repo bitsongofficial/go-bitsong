@@ -85,6 +85,7 @@ var (
 		gov.ModuleName:            {auth.Burner},
 
 		//track.ModuleName: {auth.Burner},
+		content.ModuleName: {auth.Minter, auth.Burner},
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}

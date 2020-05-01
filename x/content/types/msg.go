@@ -15,22 +15,26 @@ const (
 var _ sdk.Msg = MsgAddContent{}
 
 type MsgAddContent struct {
-	Name       string         `json:"name" yaml:"name"`
-	Uri        string         `json:"uri" yaml:"uri"`
-	MetaUri    string         `json:"meta_uri" yaml:"meta_uri"`
-	ContentUri string         `json:"content_uri" yaml:"content_uri"`
-	Denom      string         `json:"denom" yaml:"denom"`
-	Creator    sdk.AccAddress `json:"creator" yaml:"creator"`
+	Name          string         `json:"name" yaml:"name"`
+	Uri           string         `json:"uri" yaml:"uri"`
+	MetaUri       string         `json:"meta_uri" yaml:"meta_uri"`
+	ContentUri    string         `json:"content_uri" yaml:"content_uri"`
+	Denom         string         `json:"denom" yaml:"denom"`
+	StreamPrice   string         `json:"stream_price" yaml:"stream_price"`
+	DownloadPrice string         `json:"download_price" yaml:"download_price"`
+	Creator       sdk.AccAddress `json:"creator" yaml:"creator"`
 }
 
-func NewMsgAddContent(name, uri, metaUri, contentUri, denom string, creator sdk.AccAddress) MsgAddContent {
+func NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice string, creator sdk.AccAddress) MsgAddContent {
 	return MsgAddContent{
-		Name:       name,
-		Uri:        uri,
-		MetaUri:    metaUri,
-		ContentUri: contentUri,
-		Denom:      denom,
-		Creator:    creator,
+		Name:          name,
+		Uri:           uri,
+		MetaUri:       metaUri,
+		ContentUri:    contentUri,
+		Denom:         denom,
+		StreamPrice:   streamPrice,
+		DownloadPrice: downloadPrice,
+		Creator:       creator,
 	}
 }
 
@@ -74,6 +78,14 @@ func (msg MsgAddContent) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s", err.Error()))
 	}
 
+	if _, err := sdk.ParseCoin(msg.StreamPrice); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("invalid stream-price %s", msg.StreamPrice))
+	}
+
+	if _, err := sdk.ParseCoin(msg.DownloadPrice); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("invalid download-price %s", msg.DownloadPrice))
+	}
+
 	if msg.Creator.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid creator: %s", msg.Creator.String()))
 	}
@@ -103,32 +115,26 @@ Creator: %s`,
 	)
 }
 
-var _ sdk.Msg = MsgMintContent{}
+var _ sdk.Msg = MsgStream{}
 
-type MsgMintContent struct {
-	Uri    string         `json:"uri" yaml:"uri"`
-	Amount sdk.Int        `json:"amount" yaml:"amount"`
-	From   sdk.AccAddress `json:"from" yaml:"from"`
+type MsgStream struct {
+	Uri  string         `json:"uri" yaml:"uri"`
+	From sdk.AccAddress `json:"from" yaml:"from"`
 }
 
-func NewMsgMintContent(uri string, amt sdk.Int, from sdk.AccAddress) MsgMintContent {
-	return MsgMintContent{
-		Uri:    uri,
-		Amount: amt,
-		From:   from,
+func NewMsgStream(uri string, from sdk.AccAddress) MsgStream {
+	return MsgStream{
+		Uri:  uri,
+		From: from,
 	}
 }
 
-func (msg MsgMintContent) Route() string { return RouterKey }
-func (msg MsgMintContent) Type() string  { return TypeMsgAddContent }
+func (msg MsgStream) Route() string { return RouterKey }
+func (msg MsgStream) Type() string  { return TypeMsgAddContent }
 
-func (msg MsgMintContent) ValidateBasic() error {
+func (msg MsgStream) ValidateBasic() error {
 	if len(strings.TrimSpace(msg.Uri)) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("uri cannot be empty"))
-	}
-
-	if msg.Amount.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("amount cannot be zero"))
 	}
 
 	if msg.From.Empty() {
@@ -139,50 +145,43 @@ func (msg MsgMintContent) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (msg MsgMintContent) GetSignBytes() []byte {
+func (msg MsgStream) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgMintContent) GetSigners() []sdk.AccAddress {
+func (msg MsgStream) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-func (msg MsgMintContent) String() string {
-	return fmt.Sprintf(`Msg Mint Content
+func (msg MsgStream) String() string {
+	return fmt.Sprintf(`Msg Stream
 Uri: %s
-Amount: %s
 From: %s`,
-		msg.Uri, msg.Amount, msg.From,
+		msg.Uri, msg.From,
 	)
 }
 
-var _ sdk.Msg = MsgBurnContent{}
+var _ sdk.Msg = MsgDownload{}
 
-type MsgBurnContent struct {
-	Uri    string         `json:"uri" yaml:"uri"`
-	Amount sdk.Int        `json:"amount" yaml:"amount"`
-	From   sdk.AccAddress `json:"from" yaml:"from"`
+type MsgDownload struct {
+	Uri  string         `json:"uri" yaml:"uri"`
+	From sdk.AccAddress `json:"from" yaml:"from"`
 }
 
-func NewMsgBurnContent(uri string, amt sdk.Int, from sdk.AccAddress) MsgBurnContent {
-	return MsgBurnContent{
-		Uri:    uri,
-		Amount: amt,
-		From:   from,
+func NewMsgDownload(uri string, from sdk.AccAddress) MsgDownload {
+	return MsgDownload{
+		Uri:  uri,
+		From: from,
 	}
 }
 
-func (msg MsgBurnContent) Route() string { return RouterKey }
-func (msg MsgBurnContent) Type() string  { return TypeMsgAddContent }
+func (msg MsgDownload) Route() string { return RouterKey }
+func (msg MsgDownload) Type() string  { return TypeMsgAddContent }
 
-func (msg MsgBurnContent) ValidateBasic() error {
+func (msg MsgDownload) ValidateBasic() error {
 	if len(strings.TrimSpace(msg.Uri)) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("uri cannot be empty"))
-	}
-
-	if msg.Amount.IsZero() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("amount cannot be zero"))
 	}
 
 	if msg.From.Empty() {
@@ -193,20 +192,19 @@ func (msg MsgBurnContent) ValidateBasic() error {
 }
 
 // GetSignBytes encodes the message for signing
-func (msg MsgBurnContent) GetSignBytes() []byte {
+func (msg MsgDownload) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners defines whose signature is required
-func (msg MsgBurnContent) GetSigners() []sdk.AccAddress {
+func (msg MsgDownload) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.From}
 }
 
-func (msg MsgBurnContent) String() string {
-	return fmt.Sprintf(`Msg Mint Content
+func (msg MsgDownload) String() string {
+	return fmt.Sprintf(`Msg Download
 Uri: %s
-Amount: %s
 From: %s`,
-		msg.Uri, msg.Amount, msg.From,
+		msg.Uri, msg.From,
 	)
 }

@@ -2,9 +2,9 @@ package types
 
 const (
 	// Content events
-	EventTypeContentAdded  = "content_added"
-	EventTypeContentMinted = "content_minted"
-	EventTypeContentBurned = "content_burned"
+	EventTypeContentAdded      = "content_added"
+	EventTypeContentStreamed   = "content_streamed"
+	EventTypeContentDownloaded = "content_downloaded"
 
 	// Content attributes
 	AttributeKeyContentUri = "content_uri"
