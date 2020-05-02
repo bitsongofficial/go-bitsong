@@ -13,8 +13,9 @@ const (
 	// QuerierRoute to be used for querierer msgs
 	QuerierRoute = ModuleName
 
-	MaxNameLength int = 65
-	MaxUriLength  int = 165
+	MaxNameLength          int = 65
+	MaxUriLength           int = 165
+	MaxRightsHoldersLength int = 15
 )
 
 // Keys for content store
@@ -28,9 +29,9 @@ var (
 )
 
 func GetContentKey(uri string) []byte {
-	return append(ContentKeyPrefix, uri...)
+	return append(ContentKeyPrefix, []byte(uri)...)
 }
 
 func GetDenomKey(denom string) []byte {
-	return append(DenomKeyPrefix, denom...)
+	return append(DenomKeyPrefix, []byte(denom)...)
 }

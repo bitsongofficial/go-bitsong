@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/content/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,13 +39,13 @@ func (k Keeper) GetContent(ctx sdk.Context, uri string) (content types.Content, 
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &content)
+	k.cdc.MustUnmarshalBinaryBare(bz, &content)
 	return content, true
 }
 
 func (k Keeper) SetContent(ctx sdk.Context, content types.Content) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(content)
+	bz := k.cdc.MustMarshalBinaryBare(content)
 	store.Set(types.GetContentKey(content.Uri), bz)
 }
 
@@ -54,13 +55,13 @@ func (k Keeper) GetDenom(ctx sdk.Context, denom string) (_ string, ok bool) {
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &denom)
+	k.cdc.MustUnmarshalBinaryBare(bz, &denom)
 	return denom, true
 }
 
 func (k Keeper) SetDenom(ctx sdk.Context, denom string) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(denom)
+	bz := k.cdc.MustMarshalBinaryBare(denom)
 	store.Set(types.GetDenomKey(denom), bz)
 }
 
@@ -70,7 +71,7 @@ func (k Keeper) IterateContents(ctx sdk.Context, fn func(content types.Content) 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var content types.Content
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &content)
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &content)
 		if fn(content) {
 			break
 		}
@@ -112,33 +113,52 @@ func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 		return fmt.Errorf("uri %s is not avalable", uri)
 	}
 
-	// subtract stream-price from requester and burn coins
+	// subtract stream-price from requester
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.StreamPrice))
 	if err != nil {
 		return err
 	}
 
-	// TODO: change burn with send to rights_holders
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.StreamPrice))
-	if err != nil {
-		return err
-	}
+	// update content with new rewards
+	content = allocateFundsRightsHolders(content, content.StreamPrice)
 
 	// mint stream to requester (1 * 10^0)
 	unit := sdk.NewInt(1)
-	coins := sdk.NewCoins(sdk.NewCoin(content.Denom, unit))
+	coin := sdk.NewCoin(content.Denom, unit)
 
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		return err
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, coins)
+	content = increaseTotalSupply(content, coin)
+	k.SetContent(ctx, content)
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(coin))
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func increaseTotalSupply(cnt types.Content, coin sdk.Coin) types.Content {
+	cnt.TotalSupply = cnt.TotalSupply.Add(coin)
+	return cnt
+}
+
+func allocateFundsRightsHolders(cnt types.Content, coin sdk.Coin) types.Content {
+	// allocate funds to rights holders
+	for i, rh := range cnt.RightsHolders {
+		price := sdk.NewDecCoinFromCoin(coin)
+		allocation := price.Amount.Quo(sdk.NewDec(100).Quo(rh.Quota))
+		cnt.RightsHolders[i].Rewards = rh.Rewards.Add(sdk.NewDecCoinFromDec(btsg.BondDenom, allocation))
+	}
+
+	// increase volume
+	cnt.Volume = cnt.Volume.Add(coin)
+
+	return cnt
 }
 
 func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error {
@@ -148,28 +168,28 @@ func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error
 		return fmt.Errorf("uri %s is not avalable", uri)
 	}
 
-	// subtract download-price from requester and burn coins
+	// subtract download-price from requester
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
 	if err != nil {
 		return err
 	}
 
-	// TODO: change burn with send to rights_holders
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
-	if err != nil {
-		return err
-	}
+	// update content with new rewards
+	content = allocateFundsRightsHolders(content, content.DownloadPrice)
 
 	// mint download to requester (1 * 10^6)
 	unit := sdk.NewInt(1000000)
-	coins := sdk.NewCoins(sdk.NewCoin(content.Denom, unit))
+	coin := sdk.NewCoin(content.Denom, unit)
 
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 	if err != nil {
 		return err
 	}
 
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, coins)
+	content = increaseTotalSupply(content, coin)
+	k.SetContent(ctx, content)
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(coin))
 	if err != nil {
 		return err
 	}

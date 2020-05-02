@@ -45,6 +45,7 @@ func handleMsgAddContent(ctx sdk.Context, keeper Keeper, msg types.MsgAddContent
 		streamPrice,
 		downloadPrice,
 		msg.Creator,
+		msg.RightsHolders,
 	)
 
 	uri, err := keeper.Add(ctx, content)

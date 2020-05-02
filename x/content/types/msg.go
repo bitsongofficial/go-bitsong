@@ -23,9 +23,10 @@ type MsgAddContent struct {
 	StreamPrice   string         `json:"stream_price" yaml:"stream_price"`
 	DownloadPrice string         `json:"download_price" yaml:"download_price"`
 	Creator       sdk.AccAddress `json:"creator" yaml:"creator"`
+	RightsHolders RightsHolders  `json:"rights_holders" yaml:"rights_holders"`
 }
 
-func NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice string, creator sdk.AccAddress) MsgAddContent {
+func NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice string, creator sdk.AccAddress, rhs RightsHolders) MsgAddContent {
 	return MsgAddContent{
 		Name:          name,
 		Uri:           uri,
@@ -35,6 +36,7 @@ func NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downlo
 		StreamPrice:   streamPrice,
 		DownloadPrice: downloadPrice,
 		Creator:       creator,
+		RightsHolders: rhs,
 	}
 }
 
@@ -88,6 +90,10 @@ func (msg MsgAddContent) ValidateBasic() error {
 
 	if msg.Creator.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid creator: %s", msg.Creator.String()))
+	}
+
+	if err := msg.RightsHolders.Validate(); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	return nil

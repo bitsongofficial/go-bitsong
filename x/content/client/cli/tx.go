@@ -24,6 +24,7 @@ const (
 	flagDenom         = "denom"
 	flagStreamPrice   = "stream-price"
 	flagDownloadPrice = "download-price"
+	flagRightHolder   = "right-holder"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -33,7 +34,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE: client.ValidateCmd,
+		RunE:                       client.ValidateCmd,
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
@@ -52,7 +53,15 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Add a new content inside bitsong.
 Example:
-$ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[content-uri] --denom=[denom] --stream-price=[streamPrice] --download-price=[downloadPrice]
+$ %s tx content add [uri] \
+--name=[name] \
+--meta-uri=[meta-uri] \
+--content-uri=[content-uri] \
+--denom=[denom] \
+--stream-price=[streamPrice] \
+--download-price=[downloadPrice] \
+--right-holder "80:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
+--right-holder "20:bitsong13r9ryyfltaz8rsqqumqxusgtw0ne4udhxm5jm4" \
 `,
 				version.ClientName,
 			),
@@ -71,7 +80,30 @@ $ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[con
 			streamPrice := viper.GetString(flagStreamPrice)
 			downloadPrice := viper.GetString(flagDownloadPrice)
 
-			msg := types.NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice, cliCtx.FromAddress)
+			rhsStr, err := cmd.Flags().GetStringArray(flagRightHolder)
+			if err != nil {
+				return fmt.Errorf("invalid rights holders value")
+			}
+
+			rhs := types.RightsHolders{}
+			for _, rh := range rhsStr {
+				rhArgs := strings.Split(rh, ":")
+				if len(rhArgs) != 2 {
+					return fmt.Errorf("the right holder format must be \"quota:address\" ex: \"100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a\"")
+				}
+				rhq, err := sdk.NewDecFromStr(rhArgs[0])
+				if err != nil {
+					return err
+				}
+				rhAddr, err := sdk.AccAddressFromBech32(rhArgs[1])
+				if err != nil {
+					return fmt.Errorf("right holder address is wrong, %s", err.Error())
+				}
+				rh := types.NewRightHolder(rhq, rhAddr)
+				rhs = append(rhs, rh)
+			}
+
+			msg := types.NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice, cliCtx.FromAddress, rhs)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -82,6 +114,7 @@ $ %s tx content add [uri] --name=[name] --meta-uri=[meta-uri] --content-uri=[con
 	cmd.Flags().String(flagDenom, "", "Denom of the content")
 	cmd.Flags().String(flagStreamPrice, "", "Stream Price of the content")
 	cmd.Flags().String(flagDownloadPrice, "", "Download Price of the content")
+	cmd.Flags().StringArray(flagRightHolder, []string{}, "Rights Holders of the content")
 
 	return cmd
 }
