@@ -24,7 +24,7 @@ func NewHandler(keeper Keeper) sdk.Handler {
 func handleMsgRegisterPlayer(ctx sdk.Context, keeper Keeper, msg types.MsgRegisterPlayer) (*sdk.Result, error) {
 	count := keeper.GetPlayersCount(ctx)
 	player := types.Player{
-		ID:      types.NewPlayerID(count),
+		ID:      types.NewPlayerID(count + 1),
 		Moniker: msg.Moniker,
 		Deposit: msg.Deposit,
 		Owner:   msg.Owner,

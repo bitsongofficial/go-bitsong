@@ -5,16 +5,12 @@ package player
 // based on functionality in github.com/rigelrozanski/multitool
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/player/client/cli"
 	"github.com/bitsongofficial/go-bitsong/x/player/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/player/types"
 )
 
 const (
-	QueryParams               = types.QueryParams
-	QueryID                   = types.QueryID
-	EventTypePlayerRegistered = types.EventTypePlayerRegistered
-	AttributeKeyID            = types.AttributeKeyID
-	PlayerIDPrefix            = types.PlayerIDPrefix
 	TypeMsgRegisterPlayer     = types.TypeMsgRegisterPlayer
 	ModuleName                = types.ModuleName
 	StoreKey                  = types.StoreKey
@@ -22,30 +18,41 @@ const (
 	QuerierRoute              = types.QuerierRoute
 	MinMonikerLength          = types.MinMonikerLength
 	MaxMonikerLength          = types.MaxMonikerLength
+	QueryParams               = types.QueryParams
+	QueryID                   = types.QueryID
+	EventTypePlayerRegistered = types.EventTypePlayerRegistered
+	AttributeKeyID            = types.AttributeKeyID
+	PlayerIDPrefix            = types.PlayerIDPrefix
 )
 
 var (
 	// functions aliases
-	RegisterCodec         = types.RegisterCodec
-	NewQueryPlayerParams  = types.NewQueryPlayerParams
-	NewPlayerID           = types.NewPlayerID
-	NewPlayerIDFromString = types.NewPlayerIDFromString
+	GetTxCmd              = cli.GetTxCmd
+	GetCmdRegisterPlayer  = cli.GetCmdRegisterPlayer
+	NewKeeper             = keeper.NewKeeper
+	NewHandler            = keeper.NewHandler
 	NewMsgRegisterPlayer  = types.NewMsgRegisterPlayer
 	NewGenesisState       = types.NewGenesisState
 	DefaultGenesisState   = types.DefaultGenesisState
 	ValidateGenesis       = types.ValidateGenesis
-	NewKeeper             = keeper.NewKeeper
+	PlayerKey             = types.PlayerKey
+	RegisterCodec         = types.RegisterCodec
+	NewQueryPlayerParams  = types.NewQueryPlayerParams
+	NewPlayerID           = types.NewPlayerID
+	NewPlayerIDFromString = types.NewPlayerIDFromString
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	PlayersCountKey = types.PlayersCountKey
+	PlayerKeyPrefix = types.PlayerKeyPrefix
+	ModuleCdc       = types.ModuleCdc
 )
 
 type (
 	Keeper            = keeper.Keeper
+	MsgRegisterPlayer = types.MsgRegisterPlayer
+	GenesisState      = types.GenesisState
 	Player            = types.Player
 	QueryPlayerParams = types.QueryPlayerParams
 	ID                = types.ID
 	PlayerID          = types.PlayerID
-	MsgRegisterPlayer = types.MsgRegisterPlayer
-	GenesisState      = types.GenesisState
 )

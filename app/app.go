@@ -7,6 +7,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/content"
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
+	"github.com/bitsongofficial/go-bitsong/x/player"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
@@ -68,6 +69,7 @@ var (
 
 		// Custom modules
 		content.AppModuleBasic{},
+		player.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 
 		// IBC modules
@@ -84,8 +86,8 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		//track.ModuleName: {auth.Burner},
 		content.ModuleName: {auth.Minter, auth.Burner},
+		player.ModuleName:  nil,
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -142,6 +144,7 @@ type GoBitsong struct {
 
 	// Custom modules
 	contentKeeper content.Keeper
+	playerKeeper  player.Keeper
 
 	// IBC modules
 	transferKeeper  transfer.Keeper
@@ -173,6 +176,7 @@ func NewBitsongApp(
 
 		// Custom modules
 		content.StoreKey,
+		player.StoreKey,
 
 		// IBC modules
 		posts.StoreKey, ibcposts.StoreKey,
@@ -200,8 +204,6 @@ func NewBitsongApp(
 	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-
-	//app.subspaces[content.ModuleName] = app.paramsKeeper.Subspace(content.DefaultParamspace)
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))
@@ -258,10 +260,13 @@ func NewBitsongApp(
 	)
 
 	// Custom modules
+	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
 	app.contentKeeper = content.NewKeeper(
 		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
 	)
-	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
+	app.playerKeeper = player.NewKeeper(
+		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
+	)
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
@@ -303,6 +308,7 @@ func NewBitsongApp(
 
 		// Custom modules
 		content.NewAppModule(app.contentKeeper),
+		player.NewAppModule(app.playerKeeper),
 
 		// IBC modules
 		transferModule,
@@ -326,7 +332,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		content.ModuleName,
+		content.ModuleName, player.ModuleName,
 
 		// IBC Modules
 		ibcposts.ModuleName,

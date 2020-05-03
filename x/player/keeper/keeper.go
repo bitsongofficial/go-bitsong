@@ -64,5 +64,5 @@ func (k Keeper) GetNode(ctx sdk.Context, id types.PlayerID) (player types.Player
 }
 
 func (k Keeper) AddDeposit(ctx sdk.Context, address sdk.AccAddress, coin sdk.Coin) error {
-	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, address, sdk.NewCoins(coin))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, address, types.ModuleName, sdk.Coins{coin})
 }
