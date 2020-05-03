@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	cmint "github.com/cosmos/cosmos-sdk/x/mint"
 	//cmint "github.com/cosmos/cosmos-sdk/x/mint"
 )
 
@@ -23,10 +24,9 @@ func NewKeeper(bk bank.Keeper) Keeper {
 func (k Keeper) AddToRewardPool(ctx sdk.Context, coins sdk.Coins) error {
 	/*rewardPool := k.rewardKeeper.GetRewardPool(ctx)
 	rewardPool.Amount = rewardPool.Amount.Add(sdk.NewDecCoinsFromCoins(coins...)...)
-	k.rewardKeeper.SetRewardPool(ctx, rewardPool)
+	k.rewardKeeper.SetRewardPool(ctx, rewardPool)*/
 
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, cmint.ModuleName, rewardTypes.ModuleName, coins)*/
-	return nil
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, cmint.ModuleName, cmint.ModuleName, coins)
 }
 
 func (k Keeper) GetRewardPoolSupply(ctx sdk.Context) sdk.Coins {
