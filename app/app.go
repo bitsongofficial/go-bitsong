@@ -265,7 +265,7 @@ func NewBitsongApp(
 		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
 	)
 	app.playerKeeper = player.NewKeeper(
-		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
+		app.bankKeeper, app.stakingKeeper, app.cdc, app.keys[content.ModuleName],
 	)
 
 	// IBC modules

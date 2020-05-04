@@ -39,3 +39,4 @@ bitsongd validate-genesis
 
 # Now its safe to start `bitsongd`
 bitsongd start
+

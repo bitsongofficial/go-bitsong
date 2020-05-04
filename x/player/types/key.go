@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "player"
@@ -22,6 +24,6 @@ var (
 	PlayerKeyPrefix = []byte{0x01}
 )
 
-func PlayerKey(id PlayerID) []byte {
-	return append(PlayerKeyPrefix, id.Bytes()...)
+func PlayerKey(playerAddr sdk.AccAddress) []byte {
+	return append(PlayerKeyPrefix, playerAddr.Bytes()...)
 }

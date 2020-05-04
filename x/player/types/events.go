@@ -5,5 +5,5 @@ const (
 	EventTypePlayerRegistered = "player_registered"
 
 	// Content attributes
-	AttributeKeyID = "player_id"
+	AttributeKeyValidator = "validator"
 )

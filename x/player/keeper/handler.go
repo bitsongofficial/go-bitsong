@@ -22,27 +22,19 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgRegisterPlayer(ctx sdk.Context, keeper Keeper, msg types.MsgRegisterPlayer) (*sdk.Result, error) {
-	count := keeper.GetPlayersCount(ctx)
-	player := types.Player{
-		ID:      types.NewPlayerID(count + 1),
-		Moniker: msg.Moniker,
-		Deposit: msg.Deposit,
-		Owner:   msg.Owner,
+	if err := keeper.RegisterPlayer(ctx, msg.Moniker, msg.PlayerAddr, msg.Validator); err != nil {
+		return nil, err
 	}
-
-	keeper.AddDeposit(ctx, msg.Owner, msg.Deposit)
-	keeper.SetPlayer(ctx, player)
-	keeper.SetPlayersCount(ctx, count+1)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypePlayerRegistered,
-			sdk.NewAttribute(types.AttributeKeyID, fmt.Sprintf("%d", count)),
+			sdk.NewAttribute(types.AttributeKeyValidator, fmt.Sprintf("%s", msg.Validator)),
 		),
 	)
 
 	return &sdk.Result{
-		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(count),
+		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(msg.Validator),
 		Events: ctx.EventManager().Events().ToABCIEvents(),
 	}, nil
 }

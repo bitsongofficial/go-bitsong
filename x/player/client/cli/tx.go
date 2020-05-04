@@ -16,13 +16,17 @@ import (
 	"strings"
 )
 
+const (
+	flagPubKey = "pubkey"
+)
+
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	contentTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE: client.ValidateCmd,
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
@@ -39,24 +43,28 @@ func GetCmdRegisterPlayer(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Register a new player
 Example:
-$ %s tx player register [moniker] [deposit]
+$ %s tx player register [moniker] [player-addr] [val-addr]
 `,
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			moniker := args[0]
-			deposit, err := sdk.ParseCoin(args[1])
+			playerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			valAddr, err := sdk.ValAddressFromBech32(args[2])
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgRegisterPlayer(moniker, deposit, cliCtx.FromAddress)
+			msg := types.NewMsgRegisterPlayer(moniker, playerAddr, valAddr)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

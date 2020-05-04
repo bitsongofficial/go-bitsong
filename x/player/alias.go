@@ -21,7 +21,7 @@ const (
 	QueryParams               = types.QueryParams
 	QueryID                   = types.QueryID
 	EventTypePlayerRegistered = types.EventTypePlayerRegistered
-	AttributeKeyID            = types.AttributeKeyID
+	AttributeKeyID            = types.AttributeKeyValidator
 	PlayerIDPrefix            = types.PlayerIDPrefix
 )
 
