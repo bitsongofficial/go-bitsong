@@ -14,6 +14,7 @@ const (
 	QuerierRoute = ModuleName
 
 	MaxNameLength          int = 65
+	MaxMetadataLength      int = 1000
 	MaxUriLength           int = 165
 	MaxRightsHoldersLength int = 15
 )
