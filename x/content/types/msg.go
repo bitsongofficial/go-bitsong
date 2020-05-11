@@ -15,27 +15,23 @@ const (
 var _ sdk.Msg = MsgAddContent{}
 
 type MsgAddContent struct {
-	Name          string         `json:"name" yaml:"name"`
-	Uri           string         `json:"uri" yaml:"uri"`
-	MetaUri       string         `json:"meta_uri" yaml:"meta_uri"`
-	ContentUri    string         `json:"content_uri" yaml:"content_uri"`
-	Denom         string         `json:"denom" yaml:"denom"`
-	StreamPrice   string         `json:"stream_price" yaml:"stream_price"`
-	DownloadPrice string         `json:"download_price" yaml:"download_price"`
-	Creator       sdk.AccAddress `json:"creator" yaml:"creator"`
-	RightsHolders RightsHolders  `json:"rights_holders" yaml:"rights_holders"`
+	Name          string        `json:"name" yaml:"name"`
+	Uri           string        `json:"uri" yaml:"uri"`
+	MetaUri       string        `json:"meta_uri" yaml:"meta_uri"`
+	ContentUri    string        `json:"content_uri" yaml:"content_uri"`
+	StreamPrice   string        `json:"stream_price" yaml:"stream_price"`
+	DownloadPrice string        `json:"download_price" yaml:"download_price"`
+	RightsHolders RightsHolders `json:"rights_holders" yaml:"rights_holders"`
 }
 
-func NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice string, creator sdk.AccAddress, rhs RightsHolders) MsgAddContent {
+func NewMsgAddContent(name, uri, metaUri, contentUri, streamPrice, downloadPrice string, rhs RightsHolders) MsgAddContent {
 	return MsgAddContent{
 		Name:          name,
 		Uri:           uri,
 		MetaUri:       metaUri,
 		ContentUri:    contentUri,
-		Denom:         denom,
 		StreamPrice:   streamPrice,
 		DownloadPrice: downloadPrice,
-		Creator:       creator,
 		RightsHolders: rhs,
 	}
 }
@@ -76,20 +72,12 @@ func (msg MsgAddContent) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("content-uri cannot be longer than %d characters", MaxUriLength))
 	}
 
-	if err := sdk.ValidateDenom(msg.Denom); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("%s", err.Error()))
-	}
-
 	if _, err := sdk.ParseCoin(msg.StreamPrice); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("invalid stream-price %s", msg.StreamPrice))
 	}
 
 	if _, err := sdk.ParseCoin(msg.DownloadPrice); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("invalid download-price %s", msg.DownloadPrice))
-	}
-
-	if msg.Creator.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, fmt.Sprintf("Invalid creator: %s", msg.Creator.String()))
 	}
 
 	if err := msg.RightsHolders.Validate(); err != nil {
@@ -106,7 +94,12 @@ func (msg MsgAddContent) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgAddContent) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Creator}
+	addrs := make([]sdk.AccAddress, len(msg.RightsHolders))
+	for i, rhs := range msg.RightsHolders {
+		addrs[i] = rhs.Address
+	}
+
+	return addrs
 }
 
 func (msg MsgAddContent) String() string {
@@ -114,10 +107,8 @@ func (msg MsgAddContent) String() string {
 Name: %s
 Uri: %s
 MetaUri: %s
-ContentUri: %s
-Denom: %s
-Creator: %s`,
-		msg.Name, msg.Uri, msg.MetaUri, msg.ContentUri, msg.Denom, msg.Creator,
+ContentUri: %s`,
+		msg.Name, msg.Uri, msg.MetaUri, msg.ContentUri,
 	)
 }
 

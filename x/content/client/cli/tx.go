@@ -14,14 +14,16 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 	"strings"
+
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
 const (
 	flagName          = "name"
 	flagMetaUri       = "meta-uri"
 	flagContentUri    = "content-uri"
-	flagDenom         = "denom"
 	flagStreamPrice   = "stream-price"
 	flagDownloadPrice = "download-price"
 	flagRightHolder   = "right-holder"
@@ -49,15 +51,11 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "Add a new content",
+		Short: "Add new content to bitsong",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Add a new content inside bitsong.
 Example:
-$ %s tx content add [uri] \
---name=[name] \
---meta-uri=[meta-uri] \
---content-uri=[content-uri] \
---denom=[denom] \
+$ %s tx content add [uri] [name] [meta-file] [content-file] \
 --stream-price=[streamPrice] \
 --download-price=[downloadPrice] \
 --right-holder "80:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
@@ -66,17 +64,33 @@ $ %s tx content add [uri] \
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			name := viper.GetString(flagName)
-			uri := args[0]
-			metaUri := viper.GetString(flagMetaUri)
-			contentUri := viper.GetString(flagContentUri)
-			denom := viper.GetString(flagDenom)
+			sh := shell.NewShell("localhost:5001")
+
+			metadata, err := os.Open(args[2])
+			if err != nil {
+				return err
+			}
+			metadataCID, err := sh.Add(metadata)
+			if err != nil {
+				return err
+			}
+
+			content, err := os.Open(args[3])
+			if err != nil {
+				return err
+			}
+			contentCID, err := sh.Add(content)
+			if err != nil {
+				return err
+			}
+
+			uri, name := args[0], args[1]
 			streamPrice := viper.GetString(flagStreamPrice)
 			downloadPrice := viper.GetString(flagDownloadPrice)
 
@@ -103,15 +117,11 @@ $ %s tx content add [uri] \
 				rhs = append(rhs, rh)
 			}
 
-			msg := types.NewMsgAddContent(name, uri, metaUri, contentUri, denom, streamPrice, downloadPrice, cliCtx.FromAddress, rhs)
+			msg := types.NewMsgAddContent(name, uri, "/ipfs/"+metadataCID, "/ipfs/"+contentCID, streamPrice, downloadPrice, rhs)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
-	cmd.Flags().String(flagName, "", "Name of the content")
-	cmd.Flags().String(flagMetaUri, "", "Meta Uri of the content")
-	cmd.Flags().String(flagContentUri, "", "Content Uri of the content")
-	cmd.Flags().String(flagDenom, "", "Denom of the content")
 	cmd.Flags().String(flagStreamPrice, "", "Stream Price of the content")
 	cmd.Flags().String(flagDownloadPrice, "", "Download Price of the content")
 	cmd.Flags().StringArray(flagRightHolder, []string{}, "Rights Holders of the content")

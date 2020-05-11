@@ -39,30 +39,14 @@ func (k Keeper) GetContent(ctx sdk.Context, uri string) (content types.Content, 
 	if bz == nil {
 		return
 	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &content)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &content)
 	return content, true
 }
 
 func (k Keeper) SetContent(ctx sdk.Context, content types.Content) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(content)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(content)
 	store.Set(types.GetContentKey(content.Uri), bz)
-}
-
-func (k Keeper) GetDenom(ctx sdk.Context, denom string) (_ string, ok bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetDenomKey(denom))
-	if bz == nil {
-		return
-	}
-	k.cdc.MustUnmarshalBinaryBare(bz, &denom)
-	return denom, true
-}
-
-func (k Keeper) SetDenom(ctx sdk.Context, denom string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryBare(denom)
-	store.Set(types.GetDenomKey(denom), bz)
 }
 
 func (k Keeper) IterateContents(ctx sdk.Context, fn func(content types.Content) (stop bool)) {
@@ -93,13 +77,6 @@ func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
 		return "", fmt.Errorf("uri %s is not avalable", content.Uri)
 	}
 
-	// check if denom is duplicated
-	_, denomExists := k.GetDenom(ctx, content.Denom)
-	if denomExists {
-		return "", fmt.Errorf("denom %s is not avalable", content.Denom)
-	}
-	k.SetDenom(ctx, content.Denom)
-
 	content.CreatedAt = ctx.BlockHeader().Time
 	k.SetContent(ctx, content)
 
@@ -122,29 +99,7 @@ func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 	// update content with new rewards
 	content = allocateFundsRightsHolders(content, content.StreamPrice)
 
-	// mint stream to requester (1 * 10^0)
-	unit := sdk.NewInt(1)
-	coin := sdk.NewCoin(content.Denom, unit)
-
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
-	if err != nil {
-		return err
-	}
-
-	content = increaseTotalSupply(content, coin)
-	k.SetContent(ctx, content)
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(coin))
-	if err != nil {
-		return err
-	}
-
 	return nil
-}
-
-func increaseTotalSupply(cnt types.Content, coin sdk.Coin) types.Content {
-	cnt.TotalSupply = cnt.TotalSupply.Add(coin)
-	return cnt
 }
 
 func allocateFundsRightsHolders(cnt types.Content, coin sdk.Coin) types.Content {
@@ -154,9 +109,6 @@ func allocateFundsRightsHolders(cnt types.Content, coin sdk.Coin) types.Content 
 		allocation := price.Amount.Quo(sdk.NewDec(100).Quo(rh.Quota))
 		cnt.RightsHolders[i].Rewards = rh.Rewards.Add(sdk.NewDecCoinFromDec(btsg.BondDenom, allocation))
 	}
-
-	// increase volume
-	cnt.Volume = cnt.Volume.Add(coin)
 
 	return cnt
 }
@@ -176,23 +128,6 @@ func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error
 
 	// update content with new rewards
 	content = allocateFundsRightsHolders(content, content.DownloadPrice)
-
-	// mint download to requester (1 * 10^6)
-	unit := sdk.NewInt(1000000)
-	coin := sdk.NewCoin(content.Denom, unit)
-
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
-	if err != nil {
-		return err
-	}
-
-	content = increaseTotalSupply(content, coin)
-	k.SetContent(ctx, content)
-
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, from, sdk.NewCoins(coin))
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
