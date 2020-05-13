@@ -98,6 +98,8 @@ func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 
 	// update content with new rewards
 	content = allocateFundsRightsHolders(content, content.StreamPrice)
+
+	content.TotalStreams = content.TotalStreams + 1
 	k.SetContent(ctx, content)
 
 	return nil
@@ -129,6 +131,8 @@ func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error
 
 	// update content with new rewards
 	content = allocateFundsRightsHolders(content, content.DownloadPrice)
+
+	content.TotalDownloads = content.TotalDownloads + 1
 	k.SetContent(ctx, content)
 
 	return nil
