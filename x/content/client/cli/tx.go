@@ -21,9 +21,7 @@ import (
 )
 
 const (
-	flagName          = "name"
-	flagMetaUri       = "meta-uri"
-	flagContentUri    = "content-uri"
+	flagIpfsAddr      = "ipfs-addr"
 	flagStreamPrice   = "stream-price"
 	flagDownloadPrice = "download-price"
 	flagRightHolder   = "right-holder"
@@ -70,7 +68,8 @@ $ %s tx content add [uri] [name] [meta-file] [content-file] \
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			sh := shell.NewShell("localhost:5001")
+			ipfsAddr := viper.GetString(flagIpfsAddr)
+			sh := shell.NewShell(ipfsAddr)
 
 			metadata, err := os.Open(args[2])
 			if err != nil {
@@ -125,6 +124,7 @@ $ %s tx content add [uri] [name] [meta-file] [content-file] \
 	cmd.Flags().String(flagStreamPrice, "", "Stream Price of the content")
 	cmd.Flags().String(flagDownloadPrice, "", "Download Price of the content")
 	cmd.Flags().StringArray(flagRightHolder, []string{}, "Rights Holders of the content")
+	cmd.Flags().String(flagIpfsAddr, "http://localhost:5001", "IPFS address node")
 
 	return cmd
 }
