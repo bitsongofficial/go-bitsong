@@ -8,6 +8,7 @@ import (
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
 	"github.com/bitsongofficial/go-bitsong/x/player"
+	"github.com/bitsongofficial/go-bitsong/x/reward"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
@@ -69,6 +70,7 @@ var (
 
 		// Custom modules
 		content.AppModuleBasic{},
+		reward.AppModuleBasic{},
 		player.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 
@@ -86,7 +88,8 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		content.ModuleName: {auth.Minter, auth.Burner},
+		content.ModuleName: nil,
+		reward.ModuleName:  nil,
 		player.ModuleName:  nil,
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
@@ -144,6 +147,7 @@ type GoBitsong struct {
 
 	// Custom modules
 	contentKeeper content.Keeper
+	rewardKeeper  reward.Keeper
 	playerKeeper  player.Keeper
 
 	// IBC modules
@@ -176,6 +180,7 @@ func NewBitsongApp(
 
 		// Custom modules
 		content.StoreKey,
+		reward.StoreKey,
 		player.StoreKey,
 
 		// IBC modules
@@ -260,7 +265,10 @@ func NewBitsongApp(
 	)
 
 	// Custom modules
-	stdMintKeeper := mint.NewKeeper(app.bankKeeper)
+	app.rewardKeeper = reward.NewKeeper(
+		app.bankKeeper, app.cdc, app.keys[reward.ModuleName],
+	)
+	stdMintKeeper := mint.NewKeeper(app.bankKeeper, app.rewardKeeper)
 	app.contentKeeper = content.NewKeeper(
 		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
 	)
@@ -307,6 +315,7 @@ func NewBitsongApp(
 		params.NewAppModule(app.paramsKeeper),
 
 		// Custom modules
+		reward.NewAppModule(app.rewardKeeper),
 		content.NewAppModule(app.contentKeeper),
 		player.NewAppModule(app.playerKeeper),
 
@@ -332,7 +341,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		content.ModuleName, player.ModuleName,
+		reward.ModuleName, content.ModuleName, player.ModuleName,
 
 		// IBC Modules
 		ibcposts.ModuleName,

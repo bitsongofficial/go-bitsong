@@ -40,15 +40,13 @@ func BeginBlocker(ctx sdk.Context, cmintKeeper mint.Keeper, k Keeper) {
 	if err != nil {
 		panic(err)
 	}
-
 	fmt.Printf(`
 Reward Pool: %s
 
 `, k.GetRewardPoolSupply(ctx))
 
-	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
-
 	// send the minted coins to the fee collector account
+	remainingCoins := mintedCoins.Sub(rewardCoins) // subtract artistPool from mintedCoins
 	err = cmintKeeper.AddCollectedFees(ctx, remainingCoins)
 	if err != nil {
 		panic(err)
