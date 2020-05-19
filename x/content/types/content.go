@@ -18,6 +18,8 @@ type Content struct {
 	TotalStreams   uint64        `json:"total_streams" yaml:"total_streams"`
 	TotalDownloads uint64        `json:"total_downloads" yaml:"total_downloads"`
 	CreatedAt      time.Time     `json:"created_at" yaml:"created_at"`
+
+	// Aggiungere tags []string{}
 }
 
 func NewContent(name, uri, metadata, contentUri string, streamPrice, downloadPrice sdk.Coin, rhs RightsHolders) Content {
