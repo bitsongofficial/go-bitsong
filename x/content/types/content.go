@@ -2,37 +2,26 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"time"
 )
 
 type Content struct {
-	Name           string        `json:"name" yaml:"name"`
-	Uri            string        `json:"uri" yaml:"uri"`
-	Metadata       string        `json:"metadata" yaml:"metadata"`       // JSON.stringify()
-	ContentUri     string        `json:"content_uri" yaml:"content_uri"` // /ipfs/QM.......
-	StreamPrice    sdk.Coin      `json:"stream_price" yaml:"stream_price"`
-	DownloadPrice  sdk.Coin      `json:"download_price" yaml:"download_price"`
-	RightsHolders  RightsHolders `json:"rights_holders" yaml:"rights_holders"`
-	TotalStreams   uint64        `json:"total_streams" yaml:"total_streams"`
-	TotalDownloads uint64        `json:"total_downloads" yaml:"total_downloads"`
-	CreatedAt      time.Time     `json:"created_at" yaml:"created_at"`
-
-	// Aggiungere tags []string{}
+	Uri           string        `json:"uri" yaml:"uri"`
+	Hash          []byte        `json:"hash" yaml:"hash"` // /ipfs/QM.......
+	Tags          []string      `json:"tags" yaml:"tags"`
+	RightsHolders RightsHolders `json:"rights_holders" yaml:"rights_holders"`
+	Counters      Counters      `json:"counters" yaml:"counters"`
+	CreatedAt     time.Time     `json:"created_at" yaml:"created_at"`
 }
 
-func NewContent(name, uri, metadata, contentUri string, streamPrice, downloadPrice sdk.Coin, rhs RightsHolders) Content {
+func NewContent(uri string, hash []byte, rhs RightsHolders) Content {
 	return Content{
-		Name:           name,
-		Uri:            uri,
-		Metadata:       metadata,
-		ContentUri:     contentUri,
-		StreamPrice:    streamPrice,
-		DownloadPrice:  downloadPrice,
-		RightsHolders:  rhs,
-		TotalDownloads: 0,
-		TotalStreams:   0,
+		Uri:           uri,
+		Hash:          hash,
+		Tags:          []string{},
+		RightsHolders: rhs,
+		Counters:      NewCounters(),
 	}
 }
 
