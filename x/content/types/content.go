@@ -11,7 +11,7 @@ type Content struct {
 	Hash          []byte        `json:"hash" yaml:"hash"` // /ipfs/QM.......
 	Tags          []string      `json:"tags" yaml:"tags"`
 	RightsHolders RightsHolders `json:"rights_holders" yaml:"rights_holders"`
-	Counters      Counters      `json:"counters" yaml:"counters"`
+	Actions       Actions       `json:"actions" yaml:"actions"`
 	CreatedAt     time.Time     `json:"created_at" yaml:"created_at"`
 }
 
@@ -21,7 +21,7 @@ func NewContent(uri string, hash []byte, rhs RightsHolders) Content {
 		Hash:          hash,
 		Tags:          []string{},
 		RightsHolders: rhs,
-		Counters:      NewCounters(),
+		Actions:       NewActions(),
 	}
 }
 

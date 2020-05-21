@@ -5,11 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type Counters map[string]map[int64]sdk.Coin
+type Actions map[string]map[int64]sdk.Coin
 
-func NewCounters() Counters {
+func NewActions() Actions {
 	zero := sdk.NewCoin(types.BondDenom, sdk.ZeroInt())
-	return Counters{
+	return Actions{
 		"promotions": {
 			0: zero,
 		},
