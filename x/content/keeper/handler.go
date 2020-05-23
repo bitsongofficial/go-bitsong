@@ -11,12 +11,10 @@ import (
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgAddContent:
-			return handleMsgAddContent(ctx, keeper, msg)
-		case types.MsgStream:
-			return handleMsgStream(ctx, keeper, msg)
-		case types.MsgDownload:
-			return handleMsgDownload(ctx, keeper, msg)
+		case types.MsgContentAdd:
+			return handleMsgContentAdd(ctx, keeper, msg)
+		case types.MsgContentAction:
+			return handleMsgAction(ctx, keeper, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
@@ -25,28 +23,14 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgAddContent(ctx sdk.Context, keeper Keeper, msg types.MsgAddContent) (*sdk.Result, error) {
-	streamPrice, err := sdk.ParseCoin(msg.StreamPrice)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	downloadPrice, err := sdk.ParseCoin(msg.DownloadPrice)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	content := types.NewContent(
-		msg.Name,
+func handleMsgContentAdd(ctx sdk.Context, keeper Keeper, msg types.MsgContentAdd) (*sdk.Result, error) {
+	content := *types.NewContent(
 		msg.Uri,
-		msg.MetaUri,
-		msg.ContentUri,
-		streamPrice,
-		downloadPrice,
-		msg.RightsHolders,
+		msg.Hash,
+		msg.Dao,
 	)
 
-	uri, err := keeper.Add(ctx, content)
+	uri, err := keeper.Add(ctx, &content)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -64,35 +48,17 @@ func handleMsgAddContent(ctx sdk.Context, keeper Keeper, msg types.MsgAddContent
 	}, nil
 }
 
-func handleMsgStream(ctx sdk.Context, keeper Keeper, msg types.MsgStream) (*sdk.Result, error) {
-	err := keeper.Stream(ctx, msg.Uri, msg.From)
+func handleMsgAction(ctx sdk.Context, keeper Keeper, msg types.MsgContentAction) (*sdk.Result, error) {
+	err := keeper.Action(ctx, msg.Uri, msg.From)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeContentStreamed,
+			types.EventTypeContentAction,
 			sdk.NewAttribute(types.AttributeKeyContentUri, msg.Uri),
-		),
-	)
-
-	return &sdk.Result{
-		Data:   nil,
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
-}
-
-func handleMsgDownload(ctx sdk.Context, keeper Keeper, msg types.MsgDownload) (*sdk.Result, error) {
-	err := keeper.Download(ctx, msg.Uri, msg.From)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeContentDownloaded,
-			sdk.NewAttribute(types.AttributeKeyContentUri, msg.Uri),
+			sdk.NewAttribute(types.AttributeKeyAction, ""),
 		),
 	)
 

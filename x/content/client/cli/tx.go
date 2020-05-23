@@ -13,18 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"os"
 	"strings"
-
-	shell "github.com/ipfs/go-ipfs-api"
 )
 
 const (
-	flagIpfsAddr      = "ipfs-addr"
-	flagStreamPrice   = "stream-price"
-	flagDownloadPrice = "download-price"
-	flagRightHolder   = "right-holder"
+	flagDao = "dao"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -39,8 +32,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdAdd(cdc),
-		GetCmdStream(cdc),
-		GetCmdDownload(cdc),
+		GetCmdAction(cdc),
 	)...)
 
 	return contentTxCmd
@@ -53,90 +45,62 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Add a new content inside bitsong.
 Example:
-$ %s tx content add [uri] [name] [meta-file] [content-file] \
---stream-price=[streamPrice] \
---download-price=[downloadPrice] \
---right-holder "80:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
---right-holder "20:bitsong13r9ryyfltaz8rsqqumqxusgtw0ne4udhxm5jm4" \
+$ %s tx content add [uri] [hash] \
+--dao "2000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
+--dao "1000:bitsong13r9ryyfltaz8rsqqumqxusgtw0ne4udhxm5jm4" \
 `,
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(4),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			ipfsAddr := viper.GetString(flagIpfsAddr)
-			sh := shell.NewShell(ipfsAddr)
+			uri, hash := args[0], args[1]
 
-			metadata, err := os.Open(args[2])
+			daoStr, err := cmd.Flags().GetStringArray(flagDao)
 			if err != nil {
-				return err
-			}
-			metadataCID, err := sh.Add(metadata)
-			if err != nil {
-				return err
+				return fmt.Errorf("invalid dao value")
 			}
 
-			content, err := os.Open(args[3])
-			if err != nil {
-				return err
-			}
-			contentCID, err := sh.Add(content)
-			if err != nil {
-				return err
-			}
-
-			uri, name := args[0], args[1]
-			streamPrice := viper.GetString(flagStreamPrice)
-			downloadPrice := viper.GetString(flagDownloadPrice)
-
-			rhsStr, err := cmd.Flags().GetStringArray(flagRightHolder)
-			if err != nil {
-				return fmt.Errorf("invalid rights holders value")
-			}
-
-			rhs := types.RightsHolders{}
-			for _, rh := range rhsStr {
-				rhArgs := strings.Split(rh, ":")
-				if len(rhArgs) != 2 {
-					return fmt.Errorf("the right holder format must be \"quota:address\" ex: \"100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a\"")
+			dao := types.Dao{}
+			for _, rh := range daoStr {
+				deArgs := strings.Split(rh, ":")
+				if len(deArgs) != 2 {
+					return fmt.Errorf("the dao format must be \"shares:address\" ex: \"1000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a\"")
 				}
-				rhq, err := sdk.NewDecFromStr(rhArgs[0])
+				des, err := sdk.NewDecFromStr(deArgs[0])
 				if err != nil {
 					return err
 				}
-				rhAddr, err := sdk.AccAddressFromBech32(rhArgs[1])
+				deAddr, err := sdk.AccAddressFromBech32(deArgs[1])
 				if err != nil {
-					return fmt.Errorf("right holder address is wrong, %s", err.Error())
+					return fmt.Errorf("dao entity address is wrong, %s", err.Error())
 				}
-				rh := types.NewRightHolder(rhq, rhAddr)
-				rhs = append(rhs, rh)
+				de := types.NewDaoEntity(des, deAddr)
+				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgAddContent(name, uri, "/ipfs/"+metadataCID, "/ipfs/"+contentCID, streamPrice, downloadPrice, rhs)
+			msg := types.NewMsgAddContent(uri, hash, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
-	cmd.Flags().String(flagStreamPrice, "", "Stream Price of the content")
-	cmd.Flags().String(flagDownloadPrice, "", "Download Price of the content")
-	cmd.Flags().StringArray(flagRightHolder, []string{}, "Rights Holders of the content")
-	cmd.Flags().String(flagIpfsAddr, "http://localhost:5001", "IPFS address node")
+	cmd.Flags().StringArray(flagDao, []string{}, "DAO of the content")
 
 	return cmd
 }
 
-func GetCmdStream(cdc *codec.Codec) *cobra.Command {
+func GetCmdAction(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stream",
-		Short: "Stream a content",
+		Use:   "action",
+		Short: "Action to content",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Stream a content.
+			fmt.Sprintf(`Action to content.
 Example:
-$ %s tx content stream [uri]
+$ %s tx content action [uri]
 `,
 				version.ClientName,
 			),
@@ -147,37 +111,7 @@ $ %s tx content stream [uri]
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			uri := args[0]
-
-			msg := types.NewMsgStream(uri, cliCtx.FromAddress)
-			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-
-	return cmd
-}
-
-func GetCmdDownload(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "download",
-		Short: "Download a new content",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Download a new content.
-Example:
-$ %s tx content download [uri]
-`,
-				version.ClientName,
-			),
-		),
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			uri := args[0]
-
-			msg := types.NewMsgDownload(uri, cliCtx.FromAddress)
+			msg := types.NewMsgContentAction(args[0], cliCtx.FromAddress)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

@@ -11,46 +11,58 @@ import (
 )
 
 const (
+	QueryParams            = types.QueryParams
+	QueryUri               = types.QueryUri
 	ModuleName             = types.ModuleName
 	StoreKey               = types.StoreKey
 	RouterKey              = types.RouterKey
 	QuerierRoute           = types.QuerierRoute
 	MaxNameLength          = types.MaxNameLength
+	MaxHashLength          = types.MaxHashLength
 	MaxUriLength           = types.MaxUriLength
-	QueryParams            = types.QueryParams
-	QueryUri               = types.QueryUri
+	MaxDaoLength           = types.MaxDaoLength
+	TypeMsgContentAdd      = types.TypeMsgContentAdd
 	EventTypeContentAdded  = types.EventTypeContentAdded
+	EventTypeContentAction = types.EventTypeContentAction
 	AttributeKeyContentUri = types.AttributeKeyContentUri
-	TypeMsgAddContent      = types.TypeMsgAddContent
+	AttributeKeyAction     = types.AttributeKeyAction
 )
 
 var (
 	// functions aliases
 	GetTxCmd              = cli.GetTxCmd
 	GetCmdAdd             = cli.GetCmdAdd
+	GetCmdAction          = cli.GetCmdAction
 	GetQueryCmd           = cli.GetQueryCmd
 	GetCmqResolve         = cli.GetCmqResolve
 	NewHandler            = keeper.NewHandler
-	NewKeeper             = keeper.NewKeeper
 	NewQuerier            = keeper.NewQuerier
-	NewContent            = types.NewContent
+	NewKeeper             = keeper.NewKeeper
 	NewGenesisState       = types.NewGenesisState
 	DefaultGenesisState   = types.DefaultGenesisState
 	ValidateGenesis       = types.ValidateGenesis
-	GetContentKey         = types.GetContentKey
 	RegisterCodec         = types.RegisterCodec
 	NewQueryContentParams = types.NewQueryContentParams
+	GetContentKey         = types.GetContentKey
 	NewMsgAddContent      = types.NewMsgAddContent
+	NewMsgContentAction   = types.NewMsgContentAction
+	NewDaoEntity          = types.NewDaoEntity
+	NewActions            = types.NewActions
+	NewContent            = types.NewContent
 
 	// variable aliases
-	ContentKeyPrefix = types.ContentKeyPrefix
 	ModuleCdc        = types.ModuleCdc
+	ContentKeyPrefix = types.ContentKeyPrefix
 )
 
 type (
 	Keeper             = keeper.Keeper
-	Content            = types.Content
 	GenesisState       = types.GenesisState
 	QueryContentParams = types.QueryContentParams
-	MsgAddContent      = types.MsgAddContent
+	MsgContentAdd      = types.MsgContentAdd
+	MsgContentAction   = types.MsgContentAction
+	DaoEntity          = types.DaoEntity
+	Dao                = types.Dao
+	Actions            = types.Actions
+	Content            = types.Content
 )

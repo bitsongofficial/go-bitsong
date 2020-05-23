@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Profile struct {
+type Channel struct {
 	Username  string         `json:"username" yaml:"username"`
 	Hash      string         `json:"hash" yaml:"hash"`
 	Owner     sdk.AccAddress `json:"owner" yaml:"owner"`

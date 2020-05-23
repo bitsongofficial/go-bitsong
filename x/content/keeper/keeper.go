@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	btsg "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/content/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,10 +42,12 @@ func (k Keeper) GetContent(ctx sdk.Context, uri string) (content types.Content, 
 	return content, true
 }
 
-func (k Keeper) SetContent(ctx sdk.Context, content types.Content) {
+func (k Keeper) SetContent(ctx sdk.Context, content *types.Content) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(content)
+	fmt.Println(content.String())
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&content)
 	store.Set(types.GetContentKey(content.Uri), bz)
+	fmt.Println(content.Uri)
 }
 
 func (k Keeper) IterateContents(ctx sdk.Context, fn func(content types.Content) (stop bool)) {
@@ -71,42 +72,42 @@ func (k Keeper) GetContents(ctx sdk.Context) []types.Content {
 	return contents
 }
 
-func (k Keeper) Add(ctx sdk.Context, content types.Content) (string, error) {
+func (k Keeper) Add(ctx sdk.Context, content *types.Content) (string, error) {
 	_, uriExists := k.GetContent(ctx, content.Uri)
 	if uriExists {
 		return "", fmt.Errorf("uri %s is not avalable", content.Uri)
 	}
-
 	content.CreatedAt = ctx.BlockHeader().Time
 	k.SetContent(ctx, content)
+	fmt.Println(content.Uri)
 
 	return content.Uri, nil
 }
 
-func (k Keeper) Stream(ctx sdk.Context, uri string, from sdk.AccAddress) error {
+func (k Keeper) Action(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 	// get content
-	content, uriExists := k.GetContent(ctx, uri)
+	_, uriExists := k.GetContent(ctx, uri)
 	if !uriExists {
 		return fmt.Errorf("uri %s is not avalable", uri)
 	}
 
 	// subtract stream-price from requester
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.StreamPrice))
-	if err != nil {
-		return err
-	}
+	//err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.StreamPrice))
+	//if err != nil {
+	//	return err
+	//}
 
 	// update content with new rewards
-	content = allocateFundsRightsHolders(content, content.StreamPrice)
+	//content = allocateDaoFunds(content, content.StreamPrice)
 
-	content.TotalStreams = content.TotalStreams + 1
-	k.SetContent(ctx, content)
+	//content.TotalStreams = content.TotalStreams + 1
+	//k.SetContent(ctx, content)
 
 	return nil
 }
 
-func allocateFundsRightsHolders(cnt types.Content, coin sdk.Coin) types.Content {
-	// allocate funds to rights holders
+/*func allocateDaoFunds(cnt types.Content, coin sdk.Coin) types.Content {
+	// allocate dao funds
 	for i, rh := range cnt.RightsHolders {
 		price := sdk.NewDecCoinFromCoin(coin)
 		allocation := price.Amount.Quo(sdk.NewDec(100).Quo(rh.Quota))
@@ -114,26 +115,4 @@ func allocateFundsRightsHolders(cnt types.Content, coin sdk.Coin) types.Content 
 	}
 
 	return cnt
-}
-
-func (k Keeper) Download(ctx sdk.Context, uri string, from sdk.AccAddress) error {
-	// get content
-	content, uriExists := k.GetContent(ctx, uri)
-	if !uriExists {
-		return fmt.Errorf("uri %s is not avalable", uri)
-	}
-
-	// subtract download-price from requester
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(content.DownloadPrice))
-	if err != nil {
-		return err
-	}
-
-	// update content with new rewards
-	content = allocateFundsRightsHolders(content, content.DownloadPrice)
-
-	content.TotalDownloads = content.TotalDownloads + 1
-	k.SetContent(ctx, content)
-
-	return nil
-}
+}*/

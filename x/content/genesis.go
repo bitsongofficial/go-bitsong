@@ -9,7 +9,7 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
 	for _, content := range data.Contents {
-		k.SetContent(ctx, content)
+		k.SetContent(ctx, &content)
 	}
 
 	return []abci.ValidatorUpdate{}

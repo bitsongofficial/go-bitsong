@@ -7,7 +7,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/content"
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
-	"github.com/bitsongofficial/go-bitsong/x/player"
 	"github.com/bitsongofficial/go-bitsong/x/reward"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -71,7 +70,6 @@ var (
 		// Custom modules
 		content.AppModuleBasic{},
 		reward.AppModuleBasic{},
-		player.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 
 		// IBC modules
@@ -90,7 +88,6 @@ var (
 
 		content.ModuleName: nil,
 		reward.ModuleName:  nil,
-		player.ModuleName:  nil,
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -148,7 +145,6 @@ type GoBitsong struct {
 	// Custom modules
 	contentKeeper content.Keeper
 	rewardKeeper  reward.Keeper
-	playerKeeper  player.Keeper
 
 	// IBC modules
 	transferKeeper  transfer.Keeper
@@ -181,7 +177,6 @@ func NewBitsongApp(
 		// Custom modules
 		content.StoreKey,
 		reward.StoreKey,
-		player.StoreKey,
 
 		// IBC modules
 		posts.StoreKey, ibcposts.StoreKey,
@@ -272,9 +267,6 @@ func NewBitsongApp(
 	app.contentKeeper = content.NewKeeper(
 		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
 	)
-	app.playerKeeper = player.NewKeeper(
-		app.bankKeeper, app.stakingKeeper, app.cdc, app.keys[content.ModuleName],
-	)
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
@@ -317,7 +309,6 @@ func NewBitsongApp(
 		// Custom modules
 		reward.NewAppModule(app.rewardKeeper),
 		content.NewAppModule(app.contentKeeper),
-		player.NewAppModule(app.playerKeeper),
 
 		// IBC modules
 		transferModule,
@@ -341,7 +332,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		reward.ModuleName, content.ModuleName, player.ModuleName,
+		reward.ModuleName, content.ModuleName,
 
 		// IBC Modules
 		ibcposts.ModuleName,
