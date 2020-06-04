@@ -4,86 +4,101 @@ import (
 	"io"
 	"os"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
+	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
+	"github.com/bitsongofficial/go-bitsong/x/mint"
+	"github.com/bitsongofficial/go-bitsong/x/reward"
+	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	//distr "github.com/bitsongofficial/go-bitsong/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
-	//"github.com/cosmos/cosmos-sdk/x/mint"
-	"github.com/bitsongofficial/go-bitsong/x/mint"
+	"github.com/cosmos/cosmos-sdk/x/ibc"
+	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
+	transfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer"
+	stdmint "github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
+	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
-
-	"github.com/bitsongofficial/go-bitsong/x/track"
-	trackTypes "github.com/bitsongofficial/go-bitsong/x/track/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/reward"
-	rewardTypes "github.com/bitsongofficial/go-bitsong/x/reward/types"
+	ibcposts "github.com/desmos-labs/desmos/x/ibc/posts"
+	"github.com/desmos-labs/desmos/x/posts"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	dbm "github.com/tendermint/tm-db"
 )
 
 const appName = "GoBitsong"
 
 var (
-	// default home directories for bitsongcli
+	// DefaultCLIHome represents the default home directory for the application CLI
 	DefaultCLIHome = os.ExpandEnv("$HOME/.bitsongcli")
 
-	// default home directories for bitsongd
+	// DefaultNodeHome sets the folder where the application data and configuration will be stored
 	DefaultNodeHome = os.ExpandEnv("$HOME/.bitsongd")
 
-	// The module BasicManager is in charge of setting up basic,
-	// non-dependant module elements, such as codec registration
-	// and genesis verification.
+	// ModuleBasics is in charge of setting up basic module elements
 	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
-		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
+		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
+		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
-		mint.AppModuleBasic{},
+		stdmint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
-			paramsclient.ProposalHandler,
-			distr.ProposalHandler,
+			paramsclient.ProposalHandler, distr.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		supply.AppModuleBasic{},
-		reward.AppModuleBasic{},
+		ibc.AppModuleBasic{},
+
+		// Custom modules
 		track.AppModuleBasic{},
+		reward.AppModuleBasic{},
+		desmosibc.AppModuleBasic{},
+
+		// IBC modules
+		transfer.AppModuleBasic{},
+		ibcposts.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
 		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
-		mint.ModuleName:           {supply.Minter},
-		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-		gov.ModuleName:            {supply.Burner},
-		track.ModuleName:          {supply.Burner},
-		reward.ModuleName:         nil,
+		stdmint.ModuleName:        {auth.Minter},
+		staking.BondedPoolName:    {auth.Burner, auth.Staking},
+		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
+		gov.ModuleName:            {auth.Burner},
+
+		track.ModuleName:  nil,
+		reward.ModuleName: nil,
+
+		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
+	}
+
+	// module accounts that are allowed to receive tokens
+	allowedReceivingModAcc = map[string]bool{
+		distr.ModuleName: true,
 	}
 )
 
-// custom tx codec
+// MakeCodec generates the necessary codecs for Amino
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
 
@@ -91,9 +106,13 @@ func MakeCodec() *codec.Codec {
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 	codec.RegisterEvidences(cdc)
+	authvesting.RegisterCodec(cdc)
 
-	return cdc
+	return cdc.Seal()
 }
+
+// Verify app interface at compile time
+var _ simapp.App = (*GoBitsong)(nil)
 
 // Extended ABCI application
 type GoBitsong struct {
@@ -102,47 +121,68 @@ type GoBitsong struct {
 
 	invCheckPeriod uint
 
-	// keys to access the substores
-	keys  map[string]*sdk.KVStoreKey
-	tkeys map[string]*sdk.TransientStoreKey
+	// sdk keys to access the substores
+	keys    map[string]*sdk.KVStoreKey
+	tkeys   map[string]*sdk.TransientStoreKey
+	memKeys map[string]*sdk.MemoryStoreKey
+
+	// subspaces
+	subspaces map[string]params.Subspace
 
 	// keepers
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	supplyKeeper   supply.Keeper
-	stakingKeeper  staking.Keeper
-	slashingKeeper slashing.Keeper
-	mintKeeper     mint.Keeper
-	distrKeeper    distr.Keeper
-	govKeeper      gov.Keeper
-	crisisKeeper   crisis.Keeper
-	paramsKeeper   params.Keeper
+	accountKeeper    auth.AccountKeeper
+	bankKeeper       bank.Keeper
+	capabilityKeeper *capability.Keeper
+	stakingKeeper    staking.Keeper
+	slashingKeeper   slashing.Keeper
+	mintKeeper       stdmint.Keeper
+	distrKeeper      distr.Keeper
+	govKeeper        gov.Keeper
+	crisisKeeper     crisis.Keeper
+	paramsKeeper     params.Keeper
+	ibcKeeper        *ibc.Keeper
 
-	// bitsong keepers
-	rewardKeeper reward.Keeper
-	trackKeeper  track.Keeper
+	// Custom modules
+	contentKeeper track.Keeper
+	rewardKeeper  reward.Keeper
+
+	// IBC modules
+	transferKeeper  transfer.Keeper
+	desmosIBCKeeper ibcposts.Keeper
 
 	// the module manager
 	mm *module.Manager
 }
 
 // NewBitsongApp returns a reference to an initialized GoBitsong.
-func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp)) *GoBitsong {
+func NewBitsongApp(
+	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
+	invCheckPeriod uint, home string, baseAppOptions ...func(*bam.BaseApp),
+) *GoBitsong {
+	// First define the top level codec that will be shared by the different modules
+	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
+	cdc := codecstd.MakeCodec(ModuleBasics)
+	appCodec := codecstd.NewAppCodec(cdc)
 
-	cdc := MakeCodec()
-
+	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
-
 	keys := sdk.NewKVStoreKeys(
-		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
-		gov.StoreKey, params.StoreKey, rewardTypes.StoreKey,
-		trackTypes.StoreKey,
+		auth.StoreKey, bank.StoreKey, staking.StoreKey,
+		stdmint.StoreKey, distr.StoreKey, slashing.StoreKey,
+		gov.StoreKey, params.StoreKey, ibc.StoreKey, transfer.StoreKey,
+		capability.StoreKey,
+
+		// Custom modules
+		track.StoreKey,
+		reward.StoreKey,
+
+		// IBC modules
+		posts.StoreKey, ibcposts.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
 
 	app := &GoBitsong{
 		BaseApp:        bApp,
@@ -150,37 +190,64 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		invCheckPeriod: invCheckPeriod,
 		keys:           keys,
 		tkeys:          tkeys,
+		memKeys:        memKeys,
+		subspaces:      make(map[string]params.Subspace),
 	}
 
-	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
-	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
-	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
-	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
-	mintSubspace := app.paramsKeeper.Subspace(mint.DefaultParamspace)
-	distrSubspace := app.paramsKeeper.Subspace(distr.DefaultParamspace)
-	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
-	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
-	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
+	// Init params keeper and subspaces
+	app.paramsKeeper = params.NewKeeper(appCodec, keys[params.StoreKey], tkeys[params.TStoreKey])
+	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
+	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
+	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[stdmint.ModuleName] = app.paramsKeeper.Subspace(stdmint.DefaultParamspace)
+	app.subspaces[distr.ModuleName] = app.paramsKeeper.Subspace(distr.DefaultParamspace)
+	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
+	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
-	rewardSubspace := app.paramsKeeper.Subspace(reward.DefaultParamspace)
-	trackSubspace := app.paramsKeeper.Subspace(track.DefaultParamspace)
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(app.paramsKeeper.Subspace(bam.Paramspace).WithKeyTable(std.ConsensusParamsKeyTable()))
 
-	// add keepers
-	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
-	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
-	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
+	// add capability keeper and ScopeToModule for ibc module
+	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
+	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
+	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(ibcposts.ModuleName)
+
+	// Add keepers
+	app.accountKeeper = auth.NewAccountKeeper(
+		appCodec, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount, maccPerms,
+	)
+	app.bankKeeper = bank.NewBaseKeeper(
+		appCodec, keys[bank.ModuleName], app.accountKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
+	)
 	stakingKeeper := staking.NewKeeper(
-		app.cdc, keys[staking.StoreKey], tkeys[staking.TStoreKey],
-		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace,
+		appCodec, keys[staking.StoreKey], app.accountKeeper, app.bankKeeper, app.subspaces[staking.ModuleName],
+	)
+	app.mintKeeper = stdmint.NewKeeper(
+		appCodec, keys[stdmint.StoreKey], app.subspaces[stdmint.ModuleName], &stakingKeeper,
+		app.accountKeeper, app.bankKeeper, auth.FeeCollectorName,
+	)
+	app.distrKeeper = distr.NewKeeper(
+		appCodec, keys[distr.StoreKey], app.subspaces[distr.ModuleName], app.accountKeeper, app.bankKeeper,
+		&stakingKeeper, auth.FeeCollectorName, app.ModuleAccountAddrs(),
+	)
+	app.slashingKeeper = slashing.NewKeeper(
+		appCodec, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName],
+	)
+	app.crisisKeeper = crisis.NewKeeper(
+		app.subspaces[crisis.ModuleName], invCheckPeriod, app.bankKeeper, auth.FeeCollectorName,
 	)
 
-	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], distrSubspace, &stakingKeeper,
-		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
-	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc, keys[slashing.StoreKey], &stakingKeeper, slashingSubspace, slashing.DefaultCodespace,
+	// register the proposal types
+	govRouter := gov.NewRouter()
+	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(paramsproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
+	app.govKeeper = gov.NewKeeper(
+		appCodec, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.accountKeeper, app.bankKeeper,
+		&stakingKeeper, govRouter,
 	)
-	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -188,53 +255,87 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.trackKeeper = track.NewKeeper(app.cdc, keys[trackTypes.StoreKey], trackTypes.DefaultCodespace, app.stakingKeeper, app.accountKeeper, app.supplyKeeper, trackSubspace)
-
-	app.rewardKeeper = reward.NewKeeper(app.cdc, keys[rewardTypes.StoreKey], rewardSubspace, app.supplyKeeper, app.trackKeeper)
-	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName, app.rewardKeeper)
-
-	// register the proposal types
-	govRouter := gov.NewRouter()
-	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
-		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
-	app.govKeeper = gov.NewKeeper(
-		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
-		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
+	app.ibcKeeper = ibc.NewKeeper(
+		app.cdc, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
+
+	// Custom modules
+	app.rewardKeeper = reward.NewKeeper(
+		app.bankKeeper, app.cdc, app.keys[reward.ModuleName],
+	)
+	stdMintKeeper := mint.NewKeeper(app.bankKeeper, app.rewardKeeper)
+	app.contentKeeper = track.NewKeeper(
+		app.bankKeeper, app.cdc, app.keys[track.ModuleName],
+	)
+
+	// IBC modules
+	app.transferKeeper = transfer.NewKeeper(
+		app.cdc, keys[transfer.StoreKey],
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		app.accountKeeper, app.bankKeeper, scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+
+	postsKeeper := posts.NewKeeper(app.cdc, app.keys[posts.StoreKey])
+	app.desmosIBCKeeper = ibcposts.NewKeeper(
+		app.cdc, app.keys[ibcposts.StoreKey], postsKeeper,
+		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
+		scopedDesmosKeeper,
+	)
+	desmosModule := ibcposts.NewAppModule(app.desmosIBCKeeper)
+
+	// Create static IBC router, add desmos route, then set and seal it
+	ibcRouter := port.NewRouter()
+	ibcRouter.AddRoute(transfer.ModuleName, transferModule)
+	ibcRouter.AddRoute(ibcposts.ModuleName, desmosModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.accountKeeper),
-		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		auth.NewAppModule(appCodec, app.accountKeeper),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(*app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
-		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
-		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		reward.NewAppModule(app.rewardKeeper, app.supplyKeeper),
-		track.NewAppModule(app.trackKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(stdmint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper), app.mintKeeper, stdMintKeeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		ibc.NewAppModule(app.ibcKeeper),
+		params.NewAppModule(app.paramsKeeper),
+
+		// Custom modules
+		reward.NewAppModule(app.rewardKeeper),
+		track.NewAppModule(app.contentKeeper),
+
+		// IBC modules
+		transferModule,
+		desmosModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(mint.ModuleName, distr.ModuleName, slashing.ModuleName)
-
-	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName, reward.ModuleName)
+	app.mm.SetOrderBeginBlockers(
+		stdmint.ModuleName, distr.ModuleName, slashing.ModuleName,
+		staking.ModuleName, ibc.ModuleName,
+	)
+	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
-		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
-		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		trackTypes.ModuleName, rewardTypes.ModuleName,
+		capability.ModuleName, auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
+		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, crisis.ModuleName,
+		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
+
+		// Custom modules
+		reward.ModuleName, track.ModuleName,
+
+		// IBC Modules
+		ibcposts.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -243,52 +344,83 @@ func NewBitsongApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tkeys)
+	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
-	app.SetAnteHandler(auth.NewAnteHandler(app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer))
+	app.SetAnteHandler(auth.NewAnteHandler(
+		app.accountKeeper, app.bankKeeper, *app.ibcKeeper, auth.DefaultSigVerificationGasConsumer,
+	))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
-		if err != nil {
-			cmn.Exit(err.Error())
+		if err := app.LoadLatestVersion(); err != nil {
+			tmos.Exit(err.Error())
 		}
 	}
+
+	// Initialize and seal the capability keeper so all persistent capabilities
+	// are loaded in-memory and prevent any further modules from creating scoped
+	// sub-keepers.
+	ctx := app.BaseApp.NewContext(true, abci.Header{})
+	app.capabilityKeeper.InitializeAndSeal(ctx)
 
 	return app
 }
 
-// application updates every begin block
+// Name returns the name of the App
+func (app *GoBitsong) Name() string { return app.BaseApp.Name() }
+
+// BeginBlocker application updates every begin block
 func (app *GoBitsong) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
-// application updates every end block
+// EndBlocker application updates every end block
 func (app *GoBitsong) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
-// application update at chain initialization
+// InitChainer application update at chain initialization
 func (app *GoBitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-
-	return app.mm.InitGenesis(ctx, genesisState)
+	return app.mm.InitGenesis(ctx, app.cdc, genesisState)
 }
 
-// load a particular height
+// LoadHeight loads a particular height
 func (app *GoBitsong) LoadHeight(height int64) error {
-	return app.LoadVersion(height, app.keys[bam.MainStoreKey])
+	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
 func (app *GoBitsong) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
-		modAccAddrs[supply.NewModuleAddress(acc).String()] = true
+		modAccAddrs[auth.NewModuleAddress(acc).String()] = true
 	}
 
 	return modAccAddrs
+}
+
+// Codec returns the application's sealed codec.
+func (app *GoBitsong) Codec() *codec.Codec {
+	return app.cdc
+}
+
+// SimulationManager implements the SimulationApp interface
+func (app *GoBitsong) SimulationManager() *module.SimulationManager {
+	// TODO
+	return nil
+}
+
+// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
+func (app *GoBitsong) BlacklistedAccAddrs() map[string]bool {
+	blacklistedAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+	}
+
+	return blacklistedAddrs
 }

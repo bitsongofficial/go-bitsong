@@ -2,110 +2,43 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ipfs/go-cid"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case types.QueryTracks:
-			return queryTracks(ctx, path[1:], req, keeper)
-		case types.QueryTrack:
-			return queryTrack(ctx, path[1:], req, keeper)
-		case types.QueryPlays:
-			return queryPlays(ctx, path[1:], req, keeper)
-		case types.QueryShares:
-			return queryShares(ctx, path[1:], req, keeper)
-		case types.QueryDeposits:
-			return queryDeposits(ctx, path[1:], req, keeper)
+		case types.QueryCid:
+			return queryTrackByCid(ctx, path[1:], req, keeper)
 		default:
-			return nil, sdk.ErrUnknownRequest("unknown track query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown track query endpoint")
 		}
 	}
 }
 
-// nolint: unparam
-func queryTracks(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	var params types.QueryTracksParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+func queryTrackByCid(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	if path[0] == "" {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown cid %s", path[0]))
 	}
 
-	tracks := keeper.GetTracksFiltered(ctx, params.Owner, params.TrackStatus, params.Limit)
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, tracks)
+	c, err := cid.Decode(path[0])
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-	}
-	return bz, nil
-}
-
-// nolint: unparam
-func queryTrack(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	var params types.QueryTrackParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
+		return nil, err
 	}
 
-	track, ok := keeper.GetTrack(ctx, params.TrackID)
-	if !ok {
-		return nil, types.ErrUnknownTrack(types.DefaultCodespace, fmt.Sprintf("unknown track-id %d", params.TrackID))
+	track, found := keeper.GetTrack(ctx, c.String())
+	if !found {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("cid %s not found", path[0]))
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, track)
 	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-	}
-	return bz, nil
-}
-
-// nolint: unparam
-func queryPlays(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	var params types.QueryTrackParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
-
-	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
-	}
-
-	plays := keeper.GetPlays(ctx, params.TrackID)
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, plays)
-	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-	}
-	return bz, nil
-}
-
-func queryShares(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	shares := keeper.GetAllShares(ctx)
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, shares)
-	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-	}
-	return bz, nil
-}
-
-func queryDeposits(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, sdk.Error) {
-	var params types.QueryTrackParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdk.ErrUnknownRequest(sdk.AppendMsgToErr("incorrectly formatted request data", err.Error()))
-	}
-
-	deposits := keeper.GetDeposits(ctx, params.TrackID)
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, deposits)
-	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }

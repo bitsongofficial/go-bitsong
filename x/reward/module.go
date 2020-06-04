@@ -6,132 +6,130 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/reward/client/cli"
-	"github.com/bitsongofficial/go-bitsong/x/reward/types"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
-// app module basics object
+// AppModuleBasic defines the basic application module used by the content module.
 type AppModuleBasic struct{}
 
-// module name
+// Name returns the content module's name.
 func (AppModuleBasic) Name() string {
-	return types.ModuleName
+	return ModuleName
 }
 
-// register module codec
+// RegisterCodec registers the content module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
 }
 
-// default genesis state
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+// DefaultGenesis returns default genesis state as raw bytes for the content
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONMarshaler) json.RawMessage {
+	return cdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-// module validate genesis
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+// ValidateGenesis performs genesis state validation for the content module.
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessage) error {
 	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	err := cdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
 	return ValidateGenesis(data)
 }
 
-// register rest routes
+// RegisterRESTRoutes registers the REST routes for the content module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	//rest.RegisterRoutes(ctx, rtr, StoreKey)
+	// rest.RegisterRoutes(ctx, rtr)
 }
 
-// get the root tx command of this module
+// GetTxCmd returns the root tx command for the content module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetTxCmd(StoreKey, cdc)
+	//return cli.GetTxCmd(cdc)
 	return nil
 }
 
-// get the root query command of this module
+// GetQueryCmd returns no root query command for the content module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
+	//return cli.GetQueryCmd(cdc)
+	return nil
 }
 
-// app module
+//____________________________________________________________________________
+
+// AppModule implements an application module for the content module.
 type AppModule struct {
 	AppModuleBasic
-	keeper       Keeper
-	supplyKeeper supply.Keeper
+
+	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper Keeper, supplyKeeper supply.Keeper) AppModule {
+func NewAppModule(k Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
-		keeper:         keeper,
-		supplyKeeper:   supplyKeeper,
+		keeper:         k,
 	}
 }
 
-// module name
+// Name returns the content module's name.
 func (AppModule) Name() string {
 	return ModuleName
 }
 
-// register invariants
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	//RegisterInvariants(ir, am.keeper)
-}
+// RegisterInvariants registers the content module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// module message route name
+// Route returns the message routing key for the content module.
 func (AppModule) Route() string {
 	return RouterKey
 }
 
-// module handler
+// NewHandler returns an sdk.Handler for the content module.
 func (am AppModule) NewHandler() sdk.Handler {
 	//return NewHandler(am.keeper)
 	return nil
 }
 
-// module querier route name
+// QuerierRoute returns the content module's querier route name.
 func (AppModule) QuerierRoute() string {
-	return ModuleName
+	return QuerierRoute
 }
 
-// module querier
+// NewQuerierHandler returns the content module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+	//return NewQuerier(am.keeper)
+	return nil
 }
 
-// module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+// InitGenesis performs genesis initialization for the content module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONMarshaler, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, am.supplyKeeper, genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
-// module export genesis
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+// ExportGenesis returns the exported genesis state as raw bytes for the content
+// module.
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONMarshaler) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
-// module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	//BeginBlocker(ctx, req, am.keeper)
-}
+// BeginBlock returns the begin blocker for the content module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {}
 
-// module end-block
-func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, am.keeper)
+// EndBlock returns the end blocker for the content module. It returns no validator
+// updates.
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }

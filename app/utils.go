@@ -1,17 +1,6 @@
 //nolint
 package app
 
-import (
-	"io"
-
-	"github.com/tendermint/tendermint/libs/log"
-	dbm "github.com/tendermint/tm-db"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-)
-
 var (
 	genesisFile        string
 	paramsFile         string
@@ -32,16 +21,3 @@ var (
 	allInvariants      bool
 	genesisTime        int64
 )
-
-// DONTCOVER
-
-// NewBitsongAppUNSAFE is used for debugging purposes only.
-//
-// NOTE: to not use this function with non-test code
-func NewBitsongAppUNSAFE(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	invCheckPeriod uint, baseAppOptions ...func(*baseapp.BaseApp),
-) (gapp *GoBitsong, keyMain, keyStaking *sdk.KVStoreKey, stakingKeeper staking.Keeper) {
-
-	gapp = NewBitsongApp(logger, db, traceStore, loadLatest, invCheckPeriod, baseAppOptions...)
-	return gapp, gapp.keys[baseapp.MainStoreKey], gapp.keys[staking.StoreKey], gapp.stakingKeeper
-}

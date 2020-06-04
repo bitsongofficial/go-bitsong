@@ -16,11 +16,11 @@ import (
 
 func TestBitsongdExport(t *testing.T) {
 	db := db.NewMemDB()
-	bapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	bapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, "")
 	setGenesis(bapp)
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	newBapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	newBapp := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, "")
 	_, _, err := newBapp.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }
@@ -28,7 +28,7 @@ func TestBitsongdExport(t *testing.T) {
 // ensure that black listed addresses are properly set in bank keeper
 func TestBlackListedAddrs(t *testing.T) {
 	db := db.NewMemDB()
-	app := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	app := NewBitsongApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, "")
 
 	for acc := range maccPerms {
 		require.True(t, app.bankKeeper.BlacklistedAddr(app.supplyKeeper.GetModuleAddress(acc)))

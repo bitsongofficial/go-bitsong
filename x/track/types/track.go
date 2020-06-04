@@ -1,118 +1,81 @@
 package types
 
 import (
-	"encoding/binary"
 	"fmt"
 	"strings"
-	"time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-/************************************
- * Track
- ************************************/
+type TrackType uint8
 
-// Constants pertaining to an Track object
 const (
-	MaxTitleLength       int = 140
-	MaxDescriptionLength int = 500
-	MaxCopyrightLength   int = 500
+	// TrackAudio is used when the track type is audio
+	TrackAudio TrackType = iota + 1
+	// TrackVideo is used when the track type is video
+	TrackVideo
 )
 
-// TODO: image, cid, duration
+// TrackTypeMap is used to decode the track type flag value
+var TrackTypeMap = map[string]TrackType{
+	"audio": TrackAudio,
+	"video": TrackVideo,
+}
+
 type Track struct {
-	TrackID     uint64      `json:"id" yaml:"id"`       // Track ID
-	Title       string      `json:"title" yaml:"title"` // Track Title
-	Description string      `json:"description" yaml:"description"`
-	Status      TrackStatus `json:"status" yaml:"status"` // Status of the Track {Nil, Verified, Rejected, Failed}
-	Audio       string      `json:"audio" yaml:"audio"`
-	Image       string      `json:"image" yaml:"image"`
-	Duration    string      `json:"duration" yaml:"duration"`
-
-	Owner        sdk.AccAddress `json:"owner" yaml:"owner"` // Album owner
-	TotalPlays   uint64         `json:"total_plays" yaml:"total_plays"`
-	TotalRewards sdk.Coins      `json:"total_rewards" yaml:"total_rewards"`
-
-	Hidden    bool   `json:"hidden" yaml:"hidden"`
-	Explicit  bool   `json:"explicit" yaml:"explicit"`
-	Genre     string `json:"genre" yaml:"genre"`
-	Mood      string `json:"mood" yaml:"mood"`
-	Artists   string `json:"artists" yaml:"artists"`
-	Featuring string `json:"featuring" yaml:"featuring"`
-	Producers string `json:"producers" yaml:"producers"`
-	Copyright string `json:"copyright" yaml:"copyright"`
-
-	SubmitTime     time.Time `json:"submit_time" yaml:"submit_time"`
-	TotalDeposit   sdk.Coins `json:"total_deposit" yaml:"total_deposit"`
-	DepositEndTime time.Time `json:"deposit_end_time" yaml:"deposit_end_time"`
-	VerifiedTime   time.Time `json:"verified_time" yaml:"verified_time"`
+	Cid   string `json:"cid" yaml:"cid"`     // cid of the track
+	Title string `json:"title" yaml:"title"` // title of the track
+	// album
+	Artists      []Artist  `json:"artists" yaml:"artists"`             // the artists who performed the track
+	Number       uint      `json:"number" yaml:"number"`               // the track number (usually 1 unless the album consists of more than one disc).
+	Duration     uint      `json:"duration" yaml:"duration"`           // the length of the track in milliseconds
+	Explicit     bool      `json:"explicit" yaml:"explicit"`           // parental advisory, explicit content tag, as supplied to bitsong by issuer
+	ExternalIds  Externals `json:"external_ids" yaml:"external_ids"`   // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
+	ExternalUrls Externals `json:"external_urls" yaml:"external_urls"` // known external URLs for this artist eg. key: spotify|youtube|soundcloud -> value...
+	// Popularity
+	PreviewUrl string `json:"preview_url" yaml:"preview_url"` // a link to a 30s preview (mp3 format), can be nil
+	// Uri string `json:"uri" yaml:"uri"` // the bitsong uri for the artist e.g.: bitsong:artist:zmsdksd394394
+	// download
+	// subscriptionStreaming
+	Dao Dao `json:"dao" yaml:"dao"`
 }
 
-// TrackKey gets a specific track from the store
-func TrackKey(trackID uint64) []byte {
-	bz := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bz, trackID)
-	return append(TracksKeyPrefix, bz...)
-}
-
-func NewTrack(id uint64, title, audio, image, duration string, hidden bool, explicit bool, genre, mood, artists, featuring, producers, description, copyright string, owner sdk.AccAddress, submitTime time.Time) Track {
-	return Track{
-		TrackID:      id,
-		Title:        title,
-		Description:  description,
-		Status:       StatusNil,
-		Audio:        audio,
-		Image:        image,
-		Duration:     duration,
-		Genre:        genre,
-		Mood:         mood,
+func NewTrack(title string, artists []Artist, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
+	return &Track{
 		Artists:      artists,
-		Featuring:    featuring,
-		Producers:    producers,
-		Copyright:    copyright,
-		Owner:        owner,
-		TotalPlays:   0,
-		TotalRewards: sdk.NewCoins(),
-		TotalDeposit: sdk.NewCoins(),
-		Hidden:       hidden,
+		Number:       number,
+		Duration:     duration,
 		Explicit:     explicit,
-		SubmitTime:   submitTime,
-	}
+		ExternalIds:  extIds,
+		ExternalUrls: extUrls,
+		Title:        title,
+		PreviewUrl:   pUrl,
+		Dao:          dao,
+	}, nil
 }
 
-// nolint
-func (t Track) String() string {
-	return fmt.Sprintf(`TrackID %d:
-  Title:    %s
-  Description: %s
-  Status:  %s
-  Audio: %s
-  Image: %s
-  Duration: %s
-  Owner:   %s
-  Total Plays: %d
-  Total Rewards: %s
-  Submit Time:        %s
-  Deposit End Time:   %s
-  Total Deposit:      %s`,
-		t.TrackID, t.Title, t.Description, t.Audio, t.Image, t.Duration, t.Status.String(), t.Owner.String(), t.TotalPlays, t.TotalRewards.String(), t.SubmitTime, t.DepositEndTime, t.TotalDeposit.String(),
-	)
+func (t *Track) String() string {
+	// TODO
+	return fmt.Sprintf("Title: %s", t.Title)
 }
 
-/************************************
- * Tracks
- ************************************/
+func (t *Track) Equals(track Track) bool {
+	// TODO
+	return true
+}
 
-// Tracks is an array of track
-type Tracks []Track
+func (t *Track) Validate() error {
+	// TODO
 
-// nolint
-func (t Tracks) String() string {
-	out := "ID - (Status) Title\n"
-	for _, track := range t {
-		out += fmt.Sprintf("%d - (%s) %s\n",
-			track.TrackID, track.Status.String(), track.Title)
+	if len(strings.TrimSpace(t.Title)) == 0 {
+		return fmt.Errorf("title cannot be empty")
 	}
-	return strings.TrimSpace(out)
+
+	//if len(c.Uri) > MaxUriLength {
+	//	return fmt.Errorf("uri cannot be longer than %d characters", MaxUriLength)
+	//}
+
+	if err := t.Dao.Validate(); err != nil {
+		return fmt.Errorf("%s", err.Error())
+	}
+
+	return nil
 }

@@ -6,13 +6,11 @@ import (
 )
 
 type RewardPool struct {
-	Amount sdk.DecCoins `json:"reward_pool" yaml:"reward_pool"`
+	Amount sdk.Coins `json:"reward_pool" yaml:"reward_pool"`
 }
 
-func InitialRewardPool() RewardPool {
-	return RewardPool{
-		Amount: sdk.DecCoins{},
-	}
+func (p RewardPool) String() string {
+	return fmt.Sprintf(`Reward Pool: %s`, p.Amount)
 }
 
 func (p RewardPool) ValidateGenesis() error {

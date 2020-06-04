@@ -2,111 +2,48 @@ package keeper
 
 import (
 	"fmt"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// Handle all "track" type messages.
+// Handle all "content" type messages.
 func NewHandler(keeper Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
-		ctx = ctx.WithEventManager(sdk.NewEventManager())
-
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgCreateTrack:
-			return handleMsgCreateTrack(ctx, keeper, msg)
-		case types.MsgPlay:
-			return handleMsgPlay(ctx, keeper, msg)
-		case types.MsgDeposit:
-			return handleMsgDeposit(ctx, keeper, msg)
+		case types.MsgTrackAdd:
+			return handleMsgTrackAdd(ctx, keeper, msg)
 
 		default:
-			errMsg := fmt.Sprintf("unrecognized track message type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
-// handleMsgCreateTrack handles the creation of a new track
-func handleMsgCreateTrack(ctx sdk.Context, keeper Keeper, msg types.MsgCreateTrack) sdk.Result {
-	track, err := keeper.CreateTrack(
-		ctx,
-		msg.Title,
-		msg.Audio,
-		msg.Image,
-		msg.Duration,
-		msg.Hidden,
-		msg.Explicit,
-		msg.Genre,
-		msg.Mood,
-		msg.Artists,
-		msg.Featuring,
-		msg.Producers,
-		msg.Description,
-		msg.Copyright,
-		msg.Owner,
+func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*sdk.Result, error) {
+	track, err := types.NewTrack(
+		msg.Title, []types.Artist{}, msg.Number, msg.Duration, msg.Explicit, msg.ExternalIds, msg.ExternalUrls, msg.PreviewUrl, msg.Dao,
 	)
+
 	if err != nil {
-		return err.Result()
+		return nil, err
+	}
+
+	cid, err := keeper.Add(ctx, track)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Owner.String()),
+			types.EventTypeTrackAdded,
+			sdk.NewAttribute(types.AttributeKeyTrackCid, cid),
 		),
 	)
 
-	return sdk.Result{
-		Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(track.TrackID),
-		Events: ctx.EventManager().Events(),
-	}
-}
-
-// handleMsgPlay
-func handleMsgPlay(ctx sdk.Context, keeper Keeper, msg types.MsgPlay) sdk.Result {
-	err := keeper.Play(ctx, msg.TrackID, msg.AccAddr)
-	if err != nil {
-		return err.Result()
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.AccAddr.String()),
-		),
-	)
-
-	return sdk.Result{
-		Events: ctx.EventManager().Events(),
-	}
-}
-
-func handleMsgDeposit(ctx sdk.Context, keeper Keeper, msg types.MsgDeposit) sdk.Result {
-	err, verified := keeper.AddDeposit(ctx, msg.TrackID, msg.Depositor, msg.Amount)
-	if err != nil {
-		return err.Result()
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor.String()),
-		),
-	)
-
-	if verified {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeDepositTrack,
-				sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%d", msg.TrackID)),
-			),
-		)
-	}
-
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{
+		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(cid),
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, nil
 }

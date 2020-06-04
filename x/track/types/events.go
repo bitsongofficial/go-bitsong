@@ -1,18 +1,9 @@
 package types
 
-// Track module event types
 const (
-	EventTypeCreateTrack    = "create_track"
-	EventTypePlayTrack      = "play_track"
-	EventTypeSetTrackStatus = "set_track_status"
-	EventTypeDepositTrack   = "deposit_track"
+	// Content events
+	EventTypeTrackAdded = "track_added"
 
-	// Track attributes
-	AttributeValueCategory  = ModuleName
-	AttributeKeyTrackID     = "id"
-	AttributeKeyTrackTitle  = "title"
-	AttributeKeyTrackOwner  = "owner"
-	AttributeKeyTrackStatus = "status"
-
-	AttributeKeyPlayAccAddr = "play_acc_addr"
+	// Content attributes
+	AttributeKeyTrackCid = "cid"
 )

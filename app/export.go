@@ -14,8 +14,9 @@ import (
 )
 
 // export the state of go-bitsong for a genesis file
-func (app *GoBitsong) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []string,
-) (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
+func (app *GoBitsong) ExportAppStateAndValidators(
+	forZeroHeight bool, jailWhiteList []string,
+) (appState json.RawMessage, validators []tmtypes.GenesisValidator, cp *abci.ConsensusParams, err error) {
 	// as if they could withdraw from the start of the next block
 	ctx := app.NewContext(true, abci.Header{Height: app.LastBlockHeight()})
 
@@ -23,13 +24,13 @@ func (app *GoBitsong) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteL
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	genState := app.mm.ExportGenesis(ctx)
+	genState := app.mm.ExportGenesis(ctx, app.cdc)
 	appState, err = codec.MarshalJSONIndent(app.cdc, genState)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	validators = staking.WriteValidators(ctx, app.stakingKeeper)
-	return appState, validators, nil
+	return appState, validators, app.BaseApp.GetConsensusParams(ctx), nil
 }
 
 // prepare for fresh start at zero height
@@ -86,7 +87,7 @@ func (app *GoBitsong) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
 		scraps := app.distrKeeper.GetValidatorOutstandingRewards(ctx, val.GetOperator())
 		feePool := app.distrKeeper.GetFeePool(ctx)
-		feePool.CommunityPool = feePool.CommunityPool.Add(scraps)
+		feePool.CommunityPool = feePool.CommunityPool.Add(scraps.GetRewards()...)
 		app.distrKeeper.SetFeePool(ctx, feePool)
 
 		app.distrKeeper.Hooks().AfterValidatorCreated(ctx, val.GetOperator())
@@ -137,7 +138,7 @@ func (app *GoBitsong) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []
 		}
 
 		validator.UnbondingHeight = 0
-		valConsAddrs = append(valConsAddrs, validator.ConsAddress())
+		valConsAddrs = append(valConsAddrs, validator.GetConsAddr())
 		if applyWhiteList && !whiteListMap[addr.String()] {
 			validator.Jailed = true
 		}
