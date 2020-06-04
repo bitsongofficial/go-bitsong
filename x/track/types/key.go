@@ -27,6 +27,8 @@ const (
 // - 0x00<cid_Bytes>: Track
 // - 0x01<cid_Bytes>: Artist
 var (
+	KeyLastTrackID = []byte("lastTrackId")
+
 	TrackKeyPrefix  = []byte{0x00}
 	ArtistKeyPrefix = []byte{0x01}
 )

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 )
 
@@ -21,8 +22,10 @@ var TrackTypeMap = map[string]TrackType{
 }
 
 type Track struct {
-	Cid   string `json:"cid" yaml:"cid"`     // cid of the track
-	Title string `json:"title" yaml:"title"` // title of the track
+	TrackID uint64         `json:"track_id" yaml:"track_id"`
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+	Cid     string         `json:"cid" yaml:"cid"`     // cid of the track
+	Title   string         `json:"title" yaml:"title"` // title of the track
 	// album
 	Artists      []Artist  `json:"artists" yaml:"artists"`             // the artists who performed the track
 	Number       uint      `json:"number" yaml:"number"`               // the track number (usually 1 unless the album consists of more than one disc).

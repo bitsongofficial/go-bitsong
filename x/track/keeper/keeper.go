@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -8,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/ipfs/go-cid"
 	mh "github.com/multiformats/go-multihash"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -89,10 +91,38 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
 		return "", err
 	}
 	track.Cid = cid.String()
+
+	trackID := k.autoIncrementID(ctx, types.KeyLastTrackID)
+	fmt.Println(trackID)
+	track.TrackID = trackID
+
+	trackAddr := k.generateTrackAddress(ctx, trackID)
+	fmt.Println(trackAddr)
+	track.Address = trackAddr
+
 	//content.CreatedAt = ctx.BlockHeader().Time
 	k.SetTrack(ctx, track)
 
 	return cid.String(), nil
+}
+
+func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(lastIDKey)
+	id := uint64(1)
+	if bz != nil {
+		id = binary.BigEndian.Uint64(bz)
+	}
+	bz = sdk.Uint64ToBigEndian(id + 1)
+	store.Set(lastIDKey, bz)
+	return id
+}
+
+func (k Keeper) generateTrackAddress(ctx sdk.Context, trackID uint64) sdk.AccAddress {
+	addr := make([]byte, 20)
+	addr[0] = 'T'
+	binary.PutUvarint(addr[1:], trackID<<32)
+	return sdk.AccAddress(crypto.AddressHash(addr))
 }
 
 ///////////////////////////////////////
