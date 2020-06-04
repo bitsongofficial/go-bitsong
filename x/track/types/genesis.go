@@ -2,26 +2,26 @@ package types
 
 // GenesisState - all content state that must be provided at genesis
 type GenesisState struct {
-	Contents []Content `json:"contents"`
+	Tracks []Track `json:"tracks"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(contents []Content) GenesisState {
+func NewGenesisState(tracks []Track) GenesisState {
 	return GenesisState{
-		Contents: contents,
+		Tracks: tracks,
 	}
 }
 
 // DefaultGenesisState - default GenesisState
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Contents: []Content{},
+		Tracks: []Track{},
 	}
 }
 
 // ValidateGenesis validates the contents genesis parameters
 func ValidateGenesis(data GenesisState) error {
-	for _, item := range data.Contents {
+	for _, item := range data.Tracks {
 		if err := item.Validate(); err != nil {
 			return err
 		}

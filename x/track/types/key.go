@@ -1,10 +1,10 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import "github.com/ipfs/go-cid"
 
 const (
 	// ModuleName is the name of the module
-	ModuleName = "content"
+	ModuleName = "track"
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
@@ -21,23 +21,15 @@ const (
 	MaxDaoLength  int = 15
 )
 
-// Keys for content store
+// Keys for track store
 // Items are stored with the following key: values
 //
-// - 0x00<uri_Bytes>: Content
+// - 0x00<cid_Bytes>: Content
 var (
-	ContentKeyPrefix = []byte{0x00}
-
-	KeyLastHlsID = []byte("lastHlsId")
-	HlsKeyPrefix = []byte{0x01}
+	TrackKeyPrefix = []byte{0x00}
 )
 
-func GetContentKey(uri string) []byte {
-	return append(ContentKeyPrefix, []byte(uri)...)
-}
-
-// hls
-func GetHlsKey(hlsID uint64) []byte {
-	hlsIDBz := sdk.Uint64ToBigEndian(hlsID)
-	return append(HlsKeyPrefix, hlsIDBz...)
+func GetTrackKey(c string) []byte {
+	cid, _ := cid.Decode(c)
+	return append(TrackKeyPrefix, cid.Bytes()...)
 }

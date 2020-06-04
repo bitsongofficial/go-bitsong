@@ -1,4 +1,4 @@
-package content
+package track
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -8,8 +8,8 @@ import (
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	for _, content := range data.Contents {
-		k.SetContent(ctx, &content)
+	for _, track := range data.Tracks {
+		k.SetTrack(ctx, &track)
 	}
 
 	return []abci.ValidatorUpdate{}
@@ -20,6 +20,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	return GenesisState{
-		Contents: k.GetContents(ctx),
+		Tracks: k.GetTracks(ctx),
 	}
 }

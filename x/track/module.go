@@ -1,8 +1,8 @@
-package content
+package track
 
 import (
 	"encoding/json"
-	"github.com/bitsongofficial/go-bitsong/x/content/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/track/client/cli"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

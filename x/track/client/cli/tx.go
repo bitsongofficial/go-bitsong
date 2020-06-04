@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/content/types"
+	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -13,10 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
-	"io/ioutil"
+	"strconv"
 	"strings"
-
-	hlsUitls "github.com/bitsongofficial/go-bitsong/x/content/client/utils"
 )
 
 const (
@@ -35,61 +33,19 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdAdd(cdc),
-		GetCmdStore(cdc),
-		GetCmdAction(cdc),
 	)...)
 
 	return contentTxCmd
 }
 
-func GetCmdStore(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "store",
-		Short: "Store a new m3u8",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			hls, err := ioutil.ReadFile(args[0])
-			if err != nil {
-				return err
-			}
-
-			// gzip the hls file
-			if hlsUitls.IsHls(hls) {
-				hls, err = hlsUitls.GzipIt(hls)
-				if err != nil {
-					return err
-				}
-			} else if !hlsUitls.IsGzip(hls) {
-				return fmt.Errorf("invalid hls file. please use hls or gzip")
-			}
-
-			msg := types.MsgStoreHls{
-				From:        cliCtx.GetFromAddress(),
-				HLSByteCode: hls,
-			}
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-
-	return cmd
-}
-
 func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "Add new content to bitsong",
+		Short: "Add new track to bitsong",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Add a new content inside bitsong.
+			fmt.Sprintf(`Add a new track to bitsong.
 Example:
-$ %s tx content add [uri] [hash] \
+$ %s tx track add [title] [duration] \
 --dao "2000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
 --dao "1000:bitsong13r9ryyfltaz8rsqqumqxusgtw0ne4udhxm5jm4" \
 `,
@@ -102,7 +58,15 @@ $ %s tx content add [uri] [hash] \
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			uri, hash := args[0], args[1]
+			title := args[0]
+			number := uint(1) // default 1
+			duration, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			explicit := false // default false
+			pUrl := ""        // default empty
 
 			daoStr, err := cmd.Flags().GetStringArray(flagDao)
 			if err != nil {
@@ -127,38 +91,12 @@ $ %s tx content add [uri] [hash] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgAddContent(uri, hash, dao)
+			msg := types.NewMsgTrackAdd(title, number, uint(duration), explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().StringArray(flagDao, []string{}, "DAO of the content")
-
-	return cmd
-}
-
-func GetCmdAction(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "action",
-		Short: "Action to content",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Action to content.
-Example:
-$ %s tx content action [uri]
-`,
-				version.ClientName,
-			),
-		),
-		Args: cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			msg := types.NewMsgContentAction(args[0], cliCtx.FromAddress)
-			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
 
 	return cmd
 }

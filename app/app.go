@@ -4,10 +4,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/bitsongofficial/go-bitsong/x/content"
 	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
 	"github.com/bitsongofficial/go-bitsong/x/reward"
+	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
@@ -68,7 +68,7 @@ var (
 		ibc.AppModuleBasic{},
 
 		// Custom modules
-		content.AppModuleBasic{},
+		track.AppModuleBasic{},
 		reward.AppModuleBasic{},
 		desmosibc.AppModuleBasic{},
 
@@ -86,8 +86,8 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		content.ModuleName: nil,
-		reward.ModuleName:  nil,
+		track.ModuleName:  nil,
+		reward.ModuleName: nil,
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -143,7 +143,7 @@ type GoBitsong struct {
 	ibcKeeper        *ibc.Keeper
 
 	// Custom modules
-	contentKeeper content.Keeper
+	contentKeeper track.Keeper
 	rewardKeeper  reward.Keeper
 
 	// IBC modules
@@ -175,7 +175,7 @@ func NewBitsongApp(
 		capability.StoreKey,
 
 		// Custom modules
-		content.StoreKey,
+		track.StoreKey,
 		reward.StoreKey,
 
 		// IBC modules
@@ -264,8 +264,8 @@ func NewBitsongApp(
 		app.bankKeeper, app.cdc, app.keys[reward.ModuleName],
 	)
 	stdMintKeeper := mint.NewKeeper(app.bankKeeper, app.rewardKeeper)
-	app.contentKeeper = content.NewKeeper(
-		app.bankKeeper, app.cdc, app.keys[content.ModuleName],
+	app.contentKeeper = track.NewKeeper(
+		app.bankKeeper, app.cdc, app.keys[track.ModuleName],
 	)
 
 	// IBC modules
@@ -308,7 +308,7 @@ func NewBitsongApp(
 
 		// Custom modules
 		reward.NewAppModule(app.rewardKeeper),
-		content.NewAppModule(app.contentKeeper),
+		track.NewAppModule(app.contentKeeper),
 
 		// IBC modules
 		transferModule,
@@ -332,7 +332,7 @@ func NewBitsongApp(
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
 		// Custom modules
-		reward.ModuleName, content.ModuleName,
+		reward.ModuleName, track.ModuleName,
 
 		// IBC Modules
 		ibcposts.ModuleName,

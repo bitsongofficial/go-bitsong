@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/content/types"
+	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -25,40 +25,40 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentQueryCmd.AddCommand(
 		flags.GetCommands(
-			GetCmqResolve(cdc),
+			GetCmqCid(cdc),
 		)...,
 	)
 
 	return contentQueryCmd
 }
 
-func GetCmqResolve(cdc *codec.Codec) *cobra.Command {
+func GetCmqCid(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "resolve [uri]",
+		Use:   "cid [cid]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Resolve an uri",
+		Short: "Query a track cid",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Resolve an uri inside bitsong.
+			fmt.Sprintf(`Query a cid inside bitsong.
 Example:
-$ %s query content resolve my-best-uri
+$ %s query track cid [cid]
 `,
 				version.ClientName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			uri := args[0]
+			cid := args[0]
 
-			route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryUri, uri)
+			route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryCid, cid)
 			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
-				fmt.Printf("Could not resolve uri %s \n", uri)
+				fmt.Printf("Could not resolve cid %s \n", cid)
 				return nil
 			}
 
-			var content types.Content
-			cdc.MustUnmarshalJSON(res, &content)
-			return cliCtx.PrintOutput(content)
+			var track types.Track
+			cdc.MustUnmarshalJSON(res, &track)
+			return cliCtx.PrintOutput(track)
 		},
 	}
 }
