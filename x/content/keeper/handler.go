@@ -15,12 +15,38 @@ func NewHandler(keeper Keeper) sdk.Handler {
 			return handleMsgContentAdd(ctx, keeper, msg)
 		case types.MsgContentAction:
 			return handleMsgAction(ctx, keeper, msg)
+		case types.MsgStoreHls:
+			return handleMsgStoreHls(ctx, keeper, &msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
+}
+
+func handleMsgStoreHls(ctx sdk.Context, k Keeper, msg *types.MsgStoreHls) (*sdk.Result, error) {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+
+	hlsID, err := k.CreateHls(ctx, msg.From, msg.HLSByteCode)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeContentAdded,
+			sdk.NewAttribute(types.AttributeKeyContentUri, fmt.Sprintf("%d", hlsID)), // TODO: fix events
+		),
+	)
+
+	return &sdk.Result{
+		Data:   []byte(fmt.Sprintf("%d", hlsID)),
+		Events: ctx.EventManager().Events().ToABCIEvents(),
+	}, nil
 }
 
 func handleMsgContentAdd(ctx sdk.Context, keeper Keeper, msg types.MsgContentAdd) (*sdk.Result, error) {

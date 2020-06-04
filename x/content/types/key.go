@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "content"
@@ -25,8 +27,17 @@ const (
 // - 0x00<uri_Bytes>: Content
 var (
 	ContentKeyPrefix = []byte{0x00}
+
+	KeyLastHlsID = []byte("lastHlsId")
+	HlsKeyPrefix = []byte{0x01}
 )
 
 func GetContentKey(uri string) []byte {
 	return append(ContentKeyPrefix, []byte(uri)...)
+}
+
+// hls
+func GetHlsKey(hlsID uint64) []byte {
+	hlsIDBz := sdk.Uint64ToBigEndian(hlsID)
+	return append(HlsKeyPrefix, hlsIDBz...)
 }

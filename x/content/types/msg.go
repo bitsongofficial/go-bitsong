@@ -124,3 +124,45 @@ From: %s`,
 		msg.Uri, msg.From,
 	)
 }
+
+const (
+	MaxHlsSize = 1024 * 1024
+)
+
+type MsgStoreHls struct {
+	From sdk.AccAddress `json:"from" yaml:"from"`
+	// HLSByteCode can be raw or gzip compressed
+	HLSByteCode []byte `json:"hls_byte_code" yaml:"hls_byte_code"`
+}
+
+func (msg MsgStoreHls) Route() string {
+	return RouterKey
+}
+
+func (msg MsgStoreHls) Type() string {
+	return "store-hls"
+}
+
+func (msg MsgStoreHls) ValidateBasic() error {
+	if err := sdk.VerifyAddressFormat(msg.From); err != nil {
+		return err
+	}
+
+	if len(msg.HLSByteCode) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty hls code")
+	}
+
+	if len(msg.HLSByteCode) > MaxHlsSize {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "hls code too large")
+	}
+
+	return nil
+}
+
+func (msg MsgStoreHls) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+func (msg MsgStoreHls) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}

@@ -6,6 +6,7 @@ import "github.com/cosmos/cosmos-sdk/codec"
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgContentAdd{}, "go-bitsong/MsgContentAdd", nil)
 	cdc.RegisterConcrete(MsgContentAction{}, "go-bitsong/MsgContentAction", nil)
+	cdc.RegisterConcrete(MsgStoreHls{}, "go-bitsong/MsgStoreHls", nil)
 }
 
 // ModuleCdc defines the module codec

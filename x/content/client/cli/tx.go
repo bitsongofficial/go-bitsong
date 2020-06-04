@@ -13,7 +13,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
+	"io/ioutil"
 	"strings"
+
+	hlsUitls "github.com/bitsongofficial/go-bitsong/x/content/client/utils"
 )
 
 const (
@@ -32,10 +35,51 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdAdd(cdc),
+		GetCmdStore(cdc),
 		GetCmdAction(cdc),
 	)...)
 
 	return contentTxCmd
+}
+
+func GetCmdStore(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "store",
+		Short: "Store a new m3u8",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			hls, err := ioutil.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+
+			// gzip the hls file
+			if hlsUitls.IsHls(hls) {
+				hls, err = hlsUitls.GzipIt(hls)
+				if err != nil {
+					return err
+				}
+			} else if !hlsUitls.IsGzip(hls) {
+				return fmt.Errorf("invalid hls file. please use hls or gzip")
+			}
+
+			msg := types.MsgStoreHls{
+				From:        cliCtx.GetFromAddress(),
+				HLSByteCode: hls,
+			}
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
 }
 
 func GetCmdAdd(cdc *codec.Codec) *cobra.Command {

@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/content/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -116,3 +118,30 @@ func (k Keeper) Action(ctx sdk.Context, uri string, from sdk.AccAddress) error {
 
 	return cnt
 }*/
+
+func (k Keeper) CreateHls(ctx sdk.Context, creator sdk.AccAddress, hlsCode []byte) (hlsID uint64, err error) {
+	hlsCode, err = uncompress(hlsCode)
+	if err != nil {
+		return 0, sdkerrors.Wrap(types.ErrCreateFailed, err.Error())
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	hlsID = k.autoIncrementID(ctx, types.KeyLastHlsID)
+	hlsInfo := types.NewHlsInfo(hlsCode, creator)
+	// 0x01 | hlsID (uint64) -> HlsInfo
+	store.Set(types.GetHlsKey(hlsID), k.cdc.MustMarshalBinaryBare(hlsInfo))
+
+	return hlsID, nil
+}
+
+func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(lastIDKey)
+	id := uint64(1)
+	if bz != nil {
+		id = binary.BigEndian.Uint64(bz)
+	}
+	bz = sdk.Uint64ToBigEndian(id + 1)
+	store.Set(lastIDKey, bz)
+	return id
+}
