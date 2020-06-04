@@ -22,8 +22,18 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*sdk.Result, error) {
+
+	artists := make([]types.Artist, len(msg.Artists))
+	for i, name := range msg.Artists {
+		artist, err := keeper.GetOrSetArtist(ctx, *types.NewArtist(name, nil, nil, nil))
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		}
+		artists[i] = *artist
+	}
+
 	track, err := types.NewTrack(
-		msg.Title, []types.Artist{}, msg.Number, msg.Duration, msg.Explicit, msg.ExternalIds, msg.ExternalUrls, msg.PreviewUrl, msg.Dao,
+		msg.Title, artists, msg.Number, msg.Duration, msg.Explicit, msg.ExternalIds, msg.ExternalUrls, msg.PreviewUrl, msg.Dao,
 	)
 
 	if err != nil {

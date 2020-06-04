@@ -13,12 +13,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
-	"strconv"
 	"strings"
 )
 
 const (
-	flagDao = "dao"
+	flagDao      = "dao"
+	flagArtist   = "artist"
+	flagDuration = "duration"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -52,17 +53,32 @@ $ %s tx track add [title] [duration] \
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
 			title := args[0]
+
+			artistsStr, err := cmd.Flags().GetStringArray(flagArtist)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagArtist)
+			}
+
+			artists := make([]string, len(artistsStr))
+			for i, artist := range artistsStr {
+				artists[i] = artist
+			}
+
 			number := uint(1) // default 1
-			duration, err := strconv.ParseUint(args[1], 10, 64)
+
+			duration, err := cmd.Flags().GetUint(flagDuration)
 			if err != nil {
 				return err
+			}
+			if duration < 15000 {
+				return fmt.Errorf("duration must be > 15000 milliseconds")
 			}
 
 			explicit := false // default false
@@ -91,12 +107,14 @@ $ %s tx track add [title] [duration] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, number, uint(duration), explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, number, uint(duration), explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
-	cmd.Flags().StringArray(flagDao, []string{}, "DAO of the content")
+	cmd.Flags().StringArray(flagArtist, []string{}, "Track Artists")
+	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
+	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
 
 	return cmd
 }

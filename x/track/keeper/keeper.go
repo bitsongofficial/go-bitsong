@@ -95,6 +95,70 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
 	return cid.String(), nil
 }
 
+///////////////////////////////////////
+// Artist
+///////////////////////////////////////
+func (k Keeper) GetArtist(ctx sdk.Context, c string) (artist types.Artist, ok bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetArtistKey(c))
+	if bz == nil {
+		return
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &artist)
+	return artist, true
+}
+
+func (k Keeper) SetArtist(ctx sdk.Context, artist *types.Artist) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&artist)
+	store.Set(types.GetArtistKey(artist.Cid), bz)
+}
+
+func (k Keeper) IterateArtists(ctx sdk.Context, fn func(artist types.Artist) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ArtistKeyPrefix)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var artist types.Artist
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &artist)
+		if fn(artist) {
+			break
+		}
+	}
+}
+
+func (k Keeper) GetArtists(ctx sdk.Context) []types.Artist {
+	var artists []types.Artist
+	k.IterateArtists(ctx, func(artist types.Artist) (stop bool) {
+		artists = append(artists, artist)
+		return false
+	})
+	return artists
+}
+
+func (k Keeper) GetOrSetArtist(ctx sdk.Context, artist types.Artist) (*types.Artist, error) {
+	data, found := k.GetArtist(ctx, artist.Cid)
+	if found {
+		return &data, nil
+	}
+
+	pref := cid.Prefix{
+		Version:  1,
+		Codec:    cid.DagCBOR,
+		MhType:   mh.SHA2_256,
+		MhLength: -1,
+	}
+
+	cid, err := pref.Sum([]byte(artist.Name)) // TODO: add more data
+	if err != nil {
+		return nil, err
+	}
+	artist.Cid = cid.String()
+	k.SetArtist(ctx, &artist)
+
+	return &artist, nil
+}
+
 /*func allocateDaoFunds(cnt types.Content, coin sdk.Coin) types.Content {
 	// allocate dao funds
 	for i, rh := range cnt.RightsHolders {

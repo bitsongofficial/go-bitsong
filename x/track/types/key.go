@@ -24,12 +24,19 @@ const (
 // Keys for track store
 // Items are stored with the following key: values
 //
-// - 0x00<cid_Bytes>: Content
+// - 0x00<cid_Bytes>: Track
+// - 0x01<cid_Bytes>: Artist
 var (
-	TrackKeyPrefix = []byte{0x00}
+	TrackKeyPrefix  = []byte{0x00}
+	ArtistKeyPrefix = []byte{0x01}
 )
 
 func GetTrackKey(c string) []byte {
 	cid, _ := cid.Decode(c)
 	return append(TrackKeyPrefix, cid.Bytes()...)
+}
+
+func GetArtistKey(c string) []byte {
+	cid, _ := cid.Decode(c)
+	return append(ArtistKeyPrefix, cid.Bytes()...)
 }
