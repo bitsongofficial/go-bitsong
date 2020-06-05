@@ -16,7 +16,7 @@ var AlbumTypeMap = map[string]AlbumType{
 
 type Album struct {
 	AlbumType            AlbumType            `json:"album_type" yaml:"album_type"`
-	Artists              []Artist             `json:"artists" yaml:"artists"` // the artists who performed the track
+	Artists              []string             `json:"artists" yaml:"artists"` // the artists who performed the track
 	Copyrights           []string             `json:"copyrights" yaml:"copyrights"`
 	ExternalIds          Externals            `json:"external_ids" yaml:"external_ids"`   // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
 	ExternalUrls         Externals            `json:"external_urls" yaml:"external_urls"` // known external URLs for this artist eg. key: spotify|youtube|soundcloud -> value...

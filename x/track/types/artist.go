@@ -1,13 +1,6 @@
 package types
 
-import (
-	"fmt"
-	"github.com/ipfs/go-cid"
-	mh "github.com/multiformats/go-multihash"
-	"strings"
-)
-
-type Artist struct {
+/*type Artist struct {
 	Cid          string    `json:"cid" yaml:"cid"`   // cid of the track
 	Name         string    `json:"name" yaml:"name"` // artist or band name e.g.: The Beatles
 	Images       []Image   `json:"images" yaml:"images"`
@@ -60,3 +53,4 @@ func (a *Artist) Validate() error {
 
 	return nil
 }
+*/

@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
 	"strings"
 )
 
@@ -23,25 +23,39 @@ var TrackTypeMap = map[string]TrackType{
 
 type Track struct {
 	TrackID uint64         `json:"track_id" yaml:"track_id"`
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Cid     string         `json:"cid" yaml:"cid"`     // cid of the track
-	Title   string         `json:"title" yaml:"title"` // title of the track
+	Address crypto.Address `json:"address" yaml:"address"`
+	Cid     string         `json:"cid" yaml:"cid"` // cid of the track
+	Uri     string         `json:"uri" yaml:"uri"` // bitsong uri for track e.g: bitsong:track:the-show-must-go-on
+
+	Title      string   `json:"title" yaml:"title"`           // title of the track
+	Artists    []string `json:"artists" yaml:"artists"`       // the artists who performed the track
+	Featurings []string `json:"featurings" yaml:"featurings"` // the featurings who performed the track
+	Producers  []string `json:"producers" yaml:"producers"`   // the producers who performed the track
+
+	Genre    string   `json:"genre" yaml:"genre"`
+	Mood     string   `json:"mood" yaml:"mood"`
+	Tags     []string `json:"tags" yaml:"tags"`
+	Explicit bool     `json:"explicit" yaml:"explicit"` // parental advisory, explicit content tag, as supplied to bitsong by issuer
+
+	Label       string    `json:"label" yaml:"label"`
+	ExternalIds Externals `json:"external_ids" yaml:"external_ids"` // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
+
+	Credits   string `json:"credits" yaml:"credits"`
+	Copyright string `json:"copyright" yaml:"copyright"`
+
 	// album
-	Artists      []Artist  `json:"artists" yaml:"artists"`             // the artists who performed the track
 	Number       uint      `json:"number" yaml:"number"`               // the track number (usually 1 unless the album consists of more than one disc).
 	Duration     uint      `json:"duration" yaml:"duration"`           // the length of the track in milliseconds
-	Explicit     bool      `json:"explicit" yaml:"explicit"`           // parental advisory, explicit content tag, as supplied to bitsong by issuer
-	ExternalIds  Externals `json:"external_ids" yaml:"external_ids"`   // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
 	ExternalUrls Externals `json:"external_urls" yaml:"external_urls"` // known external URLs for this artist eg. key: spotify|youtube|soundcloud -> value...
+	PreviewUrl   string    `json:"preview_url" yaml:"preview_url"`     // a link to a 30s preview (mp3 format), can be nil
 	// Popularity
-	PreviewUrl string `json:"preview_url" yaml:"preview_url"` // a link to a 30s preview (mp3 format), can be nil
 	// Uri string `json:"uri" yaml:"uri"` // the bitsong uri for the artist e.g.: bitsong:artist:zmsdksd394394
 	// download
 	// subscriptionStreaming
 	Dao Dao `json:"dao" yaml:"dao"`
 }
 
-func NewTrack(title string, artists []Artist, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
+func NewTrack(title string, artists []string, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
 	return &Track{
 		Artists:      artists,
 		Number:       number,

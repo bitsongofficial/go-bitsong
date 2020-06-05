@@ -93,12 +93,13 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
 	track.Cid = cid.String()
 
 	trackID := k.autoIncrementID(ctx, types.KeyLastTrackID)
-	fmt.Println(trackID)
 	track.TrackID = trackID
 
 	trackAddr := k.generateTrackAddress(ctx, trackID)
-	fmt.Println(trackAddr)
 	track.Address = trackAddr
+
+	trackUri := k.generateTrackUri(ctx, trackID)
+	track.Uri = trackUri
 
 	//content.CreatedAt = ctx.BlockHeader().Time
 	k.SetTrack(ctx, track)
@@ -118,75 +119,16 @@ func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
 	return id
 }
 
-func (k Keeper) generateTrackAddress(ctx sdk.Context, trackID uint64) sdk.AccAddress {
+func (k Keeper) generateTrackAddress(ctx sdk.Context, trackID uint64) crypto.Address {
 	addr := make([]byte, 20)
 	addr[0] = 'T'
 	binary.PutUvarint(addr[1:], trackID<<32)
-	return sdk.AccAddress(crypto.AddressHash(addr))
+	//return sdk.AccAddress(crypto.AddressHash(addr))
+	return crypto.AddressHash(addr)
 }
 
-///////////////////////////////////////
-// Artist
-///////////////////////////////////////
-func (k Keeper) GetArtist(ctx sdk.Context, c string) (artist types.Artist, ok bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetArtistKey(c))
-	if bz == nil {
-		return
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &artist)
-	return artist, true
-}
-
-func (k Keeper) SetArtist(ctx sdk.Context, artist *types.Artist) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&artist)
-	store.Set(types.GetArtistKey(artist.Cid), bz)
-}
-
-func (k Keeper) IterateArtists(ctx sdk.Context, fn func(artist types.Artist) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ArtistKeyPrefix)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var artist types.Artist
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &artist)
-		if fn(artist) {
-			break
-		}
-	}
-}
-
-func (k Keeper) GetArtists(ctx sdk.Context) []types.Artist {
-	var artists []types.Artist
-	k.IterateArtists(ctx, func(artist types.Artist) (stop bool) {
-		artists = append(artists, artist)
-		return false
-	})
-	return artists
-}
-
-func (k Keeper) GetOrSetArtist(ctx sdk.Context, artist types.Artist) (*types.Artist, error) {
-	data, found := k.GetArtist(ctx, artist.Cid)
-	if found {
-		return &data, nil
-	}
-
-	pref := cid.Prefix{
-		Version:  1,
-		Codec:    cid.DagCBOR,
-		MhType:   mh.SHA2_256,
-		MhLength: -1,
-	}
-
-	cid, err := pref.Sum([]byte(artist.Name)) // TODO: add more data
-	if err != nil {
-		return nil, err
-	}
-	artist.Cid = cid.String()
-	k.SetArtist(ctx, &artist)
-
-	return &artist, nil
+func (k Keeper) generateTrackUri(ctx sdk.Context, trackID uint64) string {
+	return fmt.Sprintf("bitsong:track:%d", trackID)
 }
 
 /*func allocateDaoFunds(cnt types.Content, coin sdk.Coin) types.Content {
