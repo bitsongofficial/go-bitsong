@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,8 +32,7 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	cdc := codecstd.MakeCodec(app.ModuleBasics)
-	appCodec := codecstd.NewAppCodec(cdc)
+	appCodec, cdc := app.MakeCodecs()
 
 	// Initialize the app overriding the various methods we want to customize
 	app.Init()

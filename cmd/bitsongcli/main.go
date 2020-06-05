@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 
 	"github.com/bitsongofficial/go-bitsong/types/util"
@@ -33,8 +32,7 @@ import (
 )
 
 var (
-	cdc      = codecstd.MakeCodec(app.ModuleBasics)
-	appCodec = codecstd.NewAppCodec(cdc)
+	appCodec, cdc = app.MakeCodecs()
 )
 
 func init() {

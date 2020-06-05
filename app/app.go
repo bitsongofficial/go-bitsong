@@ -4,20 +4,18 @@ import (
 	"io"
 	"os"
 
-	desmosibc "github.com/bitsongofficial/go-bitsong/x/ibc/desmos"
 	"github.com/bitsongofficial/go-bitsong/x/mint"
 	"github.com/bitsongofficial/go-bitsong/x/reward"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codecstd "github.com/cosmos/cosmos-sdk/codec/std"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/std"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -33,8 +31,6 @@ import (
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	ibcposts "github.com/desmos-labs/desmos/x/ibc/posts"
-	"github.com/desmos-labs/desmos/x/posts"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -70,11 +66,9 @@ var (
 		// Custom modules
 		track.AppModuleBasic{},
 		reward.AppModuleBasic{},
-		desmosibc.AppModuleBasic{},
 
 		// IBC modules
 		transfer.AppModuleBasic{},
-		ibcposts.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -97,19 +91,6 @@ var (
 		distr.ModuleName: true,
 	}
 )
-
-// MakeCodec generates the necessary codecs for Amino
-func MakeCodec() *codec.Codec {
-	var cdc = codec.New()
-
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
-	authvesting.RegisterCodec(cdc)
-
-	return cdc.Seal()
-}
 
 // Verify app interface at compile time
 var _ simapp.App = (*GoBitsong)(nil)
@@ -147,8 +128,7 @@ type GoBitsong struct {
 	rewardKeeper  reward.Keeper
 
 	// IBC modules
-	transferKeeper  transfer.Keeper
-	desmosIBCKeeper ibcposts.Keeper
+	transferKeeper transfer.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -161,8 +141,7 @@ func NewBitsongApp(
 ) *GoBitsong {
 	// First define the top level codec that will be shared by the different modules
 	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
-	cdc := codecstd.MakeCodec(ModuleBasics)
-	appCodec := codecstd.NewAppCodec(cdc)
+	appCodec, cdc := MakeCodecs()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
@@ -179,7 +158,6 @@ func NewBitsongApp(
 		reward.StoreKey,
 
 		// IBC modules
-		posts.StoreKey, ibcposts.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capability.MemStoreKey)
@@ -212,7 +190,6 @@ func NewBitsongApp(
 	app.capabilityKeeper = capability.NewKeeper(appCodec, keys[capability.StoreKey], memKeys[capability.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibc.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(transfer.ModuleName)
-	scopedDesmosKeeper := app.capabilityKeeper.ScopeToModule(ibcposts.ModuleName)
 
 	// Add keepers
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -256,7 +233,7 @@ func NewBitsongApp(
 	)
 
 	app.ibcKeeper = ibc.NewKeeper(
-		app.cdc, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
+		app.cdc, appCodec, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
 
 	// Custom modules
@@ -270,24 +247,15 @@ func NewBitsongApp(
 
 	// IBC modules
 	app.transferKeeper = transfer.NewKeeper(
-		app.cdc, keys[transfer.StoreKey],
+		appCodec, keys[transfer.StoreKey],
 		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
 		app.accountKeeper, app.bankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
 
-	postsKeeper := posts.NewKeeper(app.cdc, app.keys[posts.StoreKey])
-	app.desmosIBCKeeper = ibcposts.NewKeeper(
-		app.cdc, app.keys[ibcposts.StoreKey], postsKeeper,
-		app.ibcKeeper.ChannelKeeper, &app.ibcKeeper.PortKeeper,
-		scopedDesmosKeeper,
-	)
-	desmosModule := ibcposts.NewAppModule(app.desmosIBCKeeper)
-
 	// Create static IBC router, add desmos route, then set and seal it
 	ibcRouter := port.NewRouter()
 	ibcRouter.AddRoute(transfer.ModuleName, transferModule)
-	ibcRouter.AddRoute(ibcposts.ModuleName, desmosModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -296,7 +264,7 @@ func NewBitsongApp(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(appCodec, app.accountKeeper),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		capability.NewAppModule(*app.capabilityKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		mint.NewAppModule(stdmint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper), app.mintKeeper, stdMintKeeper),
@@ -312,7 +280,6 @@ func NewBitsongApp(
 
 		// IBC modules
 		transferModule,
-		desmosModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -335,7 +302,6 @@ func NewBitsongApp(
 		reward.ModuleName, track.ModuleName,
 
 		// IBC Modules
-		ibcposts.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -404,6 +370,16 @@ func (app *GoBitsong) ModuleAccountAddrs() map[string]bool {
 	return modAccAddrs
 }
 
+// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
+func (app *GoBitsong) BlacklistedAccAddrs() map[string]bool {
+	blacklistedAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
+	}
+
+	return blacklistedAddrs
+}
+
 // Codec returns the application's sealed codec.
 func (app *GoBitsong) Codec() *codec.Codec {
 	return app.cdc
@@ -415,12 +391,24 @@ func (app *GoBitsong) SimulationManager() *module.SimulationManager {
 	return nil
 }
 
-// BlacklistedAccAddrs returns all the app's module account addresses black listed for receiving tokens.
-func (app *GoBitsong) BlacklistedAccAddrs() map[string]bool {
-	blacklistedAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		blacklistedAddrs[auth.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
-	}
+// MakeCodecs constructs the *std.Codec and *codec.Codec instances used by
+// BitsongApp.
+func MakeCodecs() (*std.Codec, *codec.Codec) {
+	cdc := std.MakeCodec(ModuleBasics)
+	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	appCodec := std.NewAppCodec(cdc, interfaceRegistry)
 
-	return blacklistedAddrs
+	sdk.RegisterInterfaces(interfaceRegistry)
+	ModuleBasics.RegisterInterfaceModules(interfaceRegistry)
+
+	return appCodec, cdc
+}
+
+// GetMaccPerms returns a copy of the module account permissions
+func GetMaccPerms() map[string][]string {
+	dupMaccPerms := make(map[string][]string)
+	for k, v := range maccPerms {
+		dupMaccPerms[k] = v
+	}
+	return dupMaccPerms
 }
