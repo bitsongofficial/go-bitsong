@@ -19,6 +19,7 @@ import (
 const (
 	flagDao      = "dao"
 	flagArtist   = "artist"
+	flagFeat     = "feat"
 	flagDuration = "duration"
 )
 
@@ -46,9 +47,13 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Add a new track to bitsong.
 Example:
-$ %s tx track add [title] [duration] \
---dao "2000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
---dao "1000:bitsong13r9ryyfltaz8rsqqumqxusgtw0ne4udhxm5jm4" \
+$ %s tx track add [title] \
+--artist "Dj Angelo" \
+--artist "Angelo 2" \
+--feat "Singer 1" \
+--feat "Singer 2" \
+--duration 15001 \
+--dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a"
 `,
 				version.ClientName,
 			),
@@ -69,6 +74,16 @@ $ %s tx track add [title] [duration] \
 			artists := make([]string, len(artistsStr))
 			for i, artist := range artistsStr {
 				artists[i] = artist
+			}
+
+			featStr, err := cmd.Flags().GetStringArray(flagFeat)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagFeat)
+			}
+
+			feats := make([]string, len(featStr))
+			for i, feat := range featStr {
+				feats[i] = feat
 			}
 
 			number := uint(1) // default 1
@@ -107,12 +122,13 @@ $ %s tx track add [title] [duration] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, artists, number, uint(duration), explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, feats, number, duration, explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().StringArray(flagArtist, []string{}, "Track Artists")
+	cmd.Flags().StringArray(flagFeat, []string{}, "Track Feat")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
 	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
 
