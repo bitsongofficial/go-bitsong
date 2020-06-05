@@ -27,10 +27,10 @@ type Track struct {
 	Artists   []string `json:"artists" yaml:"artists"`     // the artists who performed the track ****
 	Feat      []string `json:"feat" yaml:"feat"`           // the feat who performed the track ****
 	Producers []string `json:"producers" yaml:"producers"` // the producers who performed the track ****
-	Genre     string   `json:"genre" yaml:"genre"`
-	Mood      string   `json:"mood" yaml:"mood"`
-	Tags      []string `json:"tags" yaml:"tags"`
-	Explicit  bool     `json:"explicit" yaml:"explicit"` // parental advisory, explicit content tag, as supplied to bitsong by issuer
+	Genre     string   `json:"genre" yaml:"genre"`         // ****
+	Mood      string   `json:"mood" yaml:"mood"`           // ****
+	Tags      []string `json:"tags" yaml:"tags"`           // ****
+	Explicit  bool     `json:"explicit" yaml:"explicit"`   // parental advisory, explicit content tag, as supplied to bitsong by issuer ****
 
 	Label       string    `json:"label" yaml:"label"`
 	ExternalIds Externals `json:"external_ids" yaml:"external_ids"` // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
@@ -50,14 +50,15 @@ type Track struct {
 	Dao Dao `json:"dao" yaml:"dao"`
 }
 
-func NewTrack(title string, artists, feat, producers []string, genre, mood string, number, duration uint,
-	explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
+func NewTrack(title string, artists, feat, producers, tags []string, genre, mood string,
+	number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
 	return &Track{
 		Artists:      artists,
 		Feat:         feat,
 		Producers:    producers,
 		Genre:        genre,
 		Mood:         mood,
+		Tags:         tags,
 		Number:       number,
 		Duration:     duration,
 		Explicit:     explicit,

@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"strings"
 )
 
@@ -23,6 +24,8 @@ const (
 	flagProducer = "producer"
 	flagGenre    = "genre"
 	flagMood     = "mood"
+	flagTag      = "tag"
+	flagExplicit = "explicit"
 	flagDuration = "duration"
 )
 
@@ -57,6 +60,8 @@ $ %s tx track add [title] \
 --feat "Singer 2" \
 --producer "The best Producer" \
 --producer "The Cat" \
+--tag "tag 1" \
+--tag "tag 2" \
 --genre "Pop" \
 --mood "Energetic" \
 --duration 15001 \
@@ -113,6 +118,16 @@ $ %s tx track add [title] \
 				return fmt.Errorf("invalid flag value: %s", flagMood)
 			}
 
+			tagsStr, err := cmd.Flags().GetStringArray(flagTag)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagTag)
+			}
+
+			tags := make([]string, len(tagsStr))
+			for i, tag := range tagsStr {
+				tags[i] = tag
+			}
+
 			number := uint(1) // default 1
 
 			duration, err := cmd.Flags().GetUint(flagDuration)
@@ -123,8 +138,8 @@ $ %s tx track add [title] \
 				return fmt.Errorf("duration must be > 15000 milliseconds")
 			}
 
-			explicit := false // default false
-			pUrl := ""        // default empty
+			explicit := viper.GetBool(flagExplicit)
+			pUrl := "" // default empty
 
 			daoStr, err := cmd.Flags().GetStringArray(flagDao)
 			if err != nil {
@@ -149,7 +164,7 @@ $ %s tx track add [title] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, artists, feats, producers, genre, mood, number, duration, explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, feats, producers, tags, genre, mood, number, duration, explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -159,6 +174,8 @@ $ %s tx track add [title] \
 	cmd.Flags().StringArray(flagProducer, []string{}, "Track Producers")
 	cmd.Flags().String(flagGenre, "", "Track Genre")
 	cmd.Flags().String(flagMood, "", "Track Mood")
+	cmd.Flags().StringArray(flagTag, []string{}, "Track Tags")
+	cmd.Flags().Bool(flagExplicit, false, "Track explicit (true | false)")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
 	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
 
