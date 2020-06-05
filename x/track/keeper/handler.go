@@ -23,7 +23,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 
 func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*sdk.Result, error) {
 	track, err := types.NewTrack(
-		msg.Title, msg.Artists, msg.Feat, msg.Producers, msg.Number, msg.Duration, msg.Explicit, msg.ExternalIds, msg.ExternalUrls, msg.PreviewUrl, msg.Dao,
+		msg.Title, msg.Artists, msg.Feat, msg.Producers, msg.Genre, msg.Mood, msg.Number,
+		msg.Duration, msg.Explicit, msg.ExternalIds, msg.ExternalUrls, msg.PreviewUrl, msg.Dao,
 	)
 
 	if err != nil {

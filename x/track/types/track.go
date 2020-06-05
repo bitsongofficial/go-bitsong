@@ -50,11 +50,14 @@ type Track struct {
 	Dao Dao `json:"dao" yaml:"dao"`
 }
 
-func NewTrack(title string, artists, feat, producers []string, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
+func NewTrack(title string, artists, feat, producers []string, genre, mood string, number, duration uint,
+	explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
 	return &Track{
 		Artists:      artists,
 		Feat:         feat,
 		Producers:    producers,
+		Genre:        genre,
+		Mood:         mood,
 		Number:       number,
 		Duration:     duration,
 		Explicit:     explicit,

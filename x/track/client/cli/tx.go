@@ -21,6 +21,8 @@ const (
 	flagArtist   = "artist"
 	flagFeat     = "feat"
 	flagProducer = "producer"
+	flagGenre    = "genre"
+	flagMood     = "mood"
 	flagDuration = "duration"
 )
 
@@ -55,6 +57,8 @@ $ %s tx track add [title] \
 --feat "Singer 2" \
 --producer "The best Producer" \
 --producer "The Cat" \
+--genre "Pop" \
+--mood "Energetic" \
 --duration 15001 \
 --dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a"
 `,
@@ -99,6 +103,16 @@ $ %s tx track add [title] \
 				producers[i] = producer
 			}
 
+			genre, err := cmd.Flags().GetString(flagGenre)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagGenre)
+			}
+
+			mood, err := cmd.Flags().GetString(flagMood)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagMood)
+			}
+
 			number := uint(1) // default 1
 
 			duration, err := cmd.Flags().GetUint(flagDuration)
@@ -135,7 +149,7 @@ $ %s tx track add [title] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, artists, feats, producers, number, duration, explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, feats, producers, genre, mood, number, duration, explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -143,6 +157,8 @@ $ %s tx track add [title] \
 	cmd.Flags().StringArray(flagArtist, []string{}, "Track Artists")
 	cmd.Flags().StringArray(flagFeat, []string{}, "Track Feat")
 	cmd.Flags().StringArray(flagProducer, []string{}, "Track Producers")
+	cmd.Flags().String(flagGenre, "", "Track Genre")
+	cmd.Flags().String(flagMood, "", "Track Mood")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
 	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
 

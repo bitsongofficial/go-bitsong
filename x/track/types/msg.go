@@ -15,10 +15,12 @@ const (
 var _ sdk.Msg = MsgTrackAdd{}
 
 type MsgTrackAdd struct {
-	Title        string            `json:"title" yaml:"title"`                 // title of the track
-	Artists      []string          `json:"artists" yaml:"artists"`             // artists of the track
-	Feat         []string          `json:"feat" yaml:"feat"`                   // track feat
-	Producers    []string          `json:"producers" yaml:"producers"`         // track producers
+	Title        string            `json:"title" yaml:"title"`         // title of the track
+	Artists      []string          `json:"artists" yaml:"artists"`     // artists of the track
+	Feat         []string          `json:"feat" yaml:"feat"`           // track feat
+	Producers    []string          `json:"producers" yaml:"producers"` // track producers
+	Genre        string            `json:"genre" yaml:"genre"`
+	Mood         string            `json:"mood" yaml:"mood"`
 	Number       uint              `json:"number" yaml:"number"`               // the track number (usually 1 unless the album consists of more than one disc).
 	Duration     uint              `json:"duration" yaml:"duration"`           // the length of the track in milliseconds
 	Explicit     bool              `json:"explicit" yaml:"explicit"`           // parental advisory, explicit content tag, as supplied to bitsong by issuer
@@ -28,11 +30,14 @@ type MsgTrackAdd struct {
 	Dao          Dao               `json:"dao" yaml:"dao"`
 }
 
-func NewMsgTrackAdd(title string, artists, feat, producers []string, number, duration uint, explicit bool, extIds, extUrls map[string]string, pUrl string, dao Dao) MsgTrackAdd {
+func NewMsgTrackAdd(title string, artists, feat, producers []string, genre, mood string, number, duration uint,
+	explicit bool, extIds, extUrls map[string]string, pUrl string, dao Dao) MsgTrackAdd {
 	return MsgTrackAdd{
 		Title:        title,
 		Artists:      artists,
 		Producers:    producers,
+		Genre:        genre,
+		Mood:         mood,
 		Feat:         feat,
 		Number:       number,
 		Duration:     duration,
