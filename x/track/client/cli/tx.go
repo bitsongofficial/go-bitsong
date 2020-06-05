@@ -18,15 +18,19 @@ import (
 )
 
 const (
-	flagDao      = "dao"
-	flagArtist   = "artist"
-	flagFeat     = "feat"
-	flagProducer = "producer"
-	flagGenre    = "genre"
-	flagMood     = "mood"
-	flagTag      = "tag"
-	flagExplicit = "explicit"
-	flagDuration = "duration"
+	flagDao        = "dao"
+	flagArtist     = "artist"
+	flagFeat       = "feat"
+	flagProducer   = "producer"
+	flagGenre      = "genre"
+	flagMood       = "mood"
+	flagTag        = "tag"
+	flagExplicit   = "explicit"
+	flagLabel      = "label"
+	flagCredits    = "credits"
+	flagCopyright  = "copyright"
+	flagPreviewUrl = "preview-url"
+	flagDuration   = "duration"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -64,6 +68,10 @@ $ %s tx track add [title] \
 --tag "tag 2" \
 --genre "Pop" \
 --mood "Energetic" \
+--label "My indie label" \
+--credits "Thanks to..." \
+--copyright "Creative Commons" \
+--preview-url "https://my-preview-link" \
 --duration 15001 \
 --dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a"
 `,
@@ -139,7 +147,10 @@ $ %s tx track add [title] \
 			}
 
 			explicit := viper.GetBool(flagExplicit)
-			pUrl := "" // default empty
+			label := viper.GetString(flagLabel)
+			credits := viper.GetString(flagCredits)
+			copyright := viper.GetString(flagCopyright)
+			pUrl := viper.GetString(flagPreviewUrl)
 
 			daoStr, err := cmd.Flags().GetStringArray(flagDao)
 			if err != nil {
@@ -164,7 +175,9 @@ $ %s tx track add [title] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, artists, feats, producers, tags, genre, mood, number, duration, explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, feats, producers, tags, genre, mood, label, credits, copyright,
+				pUrl, number, duration, explicit, nil, nil, dao,
+			)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -174,6 +187,10 @@ $ %s tx track add [title] \
 	cmd.Flags().StringArray(flagProducer, []string{}, "Track Producers")
 	cmd.Flags().String(flagGenre, "", "Track Genre")
 	cmd.Flags().String(flagMood, "", "Track Mood")
+	cmd.Flags().String(flagLabel, "", "Track Label")
+	cmd.Flags().String(flagCredits, "", "Track Credits")
+	cmd.Flags().String(flagCopyright, "", "Track Copyright")
+	cmd.Flags().String(flagPreviewUrl, "", "Track Preview Url")
 	cmd.Flags().StringArray(flagTag, []string{}, "Track Tags")
 	cmd.Flags().Bool(flagExplicit, false, "Track explicit (true | false)")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
