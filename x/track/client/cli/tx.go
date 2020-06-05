@@ -20,6 +20,7 @@ const (
 	flagDao      = "dao"
 	flagArtist   = "artist"
 	flagFeat     = "feat"
+	flagProducer = "producer"
 	flagDuration = "duration"
 )
 
@@ -52,6 +53,8 @@ $ %s tx track add [title] \
 --artist "Angelo 2" \
 --feat "Singer 1" \
 --feat "Singer 2" \
+--producer "The best Producer" \
+--producer "The Cat" \
 --duration 15001 \
 --dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a"
 `,
@@ -84,6 +87,16 @@ $ %s tx track add [title] \
 			feats := make([]string, len(featStr))
 			for i, feat := range featStr {
 				feats[i] = feat
+			}
+
+			producersStr, err := cmd.Flags().GetStringArray(flagProducer)
+			if err != nil {
+				return fmt.Errorf("invalid flag value: %s", flagProducer)
+			}
+
+			producers := make([]string, len(producersStr))
+			for i, producer := range producersStr {
+				producers[i] = producer
 			}
 
 			number := uint(1) // default 1
@@ -122,13 +135,14 @@ $ %s tx track add [title] \
 				dao = append(dao, de)
 			}
 
-			msg := types.NewMsgTrackAdd(title, artists, feats, number, duration, explicit, nil, nil, pUrl, dao)
+			msg := types.NewMsgTrackAdd(title, artists, feats, producers, number, duration, explicit, nil, nil, pUrl, dao)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().StringArray(flagArtist, []string{}, "Track Artists")
 	cmd.Flags().StringArray(flagFeat, []string{}, "Track Feat")
+	cmd.Flags().StringArray(flagProducer, []string{}, "Track Producers")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
 	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
 

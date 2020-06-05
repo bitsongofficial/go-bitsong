@@ -25,8 +25,8 @@ type Track struct {
 	Uri       string   `json:"uri" yaml:"uri"`             // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
 	Title     string   `json:"title" yaml:"title"`         // title of the track ****
 	Artists   []string `json:"artists" yaml:"artists"`     // the artists who performed the track ****
-	Feat      []string `json:"feat" yaml:"feat"`           // the feat who performed the track
-	Producers []string `json:"producers" yaml:"producers"` // the producers who performed the track
+	Feat      []string `json:"feat" yaml:"feat"`           // the feat who performed the track ****
+	Producers []string `json:"producers" yaml:"producers"` // the producers who performed the track ****
 	Genre     string   `json:"genre" yaml:"genre"`
 	Mood      string   `json:"mood" yaml:"mood"`
 	Tags      []string `json:"tags" yaml:"tags"`
@@ -50,10 +50,11 @@ type Track struct {
 	Dao Dao `json:"dao" yaml:"dao"`
 }
 
-func NewTrack(title string, artists, feat []string, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
+func NewTrack(title string, artists, feat, producers []string, number, duration uint, explicit bool, extIds, extUrls Externals, pUrl string, dao Dao) (*Track, error) {
 	return &Track{
 		Artists:      artists,
 		Feat:         feat,
+		Producers:    producers,
 		Number:       number,
 		Duration:     duration,
 		Explicit:     explicit,
