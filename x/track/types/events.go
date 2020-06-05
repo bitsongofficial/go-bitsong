@@ -5,5 +5,5 @@ const (
 	EventTypeTrackAdded = "track_added"
 
 	// Content attributes
-	AttributeKeyTrackCid = "cid"
+	AttributeKeyTrackID = "track_id"
 )

@@ -34,25 +34,25 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 func GetCmqCid(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "cid [cid]",
+		Use:   "id [id]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Query a track cid",
+		Short: "Query a track by trackID",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query a cid inside bitsong.
+			fmt.Sprintf(`Query a track by trackID.
 Example:
-$ %s query track cid [cid]
+$ %s query track id [id]
 `,
 				version.ClientName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			cid := args[0]
+			id := args[0]
 
-			route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryCid, cid)
+			route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryID, id)
 			res, _, err := cliCtx.QueryWithData(route, nil)
 			if err != nil {
-				fmt.Printf("Could not resolve cid %s \n", cid)
+				fmt.Printf("Could not find trackID %s \n", id)
 				return nil
 			}
 

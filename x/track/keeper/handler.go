@@ -30,7 +30,7 @@ func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*
 		return nil, err
 	}
 
-	cid, err := keeper.Add(ctx, track)
+	trackID, err := keeper.Add(ctx, track)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -38,7 +38,7 @@ func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeTrackAdded,
-			sdk.NewAttribute(types.AttributeKeyTrackCid, cid),
+			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%d", trackID)),
 		),
 	)
 

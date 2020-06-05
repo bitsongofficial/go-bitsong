@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"github.com/tendermint/tendermint/crypto"
 	"strings"
 )
 
@@ -22,20 +21,16 @@ var TrackTypeMap = map[string]TrackType{
 }
 
 type Track struct {
-	TrackID uint64         `json:"track_id" yaml:"track_id"`
-	Address crypto.Address `json:"address" yaml:"address"`
-	Cid     string         `json:"cid" yaml:"cid"` // cid of the track
-	Uri     string         `json:"uri" yaml:"uri"` // bitsong uri for track e.g: bitsong:track:the-show-must-go-on
-
+	TrackID    uint64   `json:"track_id" yaml:"track_id"`     // the bitsong track id
+	Uri        string   `json:"uri" yaml:"uri"`               // bitsong uri for track e.g: bitsong:track:the-show-must-go-on
 	Title      string   `json:"title" yaml:"title"`           // title of the track
 	Artists    []string `json:"artists" yaml:"artists"`       // the artists who performed the track
 	Featurings []string `json:"featurings" yaml:"featurings"` // the featurings who performed the track
 	Producers  []string `json:"producers" yaml:"producers"`   // the producers who performed the track
-
-	Genre    string   `json:"genre" yaml:"genre"`
-	Mood     string   `json:"mood" yaml:"mood"`
-	Tags     []string `json:"tags" yaml:"tags"`
-	Explicit bool     `json:"explicit" yaml:"explicit"` // parental advisory, explicit content tag, as supplied to bitsong by issuer
+	Genre      string   `json:"genre" yaml:"genre"`
+	Mood       string   `json:"mood" yaml:"mood"`
+	Tags       []string `json:"tags" yaml:"tags"`
+	Explicit   bool     `json:"explicit" yaml:"explicit"` // parental advisory, explicit content tag, as supplied to bitsong by issuer
 
 	Label       string    `json:"label" yaml:"label"`
 	ExternalIds Externals `json:"external_ids" yaml:"external_ids"` // Known external IDs for the track. eg. key: isrc|ean|upc -> value...

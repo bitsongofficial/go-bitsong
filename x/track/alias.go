@@ -11,74 +11,73 @@ import (
 )
 
 const (
-	TrackAudio           = types.TrackAudio
-	TrackVideo           = types.TrackVideo
-	QueryParams          = types.QueryParams
-	QueryCid             = types.QueryCid
-	AlbumAlbum           = types.AlbumAlbum
-	AlbumSingle          = types.AlbumSingle
-	AlbumCompilation     = types.AlbumCompilation
-	Year                 = types.Year
-	Month                = types.Month
-	Day                  = types.Day
-	ModuleName           = types.ModuleName
-	StoreKey             = types.StoreKey
-	RouterKey            = types.RouterKey
-	QuerierRoute         = types.QuerierRoute
-	MaxNameLength        = types.MaxNameLength
-	MaxHashLength        = types.MaxHashLength
-	MaxUriLength         = types.MaxUriLength
-	MaxDaoLength         = types.MaxDaoLength
-	TypeMsgTrackAdd      = types.TypeMsgTrackAdd
-	EventTypeTrackAdded  = types.EventTypeTrackAdded
-	AttributeKeyTrackCid = types.AttributeKeyTrackCid
+	AlbumAlbum          = types.AlbumAlbum
+	AlbumSingle         = types.AlbumSingle
+	AlbumCompilation    = types.AlbumCompilation
+	Year                = types.Year
+	Month               = types.Month
+	Day                 = types.Day
+	ModuleName          = types.ModuleName
+	StoreKey            = types.StoreKey
+	RouterKey           = types.RouterKey
+	QuerierRoute        = types.QuerierRoute
+	MaxNameLength       = types.MaxNameLength
+	MaxHashLength       = types.MaxHashLength
+	MaxUriLength        = types.MaxUriLength
+	MaxDaoLength        = types.MaxDaoLength
+	TypeMsgTrackAdd     = types.TypeMsgTrackAdd
+	TrackAudio          = types.TrackAudio
+	TrackVideo          = types.TrackVideo
+	EventTypeTrackAdded = types.EventTypeTrackAdded
+	AttributeKeyTrackID = types.AttributeKeyTrackID
+	QueryParams         = types.QueryParams
+	QueryID             = types.QueryID
 )
 
 var (
 	// functions aliases
-	GetQueryCmd           = cli.GetQueryCmd
-	GetCmqCid             = cli.GetCmqCid
 	GetTxCmd              = cli.GetTxCmd
 	GetCmdAdd             = cli.GetCmdAdd
+	GetQueryCmd           = cli.GetQueryCmd
+	GetCmqCid             = cli.GetCmqCid
+	NewHandler            = keeper.NewHandler
 	NewQuerier            = keeper.NewQuerier
 	NewKeeper             = keeper.NewKeeper
-	NewHandler            = keeper.NewHandler
+	NewDaoEntity          = types.NewDaoEntity
+	GetTrackIDBytes       = types.GetTrackIDBytes
+	GetTrackKey           = types.GetTrackKey
+	RegisterCodec         = types.RegisterCodec
+	NewMsgTrackAdd        = types.NewMsgTrackAdd
 	NewTrack              = types.NewTrack
 	NewGenesisState       = types.NewGenesisState
 	DefaultGenesisState   = types.DefaultGenesisState
 	ValidateGenesis       = types.ValidateGenesis
 	NewQueryContentParams = types.NewQueryContentParams
-	NewDaoEntity          = types.NewDaoEntity
-	GetTrackKey           = types.GetTrackKey
-	GetArtistKey          = types.GetArtistKey
-	RegisterCodec         = types.RegisterCodec
-	NewMsgTrackAdd        = types.NewMsgTrackAdd
 
 	// variable aliases
-	TrackTypeMap            = types.TrackTypeMap
 	DefaultCodespace        = types.DefaultCodespace
 	ErrCreateFailed         = types.ErrCreateFailed
 	AlbumTypeMap            = types.AlbumTypeMap
 	ReleaseDatePrecisionMap = types.ReleaseDatePrecisionMap
 	KeyLastTrackID          = types.KeyLastTrackID
 	TrackKeyPrefix          = types.TrackKeyPrefix
-	ArtistKeyPrefix         = types.ArtistKeyPrefix
 	ModuleCdc               = types.ModuleCdc
+	TrackTypeMap            = types.TrackTypeMap
 )
 
 type (
 	Keeper               = keeper.Keeper
-	Image                = types.Image
-	TrackType            = types.TrackType
-	Track                = types.Track
-	GenesisState         = types.GenesisState
-	Externals            = types.Externals
-	KeyValue             = types.KeyValue
-	QueryTrackParams     = types.QueryTrackParams
 	DaoEntity            = types.DaoEntity
 	Dao                  = types.Dao
 	AlbumType            = types.AlbumType
 	Album                = types.Album
 	ReleaseDatePrecision = types.ReleaseDatePrecision
 	MsgTrackAdd          = types.MsgTrackAdd
+	Externals            = types.Externals
+	KeyValue             = types.KeyValue
+	Image                = types.Image
+	TrackType            = types.TrackType
+	Track                = types.Track
+	GenesisState         = types.GenesisState
+	QueryTrackParams     = types.QueryTrackParams
 )

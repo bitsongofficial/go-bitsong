@@ -2,17 +2,17 @@ package types
 
 const (
 	QueryParams = "params"
-	QueryCid    = "cid"
+	QueryID     = "id"
 )
 
 // Params for queries
 type QueryTrackParams struct {
-	Cid string `json:"cid" yaml:"cid"`
+	ID uint64 `json:"id" yaml:"id"`
 }
 
 // creates a new instance of QueryContentParams
-func NewQueryContentParams(cid string) QueryTrackParams {
+func NewQueryContentParams(id uint64) QueryTrackParams {
 	return QueryTrackParams{
-		Cid: cid,
+		ID: id,
 	}
 }

@@ -1,6 +1,8 @@
 package types
 
-import "github.com/ipfs/go-cid"
+import (
+	"encoding/binary"
+)
 
 const (
 	// ModuleName is the name of the module
@@ -24,21 +26,19 @@ const (
 // Keys for track store
 // Items are stored with the following key: values
 //
-// - 0x00<cid_Bytes>: Track
-// - 0x01<cid_Bytes>: Artist
+// - 0x00<trackID_Bytes>: Track
 var (
 	KeyLastTrackID = []byte("lastTrackId")
 
-	TrackKeyPrefix  = []byte{0x00}
-	ArtistKeyPrefix = []byte{0x01}
+	TrackKeyPrefix = []byte{0x00}
 )
 
-func GetTrackKey(c string) []byte {
-	cid, _ := cid.Decode(c)
-	return append(TrackKeyPrefix, cid.Bytes()...)
+func GetTrackIDBytes(id uint64) []byte {
+	idBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBz, id)
+	return idBz
 }
 
-func GetArtistKey(c string) []byte {
-	cid, _ := cid.Decode(c)
-	return append(ArtistKeyPrefix, cid.Bytes()...)
+func GetTrackKey(id uint64) []byte {
+	return append(TrackKeyPrefix, GetTrackIDBytes(id)...)
 }
