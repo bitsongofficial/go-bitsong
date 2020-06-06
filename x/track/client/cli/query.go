@@ -10,7 +10,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"strings"
+)
+
+const (
+	flagPage  = "page"
+	flagLimit = "limit"
 )
 
 // GetQueryCmd returns the cli query commands
@@ -26,12 +32,57 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentQueryCmd.AddCommand(
 		flags.GetCommands(
+			GetCmdAll(cdc),
 			GetCmdID(cdc),
 			GetCmdCreator(cdc),
 		)...,
 	)
 
 	return contentQueryCmd
+}
+
+func GetCmdAll(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "all",
+		Short: "Get all tracks",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Get all tracks.
+Example:
+$ %s query track all
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			page := viper.GetInt(flagPage)
+			limit := viper.GetInt(flagLimit)
+			params := types.DefaultQueryTracksParams(page, limit)
+
+			bz, err := cdc.MarshalJSON(params)
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTracks)
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				return err
+			}
+
+			var tracks []types.Track
+			if err := cdc.UnmarshalJSON(res, &tracks); err != nil {
+				return err
+			}
+
+			return cliCtx.PrintOutput(tracks)
+		},
+	}
+
+	cmd.Flags().Int(flagLimit, 100, "pagination limit of tracks to query for")
+	cmd.Flags().Int(flagPage, 1, "pagination page of tracks to to query for")
+
+	return cmd
 }
 
 func GetCmdID(cdc *codec.Codec) *cobra.Command {

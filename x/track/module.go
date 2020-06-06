@@ -3,6 +3,7 @@ package track
 import (
 	"encoding/json"
 	"github.com/bitsongofficial/go-bitsong/x/track/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/track/client/rest"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,7 +50,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONMarshaler, bz json.RawMessag
 
 // RegisterRESTRoutes registers the REST routes for the content module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	// rest.RegisterRoutes(ctx, rtr)
+	rest.RegisterRoutes(ctx, rtr)
 }
 
 // GetTxCmd returns the root tx command for the content module.

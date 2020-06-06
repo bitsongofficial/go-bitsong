@@ -4,10 +4,12 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/tendermint/tendermint/libs/log"
+	"sort"
 )
 
 // Keeper of the track store
@@ -54,7 +56,7 @@ func (k Keeper) IterateTracks(ctx sdk.Context, fn func(track types.Track) (stop 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var track types.Track
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &track)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &track)
 		if fn(track) {
 			break
 		}
@@ -67,6 +69,32 @@ func (k Keeper) GetTracks(ctx sdk.Context) []types.Track {
 		tracks = append(tracks, track)
 		return false
 	})
+	return tracks
+}
+
+func (k Keeper) GetTracksPaginated(ctx sdk.Context, params types.QueryTracksParams) []types.Track {
+	var tracks []types.Track
+	k.IterateTracks(ctx, func(track types.Track) (stop bool) {
+		tracks = append(tracks, track)
+		return false
+	})
+
+	sort.Slice(tracks, func(i, j int) bool {
+		a, b := tracks[i], tracks[j]
+		return a.TrackID > b.TrackID
+	})
+
+	page := params.Page
+	if page == 0 {
+		page = 1
+	}
+	start, end := client.Paginate(len(tracks), page, params.Limit, 100)
+	if start < 0 || end < 0 {
+		tracks = []types.Track{}
+	} else {
+		tracks = tracks[start:end]
+	}
+
 	return tracks
 }
 
