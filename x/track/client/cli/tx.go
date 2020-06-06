@@ -31,6 +31,9 @@ const (
 	flagCopyright  = "copyright"
 	flagPreviewUrl = "preview-url"
 	flagDuration   = "duration"
+	flagNumber     = "number"
+	flagExtID      = "ext-id"
+	flagExtUrl     = "ext-url"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -73,7 +76,10 @@ $ %s tx track add [title] \
 --copyright "Creative Commons" \
 --preview-url "https://my-preview-link" \
 --duration 15001 \
---dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a"
+--number 1 \
+--dao "100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a" \
+--ext-id "youtube=M7Iwkxy_Hjw" --ext-id "spotify=12487825" \
+--ext-url "youtube=https://www.youtube.com/watch?v=y6veLh2b1Js" --ext-url "soundcloud=https://soundcloud.com/bangtan/thankyouarmy2020"
 `,
 				version.ClientName,
 			),
@@ -136,7 +142,10 @@ $ %s tx track add [title] \
 				tags[i] = tag
 			}
 
-			number := uint(1) // default 1
+			number, err := cmd.Flags().GetUint(flagNumber)
+			if err != nil {
+				return err
+			}
 
 			duration, err := cmd.Flags().GetUint(flagDuration)
 			if err != nil {
@@ -175,8 +184,34 @@ $ %s tx track add [title] \
 				dao = append(dao, de)
 			}
 
+			extIdsStr, err := cmd.Flags().GetStringArray(flagExtID)
+			extIds := make(map[string]string)
+			for _, extID := range extIdsStr {
+				idArgz := strings.SplitN(extID, "=", 2)
+				if len(idArgz) != 2 {
+					return fmt.Errorf("the ext format must be \"key=value\" e.g.: \"youtube=M7Iwkxy_Hjw\"")
+				}
+				extIds[idArgz[0]] = idArgz[1]
+			}
+			if len(extIds) == 0 {
+				extIds = nil
+			}
+
+			extUrlsStr, err := cmd.Flags().GetStringArray(flagExtUrl)
+			extUrls := make(map[string]string)
+			for _, extUrl := range extUrlsStr {
+				urlArgz := strings.SplitN(extUrl, "=", 2)
+				if len(urlArgz) != 2 {
+					return fmt.Errorf("the ext format must be \"key=value\" e.g.: \"youtube=https://www.youtube.com/watch?v=y6veLh2b1Js\"")
+				}
+				extUrls[urlArgz[0]] = urlArgz[1]
+			}
+			if len(extUrls) == 0 {
+				extUrls = nil
+			}
+
 			msg := types.NewMsgTrackAdd(title, artists, feats, producers, tags, genre, mood, label, credits, copyright,
-				pUrl, number, duration, explicit, nil, nil, dao,
+				pUrl, number, duration, explicit, extIds, extUrls, dao,
 			)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
@@ -194,7 +229,10 @@ $ %s tx track add [title] \
 	cmd.Flags().StringArray(flagTag, []string{}, "Track Tags")
 	cmd.Flags().Bool(flagExplicit, false, "Track explicit (true | false)")
 	cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
+	cmd.Flags().StringArray(flagExtID, []string{}, "Track External ids")
+	cmd.Flags().StringArray(flagExtUrl, []string{}, "Track External URLs")
 	cmd.Flags().Uint(flagDuration, 0, "Track duration in milliseconds")
+	cmd.Flags().Uint(flagNumber, 1, "Track Number (default is 1)")
 
 	return cmd
 }
