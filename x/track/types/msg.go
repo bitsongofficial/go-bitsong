@@ -15,13 +15,13 @@ const (
 var _ sdk.Msg = MsgTrackAdd{}
 
 type MsgTrackAdd struct {
-	Title      string   `json:"title" yaml:"title"`         // title of the track
-	Artists    []string `json:"artists" yaml:"artists"`     // artists of the track
-	Feat       []string `json:"feat" yaml:"feat"`           // track feat
-	Producers  []string `json:"producers" yaml:"producers"` // track producers
+	Title      string   `json:"title" yaml:"title"`                             // title of the track
+	Artists    []string `json:"artists" yaml:"artists"`                         // artists of the track
+	Feat       []string `json:"feat,omitempty" yaml:"feat,omitempty"`           // track feat
+	Producers  []string `json:"producers,omitempty" yaml:"producers,omitempty"` // track producers
 	Genre      string   `json:"genre" yaml:"genre"`
 	Mood       string   `json:"mood" yaml:"mood"`
-	Tags       []string `json:"tags" yaml:"tags"`
+	Tags       []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 	Label      string   `json:"label" yaml:"label"`
 	Credits    string   `json:"credits" yaml:"credits"`
 	Copyright  string   `json:"copyright" yaml:"copyright"`

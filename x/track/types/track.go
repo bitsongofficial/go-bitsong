@@ -21,21 +21,20 @@ var TrackTypeMap = map[string]TrackType{
 }
 
 type Track struct {
-	TrackID   uint64   `json:"track_id" yaml:"track_id"`   // the bitsong track id ****
-	Uri       string   `json:"uri" yaml:"uri"`             // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
-	Title     string   `json:"title" yaml:"title"`         // title of the track ****
-	Artists   []string `json:"artists" yaml:"artists"`     // the artists who performed the track ****
-	Feat      []string `json:"feat" yaml:"feat"`           // the feat who performed the track ****
-	Producers []string `json:"producers" yaml:"producers"` // the producers who performed the track ****
-	Genre     string   `json:"genre" yaml:"genre"`         // ****
-	Mood      string   `json:"mood" yaml:"mood"`           // ****
-	Tags      []string `json:"tags" yaml:"tags"`           // ****
-	Explicit  bool     `json:"explicit" yaml:"explicit"`   // parental advisory, explicit content tag, as supplied to bitsong by issuer ****
-
-	Label      string `json:"label" yaml:"label"`
-	Credits    string `json:"credits" yaml:"credits"`
-	Copyright  string `json:"copyright" yaml:"copyright"`
-	PreviewUrl string `json:"preview_url" yaml:"preview_url"` // a link to a 30s preview (mp3 format), can be nil
+	TrackID    uint64   `json:"track_id" yaml:"track_id"`       // the bitsong track id ****
+	Uri        string   `json:"uri" yaml:"uri"`                 // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
+	Title      string   `json:"title" yaml:"title"`             // title of the track ****
+	Artists    []string `json:"artists" yaml:"artists"`         // the artists who performed the track ****
+	Feat       []string `json:"feat" yaml:"feat"`               // the feat who performed the track ****
+	Producers  []string `json:"producers" yaml:"producers"`     // the producers who performed the track ****
+	Genre      string   `json:"genre" yaml:"genre"`             // ****
+	Mood       string   `json:"mood" yaml:"mood"`               // ****
+	Tags       []string `json:"tags" yaml:"tags"`               // ****
+	Explicit   bool     `json:"explicit" yaml:"explicit"`       // parental advisory, explicit content tag, as supplied to bitsong by issuer ****
+	Label      string   `json:"label" yaml:"label"`             // ****
+	Credits    string   `json:"credits" yaml:"credits"`         // ****
+	Copyright  string   `json:"copyright" yaml:"copyright"`     // ****
+	PreviewUrl string   `json:"preview_url" yaml:"preview_url"` // a link to a 30s preview (mp3 format), can be nil ****
 
 	ExternalIds Externals `json:"external_ids" yaml:"external_ids"` // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
 
@@ -44,7 +43,6 @@ type Track struct {
 	Duration     uint      `json:"duration" yaml:"duration"`           // the length of the track in milliseconds
 	ExternalUrls Externals `json:"external_urls" yaml:"external_urls"` // known external URLs for this artist eg. key: spotify|youtube|soundcloud -> value...
 	// Popularity
-	// Uri string `json:"uri" yaml:"uri"` // the bitsong uri for the artist e.g.: bitsong:artist:zmsdksd394394
 	// download
 	// subscriptionStreaming
 	Dao Dao `json:"dao" yaml:"dao"`
