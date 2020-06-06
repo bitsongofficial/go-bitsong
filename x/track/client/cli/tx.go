@@ -20,6 +20,8 @@ import (
 const (
 	flagDao        = "dao"
 	flagArtist     = "artist"
+	flagImage      = "image"
+	flagSource     = "source"
 	flagFeat       = "feat"
 	flagProducer   = "producer"
 	flagGenre      = "genre"
@@ -61,14 +63,12 @@ func GetCmdAdd(cdc *codec.Codec) *cobra.Command {
 			fmt.Sprintf(`Add a new track to bitsong.
 Example:
 $ %s tx track add [title] \
---artist "Dj Angelo" \
---artist "Angelo 2" \
---feat "Singer 1" \
---feat "Singer 2" \
---producer "The best Producer" \
---producer "The Cat" \
---tag "tag 1" \
---tag "tag 2" \
+--artist "Dj Angelo" --artist "Angelo 2" \
+--feat "Singer 1" --feat "Singer 2" \
+--producer "The best Producer" --producer "The Cat" \
+--image "50x50=uri" --image "100x100=uri" \
+--source "hls=uri" --source "mp3=uri" --source "opus=uri" \
+--tag "tag 1" --tag "tag 2" \
 --genre "Pop" \
 --mood "Energetic" \
 --label "My indie label" \
@@ -96,10 +96,35 @@ $ %s tx track add [title] \
 			if err != nil {
 				return fmt.Errorf("invalid flag value: %s", flagArtist)
 			}
-
 			artists := make([]string, len(artistsStr))
 			for i, artist := range artistsStr {
 				artists[i] = artist
+			}
+
+			imgsStr, err := cmd.Flags().GetStringArray(flagImage)
+			images := make(map[string]string)
+			for _, img := range imgsStr {
+				imgArgz := strings.SplitN(img, "=", 2)
+				if len(imgArgz) != 2 {
+					return fmt.Errorf("the image format must be \"key=value\" e.g.: \"50x50=uri\"")
+				}
+				images[imgArgz[0]] = imgArgz[1]
+			}
+			if len(images) == 0 {
+				return fmt.Errorf("you must specify at least one image")
+			}
+
+			srcsStr, err := cmd.Flags().GetStringArray(flagSource)
+			sources := make(map[string]string)
+			for _, src := range srcsStr {
+				srcArgz := strings.SplitN(src, "=", 2)
+				if len(srcArgz) != 2 {
+					return fmt.Errorf("the src format must be \"key=value\" e.g.: \"hls=uri\"")
+				}
+				sources[srcArgz[0]] = srcArgz[1]
+			}
+			if len(sources) == 0 {
+				return fmt.Errorf("you must specify at least one audio source")
 			}
 
 			featStr, err := cmd.Flags().GetStringArray(flagFeat)
@@ -211,13 +236,15 @@ $ %s tx track add [title] \
 			}
 
 			msg := types.NewMsgTrackAdd(title, artists, feats, producers, tags, genre, mood, label, credits, copyright,
-				pUrl, number, duration, explicit, extIds, extUrls, dao,
+				pUrl, number, duration, explicit, images, sources, extIds, extUrls, dao, cliCtx.FromAddress,
 			)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
 	cmd.Flags().StringArray(flagArtist, []string{}, "Track Artists")
+	cmd.Flags().StringArray(flagImage, []string{}, "Track Images")
+	cmd.Flags().StringArray(flagSource, []string{}, "Track Sources")
 	cmd.Flags().StringArray(flagFeat, []string{}, "Track Feat")
 	cmd.Flags().StringArray(flagProducer, []string{}, "Track Producers")
 	cmd.Flags().String(flagGenre, "", "Track Genre")
