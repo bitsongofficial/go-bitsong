@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"strings"
@@ -25,14 +26,15 @@ func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentQueryCmd.AddCommand(
 		flags.GetCommands(
-			GetCmqCid(cdc),
+			GetCmdID(cdc),
+			GetCmdCreator(cdc),
 		)...,
 	)
 
 	return contentQueryCmd
 }
 
-func GetCmqCid(cdc *codec.Codec) *cobra.Command {
+func GetCmdID(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "id [id]",
 		Args:  cobra.ExactArgs(1),
@@ -59,6 +61,47 @@ $ %s query track id [id]
 			var track types.Track
 			cdc.MustUnmarshalJSON(res, &track)
 			return cliCtx.PrintOutput(track)
+		},
+	}
+}
+
+func GetCmdCreator(cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "creator [creator-addres]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query a track by creator address",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query a track by creator address.
+Example:
+$ %s query track creator bitsong1ccy7n32j9vsydn3y7qh2208zz0ap04rfp67ky9
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			creator, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			bz, err := cdc.MarshalJSON(types.QueryCreatorTracksParams{Creator: creator})
+			if err != nil {
+				return err
+			}
+
+			route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCreatorTracks)
+			res, _, err := cliCtx.QueryWithData(route, bz)
+			if err != nil {
+				fmt.Printf("Could not find creator %s \n", creator)
+				return nil
+			}
+
+			var tracks []types.Track
+			if err := cdc.UnmarshalJSON(res, &tracks); err != nil {
+				return err
+			}
+			return cliCtx.PrintOutput(tracks)
 		},
 	}
 }

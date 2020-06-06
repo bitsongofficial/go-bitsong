@@ -76,6 +76,7 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (uint64, error) {
 
 	//content.CreatedAt = ctx.BlockHeader().Time
 	k.SetTrack(ctx, track)
+	k.SetCreatorTrack(ctx, track)
 
 	return track.TrackID, nil
 }
@@ -95,6 +96,41 @@ func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
 func (k Keeper) generateTrackUri(ctx sdk.Context, trackID uint64) string {
 	return fmt.Sprintf("bitsong:track:%d", trackID)
 }
+
+func (k Keeper) SetCreatorTrack(ctx sdk.Context, track *types.Track) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&track.TrackID)
+	store.Set(types.GetTrackByCreatorAddr(track.Creator, track.TrackID), bz)
+}
+
+func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (tracks []types.Track) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetCreatorKey(creator))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var trackID uint64
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &trackID)
+		track, ok := k.GetTrack(ctx, trackID)
+		if ok {
+			tracks = append(tracks, track)
+		}
+	}
+
+	return
+}
+
+/*func (k Keeper) IterateTracks(ctx sdk.Context, fn func(track types.Track) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.TrackKeyPrefix)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var track types.Track
+		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &track)
+		if fn(track) {
+			break
+		}
+	}
+}*/
 
 /*func allocateDaoFunds(cnt types.Content, coin sdk.Coin) types.Content {
 	// allocate dao funds

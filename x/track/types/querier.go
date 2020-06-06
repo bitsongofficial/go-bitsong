@@ -1,9 +1,16 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
-	QueryParams = "params"
-	QueryID     = "id"
+	QueryParams        = "params"
+	QueryID            = "id"
+	QueryCreatorTracks = "creator_tracks"
 )
+
+type QueryCreatorTracksParams struct {
+	Creator sdk.AccAddress `json:"creator" yaml:"creator"`
+}
 
 // Params for queries
 type QueryTrackParams struct {

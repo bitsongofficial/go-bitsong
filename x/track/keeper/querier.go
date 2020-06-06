@@ -15,6 +15,8 @@ func NewQuerier(keeper Keeper) sdk.Querier {
 		switch path[0] {
 		case types.QueryID:
 			return queryTrackByID(ctx, path[1:], req, keeper)
+		case types.QueryCreatorTracks:
+			return queryCreatorTracks(ctx, req, keeper)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown track query endpoint")
 		}
@@ -37,6 +39,23 @@ func queryTrackByID(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, track)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func queryCreatorTracks(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params types.QueryCreatorTracksParams
+
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	tracks := keeper.GetCreatorTracks(ctx, params.Creator)
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, tracks)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}

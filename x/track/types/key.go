@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (
@@ -27,10 +28,12 @@ const (
 // Items are stored with the following key: values
 //
 // - 0x00<trackID_Bytes>: Track
+// - 0x10<creatorAddr_Bytes><trackID_Bytes>: Track
 var (
 	KeyLastTrackID = []byte("lastTrackId")
 
-	TrackKeyPrefix = []byte{0x00}
+	TrackKeyPrefix         = []byte{0x00}
+	TracksCreatorKeyPrefix = []byte{0x10}
 )
 
 func GetTrackIDBytes(id uint64) []byte {
@@ -41,4 +44,12 @@ func GetTrackIDBytes(id uint64) []byte {
 
 func GetTrackKey(id uint64) []byte {
 	return append(TrackKeyPrefix, GetTrackIDBytes(id)...)
+}
+
+func GetCreatorKey(addr sdk.AccAddress) []byte {
+	return append(TracksCreatorKeyPrefix, addr.Bytes()...)
+}
+
+func GetTrackByCreatorAddr(addr sdk.AccAddress, trackID uint64) []byte {
+	return append(GetCreatorKey(addr), GetTrackIDBytes(trackID)...)
 }
