@@ -102,7 +102,6 @@ $ %s tx track publish [track-info.json] --from <creator>`,
 
 	return cmd
 }
-
 func GetCmdTokenize(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tokenize",
@@ -134,7 +133,6 @@ $ %s tx track tokenize [track-id] [denom] --from <creator>`,
 
 	return cmd
 }
-
 func GetCmdMint(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mint",
@@ -174,3 +172,5 @@ $ %s tx track mint [trackID] [amount] [recipient] --from <creator>`,
 
 	return cmd
 }
+
+// func GetCmdDisableMint
