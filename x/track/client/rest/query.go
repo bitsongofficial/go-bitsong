@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/tracks", queryTracksHandlerFn(cliCtx)).Methods("GET")
 	r.HandleFunc("/tracks/{trackID}", queryTrackHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/tracks/creator/{creatorAddr}", queryTrackByCreatorHandlerFn(cliCtx)).Methods("GET")
 }
 
 func queryTracksHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
@@ -56,6 +58,38 @@ func queryTrackHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryID, trackID)
 		res, height, err := cliCtx.QueryWithData(route, nil)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryTrackByCreatorHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		creator, err := sdk.AccAddressFromBech32(vars["creatorAddr"])
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		bz, err := cliCtx.Codec.MarshalJSON(types.QueryCreatorTracksParams{Creator: creator})
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s/%s", types.QuerierRoute, types.QueryCreatorTracks)
+		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
