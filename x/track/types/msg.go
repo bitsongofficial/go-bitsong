@@ -3,8 +3,6 @@ package types
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strings"
 )
 
 // Content messages types and routes
@@ -15,7 +13,10 @@ const (
 var _ sdk.Msg = MsgTrackAdd{}
 
 type MsgTrackAdd struct {
-	Title        string         `json:"title" yaml:"title"`     // title of the track
+	TrackInfo []byte         `json:"track_info" yaml:"track_info"`
+	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
+
+	/*Title        string         `json:"title" yaml:"title"`     // title of the track
 	Artists      []string       `json:"artists" yaml:"artists"` // artists of the track
 	Images       Externals      `json:"images" yaml:"images"`
 	Sources      Externals      `json:"sources" yaml:"sources"`
@@ -34,10 +35,17 @@ type MsgTrackAdd struct {
 	ExternalIds  Externals      `json:"external_ids,omitempty" yaml:"external_ids,omitempty"`   // Known external IDs for the track. eg. key: isrc|ean|upc -> value...
 	ExternalUrls Externals      `json:"external_urls,omitempty" yaml:"external_urls,omitempty"` // known external URLs for this artist eg. key: spotify|youtube|soundcloud -> value...
 	Dao          Dao            `json:"dao" yaml:"dao"`
-	Creator      sdk.AccAddress `json:"creator" yaml:"creator"`
+	*/
 }
 
-func NewMsgTrackAdd(title string, artists, feat, producers, tags []string, genre, mood,
+func NewMsgTrackAdd(info []byte, creator sdk.AccAddress) MsgTrackAdd {
+	return MsgTrackAdd{
+		TrackInfo: info,
+		Creator:   creator,
+	}
+}
+
+/*func NewMsgTrackAdd(title string, artists, feat, producers, tags []string, genre, mood,
 	label, credits, copyright, pUrl string, number, duration uint, explicit bool,
 	images, sources, extIds, extUrls Externals, dao Dao, creator sdk.AccAddress) MsgTrackAdd {
 	return MsgTrackAdd{
@@ -62,7 +70,7 @@ func NewMsgTrackAdd(title string, artists, feat, producers, tags []string, genre
 		Dao:          dao,
 		Creator:      creator,
 	}
-}
+}*/
 
 func (msg MsgTrackAdd) Route() string { return RouterKey }
 func (msg MsgTrackAdd) Type() string  { return TypeMsgTrackAdd }
@@ -70,14 +78,14 @@ func (msg MsgTrackAdd) Type() string  { return TypeMsgTrackAdd }
 func (msg MsgTrackAdd) ValidateBasic() error {
 	// TODO:
 
-	if len(strings.TrimSpace(msg.Title)) == 0 {
+	/*if len(strings.TrimSpace(msg.Title)) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("title cannot be empty"))
 	}
 
 	if err := msg.Dao.Validate(); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
-
+	*/
 	return nil
 }
 
@@ -88,18 +96,19 @@ func (msg MsgTrackAdd) GetSignBytes() []byte {
 
 // GetSigners defines whose signature is required
 func (msg MsgTrackAdd) GetSigners() []sdk.AccAddress {
-	addrs := make([]sdk.AccAddress, len(msg.Dao))
+	return []sdk.AccAddress{msg.Creator}
+	/*addrs := make([]sdk.AccAddress, len(msg.Dao))
 	for i, de := range msg.Dao {
 		addrs[i] = de.Address
 	}
 
-	return addrs
+	return addrs*/
 }
 
 func (msg MsgTrackAdd) String() string {
 	// TODO
 	return fmt.Sprintf(`Msg Track Add
 Title: %s`,
-		msg.Title,
+		msg.Creator,
 	)
 }

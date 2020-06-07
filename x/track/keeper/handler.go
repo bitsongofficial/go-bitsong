@@ -22,15 +22,12 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgTrackAdd(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAdd) (*sdk.Result, error) {
-	track, err := types.NewTrack(
+	/*track, err := types.NewTrack(
 		msg.Title, msg.Artists, msg.Feat, msg.Producers, msg.Tags, msg.Genre, msg.Mood, msg.Label,
 		msg.Credits, msg.Copyright, msg.PreviewUrl, msg.Number, msg.Duration, msg.Explicit,
 		msg.Images, msg.Sources, msg.ExternalIds, msg.ExternalUrls, msg.Dao, msg.Creator,
-	)
-
-	if err != nil {
-		return nil, err
-	}
+	)*/
+	track := types.NewTrack(msg.TrackInfo, msg.Creator)
 
 	trackID, err := keeper.Add(ctx, track)
 	if err != nil {

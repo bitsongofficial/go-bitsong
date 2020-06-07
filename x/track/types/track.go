@@ -22,9 +22,12 @@ var TrackTypeMap = map[string]TrackType{
 }
 
 type Track struct {
-	TrackID      uint64         `json:"track_id" yaml:"track_id"`           // the bitsong track id ****
-	Uri          string         `json:"uri" yaml:"uri"`                     // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
-	Title        string         `json:"title" yaml:"title"`                 // title of the track ****
+	TrackID   uint64         `json:"track_id" yaml:"track_id"` // the bitsong track id ****
+	Uri       string         `json:"uri" yaml:"uri"`           // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
+	TrackInfo []byte         `json:"track_info" yaml:"track_info"`
+	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
+
+	/*Title        string         `json:"title" yaml:"title"`                 // title of the track ****
 	Artists      []string       `json:"artists" yaml:"artists"`             // the artists who performed the track ****
 	Images       Externals      `json:"images" yaml:"images"`               // the track images
 	Sources      Externals      `json:"sources" yaml:"sources"`             // the track sources
@@ -43,14 +46,22 @@ type Track struct {
 	Number       uint           `json:"number" yaml:"number"`               // the track number (usually 1 unless the album consists of more than one disc).
 	Duration     uint           `json:"duration" yaml:"duration"`           // the length of the track in milliseconds
 	Dao          Dao            `json:"dao" yaml:"dao"`
-	Creator      sdk.AccAddress `json:"creator" yaml:"creator"`
+	*/
 	// album
 	// Popularity
 	// download
 	// subscriptionStreaming
 }
 
-func NewTrack(title string, artists, feat, producers, tags []string, genre, mood, label,
+func NewTrack(info []byte, creator sdk.AccAddress) *Track {
+	return &Track{
+		//Uri:       uri,
+		TrackInfo: info,
+		Creator:   creator,
+	}
+}
+
+/*func NewTrack(title string, artists, feat, producers, tags []string, genre, mood, label,
 	credits, copyright, pUrl string, number, duration uint, explicit bool, images, sources, extIds,
 	extUrls Externals, dao Dao, creator sdk.AccAddress) (*Track, error) {
 	return &Track{
@@ -75,11 +86,11 @@ func NewTrack(title string, artists, feat, producers, tags []string, genre, mood
 		Dao:          dao,
 		Creator:      creator,
 	}, nil
-}
+}*/
 
 func (t *Track) String() string {
 	// TODO
-	return fmt.Sprintf("Title: %s", t.Title)
+	return fmt.Sprintf("Uri: %s", t.Uri)
 }
 
 func (t *Track) Equals(track Track) bool {
@@ -90,7 +101,7 @@ func (t *Track) Equals(track Track) bool {
 func (t *Track) Validate() error {
 	// TODO
 
-	if len(strings.TrimSpace(t.Title)) == 0 {
+	if len(strings.TrimSpace(t.Uri)) == 0 {
 		return fmt.Errorf("title cannot be empty")
 	}
 
@@ -98,9 +109,9 @@ func (t *Track) Validate() error {
 	//	return fmt.Errorf("uri cannot be longer than %d characters", MaxUriLength)
 	//}
 
-	if err := t.Dao.Validate(); err != nil {
-		return fmt.Errorf("%s", err.Error())
-	}
+	//if err := t.Dao.Validate(); err != nil {
+	//	return fmt.Errorf("%s", err.Error())
+	//}
 
 	return nil
 }
