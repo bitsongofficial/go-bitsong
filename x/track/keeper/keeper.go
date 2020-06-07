@@ -147,6 +147,18 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 	return
 }
 
+func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
+		return err
+	}
+
+	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /*func (k Keeper) IterateTracks(ctx sdk.Context, fn func(track types.Track) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.TrackKeyPrefix)

@@ -1,9 +1,15 @@
 package types
 
 const (
-	// Content events
-	EventTypeTrackAdded = "track_added"
+	// Track events
+	EventTypeTrackPublished = "track_published"
+	EventTypeTrackTokenized = "track_tokenized"
 
-	// Content attributes
+	EventTypeTokenMinted = "token_minted"
+
+	// Track attributes
 	AttributeKeyTrackID = "track_id"
+
+	AttributeKeyTokenAmount    = "token_amount"
+	AttributeKeyTokenRecipient = "token_recipient"
 )

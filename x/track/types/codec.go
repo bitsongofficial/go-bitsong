@@ -4,7 +4,9 @@ import "github.com/cosmos/cosmos-sdk/codec"
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgTrackAdd{}, "go-bitsong/MsgTrackAdd", nil)
+	cdc.RegisterConcrete(MsgTrackPublish{}, "go-bitsong/MsgTrackPublish", nil)
+	cdc.RegisterConcrete(MsgTrackTokenize{}, "go-bitsong/MsgTrackTokenize", nil)
+	cdc.RegisterConcrete(MsgTokenMint{}, "go-bitsong/MsgTokenMint", nil)
 }
 
 // ModuleCdc defines the module codec

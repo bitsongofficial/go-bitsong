@@ -16,6 +16,7 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
@@ -35,6 +36,8 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdPublish(cdc),
+		GetCmdTokenize(cdc),
+		GetCmdMint(cdc),
 	)...)
 
 	return contentTxCmd
@@ -67,7 +70,7 @@ $ %s tx track publish [track-info.json] --from <creator>`,
 				return err
 			}
 
-			msg := types.NewMsgTrackAdd(trackInfoBz.Bytes(), cliCtx.FromAddress)
+			msg := types.NewMsgTrackPublish(trackInfoBz.Bytes(), cliCtx.FromAddress)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 
 			/*daoStr, err := cmd.Flags().GetStringArray(flagDao)
@@ -96,6 +99,78 @@ $ %s tx track publish [track-info.json] --from <creator>`,
 	}
 
 	// cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
+
+	return cmd
+}
+
+func GetCmdTokenize(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "tokenize",
+		Short: "Tokenize a new track",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Tokenize a new track.
+Example:
+$ %s tx track tokenize [track-id] [denom] --from <creator>`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			denom := strings.TrimSpace(args[1])
+
+			msg := types.NewMsgTrackTokenize(trackID, denom, cliCtx.FromAddress)
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
+}
+
+func GetCmdMint(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mint",
+		Short: "Mint track token to a recipient",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Mint track token to a recipient.
+Example:
+$ %s tx track mint [trackID] [amount] [recipient] --from <creator>`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			trackID, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			amount, err := sdk.ParseCoin(args[1])
+			if err != nil {
+				return err
+			}
+
+			recipient, err := sdk.AccAddressFromBech32(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgTokenMint(trackID, amount, recipient, cliCtx.FromAddress)
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 
 	return cmd
 }

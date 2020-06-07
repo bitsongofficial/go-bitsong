@@ -6,25 +6,25 @@ import (
 	"strings"
 )
 
-type TrackType uint8
+type TokenInfo struct {
+	Denom     string `json:"denom,omitempty" yaml:"denom,omitempty"`
+	Tokenized bool   `json:"tokenized" yaml:"tokenized"`
+	Mintable  bool   `json:"mintable" yaml:"mintable"`
+}
 
-const (
-	// TrackAudio is used when the track type is audio
-	TrackAudio TrackType = iota + 1
-	// TrackVideo is used when the track type is video
-	TrackVideo
-)
-
-// TrackTypeMap is used to decode the track type flag value
-var TrackTypeMap = map[string]TrackType{
-	"audio": TrackAudio,
-	"video": TrackVideo,
+func NewTokenInfo(denom string) TokenInfo {
+	return TokenInfo{
+		Denom:     denom,
+		Tokenized: true,
+		Mintable:  true,
+	}
 }
 
 type Track struct {
 	TrackID   uint64         `json:"track_id" yaml:"track_id"` // the bitsong track id ****
 	Uri       string         `json:"uri" yaml:"uri"`           // bitsong uri for track e.g: bitsong:track:the-show-must-go-on ****
 	TrackInfo []byte         `json:"track_info" yaml:"track_info"`
+	TokenInfo TokenInfo      `json:"token_info" yaml:"token_info"`
 	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
 
 	/*Title        string         `json:"title" yaml:"title"`                 // title of the track ****
@@ -55,38 +55,10 @@ type Track struct {
 
 func NewTrack(info []byte, creator sdk.AccAddress) *Track {
 	return &Track{
-		//Uri:       uri,
 		TrackInfo: info,
 		Creator:   creator,
 	}
 }
-
-/*func NewTrack(title string, artists, feat, producers, tags []string, genre, mood, label,
-	credits, copyright, pUrl string, number, duration uint, explicit bool, images, sources, extIds,
-	extUrls Externals, dao Dao, creator sdk.AccAddress) (*Track, error) {
-	return &Track{
-		Title:        title,
-		Artists:      artists,
-		Images:       images,
-		Sources:      sources,
-		Feat:         feat,
-		Producers:    producers,
-		Genre:        genre,
-		Mood:         mood,
-		Tags:         tags,
-		Explicit:     explicit,
-		Label:        label,
-		Credits:      credits,
-		Copyright:    copyright,
-		PreviewUrl:   pUrl,
-		Number:       number,
-		Duration:     duration,
-		ExternalIds:  extIds,
-		ExternalUrls: extUrls,
-		Dao:          dao,
-		Creator:      creator,
-	}, nil
-}*/
 
 func (t *Track) String() string {
 	// TODO

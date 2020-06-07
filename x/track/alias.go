@@ -11,48 +11,51 @@ import (
 )
 
 const (
-	TypeMsgTrackAdd     = types.TypeMsgTrackAdd
-	EventTypeTrackAdded = types.EventTypeTrackAdded
-	AttributeKeyTrackID = types.AttributeKeyTrackID
-	AlbumAlbum          = types.AlbumAlbum
-	AlbumSingle         = types.AlbumSingle
-	AlbumCompilation    = types.AlbumCompilation
-	Year                = types.Year
-	Month               = types.Month
-	Day                 = types.Day
-	QueryParams         = types.QueryParams
-	QueryTracks         = types.QueryTracks
-	QueryID             = types.QueryID
-	QueryCreatorTracks  = types.QueryCreatorTracks
-	TrackAudio          = types.TrackAudio
-	TrackVideo          = types.TrackVideo
-	ModuleName          = types.ModuleName
-	StoreKey            = types.StoreKey
-	RouterKey           = types.RouterKey
-	QuerierRoute        = types.QuerierRoute
-	MaxNameLength       = types.MaxNameLength
-	MaxHashLength       = types.MaxHashLength
-	MaxUriLength        = types.MaxUriLength
-	MaxDaoLength        = types.MaxDaoLength
+	TypeMsgTrackPublish     = types.TypeMsgTrackPublish
+	TypeMsgTrackTokenize    = types.TypeMsgTrackTokenize
+	EventTypeTrackPublished = types.EventTypeTrackPublished
+	EventTypeTrackTokenized = types.EventTypeTrackTokenized
+	AttributeKeyTrackID     = types.AttributeKeyTrackID
+	QueryParams             = types.QueryParams
+	QueryTracks             = types.QueryTracks
+	QueryID                 = types.QueryID
+	QueryCreatorTracks      = types.QueryCreatorTracks
+	ModuleName              = types.ModuleName
+	StoreKey                = types.StoreKey
+	RouterKey               = types.RouterKey
+	QuerierRoute            = types.QuerierRoute
+	MaxNameLength           = types.MaxNameLength
+	MaxHashLength           = types.MaxHashLength
+	MaxUriLength            = types.MaxUriLength
+	MaxDaoLength            = types.MaxDaoLength
+	AlbumAlbum              = types.AlbumAlbum
+	AlbumSingle             = types.AlbumSingle
+	AlbumCompilation        = types.AlbumCompilation
+	Year                    = types.Year
+	Month                   = types.Month
+	Day                     = types.Day
 )
 
 var (
 	// functions aliases
-	NewMsgTrackAdd           = types.NewMsgTrackAdd
-	NewGenesisState          = types.NewGenesisState
-	DefaultGenesisState      = types.DefaultGenesisState
-	ValidateGenesis          = types.ValidateGenesis
-	RegisterCodec            = types.RegisterCodec
+	NewMsgTrackPublish       = types.NewMsgTrackPublish
+	NewMsgTrackTokenize      = types.NewMsgTrackTokenize
 	NewQueryContentParams    = types.NewQueryContentParams
 	DefaultQueryTracksParams = types.DefaultQueryTracksParams
-	NewDaoEntity             = types.NewDaoEntity
-	NewTrack                 = types.NewTrack
 	GetTrackIDBytes          = types.GetTrackIDBytes
 	GetTrackKey              = types.GetTrackKey
 	GetCreatorKey            = types.GetCreatorKey
 	GetTrackByCreatorAddr    = types.GetTrackByCreatorAddr
+	NewGenesisState          = types.NewGenesisState
+	DefaultGenesisState      = types.DefaultGenesisState
+	ValidateGenesis          = types.ValidateGenesis
+	NewDaoEntity             = types.NewDaoEntity
+	NewTokenInfo             = types.NewTokenInfo
+	NewTrack                 = types.NewTrack
+	RegisterCodec            = types.RegisterCodec
 	GetTxCmd                 = cli.GetTxCmd
 	GetCmdPublish            = cli.GetCmdPublish
+	GetCmdTokenize           = cli.GetCmdTokenize
 	GetQueryCmd              = cli.GetQueryCmd
 	GetCmdAll                = cli.GetCmdAll
 	GetCmdID                 = cli.GetCmdID
@@ -62,32 +65,32 @@ var (
 	NewKeeper                = keeper.NewKeeper
 
 	// variable aliases
-	AlbumTypeMap            = types.AlbumTypeMap
-	ReleaseDatePrecisionMap = types.ReleaseDatePrecisionMap
-	ModuleCdc               = types.ModuleCdc
 	DefaultCodespace        = types.DefaultCodespace
 	ErrCreateFailed         = types.ErrCreateFailed
-	TrackTypeMap            = types.TrackTypeMap
 	KeyLastTrackID          = types.KeyLastTrackID
 	TrackKeyPrefix          = types.TrackKeyPrefix
 	TracksCreatorKeyPrefix  = types.TracksCreatorKeyPrefix
+	AlbumTypeMap            = types.AlbumTypeMap
+	ReleaseDatePrecisionMap = types.ReleaseDatePrecisionMap
+	ModuleCdc               = types.ModuleCdc
 )
 
 type (
 	Keeper                   = keeper.Keeper
-	MsgTrackAdd              = types.MsgTrackAdd
-	Externals                = types.Externals
-	KeyValue                 = types.KeyValue
-	AlbumType                = types.AlbumType
-	Album                    = types.Album
-	ReleaseDatePrecision     = types.ReleaseDatePrecision
-	GenesisState             = types.GenesisState
+	MsgTrackPublish          = types.MsgTrackPublish
+	MsgTrackTokenize         = types.MsgTrackTokenize
 	QueryCreatorTracksParams = types.QueryCreatorTracksParams
 	QueryTrackParams         = types.QueryTrackParams
 	QueryTracksParams        = types.QueryTracksParams
+	Externals                = types.Externals
+	KeyValue                 = types.KeyValue
+	GenesisState             = types.GenesisState
 	DaoEntity                = types.DaoEntity
 	Dao                      = types.Dao
 	Image                    = types.Image
-	TrackType                = types.TrackType
+	AlbumType                = types.AlbumType
+	Album                    = types.Album
+	ReleaseDatePrecision     = types.ReleaseDatePrecision
+	TokenInfo                = types.TokenInfo
 	Track                    = types.Track
 )

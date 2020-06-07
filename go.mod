@@ -3,6 +3,7 @@ module github.com/bitsongofficial/go-bitsong
 go 1.13
 
 require (
+	github.com/Workiva/go-datastructures v1.0.52
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20200511222341-80be50319ca5
 	github.com/gorilla/mux v1.7.4
 	github.com/minio/sha256-simd v0.1.1 // indirect

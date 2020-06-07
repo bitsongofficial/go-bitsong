@@ -80,7 +80,7 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		track.ModuleName:  nil,
+		track.ModuleName:  {auth.Minter},
 		reward.ModuleName: nil,
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
