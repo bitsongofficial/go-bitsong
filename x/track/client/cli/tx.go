@@ -20,10 +20,6 @@ import (
 	"strings"
 )
 
-const (
-//flagDao  = "dao"
-)
-
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	contentTxCmd := &cobra.Command{

@@ -19,7 +19,7 @@ type Keeper struct {
 	cdc        *codec.Codec
 }
 
-// NewKeeper creates a content keeper
+// NewKeeper creates a track keeper
 func NewKeeper(bk bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
 	keeper := Keeper{
 		bankKeeper: bk,
@@ -102,6 +102,7 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (uint64, error) {
 	track.TrackID = k.autoIncrementID(ctx, types.KeyLastTrackID)
 	track.Uri = k.generateTrackUri(ctx, track.TrackID)
 
+	// TODO: add created_at
 	//content.CreatedAt = ctx.BlockHeader().Time
 	k.SetTrack(ctx, track)
 	k.SetCreatorTrack(ctx, track)
@@ -148,6 +149,8 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 }
 
 func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
+	// TODO: improve
+
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
 		return err
 	}
@@ -158,27 +161,3 @@ func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress)
 
 	return nil
 }
-
-/*func (k Keeper) IterateTracks(ctx sdk.Context, fn func(track types.Track) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.TrackKeyPrefix)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var track types.Track
-		k.cdc.MustUnmarshalBinaryBare(iterator.Value(), &track)
-		if fn(track) {
-			break
-		}
-	}
-}*/
-
-/*func allocateDaoFunds(cnt types.Content, coin sdk.Coin) types.Content {
-	// allocate dao funds
-	for i, rh := range cnt.RightsHolders {
-		price := sdk.NewDecCoinFromCoin(coin)
-		allocation := price.Amount.Quo(sdk.NewDec(100).Quo(rh.Quota))
-		cnt.RightsHolders[i].Rewards = rh.Rewards.Add(sdk.NewDecCoinFromDec(btsg.BondDenom, allocation))
-	}
-
-	return cnt
-}*/

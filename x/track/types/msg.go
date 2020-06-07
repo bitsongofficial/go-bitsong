@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Content messages types and routes
@@ -30,6 +31,18 @@ func (msg MsgTrackPublish) Route() string { return RouterKey }
 func (msg MsgTrackPublish) Type() string  { return TypeMsgTrackPublish }
 
 func (msg MsgTrackPublish) ValidateBasic() error {
+	if err := sdk.VerifyAddressFormat(msg.Creator); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track creator address cannot be empty")
+	}
+
+	if len(msg.TrackInfo) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track info cannot be empty")
+	}
+
+	if len(msg.TrackInfo) > MaxTrackInfoLength {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track info too large")
+	}
+
 	return nil
 }
 
@@ -41,19 +54,13 @@ func (msg MsgTrackPublish) GetSignBytes() []byte {
 // GetSigners defines whose signature is required
 func (msg MsgTrackPublish) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Creator}
-	/*addrs := make([]sdk.AccAddress, len(msg.Dao))
-	for i, de := range msg.Dao {
-		addrs[i] = de.Address
-	}
-
-	return addrs*/
 }
 
 func (msg MsgTrackPublish) String() string {
-	// TODO
-	return fmt.Sprintf(`Msg Track Add
-Title: %s`,
-		msg.Creator,
+	return fmt.Sprintf(`Msg Track Publish
+TrackInfo: %s,
+Creator: %s`,
+		msg.TrackInfo, msg.Creator,
 	)
 }
 
@@ -91,10 +98,11 @@ func (msg MsgTrackTokenize) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgTrackTokenize) String() string {
-	// TODO
 	return fmt.Sprintf(`Msg Track Tokenize
-ID: %d`,
-		msg.TrackID,
+Track ID: %d
+Denom: %s
+Creator: %s`,
+		msg.TrackID, msg.Denom, msg.Creator,
 	)
 }
 
@@ -103,7 +111,7 @@ var _ sdk.Msg = MsgTokenMint{}
 type MsgTokenMint struct {
 	TrackID   uint64         `json:"track_id" yaml:"track_id"`
 	Amount    sdk.Coin       `json:"amount" yaml:"amount"`
-	Recipient sdk.AccAddress `json:"reciptient" yaml:"recipient"`
+	Recipient sdk.AccAddress `json:"recipient" yaml:"recipient"`
 	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
 }
 
@@ -134,9 +142,11 @@ func (msg MsgTokenMint) GetSigners() []sdk.AccAddress {
 }
 
 func (msg MsgTokenMint) String() string {
-	// TODO
 	return fmt.Sprintf(`Msg Token Mint
-ID: %d`,
-		msg.TrackID,
+Track ID: %d
+Amount: %s
+Recipient: %s
+Creator: %s`,
+		msg.TrackID, msg.Amount, msg.Recipient, msg.Creator,
 	)
 }

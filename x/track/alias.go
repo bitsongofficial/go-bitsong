@@ -11,37 +11,33 @@ import (
 )
 
 const (
-	TypeMsgTrackPublish     = types.TypeMsgTrackPublish
-	TypeMsgTrackTokenize    = types.TypeMsgTrackTokenize
-	EventTypeTrackPublished = types.EventTypeTrackPublished
-	EventTypeTrackTokenized = types.EventTypeTrackTokenized
-	AttributeKeyTrackID     = types.AttributeKeyTrackID
-	QueryParams             = types.QueryParams
-	QueryTracks             = types.QueryTracks
-	QueryID                 = types.QueryID
-	QueryCreatorTracks      = types.QueryCreatorTracks
-	ModuleName              = types.ModuleName
-	StoreKey                = types.StoreKey
-	RouterKey               = types.RouterKey
-	QuerierRoute            = types.QuerierRoute
-	MaxNameLength           = types.MaxNameLength
-	MaxHashLength           = types.MaxHashLength
-	MaxUriLength            = types.MaxUriLength
-	MaxDaoLength            = types.MaxDaoLength
-	AlbumAlbum              = types.AlbumAlbum
-	AlbumSingle             = types.AlbumSingle
-	AlbumCompilation        = types.AlbumCompilation
-	Year                    = types.Year
-	Month                   = types.Month
-	Day                     = types.Day
+	ModuleName                 = types.ModuleName
+	StoreKey                   = types.StoreKey
+	RouterKey                  = types.RouterKey
+	QuerierRoute               = types.QuerierRoute
+	MaxTrackInfoLength         = types.MaxTrackInfoLength
+	TypeMsgTrackPublish        = types.TypeMsgTrackPublish
+	TypeMsgTrackTokenize       = types.TypeMsgTrackTokenize
+	TypeMsgTokenMint           = types.TypeMsgTokenMint
+	EventTypeTrackPublished    = types.EventTypeTrackPublished
+	EventTypeTrackTokenized    = types.EventTypeTrackTokenized
+	EventTypeTokenMinted       = types.EventTypeTokenMinted
+	AttributeKeyTrackID        = types.AttributeKeyTrackID
+	AttributeKeyTokenAmount    = types.AttributeKeyTokenAmount
+	AttributeKeyTokenRecipient = types.AttributeKeyTokenRecipient
+	QueryParams                = types.QueryParams
+	QueryTracks                = types.QueryTracks
+	QueryID                    = types.QueryID
+	QueryCreatorTracks         = types.QueryCreatorTracks
 )
 
 var (
 	// functions aliases
-	NewMsgTrackPublish       = types.NewMsgTrackPublish
-	NewMsgTrackTokenize      = types.NewMsgTrackTokenize
-	NewQueryContentParams    = types.NewQueryContentParams
-	DefaultQueryTracksParams = types.DefaultQueryTracksParams
+	NewHandler               = keeper.NewHandler
+	NewQuerier               = keeper.NewQuerier
+	NewKeeper                = keeper.NewKeeper
+	NewTokenInfo             = types.NewTokenInfo
+	NewTrack                 = types.NewTrack
 	GetTrackIDBytes          = types.GetTrackIDBytes
 	GetTrackKey              = types.GetTrackKey
 	GetCreatorKey            = types.GetCreatorKey
@@ -49,48 +45,38 @@ var (
 	NewGenesisState          = types.NewGenesisState
 	DefaultGenesisState      = types.DefaultGenesisState
 	ValidateGenesis          = types.ValidateGenesis
-	NewDaoEntity             = types.NewDaoEntity
-	NewTokenInfo             = types.NewTokenInfo
-	NewTrack                 = types.NewTrack
 	RegisterCodec            = types.RegisterCodec
-	GetTxCmd                 = cli.GetTxCmd
-	GetCmdPublish            = cli.GetCmdPublish
-	GetCmdTokenize           = cli.GetCmdTokenize
+	NewMsgTrackPublish       = types.NewMsgTrackPublish
+	NewMsgTrackTokenize      = types.NewMsgTrackTokenize
+	NewMsgTokenMint          = types.NewMsgTokenMint
+	NewQueryContentParams    = types.NewQueryContentParams
+	DefaultQueryTracksParams = types.DefaultQueryTracksParams
 	GetQueryCmd              = cli.GetQueryCmd
 	GetCmdAll                = cli.GetCmdAll
 	GetCmdID                 = cli.GetCmdID
 	GetCmdCreator            = cli.GetCmdCreator
-	NewHandler               = keeper.NewHandler
-	NewQuerier               = keeper.NewQuerier
-	NewKeeper                = keeper.NewKeeper
+	GetTxCmd                 = cli.GetTxCmd
+	GetCmdPublish            = cli.GetCmdPublish
+	GetCmdTokenize           = cli.GetCmdTokenize
+	GetCmdMint               = cli.GetCmdMint
 
 	// variable aliases
-	DefaultCodespace        = types.DefaultCodespace
-	ErrCreateFailed         = types.ErrCreateFailed
-	KeyLastTrackID          = types.KeyLastTrackID
-	TrackKeyPrefix          = types.TrackKeyPrefix
-	TracksCreatorKeyPrefix  = types.TracksCreatorKeyPrefix
-	AlbumTypeMap            = types.AlbumTypeMap
-	ReleaseDatePrecisionMap = types.ReleaseDatePrecisionMap
-	ModuleCdc               = types.ModuleCdc
+	KeyLastTrackID         = types.KeyLastTrackID
+	TrackKeyPrefix         = types.TrackKeyPrefix
+	TracksCreatorKeyPrefix = types.TracksCreatorKeyPrefix
+	ModuleCdc              = types.ModuleCdc
+	DefaultCodespace       = types.DefaultCodespace
 )
 
 type (
-	Keeper                   = keeper.Keeper
+	TokenInfo                = types.TokenInfo
+	Track                    = types.Track
+	GenesisState             = types.GenesisState
 	MsgTrackPublish          = types.MsgTrackPublish
 	MsgTrackTokenize         = types.MsgTrackTokenize
+	MsgTokenMint             = types.MsgTokenMint
 	QueryCreatorTracksParams = types.QueryCreatorTracksParams
 	QueryTrackParams         = types.QueryTrackParams
 	QueryTracksParams        = types.QueryTracksParams
-	Externals                = types.Externals
-	KeyValue                 = types.KeyValue
-	GenesisState             = types.GenesisState
-	DaoEntity                = types.DaoEntity
-	Dao                      = types.Dao
-	Image                    = types.Image
-	AlbumType                = types.AlbumType
-	Album                    = types.Album
-	ReleaseDatePrecision     = types.ReleaseDatePrecision
-	TokenInfo                = types.TokenInfo
-	Track                    = types.Track
+	Keeper                   = keeper.Keeper
 )

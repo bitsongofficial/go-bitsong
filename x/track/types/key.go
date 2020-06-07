@@ -18,10 +18,7 @@ const (
 	// QuerierRoute to be used for querierer msgs
 	QuerierRoute = ModuleName
 
-	MaxNameLength int = 65
-	MaxHashLength int = 1000
-	MaxUriLength  int = 165
-	MaxDaoLength  int = 15
+	MaxTrackInfoLength = 2 * 2024
 )
 
 // Keys for track store

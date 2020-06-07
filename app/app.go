@@ -4,8 +4,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/bitsongofficial/go-bitsong/x/mint"
-	"github.com/bitsongofficial/go-bitsong/x/reward"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -25,6 +23,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	port "github.com/cosmos/cosmos-sdk/x/ibc/05-port"
 	transfer "github.com/cosmos/cosmos-sdk/x/ibc/20-transfer"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	stdmint "github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
@@ -65,7 +64,6 @@ var (
 
 		// Custom modules
 		track.AppModuleBasic{},
-		reward.AppModuleBasic{},
 
 		// IBC modules
 		transfer.AppModuleBasic{},
@@ -80,8 +78,7 @@ var (
 		staking.NotBondedPoolName: {auth.Burner, auth.Staking},
 		gov.ModuleName:            {auth.Burner},
 
-		track.ModuleName:  {auth.Minter},
-		reward.ModuleName: nil,
+		track.ModuleName: {auth.Minter},
 
 		transfer.GetModuleAccountName(): {auth.Minter, auth.Burner},
 	}
@@ -123,9 +120,8 @@ type GoBitsong struct {
 	paramsKeeper     params.Keeper
 	ibcKeeper        *ibc.Keeper
 
-	// Custom modules
-	contentKeeper track.Keeper
-	rewardKeeper  reward.Keeper
+	// BitSong modules
+	trackKeeper track.Keeper
 
 	// IBC modules
 	transferKeeper transfer.Keeper
@@ -153,9 +149,8 @@ func NewBitsongApp(
 		gov.StoreKey, params.StoreKey, ibc.StoreKey, transfer.StoreKey,
 		capability.StoreKey,
 
-		// Custom modules
+		// BitSong modules
 		track.StoreKey,
-		reward.StoreKey,
 
 		// IBC modules
 	)
@@ -236,12 +231,8 @@ func NewBitsongApp(
 		app.cdc, appCodec, keys[ibc.StoreKey], app.stakingKeeper, scopedIBCKeeper,
 	)
 
-	// Custom modules
-	app.rewardKeeper = reward.NewKeeper(
-		app.bankKeeper, app.cdc, app.keys[reward.ModuleName],
-	)
-	stdMintKeeper := mint.NewKeeper(app.bankKeeper, app.rewardKeeper)
-	app.contentKeeper = track.NewKeeper(
+	// BitSong modules
+	app.trackKeeper = track.NewKeeper(
 		app.bankKeeper, app.cdc, app.keys[track.ModuleName],
 	)
 
@@ -267,16 +258,15 @@ func NewBitsongApp(
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(stdmint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper), app.mintKeeper, stdMintKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		params.NewAppModule(app.paramsKeeper),
 
-		// Custom modules
-		reward.NewAppModule(app.rewardKeeper),
-		track.NewAppModule(app.contentKeeper),
+		// BitSong modules
+		track.NewAppModule(app.trackKeeper),
 
 		// IBC modules
 		transferModule,
@@ -298,8 +288,8 @@ func NewBitsongApp(
 		slashing.ModuleName, gov.ModuleName, stdmint.ModuleName, crisis.ModuleName,
 		ibc.ModuleName, genutil.ModuleName, transfer.ModuleName,
 
-		// Custom modules
-		reward.ModuleName, track.ModuleName,
+		// BitSong modules
+		track.ModuleName,
 
 		// IBC Modules
 	)

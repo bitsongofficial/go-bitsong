@@ -42,7 +42,7 @@ func queryTracks(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 
 func queryTrackByID(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	if path[0] == "" {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown cid %s", path[0]))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown trackID %s", path[0]))
 	}
 
 	id, err := strconv.ParseUint(path[0], 10, 64)

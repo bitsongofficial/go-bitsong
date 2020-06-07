@@ -39,10 +39,7 @@ func handleMsgTrackPublish(ctx sdk.Context, keeper Keeper, msg types.MsgTrackPub
 		),
 	)
 
-	return &sdk.Result{
-		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(cid),
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgTrackTokenize(ctx sdk.Context, keeper Keeper, msg types.MsgTrackTokenize) (*sdk.Result, error) {
@@ -69,10 +66,7 @@ func handleMsgTrackTokenize(ctx sdk.Context, keeper Keeper, msg types.MsgTrackTo
 		),
 	)
 
-	return &sdk.Result{
-		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(cid),
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }
 
 func handleMsgTokenMint(ctx sdk.Context, keeper Keeper, msg types.MsgTokenMint) (*sdk.Result, error) {
@@ -99,8 +93,5 @@ func handleMsgTokenMint(ctx sdk.Context, keeper Keeper, msg types.MsgTokenMint) 
 		),
 	)
 
-	return &sdk.Result{
-		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(cid),
-		Events: ctx.EventManager().Events().ToABCIEvents(),
-	}, nil
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
 }

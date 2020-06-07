@@ -1,6 +1,6 @@
 package types
 
-// GenesisState - all content state that must be provided at genesis
+// GenesisState - all tracks state that must be provided at genesis
 type GenesisState struct {
 	Tracks []Track `json:"tracks"`
 }
@@ -19,7 +19,7 @@ func DefaultGenesisState() GenesisState {
 	}
 }
 
-// ValidateGenesis validates the contents genesis parameters
+// ValidateGenesis validates the tracks genesis parameters
 func ValidateGenesis(data GenesisState) error {
 	for _, item := range data.Tracks {
 		if err := item.Validate(); err != nil {
