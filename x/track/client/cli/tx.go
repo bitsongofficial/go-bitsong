@@ -16,8 +16,11 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/spf13/cobra"
 	"io/ioutil"
-	"strconv"
 	"strings"
+)
+
+const (
+	flagEntities = "entity"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -31,22 +34,23 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
-		GetCmdPublish(cdc),
-		GetCmdTokenize(cdc),
-		GetCmdMint(cdc),
+		GetCmdCreate(cdc),
 	)...)
 
 	return contentTxCmd
 }
 
-func GetCmdPublish(cdc *codec.Codec) *cobra.Command {
+func GetCmdCreate(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "publish",
-		Short: "Publish a new track to bitsong",
+		Use:   "create",
+		Short: "Create a new Smart Media Contract on bitsong",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Publish a new track to bitsong.
+			fmt.Sprintf(`Create a new Smart Media Contract on bitsong.
 Example:
-$ %s tx track publish [track-info.json] --from <creator>`,
+$ %s tx track create [contract.json] \
+--entity=100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a \
+--entity=200:bitsong1dykf46zf3ss442j6cydaajk27xalny9y9chwnz \
+--from <creator>`,
 				version.ClientName,
 			),
 		),
@@ -66,107 +70,39 @@ $ %s tx track publish [track-info.json] --from <creator>`,
 				return err
 			}
 
-			msg := types.NewMsgTrackPublish(trackInfoBz.Bytes(), cliCtx.FromAddress)
-			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-
-			/*daoStr, err := cmd.Flags().GetStringArray(flagDao)
+			entitiesStr, err := cmd.Flags().GetStringArray(flagEntities)
 			if err != nil {
-				return fmt.Errorf("invalid dao value")
+				return fmt.Errorf("invalid entities value")
 			}
 
-			dao := types.Dao{}
-			for _, rh := range daoStr {
-				deArgs := strings.Split(rh, ":")
-				if len(deArgs) != 2 {
-					return fmt.Errorf("the dao format must be \"shares:address\" ex: \"1000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a\"")
+			var entities []types.Entity
+			for _, ent := range entitiesStr {
+				eargs := strings.Split(ent, ":")
+				if len(eargs) != 2 {
+					return fmt.Errorf("the entities format must be \"shares:address\" ex: \"1000:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a\"")
 				}
-				des, err := sdk.NewDecFromStr(deArgs[0])
+				eShares, ok := sdk.NewIntFromString(eargs[0])
+				if !ok {
+					return fmt.Errorf("invalid entities shares: %s", eargs[0])
+				}
+				eAddr, err := sdk.AccAddressFromBech32(eargs[1])
 				if err != nil {
-					return err
+					return fmt.Errorf("entity address is wrong, %s", err.Error())
 				}
-				deAddr, err := sdk.AccAddressFromBech32(deArgs[1])
-				if err != nil {
-					return fmt.Errorf("dao entity address is wrong, %s", err.Error())
+
+				entity := types.Entity{
+					Shares:  eShares,
+					Address: eAddr,
 				}
-				de := types.NewDaoEntity(des, deAddr)
-				dao = append(dao, de)
-			}*/
-		},
-	}
-
-	// cmd.Flags().StringArray(flagDao, []string{}, "Track DAO")
-
-	return cmd
-}
-func GetCmdTokenize(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tokenize",
-		Short: "Tokenize a new track",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Tokenize a new track.
-Example:
-$ %s tx track tokenize [track-id] [denom] --from <creator>`,
-				version.ClientName,
-			),
-		),
-		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			trackID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
+				entities = append(entities, entity)
 			}
 
-			denom := strings.TrimSpace(args[1])
-
-			msg := types.NewMsgTrackTokenize(trackID, denom, cliCtx.FromAddress)
+			msg := types.NewMsgTrackCreate(trackInfoBz.Bytes(), cliCtx.FromAddress, entities)
 			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
-	return cmd
-}
-func GetCmdMint(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "mint",
-		Short: "Mint track token to a recipient",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Mint track token to a recipient.
-Example:
-$ %s tx track mint [trackID] [amount] [recipient] --from <creator>`,
-				version.ClientName,
-			),
-		),
-		Args: cobra.ExactArgs(3),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
-			trackID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			amount, err := sdk.ParseCoin(args[1])
-			if err != nil {
-				return err
-			}
-
-			recipient, err := sdk.AccAddressFromBech32(args[2])
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgTokenMint(trackID, amount, recipient, cliCtx.FromAddress)
-			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
+	cmd.Flags().StringArray(flagEntities, []string{}, "Track Entities")
 
 	return cmd
 }
-
-// func GetCmdDisableMint

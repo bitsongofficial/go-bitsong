@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/binary"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -18,7 +17,8 @@ const (
 	// QuerierRoute to be used for querierer msgs
 	QuerierRoute = ModuleName
 
-	MaxTrackInfoLength = 2 * 2024
+	// TODO: move to params
+	MaxTrackInfoLength = 30 * 1024
 )
 
 // Keys for track store
@@ -27,19 +27,15 @@ const (
 // - 0x00<trackID_Bytes>: Track
 // - 0x10<creatorAddr_Bytes><trackID_Bytes>: Track
 var (
-	KeyLastTrackID = []byte("lastTrackId")
-
 	TrackKeyPrefix         = []byte{0x00}
 	TracksCreatorKeyPrefix = []byte{0x10}
 )
 
-func GetTrackIDBytes(id uint64) []byte {
-	idBz := make([]byte, 8)
-	binary.BigEndian.PutUint64(idBz, id)
-	return idBz
+func GetTrackIDBytes(id string) []byte {
+	return []byte(id)
 }
 
-func GetTrackKey(id uint64) []byte {
+func GetTrackKey(id string) []byte {
 	return append(TrackKeyPrefix, GetTrackIDBytes(id)...)
 }
 
@@ -47,6 +43,6 @@ func GetCreatorKey(addr sdk.AccAddress) []byte {
 	return append(TracksCreatorKeyPrefix, addr.Bytes()...)
 }
 
-func GetTrackByCreatorAddr(addr sdk.AccAddress, trackID uint64) []byte {
+func GetTrackByCreatorAddr(addr sdk.AccAddress, trackID string) []byte {
 	return append(GetCreatorKey(addr), GetTrackIDBytes(trackID)...)
 }

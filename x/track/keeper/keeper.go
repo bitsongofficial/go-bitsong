@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/binary"
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/track/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -34,7 +33,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetTrack(ctx sdk.Context, id uint64) (track types.Track, ok bool) {
+func (k Keeper) GetTrack(ctx sdk.Context, id string) (track types.Track, ok bool) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetTrackKey(id))
 	if bz == nil {
@@ -98,8 +97,8 @@ func (k Keeper) GetTracksPaginated(ctx sdk.Context, params types.QueryTracksPara
 	return tracks
 }
 
-func (k Keeper) Add(ctx sdk.Context, track *types.Track) (uint64, error) {
-	track.TrackID = k.autoIncrementID(ctx, types.KeyLastTrackID)
+func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
+	//track.TrackID = k.autoIncrementID(ctx, types.KeyLastTrackID)
 	track.Uri = k.generateTrackUri(ctx, track.TrackID)
 
 	// TODO: add created_at
@@ -110,20 +109,8 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (uint64, error) {
 	return track.TrackID, nil
 }
 
-func (k Keeper) autoIncrementID(ctx sdk.Context, lastIDKey []byte) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(lastIDKey)
-	id := uint64(1)
-	if bz != nil {
-		id = binary.BigEndian.Uint64(bz)
-	}
-	bz = sdk.Uint64ToBigEndian(id + 1)
-	store.Set(lastIDKey, bz)
-	return id
-}
-
-func (k Keeper) generateTrackUri(ctx sdk.Context, trackID uint64) string {
-	return fmt.Sprintf("bitsong:track:%d", trackID)
+func (k Keeper) generateTrackUri(ctx sdk.Context, trackID string) string {
+	return fmt.Sprintf("bitsong:track:%s", trackID)
 }
 
 func (k Keeper) SetCreatorTrack(ctx sdk.Context, track *types.Track) {
@@ -137,7 +124,7 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 	iterator := sdk.KVStorePrefixIterator(store, types.GetCreatorKey(creator))
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var trackID uint64
+		var trackID string
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &trackID)
 		track, ok := k.GetTrack(ctx, trackID)
 		if ok {
@@ -149,7 +136,7 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 }
 
 func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
-	// TODO: improve
+	// TODO: add security checks and improve
 
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
 		return err

@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"strconv"
 )
 
 func NewQuerier(keeper Keeper) sdk.Querier {
@@ -45,12 +44,8 @@ func queryTrackByID(ctx sdk.Context, path []string, req abci.RequestQuery, keepe
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown trackID %s", path[0]))
 	}
 
-	id, err := strconv.ParseUint(path[0], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	track, found := keeper.GetTrack(ctx, id)
+	// TODO: if path[0] is null or empty
+	track, found := keeper.GetTrack(ctx, path[0])
 	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("trackID %s not found", path[0]))
 	}

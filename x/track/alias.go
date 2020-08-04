@@ -11,32 +11,35 @@ import (
 )
 
 const (
+	QueryParams                = types.QueryParams
+	QueryTracks                = types.QueryTracks
+	QueryID                    = types.QueryID
+	QueryCreatorTracks         = types.QueryCreatorTracks
 	ModuleName                 = types.ModuleName
 	StoreKey                   = types.StoreKey
 	RouterKey                  = types.RouterKey
 	QuerierRoute               = types.QuerierRoute
 	MaxTrackInfoLength         = types.MaxTrackInfoLength
-	TypeMsgTrackPublish        = types.TypeMsgTrackPublish
-	TypeMsgTrackTokenize       = types.TypeMsgTrackTokenize
-	TypeMsgTokenMint           = types.TypeMsgTokenMint
-	EventTypeTrackPublished    = types.EventTypeTrackPublished
-	EventTypeTrackTokenized    = types.EventTypeTrackTokenized
-	EventTypeTokenMinted       = types.EventTypeTokenMinted
+	TypeMsgTrackCreate         = types.TypeMsgTrackCreate
+	EventTypeTrackCreated      = types.EventTypeTrackCreated
 	AttributeKeyTrackID        = types.AttributeKeyTrackID
 	AttributeKeyTokenAmount    = types.AttributeKeyTokenAmount
 	AttributeKeyTokenRecipient = types.AttributeKeyTokenRecipient
-	QueryParams                = types.QueryParams
-	QueryTracks                = types.QueryTracks
-	QueryID                    = types.QueryID
-	QueryCreatorTracks         = types.QueryCreatorTracks
 )
 
 var (
 	// functions aliases
+	GetQueryCmd              = cli.GetQueryCmd
+	GetCmdAll                = cli.GetCmdAll
+	GetCmdID                 = cli.GetCmdID
+	GetCmdCreator            = cli.GetCmdCreator
+	GetTxCmd                 = cli.GetTxCmd
+	GetCmdCreate             = cli.GetCmdCreate
 	NewHandler               = keeper.NewHandler
 	NewQuerier               = keeper.NewQuerier
 	NewKeeper                = keeper.NewKeeper
-	NewTokenInfo             = types.NewTokenInfo
+	NewQueryContentParams    = types.NewQueryContentParams
+	DefaultQueryTracksParams = types.DefaultQueryTracksParams
 	NewTrack                 = types.NewTrack
 	GetTrackIDBytes          = types.GetTrackIDBytes
 	GetTrackKey              = types.GetTrackKey
@@ -46,37 +49,21 @@ var (
 	DefaultGenesisState      = types.DefaultGenesisState
 	ValidateGenesis          = types.ValidateGenesis
 	RegisterCodec            = types.RegisterCodec
-	NewMsgTrackPublish       = types.NewMsgTrackPublish
-	NewMsgTrackTokenize      = types.NewMsgTrackTokenize
-	NewMsgTokenMint          = types.NewMsgTokenMint
-	NewQueryContentParams    = types.NewQueryContentParams
-	DefaultQueryTracksParams = types.DefaultQueryTracksParams
-	GetQueryCmd              = cli.GetQueryCmd
-	GetCmdAll                = cli.GetCmdAll
-	GetCmdID                 = cli.GetCmdID
-	GetCmdCreator            = cli.GetCmdCreator
-	GetTxCmd                 = cli.GetTxCmd
-	GetCmdPublish            = cli.GetCmdPublish
-	GetCmdTokenize           = cli.GetCmdTokenize
-	GetCmdMint               = cli.GetCmdMint
+	NewMsgTrackCreate        = types.NewMsgTrackCreate
 
 	// variable aliases
-	KeyLastTrackID         = types.KeyLastTrackID
+	DefaultCodespace       = types.DefaultCodespace
 	TrackKeyPrefix         = types.TrackKeyPrefix
 	TracksCreatorKeyPrefix = types.TracksCreatorKeyPrefix
 	ModuleCdc              = types.ModuleCdc
-	DefaultCodespace       = types.DefaultCodespace
 )
 
 type (
-	TokenInfo                = types.TokenInfo
-	Track                    = types.Track
-	GenesisState             = types.GenesisState
-	MsgTrackPublish          = types.MsgTrackPublish
-	MsgTrackTokenize         = types.MsgTrackTokenize
-	MsgTokenMint             = types.MsgTokenMint
+	Keeper                   = keeper.Keeper
 	QueryCreatorTracksParams = types.QueryCreatorTracksParams
 	QueryTrackParams         = types.QueryTrackParams
 	QueryTracksParams        = types.QueryTracksParams
-	Keeper                   = keeper.Keeper
+	Track                    = types.Track
+	GenesisState             = types.GenesisState
+	MsgTrackCreate           = types.MsgTrackCreate
 )
