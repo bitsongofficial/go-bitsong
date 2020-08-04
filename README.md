@@ -35,7 +35,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
     cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout v0.3.1
+    git checkout develop
     ```
   3. **Compile**
 		```bash
@@ -63,16 +63,20 @@ To initialize configuration and a `genesis.json` file for your application and a
 
 ```bash
 # Initialize configuration files and genesis file
-bitsongd init MyValidator --chain-id bitsong-local-1
+bitsongd init MyValidator --chain-id bitsong-localnet
 
 # Configure your CLI to eliminate need for chain-id flag
-bitsongcli config chain-id bitsong-local-1
+bitsongcli config chain-id bitsong-localnet
 bitsongcli config output json
 bitsongcli config indent true
 bitsongcli config trust-node true
+bitsongcli config keyring-backend test
 
 # Change default bond token genesis.json
 sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
+sed -i 's/"leveldb"/"goleveldb"/g' ~/.bitsongd/config/config.toml
+sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' ~/.bitsongd/config/config.toml
+sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' ~/.bitsongd/config/config.toml
 
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
@@ -81,12 +85,12 @@ bitsongcli keys add jack
 # Copy the `Address` output here and save it for later use
 bitsongcli keys add alice
 
-# Generate the transaction that creates your validator
-bitsongd gentx --name jack --amount=150000000ubtsg
-
 # Add both accounts, with coins to the genesis file
-bitsongd add-genesis-account $(bitsongcli keys show jack -a) 150000000000ubtsg
-bitsongd add-genesis-account $(bitsongcli keys show alice -a) 150000000000ubtsg
+bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
+bitsongd add-genesis-account alice 100000000000ubtsg --keyring-backend test
+
+# Generate the transaction that creates your validator
+bitsongd gentx --name jack --amount=10000000ubtsg
 
 # Add the generated bonding transaction to the genesis file
 bitsongd collect-gentxs
@@ -110,7 +114,7 @@ bitsongcli query account $(bitsongcli keys show alice -a)
 You can now start the first transaction
 
 ```bash
-bitsongcli tx send --from=$(bitsongcli keys show jack -a)  $(bitsongcli keys show alice -a) 10ubtsg
+bitsongcli tx send --from=$(bitsongcli keys show jack -a) $(bitsongcli keys show alice -a) 10ubtsg
 ```
 
 # Query
@@ -120,80 +124,135 @@ Query an account
 bitsongcli query account $(bitsongcli keys show jack -a)
 ```
 
+Query balances
+
+```bash
+bitsongcli query bank balances $(bitsongcli keys show jack -a)
+```
+
+Query total supply
+
+```bash
+bitsongcli query bank total
+```
+
 # Module Tracks
 
-### Create track
+## Create track
 ```bash
-bitsongcli tx track create --title "The Show Must Go On" \
-  --audio="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" \
-  --image="QmWATWQ7fVPP2EFGu71UkfnqhYXDYH566qy47CnJDgvs8u" \
-  --duration 385 \
-  --genre "pop" \
-  --mood "happy" \
-  --artists "Queen" \
-  --featuring "Angelo" \
-  --producers "Angelo" \
-  --description="The track description" \
-  --copyright="My Copyright info" \
+bitsongcli tx track create ./test-data/mp21/download-big-label.json \
+  --entity=100:$(bitsongcli keys show jack -a) \
+  --entity=400:$(bitsongcli keys show alice -a) \
   --from jack \
-  -b block
+  --gas 500000 \
+  -b block \
 ```
 
-### Deposit on track
+## Query minted shares
 ```bash
-bitsongcli tx track deposit 1 10000000ubtsg --from jack
-bitsongcli tx track deposit 1 10000000ubtsg --from alice
-bitsongcli tx track deposit 1 80000000ubtsg --from alice
+bitsongcli query bank balances $(bitsongcli keys show jack -a)
+bitsongcli query bank balances $(bitsongcli keys show alice -a)
 ```
 
-### Play Track TX
-Currently payout epoch: 60 blocks
+## Deposit on track
+TODO
 
-```bash
-bitsongcli tx track play 1 --from alice
-```
+## Report Stream
+TODO
 
-### Query on tracks
+## Report Download
+TODO
+
+## Withdraw Rewards
+
+## Query on tracks
 ```bash
-# Query all tracks with status Nil
+# Query all tracks
 bitsongcli query track all
 
-# Query all tracks with status DepositPeriod
-bitsongcli query track all --status DepositPeriod
+# Query track by id
+bitsongcli query track id f888cbdf-3f63-449d-b4dc-93728195093b
 
-# Query all tracks with status Rejected
-bitsongcli query track all --status Rejected
-
-# Query all tracks with status Failed
-bitsongcli query track all --status Failed
-
-# Query all tracks with status Verified
-bitsongcli query track all --status Verified
-
-# Query track by ID
-bitsongcli query track track 1
-
-# Query plays by track ID
-bitsongcli query track plays 1
-
-# Query all track shares
-bitsongcli query track shares
-
-# Query total deposits on track
-bitsongcli query track deposits 1
+# Query all tracks by creator
+bitsongcli query track creator $(bitsongcli keys show jack -a)
 ```
 
-# Module Reward
+## REST - API
 
-Query the Reward Pool
 ```bash
-bitsongcli query reward all
+# Start LCD
+bitsongcli rest-server
+```
+
+## [`/tracks`](http://localhost:1317/tracks)
+
+### Request
+`GET http://localhost:1317/tracks`
+
+### Response
+```json5
+{
+  "height": "716",
+  "result": [
+    {
+      "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
+      "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
+      "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
+      "track_info": "...",
+      "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
+    },
+    // ...
+  ]
+}
+```
+
+## [`/tracks/:track_id`](http://localhost:1317/tracks/f888cbdf-3f63-449d-b4dc-93728195093b)
+
+### Request
+`GET http://localhost:1317/tracks/f888cbdf-3f63-449d-b4dc-93728195093b`
+
+### Response
+```json5
+{
+  "height": "716",
+  "result": {
+    "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
+    "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
+    "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
+    "track_info": "...",
+    "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
+  }
+}
+```
+
+## [`/tracks/:creator`](http://localhost:1317/tracks/bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w)
+
+### Request
+`GET http://localhost:1317/tracks/bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w`
+
+### Response
+```json5
+{
+  "height": "716",
+  "result": {
+    "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
+    "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
+    "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
+    "track_info": "...",
+    "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
+  }
+}
 ```
 
 ## Resources
 - [Official Website](https://bitsong.io)
 
+## Buy/Sell BTSG ERC20
+- [Uniswap BTSG/ETH](https://app.uniswap.org/#/swap?outputCurrency=0x05079687d35b93538cbd59fe5596380cae9054a9)
+- [Uniswap Liquidity Pool BTSG/ETH](https://uniswap.info/pair/0x98195a436C46EE53803eDA921dC3932073Ed7f4d)
+
 ### Community
+- [Discord](https://discord.gg/mZC9Yk3)
 - [Twitter](https://twitter.com/BitSongOfficial)
 - [Telegram Channel (English)](https://t.me/BitSongOfficial)
 - [Medium](https://medium.com/@BitSongOfficial)
