@@ -13,6 +13,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgTrackCreate:
 			return handleMsgTrackCreate(ctx, keeper, msg)
+		case types.MsgTrackAddShare:
+			return handleMsgTrackAddShare(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -43,6 +45,23 @@ func handleMsgTrackCreate(ctx sdk.Context, keeper Keeper, msg types.MsgTrackCrea
 		sdk.NewEvent(
 			types.EventTypeTrackCreated,
 			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%s", trackID)),
+		),
+	)
+
+	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
+}
+
+func handleMsgTrackAddShare(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAddShare) (*sdk.Result, error) {
+	if err := keeper.AddShares(ctx, msg.TrackID, msg.Shares, msg.Entity); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeTrackAddedShare,
+			sdk.NewAttribute(types.AttributeKeyTrackID, fmt.Sprintf("%s", msg.TrackID)),
+			sdk.NewAttribute("entity", fmt.Sprintf("%s", msg.Entity.String())),
+			sdk.NewAttribute("share", fmt.Sprintf("%s", msg.Shares.String())),
 		),
 	)
 

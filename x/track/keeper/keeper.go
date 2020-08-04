@@ -148,3 +148,60 @@ func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress)
 
 	return nil
 }
+
+/********
+/ SHARES
+********/
+
+func (k Keeper) GetShares(ctx sdk.Context, trackId string, entity sdk.AccAddress) (share types.Share, ok bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetSharesByTrackIDAndEntity(trackId, entity))
+	if bz == nil {
+		return
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &share)
+	return share, true
+}
+
+func (k Keeper) SetShares(ctx sdk.Context, share *types.Share) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&share)
+	store.Set(types.GetSharesByTrackIDAndEntity(share.TrackID, share.Entity), bz)
+}
+
+func (k Keeper) AddShares(ctx sdk.Context, trackId string, amount sdk.Coin, entity sdk.AccAddress) error {
+	// TODO: add security checks and improve
+
+	// 1. ensure track exist
+	track, ok := k.GetTrack(ctx, trackId)
+	if !ok {
+		return fmt.Errorf("track not exist")
+	}
+
+	fmt.Println("track exist")
+
+	if track.ToCoinDenom() != amount.Denom {
+		return fmt.Errorf("share denom mismatch")
+	}
+
+	fmt.Println("denom equal")
+
+	// 2. send coin from entity to module
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, entity, types.ModuleName, sdk.Coins{amount}); err != nil {
+		return err
+	}
+
+	fmt.Println("coin sent")
+
+	// 3. get current shares
+	share, _ := k.GetShares(ctx, trackId, entity)
+	fmt.Println(fmt.Sprintf("%v", share))
+	share.Shares = amount
+	fmt.Println(fmt.Sprintf("%v", share))
+
+	k.SetShares(ctx, &share)
+
+	fmt.Println("share is ok")
+
+	return nil
+}

@@ -2,7 +2,8 @@ package types
 
 const (
 	// Track events
-	EventTypeTrackCreated = "track_created"
+	EventTypeTrackCreated    = "track_created"
+	EventTypeTrackAddedShare = "track_added_share"
 
 	// Track attributes
 	AttributeKeyTrackID = "track_id"

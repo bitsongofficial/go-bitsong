@@ -3,11 +3,9 @@ module github.com/bitsongofficial/go-bitsong
 go 1.13
 
 require (
-	github.com/Workiva/go-datastructures v1.0.52 // indirect
 	github.com/cosmos/cosmos-sdk v0.34.4-0.20200511222341-80be50319ca5
 	github.com/google/uuid v1.0.0
 	github.com/gorilla/mux v1.7.4
-	github.com/minio/sha256-simd v0.1.1 // indirect
 	github.com/otiai10/copy v1.1.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0

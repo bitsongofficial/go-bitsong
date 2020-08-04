@@ -26,9 +26,11 @@ const (
 //
 // - 0x00<trackID_Bytes>: Track
 // - 0x10<creatorAddr_Bytes><trackID_Bytes>: Track
+// - 0x20<trackID_Bytes><entityAddr_Bytes>: Share
 var (
 	TrackKeyPrefix         = []byte{0x00}
 	TracksCreatorKeyPrefix = []byte{0x10}
+	TracksDepositKeyPrefix = []byte{0x20}
 )
 
 func GetTrackIDBytes(id string) []byte {
@@ -45,4 +47,12 @@ func GetCreatorKey(addr sdk.AccAddress) []byte {
 
 func GetTrackByCreatorAddr(addr sdk.AccAddress, trackID string) []byte {
 	return append(GetCreatorKey(addr), GetTrackIDBytes(trackID)...)
+}
+
+func GetTrackShareKey(id string) []byte {
+	return append(TracksDepositKeyPrefix, GetTrackIDBytes(id)...)
+}
+
+func GetSharesByTrackIDAndEntity(id string, entity sdk.AccAddress) []byte {
+	return append(GetTrackShareKey(id), entity.Bytes()...)
 }

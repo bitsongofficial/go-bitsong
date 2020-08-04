@@ -35,6 +35,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdCreate(cdc),
+		GetCmdAddShare(cdc),
 	)...)
 
 	return contentTxCmd
@@ -103,6 +104,36 @@ $ %s tx track create [contract.json] \
 	}
 
 	cmd.Flags().StringArray(flagEntities, []string{}, "Track Entities")
+
+	return cmd
+}
+
+func GetCmdAddShare(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add-share",
+		Short: "Add share to Smart Media Contract",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Add share to Smart Media Contract.
+Example:
+$ %s tx track add-share [trackID] [shares] --from <creator>`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(authclient.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			amt, err := sdk.ParseCoin(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgTrackAddShare(args[0], amt, cliCtx.FromAddress)
+			return authclient.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
 
 	return cmd
 }
