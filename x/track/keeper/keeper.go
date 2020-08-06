@@ -194,8 +194,12 @@ func (k Keeper) AddShares(ctx sdk.Context, trackId string, amount sdk.Coin, enti
 	}
 
 	// 3. get current shares
-	share, _ := k.GetShares(ctx, trackId, entity)
-	share.Shares = share.Shares.Add(amount)
+	share, found := k.GetShares(ctx, trackId, entity)
+	if !found {
+		share.Shares = amount
+	} else {
+		share.Shares = share.Shares.Add(amount)
+	}
 	k.SetShares(ctx, &share)
 
 	return nil

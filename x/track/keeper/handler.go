@@ -58,7 +58,7 @@ func handleMsgTrackCreate(ctx sdk.Context, keeper Keeper, msg types.MsgTrackCrea
 
 func handleMsgTrackAddShare(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAddShare) (*sdk.Result, error) {
 	if err := keeper.AddShares(ctx, msg.TrackID, msg.Shares, msg.Entity); err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
