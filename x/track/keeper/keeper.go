@@ -148,9 +148,9 @@ func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress)
 		return err
 	}
 
-	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
+	/*if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
 		return err
-	}
+	}*/
 
 	return nil
 }

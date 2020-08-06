@@ -48,6 +48,7 @@ var (
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
+		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler, distr.ProposalHandler, upgradeclient.ProposalHandler,
@@ -101,7 +102,7 @@ type GoBitsong struct {
 	supplyKeeper   supply.Keeper
 	stakingKeeper  staking.Keeper
 	slashingKeeper slashing.Keeper
-	//mintKeeper       stdmint.Keeper
+	mintKeeper     mint.Keeper
 	distrKeeper    distr.Keeper
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
@@ -134,7 +135,7 @@ func NewBitsongApp(
 	bApp.SetAppVersion(version.Version)
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
-		supply.StoreKey, distr.StoreKey, slashing.StoreKey,
+		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, upgrade.StoreKey, params.StoreKey, evidence.StoreKey,
 
 		// BitSong modules
@@ -156,6 +157,7 @@ func NewBitsongApp(
 	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[mint.ModuleName] = app.paramsKeeper.Subspace(mint.DefaultParamspace)
 	app.subspaces[distr.ModuleName] = app.paramsKeeper.Subspace(distr.DefaultParamspace)
 	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
@@ -174,6 +176,9 @@ func NewBitsongApp(
 	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc, keys[staking.StoreKey], app.supplyKeeper, app.subspaces[staking.ModuleName],
+	)
+	app.mintKeeper = mint.NewKeeper(
+		app.cdc, keys[mint.StoreKey], app.subspaces[mint.ModuleName], &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName,
 	)
 	app.distrKeeper = distr.NewKeeper(
 		app.cdc, keys[distr.StoreKey], app.subspaces[distr.ModuleName], &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName, app.ModuleAccountAddrs(),
@@ -224,6 +229,7 @@ func NewBitsongApp(
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
@@ -238,7 +244,7 @@ func NewBitsongApp(
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
 	app.mm.SetOrderBeginBlockers(
-		upgrade.ModuleName, distr.ModuleName, slashing.ModuleName,
+		upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
 		evidence.ModuleName, staking.ModuleName,
 	)
 	app.mm.SetOrderEndBlockers(crisis.ModuleName, gov.ModuleName, staking.ModuleName)
@@ -247,12 +253,11 @@ func NewBitsongApp(
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
-		slashing.ModuleName, gov.ModuleName, evidence.ModuleName,
+		slashing.ModuleName, gov.ModuleName, evidence.ModuleName, mint.ModuleName,
+		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 
 		// BitSong modules
-		//track.ModuleName,
-
-		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
+		track.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

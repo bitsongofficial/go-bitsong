@@ -4,22 +4,14 @@ import (
 	"github.com/bitsongofficial/go-bitsong/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-)
-
-const (
-	DefaultStartingProposalID uint64 = 1
-)
-
-var (
-	DefaultMinDepositTokens = sdk.TokensFromConsensusPower(10)
-	DefaultQuorum           = sdk.NewDecWithPrec(334, 3)
-	DefaultThreshold        = sdk.NewDecWithPrec(5, 1)
-	DefaultVeto             = sdk.NewDecWithPrec(334, 3)
 )
 
 // Init initializes the application, overriding the default genesis states that should be changed
 func Init() {
+	mint.DefaultGenesisState = mintGenesisState
 	staking.DefaultGenesisState = stakingGenesisState
 	gov.DefaultGenesisState = govGenesisState
 }
@@ -32,7 +24,7 @@ func stakingGenesisState() staking.GenesisState {
 			staking.DefaultUnbondingTime,
 			staking.DefaultMaxValidators,
 			staking.DefaultMaxEntries,
-			1000,
+			0,
 			types.BondDenom,
 		),
 	}
@@ -40,12 +32,25 @@ func stakingGenesisState() staking.GenesisState {
 
 func govGenesisState() gov.GenesisState {
 	return gov.NewGenesisState(
-		DefaultStartingProposalID,
+		1,
 		gov.NewDepositParams(
-			sdk.NewCoins(sdk.NewCoin(types.BondDenom, DefaultMinDepositTokens)),
+			sdk.NewCoins(sdk.NewCoin(types.BondDenom, govTypes.DefaultMinDepositTokens)),
 			gov.DefaultPeriod,
 		),
 		gov.NewVotingParams(gov.DefaultPeriod),
-		gov.NewTallyParams(DefaultQuorum, DefaultThreshold, DefaultVeto),
+		gov.NewTallyParams(govTypes.DefaultQuorum, govTypes.DefaultThreshold, govTypes.DefaultVeto),
 	)
+}
+
+func mintGenesisState() mint.GenesisState {
+	return mint.GenesisState{
+		Params: mint.NewParams(
+			types.BondDenom,
+			sdk.NewDecWithPrec(13, 2),
+			sdk.NewDecWithPrec(20, 2),
+			sdk.NewDecWithPrec(7, 2),
+			sdk.NewDecWithPrec(67, 2),
+			uint64(60*60*8766/5), // assuming 5 second block times
+		),
+	}
 }

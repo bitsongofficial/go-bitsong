@@ -38,7 +38,9 @@ func handleMsgTrackCreate(ctx sdk.Context, keeper Keeper, msg types.MsgTrackCrea
 			Denom:  track.ToCoinDenom(),
 			Amount: entity.Shares, // TODO: entity shares must be > 0
 		}
-		keeper.Mint(ctx, coin, entity.Address)
+		if err := keeper.Mint(ctx, coin, entity.Address); err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+		}
 	}
 
 	ctx.EventManager().EmitEvent(
