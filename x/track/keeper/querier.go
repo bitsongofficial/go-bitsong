@@ -39,6 +39,28 @@ func queryTracks(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte,
 	return bz, nil
 }
 
+func getTrackShares(ctx sdk.Context, keeper Keeper, trackId string) types.TrackQueryResponse {
+	postReactions := keeper.GetPostReactions(ctx, post.PostID)
+	if postReactions == nil {
+		postReactions = types.PostReactions{}
+	}
+
+	// Get the children
+	childrenIDs := keeper.GetPostChildrenIDs(ctx, post.PostID)
+	if childrenIDs == nil {
+		childrenIDs = types.PostIDs{}
+	}
+
+	//Get the poll answers if poll exist
+	var answers []types.UserAnswer
+	if post.PollData != nil {
+		answers = keeper.GetPollAnswers(ctx, post.PostID)
+	}
+
+	// Crete the response object
+	return types.NewPostResponse(post, answers, postReactions, childrenIDs)
+}
+
 func queryTrackByID(ctx sdk.Context, path []string, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	if path[0] == "" {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown trackID %s", path[0]))
