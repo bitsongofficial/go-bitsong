@@ -2,11 +2,13 @@ package types
 
 const (
 	// Track events
-	EventTypeTrackCreated    = "track_created"
-	EventTypeTrackAddedShare = "track_added_share"
+	EventTypeTrackCreate   = "track_create"
+	EventTypeTrackAddShare = "track_add_share"
 
 	// Track attributes
 	AttributeKeyTrackID = "track_id"
+	AttributeKeyEntity  = "entity"
+	AttributeKeyShare   = "share"
 
 	// Track Token attributes
 	AttributeKeyTokenAmount    = "token_amount"

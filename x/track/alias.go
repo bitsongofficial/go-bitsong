@@ -11,69 +11,78 @@ import (
 )
 
 const (
-	QueryParams                = types.QueryParams
-	QueryTracks                = types.QueryTracks
-	QueryID                    = types.QueryID
-	QueryCreatorTracks         = types.QueryCreatorTracks
-	EventTypeTrackCreated      = types.EventTypeTrackCreated
-	EventTypeTrackAddedShare   = types.EventTypeTrackAddedShare
-	AttributeKeyTrackID        = types.AttributeKeyTrackID
-	AttributeKeyTokenAmount    = types.AttributeKeyTokenAmount
-	AttributeKeyTokenRecipient = types.AttributeKeyTokenRecipient
-	TypeMsgTrackCreate         = types.TypeMsgTrackCreate
-	TypeMsgTrackAddShare       = types.TypeMsgTrackAddShare
 	ModuleName                 = types.ModuleName
 	StoreKey                   = types.StoreKey
 	RouterKey                  = types.RouterKey
 	QuerierRoute               = types.QuerierRoute
 	MaxTrackInfoLength         = types.MaxTrackInfoLength
+	TypeMsgTrackCreate         = types.TypeMsgTrackCreate
+	TypeMsgTrackAddShare       = types.TypeMsgTrackAddShare
+	TypeMsgTrackRemoveShare    = types.TypeMsgTrackRemoveShare
+	EventTypeTrackCreate       = types.EventTypeTrackCreate
+	EventTypeTrackAddShare     = types.EventTypeTrackAddShare
+	AttributeKeyTrackID        = types.AttributeKeyTrackID
+	AttributeKeyEntity         = types.AttributeKeyEntity
+	AttributeKeyShare          = types.AttributeKeyShare
+	AttributeKeyTokenAmount    = types.AttributeKeyTokenAmount
+	AttributeKeyTokenRecipient = types.AttributeKeyTokenRecipient
+	QueryParams                = types.QueryParams
+	QueryTracks                = types.QueryTracks
+	QueryID                    = types.QueryID
+	QueryCreatorTracks         = types.QueryCreatorTracks
 )
 
 var (
 	// functions aliases
-	GetTxCmd                    = cli.GetTxCmd
-	GetCmdCreate                = cli.GetCmdCreate
-	GetCmdAddShare              = cli.GetCmdAddShare
-	GetQueryCmd                 = cli.GetQueryCmd
-	GetCmdAll                   = cli.GetCmdAll
-	GetCmdID                    = cli.GetCmdID
-	GetCmdCreator               = cli.GetCmdCreator
-	NewQuerier                  = keeper.NewQuerier
-	NewKeeper                   = keeper.NewKeeper
-	NewHandler                  = keeper.NewHandler
-	NewQueryContentParams       = types.NewQueryContentParams
-	DefaultQueryTracksParams    = types.DefaultQueryTracksParams
-	RegisterCodec               = types.RegisterCodec
-	NewGenesisState             = types.NewGenesisState
-	DefaultGenesisState         = types.DefaultGenesisState
-	ValidateGenesis             = types.ValidateGenesis
-	NewMsgTrackCreate           = types.NewMsgTrackCreate
-	NewMsgTrackAddShare         = types.NewMsgTrackAddShare
-	NewTrack                    = types.NewTrack
-	GetTrackIDBytes             = types.GetTrackIDBytes
-	GetTrackKey                 = types.GetTrackKey
-	GetCreatorKey               = types.GetCreatorKey
-	GetTrackByCreatorAddr       = types.GetTrackByCreatorAddr
-	GetTrackShareKey            = types.GetTrackShareKey
-	GetSharesByTrackIDAndEntity = types.GetSharesByTrackIDAndEntity
+	GetTxCmd                 = cli.GetTxCmd
+	GetCmdCreate             = cli.GetCmdCreate
+	GetCmdAddShare           = cli.GetCmdAddShare
+	GetCmdRemoveShare        = cli.GetCmdRemoveShare
+	GetQueryCmd              = cli.GetQueryCmd
+	GetCmdAll                = cli.GetCmdAll
+	GetCmdID                 = cli.GetCmdID
+	GetCmdCreator            = cli.GetCmdCreator
+	NewHandler               = keeper.NewHandler
+	NewQuerier               = keeper.NewQuerier
+	NewKeeper                = keeper.NewKeeper
+	GetTrackIDBytes          = types.GetTrackIDBytes
+	GetTrackKey              = types.GetTrackKey
+	GetCreatorKey            = types.GetCreatorKey
+	GetTrackByCreatorAddr    = types.GetTrackByCreatorAddr
+	SharesKey                = types.SharesKey
+	ShareKey                 = types.ShareKey
+	NewMsgTrackCreate        = types.NewMsgTrackCreate
+	NewMsgTrackAddShare      = types.NewMsgTrackAddShare
+	NewMsgTrackRemoveShare   = types.NewMsgTrackRemoveShare
+	NewQueryContentParams    = types.NewQueryContentParams
+	DefaultQueryTracksParams = types.DefaultQueryTracksParams
+	NewTrack                 = types.NewTrack
+	NewGenesisState          = types.NewGenesisState
+	DefaultGenesisState      = types.DefaultGenesisState
+	ValidateGenesis          = types.ValidateGenesis
+	RegisterCodec            = types.RegisterCodec
 
 	// variable aliases
 	DefaultCodespace       = types.DefaultCodespace
-	ModuleCdc              = types.ModuleCdc
+	ErrUnknownTrack        = types.ErrUnknownTrack
+	ErrUnknownShare        = types.ErrUnknownShare
+	ErrInvalidAmount       = types.ErrInvalidAmount
 	TrackKeyPrefix         = types.TrackKeyPrefix
 	TracksCreatorKeyPrefix = types.TracksCreatorKeyPrefix
-	TracksDepositKeyPrefix = types.TracksDepositKeyPrefix
+	SharesKeyPrefix        = types.SharesKeyPrefix
+	ModuleCdc              = types.ModuleCdc
 )
 
 type (
 	Keeper                   = keeper.Keeper
+	MsgTrackCreate           = types.MsgTrackCreate
+	MsgTrackAddShare         = types.MsgTrackAddShare
+	MsgTrackRemoveShare      = types.MsgTrackRemoveShare
+	Entity                   = types.Entity
 	QueryCreatorTracksParams = types.QueryCreatorTracksParams
 	QueryTrackParams         = types.QueryTrackParams
 	QueryTracksParams        = types.QueryTracksParams
+	Track                    = types.Track
 	Share                    = types.Share
 	GenesisState             = types.GenesisState
-	MsgTrackCreate           = types.MsgTrackCreate
-	MsgTrackAddShare         = types.MsgTrackAddShare
-	Entity                   = types.Entity
-	Track                    = types.Track
 )

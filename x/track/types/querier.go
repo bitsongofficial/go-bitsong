@@ -11,11 +11,6 @@ const (
 	QueryCreatorTracks = "creator_tracks"
 )
 
-type TrackQueryResponse struct {
-	Track
-	Shares []Share `json:"shares,omitempty" yaml:"shares,omitempty"`
-}
-
 type QueryCreatorTracksParams struct {
 	Creator sdk.AccAddress `json:"creator" yaml:"creator"`
 }

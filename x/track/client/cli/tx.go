@@ -36,6 +36,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdCreate(cdc),
 		GetCmdAddShare(cdc),
+		GetCmdRemoveShare(cdc),
 	)...)
 
 	return contentTxCmd
@@ -131,6 +132,36 @@ $ %s tx track add-share [trackID] [shares] --from <creator>`,
 			}
 
 			msg := types.NewMsgTrackAddShare(args[0], amt, cliCtx.FromAddress)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
+}
+
+func GetCmdRemoveShare(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "remove-share",
+		Short: "Remove share to Smart Media Contract",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Remove share from Smart Media Contract.
+Example:
+$ %s tx track remove-share [trackID] [shares] --from <creator>`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			amt, err := sdk.ParseCoin(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgTrackRemoveShare(args[0], amt, cliCtx.FromAddress)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

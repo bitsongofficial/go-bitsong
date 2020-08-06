@@ -9,8 +9,9 @@ import (
 
 // Content messages types and routes
 const (
-	TypeMsgTrackCreate   = "track_create"
-	TypeMsgTrackAddShare = "track_add_share"
+	TypeMsgTrackCreate      = "track_create"
+	TypeMsgTrackAddShare    = "track_add_share"
+	TypeMsgTrackRemoveShare = "track_remove_share"
 )
 
 var _ sdk.Msg = MsgTrackCreate{}
@@ -85,14 +86,14 @@ var _ sdk.Msg = MsgTrackAddShare{}
 type MsgTrackAddShare struct {
 	TrackID string         `json:"track_id" yaml:"track_id"`
 	Entity  sdk.AccAddress `json:"entity" yaml:"entity"`
-	Shares  sdk.Coin       `json:"shares" yaml:"shares"`
+	Share   sdk.Coin       `json:"share" yaml:"share"`
 }
 
-func NewMsgTrackAddShare(trackID string, shares sdk.Coin, entity sdk.AccAddress) MsgTrackAddShare {
+func NewMsgTrackAddShare(trackID string, share sdk.Coin, entity sdk.AccAddress) MsgTrackAddShare {
 	return MsgTrackAddShare{
 		TrackID: trackID,
 		Entity:  entity,
-		Shares:  shares,
+		Share:   share,
 	}
 }
 
@@ -100,6 +101,8 @@ func (msg MsgTrackAddShare) Route() string { return RouterKey }
 func (msg MsgTrackAddShare) Type() string  { return TypeMsgTrackAddShare }
 
 func (msg MsgTrackAddShare) ValidateBasic() error {
+	// TODO: add security checks
+
 	if err := sdk.VerifyAddressFormat(msg.Entity); err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "entity address cannot be empty")
 	}
@@ -108,7 +111,7 @@ func (msg MsgTrackAddShare) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track id cannot be empty")
 	}
 
-	if !msg.Shares.Amount.IsPositive() {
+	if !msg.Share.Amount.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "share amount must be positive")
 	}
 
@@ -129,7 +132,63 @@ func (msg MsgTrackAddShare) String() string {
 	return fmt.Sprintf(`Msg Track Add Share
 Track ID: %s,
 Entity: %s,
-Shares: %s`,
-		msg.TrackID, msg.Entity, msg.Shares,
+Share: %s`,
+		msg.TrackID, msg.Entity, msg.Share,
+	)
+}
+
+var _ sdk.Msg = MsgTrackRemoveShare{}
+
+type MsgTrackRemoveShare struct {
+	TrackID string         `json:"track_id" yaml:"track_id"`
+	Entity  sdk.AccAddress `json:"entity" yaml:"entity"`
+	Share   sdk.Coin       `json:"share" yaml:"share"`
+}
+
+func NewMsgTrackRemoveShare(trackID string, share sdk.Coin, entity sdk.AccAddress) MsgTrackRemoveShare {
+	return MsgTrackRemoveShare{
+		TrackID: trackID,
+		Entity:  entity,
+		Share:   share,
+	}
+}
+
+func (msg MsgTrackRemoveShare) Route() string { return RouterKey }
+func (msg MsgTrackRemoveShare) Type() string  { return TypeMsgTrackAddShare }
+
+func (msg MsgTrackRemoveShare) ValidateBasic() error {
+	// TODO: add security checks
+
+	if err := sdk.VerifyAddressFormat(msg.Entity); err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "entity address cannot be empty")
+	}
+
+	if msg.TrackID == "" {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track id cannot be empty")
+	}
+
+	if !msg.Share.Amount.IsPositive() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "share amount must be positive")
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgTrackRemoveShare) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgTrackRemoveShare) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Entity}
+}
+
+func (msg MsgTrackRemoveShare) String() string {
+	return fmt.Sprintf(`Msg Track Remove Share
+Track ID: %s,
+Entity: %s,
+Share: %s`,
+		msg.TrackID, msg.Entity, msg.Share,
 	)
 }

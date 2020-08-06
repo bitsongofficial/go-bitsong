@@ -39,9 +39,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetTrack(ctx sdk.Context, id string) (track types.Track, ok bool) {
+func (k Keeper) GetTrack(ctx sdk.Context, trackID string) (track types.Track, ok bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetTrackKey(id))
+	bz := store.Get(types.GetTrackKey(trackID))
 	if bz == nil {
 		return
 	}
@@ -151,56 +151,6 @@ func (k Keeper) MintAndSend(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccA
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-/********
-/ SHARES
-********/
-
-func (k Keeper) GetShares(ctx sdk.Context, trackId string, entity sdk.AccAddress) (share types.Share, ok bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetSharesByTrackIDAndEntity(trackId, entity))
-	if bz == nil {
-		return
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &share)
-	return share, true
-}
-
-func (k Keeper) SetShares(ctx sdk.Context, share *types.Share) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(&share)
-	store.Set(types.GetSharesByTrackIDAndEntity(share.TrackID, share.Entity), bz)
-}
-
-func (k Keeper) AddShares(ctx sdk.Context, trackId string, amount sdk.Coin, entity sdk.AccAddress) error {
-	// TODO: add security checks and improve
-
-	// 1. ensure track exist
-	track, ok := k.GetTrack(ctx, trackId)
-	if !ok {
-		return fmt.Errorf("track not exist")
-	}
-
-	if track.ToCoinDenom() != amount.Denom {
-		return fmt.Errorf("share denom mismatch")
-	}
-
-	// 2. send coin from entity to module
-	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, entity, types.ModuleName, sdk.Coins{amount}); err != nil {
-		return err
-	}
-
-	// 3. get current shares
-	share, found := k.GetShares(ctx, trackId, entity)
-	if !found {
-		share.Shares = amount
-	} else {
-		share.Shares = share.Shares.Add(amount)
-	}
-	k.SetShares(ctx, &share)
 
 	return nil
 }
