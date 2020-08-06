@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 	"sort"
@@ -104,11 +105,16 @@ func (k Keeper) GetTracksPaginated(ctx sdk.Context, params types.QueryTracksPara
 }
 
 func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
+	// Check to see if track exists
+	_, ok := k.GetTrack(ctx, track.TrackID)
+	if ok {
+		return track.TrackID, sdkerrors.Wrapf(types.ErrDuplicatedTrack, "%s", track.TrackID)
+	}
+
 	//track.TrackID = k.autoIncrementID(ctx, types.KeyLastTrackID)
 	track.Uri = k.generateTrackUri(ctx, track.TrackID)
 
 	// TODO: add created_at
-	//content.CreatedAt = ctx.BlockHeader().Time
 	k.SetTrack(ctx, track)
 	k.SetCreatorTrack(ctx, track)
 

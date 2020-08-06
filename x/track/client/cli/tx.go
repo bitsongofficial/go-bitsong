@@ -43,26 +43,30 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 }
 
 func GetCmdCreate(cdc *codec.Codec) *cobra.Command {
+	// TODO: remove id
+
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a new Smart Media Contract on bitsong",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Create a new Smart Media Contract on bitsong.
 Example:
-$ %s tx track create [contract.json] \
+$ %s tx track create [trackID] \
+[contract.json] \
 --entity=100:bitsong1xe8z84hcvgavtrtqv9al9lk2u3x5gysu44j54a \
 --entity=200:bitsong1dykf46zf3ss442j6cydaajk27xalny9y9chwnz \
 --from <creator>`,
 				version.ClientName,
 			),
 		),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			fileInfo, err := ioutil.ReadFile(args[0])
+			trackID := args[0]
+			fileInfo, err := ioutil.ReadFile(args[1])
 			if err != nil {
 				return err
 			}
@@ -99,7 +103,7 @@ $ %s tx track create [contract.json] \
 				entities = append(entities, entity)
 			}
 
-			msg := types.NewMsgTrackCreate(trackInfoBz.Bytes(), cliCtx.FromAddress, entities)
+			msg := types.NewMsgTrackCreate(trackID, trackInfoBz.Bytes(), cliCtx.FromAddress, entities)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

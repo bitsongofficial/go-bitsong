@@ -72,12 +72,6 @@ bitsongcli config indent true
 bitsongcli config trust-node true
 bitsongcli config keyring-backend test
 
-# Change default bond token genesis.json
-sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
-sed -i 's/"leveldb"/"goleveldb"/g' ~/.bitsongd/config/config.toml
-sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' ~/.bitsongd/config/config.toml
-sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' ~/.bitsongd/config/config.toml
-
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
 bitsongcli keys add jack
@@ -90,7 +84,7 @@ bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
 bitsongd add-genesis-account alice 100000000000ubtsg --keyring-backend test
 
 # Generate the transaction that creates your validator
-bitsongd gentx --name jack --amount=10000000ubtsg
+bitsongd gentx --name jack --amount=10000000ubtsg --keyring-backend test
 
 # Add the generated bonding transaction to the genesis file
 bitsongd collect-gentxs
@@ -114,48 +108,116 @@ bitsongcli query account $(bitsongcli keys show alice -a)
 You can now start the first transaction
 
 ```bash
-bitsongcli tx send --from=$(bitsongcli keys show jack -a) $(bitsongcli keys show alice -a) 10ubtsg
+bitsongcli tx send jack $(bitsongcli keys show alice -a) 10ubtsg --from jack -b block
 ```
 
 # Query
-Query an account
+## Query an account
 
 ```bash
 bitsongcli query account $(bitsongcli keys show jack -a)
 ```
 
-Query balances
+## Query total supply
 
 ```bash
-bitsongcli query bank balances $(bitsongcli keys show jack -a)
-```
-
-Query total supply
-
-```bash
-bitsongcli query bank total
+bitsongcli query supply total
 ```
 
 # Module Tracks
 
 ## Create track
 ```bash
-bitsongcli tx track create ./test-data/mp21/download-big-label.json \
+bitsongcli tx track create 7b7c8b44-5c57-4060-a189-4432862114e0 \
+  ./test-data/mp21/download-big-label.json \
   --entity=100:$(bitsongcli keys show jack -a) \
   --entity=400:$(bitsongcli keys show alice -a) \
   --from jack \
   --gas 500000 \
-  -b block \
+  -b block
+```
+
+Save trackID `7b7c8b44-5c57-4060-a189-4432862114e0`
+```json
+...
+{
+  "type": "track_create",
+  "attributes": [
+    {
+      "key": "track_id",
+      "value": "7b7c8b44-5c57-4060-a189-4432862114e0"
+    }
+  ]
+},
+...
+```
+
+Save share denom `btrack7b7c8b445c`
+```json
+...
+{
+  "key": "amount",
+  "value": "100btrack7b7c8b445c"
+}
+...
 ```
 
 ## Query minted shares
 ```bash
-bitsongcli query bank balances $(bitsongcli keys show jack -a)
-bitsongcli query bank balances $(bitsongcli keys show alice -a)
+bitsongcli query account $(bitsongcli keys show jack -a)
+bitsongcli query account $(bitsongcli keys show alice -a)
 ```
 
-## Deposit on track
-TODO
+## Query track shares
+```bash
+bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
+
+...
+"total_shares": {
+  "denom": "btrack7b7c8b445c",
+  "amount": "0"
+}
+...
+```
+
+## Add share on track
+```bash
+bitsongcli tx track add-share \
+  7b7c8b44-5c57-4060-a189-4432862114e0 \
+  10btrack7b7c8b445c \
+  --from jack --gas 350000 -b block
+
+bitsongcli tx track add-share \
+  7b7c8b44-5c57-4060-a189-4432862114e0 \
+  5btrack7b7c8b445c \
+  --from alice --gas 350000 -b block
+
+bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
+
+...
+"total_shares": {
+  "denom": "btrack7b7c8b445c",
+  "amount": "15"
+}
+...
+```
+
+## Remove share on track
+```bash
+bitsongcli tx track remove-share \
+  7b7c8b44-5c57-4060-a189-4432862114e0 \
+  1btrack7b7c8b445c \
+  --from jack --gas 350000 -b block
+
+bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
+
+...
+"total_shares": {
+  "denom": "btrack7b7c8b445c",
+  "amount": "14"
+}
+...
+```
 
 ## Report Stream
 TODO
@@ -164,6 +226,7 @@ TODO
 TODO
 
 ## Withdraw Rewards
+TODO
 
 ## Query on tracks
 ```bash

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/google/uuid"
 )
 
 // Content messages types and routes
@@ -17,15 +16,16 @@ const (
 var _ sdk.Msg = MsgTrackCreate{}
 
 type MsgTrackCreate struct {
-	TrackID   string
+	TrackID   string         `json:"track_id" yaml:"track_id"`
 	TrackInfo []byte         `json:"track_info" yaml:"track_info"`
 	Entities  []Entity       `json:"entities" yaml:"entities"`
 	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
 }
 
-func NewMsgTrackCreate(info []byte, creator sdk.AccAddress, entities []Entity) MsgTrackCreate {
+func NewMsgTrackCreate(trackID string, info []byte, creator sdk.AccAddress, entities []Entity) MsgTrackCreate {
 	return MsgTrackCreate{
-		TrackID:   uuid.New().String(),
+		//TrackID:   uuid.New().String(),
+		TrackID:   trackID,
 		TrackInfo: info,
 		Creator:   creator,
 		Entities:  entities,

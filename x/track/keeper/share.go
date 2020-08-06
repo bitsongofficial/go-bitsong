@@ -99,7 +99,7 @@ func (k Keeper) RemoveShare(ctx sdk.Context, trackID string, entityAddr sdk.AccA
 	}
 
 	// Check to see if amount exists
-	if shareAmount.IsLT(share.Shares) {
+	if shareAmount.Amount.GT(share.Shares.Amount) && shareAmount.Denom == share.Shares.Denom {
 		return sdkerrors.Wrapf(types.ErrInvalidAmount, "%s", shareAmount)
 	}
 
