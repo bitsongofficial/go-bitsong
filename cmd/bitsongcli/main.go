@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
-
 	"github.com/bitsongofficial/go-bitsong/types/util"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
@@ -16,10 +14,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 
 	"github.com/spf13/cobra"
@@ -31,32 +27,23 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app"
 )
 
-var (
-	appCodec, cdc = app.MakeCodecs()
-)
-
-func init() {
-	authclient.Codec = appCodec
-}
-
 func main() {
-	// Configure cobra to sort commands
-	cobra.EnableCommandSorting = false
+	cdc := app.MakeCodecs()
 
-	// Read in the configuration file for the sdk
+	// Initialize the app overriding the various methods we want to customize
+	app.Init()
+
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(util.Bech32PrefixAccAddr, util.Bech32PrefixAccPub)
 	config.SetBech32PrefixForValidator(util.Bech32PrefixValAddr, util.Bech32PrefixValPub)
 	config.SetBech32PrefixForConsensusNode(util.Bech32PrefixConsAddr, util.Bech32PrefixConsPub)
 	config.Seal()
 
-	// TODO: setup keybase, viper object, etc. to be passed into
-	// the below functions and eliminate global vars, like we do
-	// with the cdc
-
+	// Configure cobra to sort commands
+	cobra.EnableCommandSorting = false
 	rootCmd := &cobra.Command{
 		Use:   "bitsongcli",
-		Short: "Command line interface for interacting with bitsongd",
+		Short: "BitSong Command line Interface",
 	}
 
 	// Add --chain-id to persistent flags and mark it required
@@ -132,17 +119,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 
 	// add modules' tx commands
 	app.ModuleBasics.AddTxCommands(txCmd, cdc)
-
-	// remove auth and bank commands as they're mounted under the root tx command
-	var cmdsToRemove []*cobra.Command
-
-	for _, cmd := range txCmd.Commands() {
-		if cmd.Use == auth.ModuleName || cmd.Use == bank.ModuleName {
-			cmdsToRemove = append(cmdsToRemove, cmd)
-		}
-	}
-
-	txCmd.RemoveCommand(cmdsToRemove...)
 
 	return txCmd
 }

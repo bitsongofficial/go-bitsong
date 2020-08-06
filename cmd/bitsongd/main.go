@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/client/debug"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"io"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -32,7 +33,7 @@ const flagInvCheckPeriod = "inv-check-period"
 var invCheckPeriod uint
 
 func main() {
-	appCodec, cdc := app.MakeCodecs()
+	cdc := app.MakeCodecs()
 
 	// Initialize the app overriding the various methods we want to customize
 	app.Init()
@@ -52,19 +53,20 @@ func main() {
 	}
 
 	rootCmd.AddCommand(genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome))
-	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, bank.GenesisBalancesIterator{}, app.DefaultNodeHome))
+	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome))
 	rootCmd.AddCommand(genutilcli.MigrateGenesisCmd(ctx, cdc))
 	rootCmd.AddCommand(
 		genutilcli.GenTxCmd(
 			ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{},
-			bank.GenesisBalancesIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
+			auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome,
 		),
 	)
 	rootCmd.AddCommand(genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics))
-	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc, appCodec, app.DefaultNodeHome, app.DefaultCLIHome))
+	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
 	rootCmd.AddCommand(flags.NewCompletionCmd(rootCmd, true))
-	rootCmd.AddCommand(testnetCmd(ctx, cdc, app.ModuleBasics, bank.GenesisBalancesIterator{}))
+	rootCmd.AddCommand(testnetCmd(ctx, cdc, app.ModuleBasics, auth.GenesisAccountIterator{}))
 	rootCmd.AddCommand(replayCmd())
+	rootCmd.AddCommand(debug.Cmd(cdc))
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
 
@@ -90,10 +92,14 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 		skipUpgradeHeights[int64(h)] = true
 	}
 
+	pruningOpts, err := server.GetPruningOptionsFromFlags()
+	if err != nil {
+		panic(err)
+	}
+
 	return app.NewBitsongApp(
-		logger, db, traceStore, true, invCheckPeriod,
-		viper.GetString(flags.FlagHome),
-		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
+		logger, db, traceStore, true, skipUpgradeHeights, invCheckPeriod,
+		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
 		baseapp.SetHaltTime(viper.GetUint64(server.FlagHaltTime)),
@@ -103,16 +109,16 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 
 func exportAppStateAndTMValidators(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailWhiteList []string,
-) (json.RawMessage, []tmtypes.GenesisValidator, *abci.ConsensusParams, error) {
+) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		gApp := app.NewBitsongApp(logger, db, traceStore, false, uint(1), "")
+		gApp := app.NewBitsongApp(logger, db, traceStore, false, map[int64]bool{}, invCheckPeriod)
 		err := gApp.LoadHeight(height)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	gApp := app.NewBitsongApp(logger, db, traceStore, true, uint(1), "")
+	gApp := app.NewBitsongApp(logger, db, traceStore, true, map[int64]bool{}, invCheckPeriod)
 	return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

@@ -38,17 +38,17 @@ var (
 	GetCmdAll                   = cli.GetCmdAll
 	GetCmdID                    = cli.GetCmdID
 	GetCmdCreator               = cli.GetCmdCreator
-	NewKeeper                   = keeper.NewKeeper
 	NewQuerier                  = keeper.NewQuerier
+	NewKeeper                   = keeper.NewKeeper
 	NewHandler                  = keeper.NewHandler
-	RegisterCodec               = types.RegisterCodec
 	NewQueryContentParams       = types.NewQueryContentParams
 	DefaultQueryTracksParams    = types.DefaultQueryTracksParams
-	NewMsgTrackCreate           = types.NewMsgTrackCreate
-	NewMsgTrackAddShare         = types.NewMsgTrackAddShare
+	RegisterCodec               = types.RegisterCodec
 	NewGenesisState             = types.NewGenesisState
 	DefaultGenesisState         = types.DefaultGenesisState
 	ValidateGenesis             = types.ValidateGenesis
+	NewMsgTrackCreate           = types.NewMsgTrackCreate
+	NewMsgTrackAddShare         = types.NewMsgTrackAddShare
 	NewTrack                    = types.NewTrack
 	GetTrackIDBytes             = types.GetTrackIDBytes
 	GetTrackKey                 = types.GetTrackKey
@@ -58,8 +58,8 @@ var (
 	GetSharesByTrackIDAndEntity = types.GetSharesByTrackIDAndEntity
 
 	// variable aliases
-	ModuleCdc              = types.ModuleCdc
 	DefaultCodespace       = types.DefaultCodespace
+	ModuleCdc              = types.ModuleCdc
 	TrackKeyPrefix         = types.TrackKeyPrefix
 	TracksCreatorKeyPrefix = types.TracksCreatorKeyPrefix
 	TracksDepositKeyPrefix = types.TracksDepositKeyPrefix
@@ -67,13 +67,13 @@ var (
 
 type (
 	Keeper                   = keeper.Keeper
-	Entity                   = types.Entity
-	Share                    = types.Share
 	QueryCreatorTracksParams = types.QueryCreatorTracksParams
 	QueryTrackParams         = types.QueryTrackParams
 	QueryTracksParams        = types.QueryTracksParams
+	Share                    = types.Share
+	GenesisState             = types.GenesisState
 	MsgTrackCreate           = types.MsgTrackCreate
 	MsgTrackAddShare         = types.MsgTrackAddShare
-	GenesisState             = types.GenesisState
+	Entity                   = types.Entity
 	Track                    = types.Track
 )

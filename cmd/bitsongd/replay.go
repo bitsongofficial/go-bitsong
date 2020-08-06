@@ -21,7 +21,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
+	storeTypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -95,8 +95,8 @@ func replayTxs(rootDir string) error {
 	// Application
 	fmt.Fprintln(os.Stderr, "Creating application")
 	gapp := app.NewBitsongApp(
-		ctx.Logger, appDB, traceStoreWriter, true, uint(1), "",
-		baseapp.SetPruning(store.PruneEverything), // nothing
+		ctx.Logger, appDB, traceStoreWriter, true, map[int64]bool{}, invCheckPeriod,
+		baseapp.SetPruning(storeTypes.PruneEverything), // nothing
 	)
 
 	// Genesis

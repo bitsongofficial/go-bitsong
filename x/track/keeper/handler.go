@@ -48,7 +48,10 @@ func handleMsgTrackCreate(ctx sdk.Context, keeper Keeper, msg types.MsgTrackCrea
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
+	return &sdk.Result{
+		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(trackID),
+		Events: ctx.EventManager().Events(),
+	}, nil
 }
 
 func handleMsgTrackAddShare(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAddShare) (*sdk.Result, error) {
@@ -65,5 +68,8 @@ func handleMsgTrackAddShare(ctx sdk.Context, keeper Keeper, msg types.MsgTrackAd
 		),
 	)
 
-	return &sdk.Result{Events: ctx.EventManager().Events().ToABCIEvents()}, nil
+	return &sdk.Result{
+		//Data:   keeper.cdc.MustMarshalBinaryLengthPrefixed(msg.TrackID),
+		Events: ctx.EventManager().Events(),
+	}, nil
 }

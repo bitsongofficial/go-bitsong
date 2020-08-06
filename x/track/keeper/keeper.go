@@ -6,25 +6,31 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/tendermint/tendermint/libs/log"
 	"sort"
 )
 
 // Keeper of the track store
 type Keeper struct {
-	bankKeeper bank.Keeper
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
+	supplyKeeper supply.Keeper
+	storeKey     sdk.StoreKey
+	cdc          *codec.Codec
 }
 
 // NewKeeper creates a track keeper
-func NewKeeper(bk bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
+func NewKeeper(supplyKeeper supply.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
 	keeper := Keeper{
-		bankKeeper: bk,
-		storeKey:   key,
-		cdc:        cdc,
+		supplyKeeper: supplyKeeper,
+		storeKey:     key,
+		cdc:          cdc,
 	}
+
+	// ensure track module account is set
+	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
 	return keeper
 }
 
@@ -138,11 +144,11 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
 	// TODO: add security checks and improve
 
-	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
+	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
 		return err
 	}
 
-	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
 		return err
 	}
 
@@ -178,30 +184,19 @@ func (k Keeper) AddShares(ctx sdk.Context, trackId string, amount sdk.Coin, enti
 		return fmt.Errorf("track not exist")
 	}
 
-	fmt.Println("track exist")
-
 	if track.ToCoinDenom() != amount.Denom {
 		return fmt.Errorf("share denom mismatch")
 	}
 
-	fmt.Println("denom equal")
-
 	// 2. send coin from entity to module
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, entity, types.ModuleName, sdk.Coins{amount}); err != nil {
+	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, entity, types.ModuleName, sdk.Coins{amount}); err != nil {
 		return err
 	}
 
-	fmt.Println("coin sent")
-
 	// 3. get current shares
 	share, _ := k.GetShares(ctx, trackId, entity)
-	fmt.Println(fmt.Sprintf("%v", share))
-	share.Shares = amount
-	fmt.Println(fmt.Sprintf("%v", share))
-
+	share.Shares = share.Shares.Add(amount)
 	k.SetShares(ctx, &share)
-
-	fmt.Println("share is ok")
 
 	return nil
 }

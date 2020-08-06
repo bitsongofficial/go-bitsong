@@ -12,10 +12,10 @@ bitsongcli config trust-node true
 bitsongcli config keyring-backend test
 
 # Change default bond token genesis.json
-sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
-sed -i 's/"leveldb"/"goleveldb"/g' ~/.bitsongd/config/config.toml
-sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' ~/.bitsongd/config/config.toml
-sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' ~/.bitsongd/config/config.toml
+#sed -i 's/stake/ubtsg/g' ~/.bitsongd/config/genesis.json
+#sed -i 's/"leveldb"/"goleveldb"/g' ~/.bitsongd/config/config.toml
+#sed -i 's/timeout_commit = "5s"/timeout_commit = "1s"/g' ~/.bitsongd/config/config.toml
+#sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' ~/.bitsongd/config/config.toml
 
 # Change gov parameters (2 min)
 # sed -i 's/"max_deposit_period": "172800000000000"/"max_deposit_period": "240000000000"/g' ~/.bitsongd/config/genesis.json
