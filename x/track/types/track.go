@@ -30,7 +30,9 @@ func NewTrack(id string, info []byte, creator sdk.AccAddress) *Track {
 
 func (t *Track) ToCoinDenom() string {
 	denomID := strings.Replace(t.TrackID, "-", "", -1)
-	return fmt.Sprintf(`btsgtrack%s`, denomID)
+	// TODO: cosmos-sdk v0.39 accept max 15chars, fix is applied to v0.40
+	// TODO: add security checks
+	return fmt.Sprintf(`btrack%s`, denomID[0:10])
 }
 
 func (t *Track) String() string {

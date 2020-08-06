@@ -141,16 +141,16 @@ func (k Keeper) GetCreatorTracks(ctx sdk.Context, creator sdk.AccAddress) (track
 	return
 }
 
-func (k Keeper) Mint(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
+func (k Keeper) MintAndSend(ctx sdk.Context, amount sdk.Coin, recipient sdk.AccAddress) error {
 	// TODO: add security checks and improve
 
 	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, sdk.Coins{amount}); err != nil {
 		return err
 	}
 
-	/*if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
+	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.Coins{amount}); err != nil {
 		return err
-	}*/
+	}
 
 	return nil
 }
