@@ -17,7 +17,7 @@ func Init() {
 }
 
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
-// bond denom from stake to desmos
+// bond denom from stake to ubtsg
 func stakingGenesisState() staking.GenesisState {
 	return staking.GenesisState{
 		Params: staking.NewParams(

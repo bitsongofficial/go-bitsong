@@ -89,9 +89,6 @@ install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongcli
 
-install-debug: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/gaiadebug
-
 ########################################
 ### Tools & dependencies
 
@@ -103,11 +100,6 @@ go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
 	@go mod verify
 
-draw-deps:
-	@# requires brew install graphviz or apt-get install graphviz
-	go get github.com/RobotsAndPencils/goviz
-	@goviz -i ./cmd/bitsongd -d 2 | dot -Tpng -o dependency-graph.png
-
 clean:
 	rm -rf snapcraft-local.yaml build/
 
@@ -116,7 +108,6 @@ distclean: clean
 
 ########################################
 ### Testing
-
 
 test: test-unit test-build
 test-all: check test-race test-cover
@@ -188,7 +179,7 @@ contract-tests: setup-transactions
 	dredd && pkill bitsongd
 
 # include simulations
-# include sims.mk
+include Makefile.simulations
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \

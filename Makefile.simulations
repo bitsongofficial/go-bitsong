@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+########################################
+### Simulations
+
+BINDIR ?= $(GOPATH)/bin
+SIMAPP = github.com/bitsongofficial/go-bitsong/app
+
+test-sim-nondeterminism:
+	@echo "Running non-determinism test..."
+	@go test -mod=readonly $(SIMAPP) -run TestAppStateDeterminism -Enabled=true \
+		-NumBlocks=100 -BlockSize=200 -Commit=true -Period=0 -v -timeout 24h
