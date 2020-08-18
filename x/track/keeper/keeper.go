@@ -112,7 +112,7 @@ func (k Keeper) Add(ctx sdk.Context, track *types.Track) (string, error) {
 	}
 
 	//track.TrackID = k.autoIncrementID(ctx, types.KeyLastTrackID)
-	track.Uri = k.generateTrackUri(ctx, track.TrackID)
+	//track.Uri = k.generateTrackUri(ctx, track.TrackID)
 
 	// TODO: add created_at
 	k.SetTrack(ctx, track)

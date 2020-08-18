@@ -20,7 +20,10 @@ import (
 )
 
 const (
-	flagEntities = "entity"
+	flagEntities      = "entity"
+	flagProvider      = "provider"
+	flagStreamPrice   = "stream-price"
+	flagDownloadPrice = "download-price"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -103,12 +106,43 @@ $ %s tx track create [trackID] \
 				entities = append(entities, entity)
 			}
 
-			msg := types.NewMsgTrackCreate(trackID, trackInfoBz.Bytes(), cliCtx.FromAddress, entities)
+			providerArg, err := cmd.Flags().GetString(flagProvider)
+			if err != nil {
+				return err
+			}
+			provider, err := sdk.AccAddressFromBech32(providerArg)
+			if err != nil {
+				return err
+			}
+
+			streamPriceArg, err := cmd.Flags().GetString(flagStreamPrice)
+			if err != nil {
+				return err
+			}
+			streamPrice, err := sdk.ParseCoin(streamPriceArg)
+			if err != nil {
+				return err
+			}
+
+			downloadPriceArg, err := cmd.Flags().GetString(flagDownloadPrice)
+			if err != nil {
+				return err
+			}
+			downloadPrice, err := sdk.ParseCoin(downloadPriceArg)
+			if err != nil {
+				return err
+			}
+
+			//msg := types.NewMsgTrackCreate(trackID, trackInfoBz.Bytes(), cliCtx.FromAddress, provider, entities, streamPrice, downloadPrice)
+			msg := types.NewMsgTrackCreate(trackID, cliCtx.FromAddress, provider, entities, streamPrice, downloadPrice)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 
-	cmd.Flags().StringArray(flagEntities, []string{}, "Track Entities")
+	cmd.Flags().String(flagProvider, "", "Unique Provider (optional)")
+	cmd.Flags().String(flagStreamPrice, "0btsg", "Stream Price (optional)")
+	cmd.Flags().String(flagDownloadPrice, "0btsg", "Stream Price (optional)")
+	cmd.Flags().StringArray(flagEntities, []string{""}, "Track Entities")
 
 	return cmd
 }

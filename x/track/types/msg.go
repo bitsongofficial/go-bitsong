@@ -16,19 +16,26 @@ const (
 var _ sdk.Msg = MsgTrackCreate{}
 
 type MsgTrackCreate struct {
-	TrackID   string         `json:"track_id" yaml:"track_id"`
-	TrackInfo []byte         `json:"track_info" yaml:"track_info"`
-	Entities  []Entity       `json:"entities" yaml:"entities"`
-	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`
+	TrackID string `json:"track_id" yaml:"track_id"`
+	//TrackInfo     []byte         `json:"track_info" yaml:"track_info"`
+	Entities      []Entity       `json:"entities" yaml:"entities"`
+	Creator       sdk.AccAddress `json:"creator" yaml:"creator"`
+	Provider      sdk.AccAddress `json:"provider" yaml:"provider"`
+	StreamPrice   sdk.Coin       `json:"stream_price" yaml:"stream_price"`
+	DownloadPrice sdk.Coin       `json:"download_price" yaml:"download_price"`
 }
 
-func NewMsgTrackCreate(trackID string, info []byte, creator sdk.AccAddress, entities []Entity) MsgTrackCreate {
+//func NewMsgTrackCreate(trackID string, info []byte, creator, provider sdk.AccAddress, entities []Entity, streamPrice, downloadPrice sdk.Coin) MsgTrackCreate {
+func NewMsgTrackCreate(trackID string, creator, provider sdk.AccAddress, entities []Entity, streamPrice, downloadPrice sdk.Coin) MsgTrackCreate {
 	return MsgTrackCreate{
 		//TrackID:   uuid.New().String(),
-		TrackID:   trackID,
-		TrackInfo: info,
-		Creator:   creator,
-		Entities:  entities,
+		TrackID: trackID,
+		//TrackInfo:     info,
+		Creator:       creator,
+		Provider:      provider,
+		Entities:      entities,
+		StreamPrice:   streamPrice,
+		DownloadPrice: downloadPrice,
 	}
 }
 
@@ -50,14 +57,14 @@ func (msg MsgTrackCreate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track entities cannot be empty")
 	}
 
-	if len(msg.TrackInfo) == 0 {
+	/*if len(msg.TrackInfo) == 0 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track info cannot be empty")
 	}
 
 	if len(msg.TrackInfo) > MaxTrackInfoLength {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "track info too large")
 	}
-
+	*/
 	return nil
 }
 
@@ -75,9 +82,8 @@ func (msg MsgTrackCreate) GetSigners() []sdk.AccAddress {
 func (msg MsgTrackCreate) String() string {
 	return fmt.Sprintf(`Msg Track Create
 Track ID: %s,
-TrackInfo: %s,
 Creator: %s`,
-		msg.TrackID, msg.TrackInfo, msg.Creator,
+		msg.TrackID, msg.Creator,
 	)
 }
 

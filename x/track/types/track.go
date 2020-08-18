@@ -1,8 +1,6 @@
 package types
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
@@ -10,34 +8,43 @@ import (
 )
 
 type Track struct {
-	TrackID   string         `json:"track_id" yaml:"track_id"`     // the bitsong unique track id ****
-	Hash      string         `json:"hash" yaml:"hash"`             // the track hash
-	Uri       string         `json:"uri" yaml:"uri"`               // bitsong uri for track e.g: bitsong:track:<track_id> ****
-	TrackInfo []byte         `json:"track_info" yaml:"track_info"` // Raw Track Info (see specs)
-	Creator   sdk.AccAddress `json:"creator" yaml:"creator"`       // creator of the track
-
-	TotalShares sdk.Coin `json:"total_shares" yaml:"total_shares"`
-
-	StartTime time.Time `json:"start_time" yaml:"start_time"`
-	EndTime   time.Time `json:"end_time" yaml:"end_time"`
+	TrackID string `json:"track_id" yaml:"track_id"` // the bitsong unique track id ****
+	//Hash           string         `json:"hash" yaml:"hash"`             // the track hash
+	//Uri            string         `json:"uri" yaml:"uri"`               // bitsong uri for track e.g: bitsong:track:<track_id> ****
+	TrackInfo      []byte         `json:"track_info" yaml:"track_info"` // Raw Track Info (see specs)
+	Creator        sdk.AccAddress `json:"creator" yaml:"creator"`       // creator of the track
+	Provider       sdk.AccAddress `json:"provider" yaml:"provider"`
+	TotalShares    sdk.Coin       `json:"total_shares" yaml:"total_shares"`
+	TotalDownloads sdk.Int        `json:"total_downloads" yaml:"total_downloads"`
+	TotalStreams   sdk.Int        `json:"total_streams" yaml:"total_streams"`
+	StreamPrice    sdk.Coin       `json:"stream_price" yaml:"stream_price"`
+	DownloadPrice  sdk.Coin       `json:"download_price" yaml:"download_price"`
+	StartTime      time.Time      `json:"start_time" yaml:"start_time"`
+	EndTime        time.Time      `json:"end_time" yaml:"end_time"`
 }
 
-func NewTrack(id string, info []byte, creator sdk.AccAddress) *Track {
-	trackHash := sha256.Sum256(info)
-	trackHashStr := hex.EncodeToString(trackHash[:])
+//func NewTrack(id string, info []byte, creator, provider sdk.AccAddress, streamPrice, downloadPrice sdk.Coin) *Track {
+func NewTrack(id string, creator, provider sdk.AccAddress, streamPrice, downloadPrice sdk.Coin) *Track {
+	//trackHash := sha256.Sum256(info)
+	//trackHashStr := hex.EncodeToString(trackHash[:])
 
 	// TODO: init start and end time
 
 	return &Track{
-		TrackID:   id,
-		TrackInfo: info,
-		Hash:      trackHashStr,
-		Creator:   creator,
+		TrackID: id,
+		//TrackInfo: info,
+		//Hash:      trackHashStr,
+		Creator:  creator,
+		Provider: provider,
 		TotalShares: sdk.Coin{
 			Denom:  getDenom(id),
 			Amount: sdk.ZeroInt(),
 		},
-		StartTime: time.Now(),
+		TotalDownloads: sdk.ZeroInt(),
+		TotalStreams:   sdk.ZeroInt(),
+		StreamPrice:    streamPrice,
+		DownloadPrice:  downloadPrice,
+		StartTime:      time.Now(),
 	}
 }
 
@@ -55,8 +62,7 @@ func (t *Track) ToCoinDenom() string {
 func (t *Track) String() string {
 	return fmt.Sprintf(`New Track:
 Track ID: %s
-Uri: %s
-Creator: %s`, t.TrackID, t.Uri, t.Creator)
+Creator: %s`, t.TrackID, t.Creator)
 }
 
 func (t *Track) Equals(track Track) bool {

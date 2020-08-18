@@ -25,7 +25,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 }
 
 func handleMsgTrackCreate(ctx sdk.Context, keeper Keeper, msg types.MsgTrackCreate) (*sdk.Result, error) {
-	track := types.NewTrack(msg.TrackID, msg.TrackInfo, msg.Creator)
+	//track := types.NewTrack(msg.TrackID, msg.TrackInfo, msg.Creator, msg.Provider, msg.StreamPrice, msg.DownloadPrice)
+	track := types.NewTrack(msg.TrackID, msg.Creator, msg.Provider, msg.StreamPrice, msg.DownloadPrice)
 
 	// store track
 	trackID, err := keeper.Add(ctx, track)
