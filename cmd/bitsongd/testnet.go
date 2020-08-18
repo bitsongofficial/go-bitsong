@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	btsgTypes "github.com/bitsongofficial/go-bitsong/types"
+	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 	"net"
 	"os"
@@ -20,7 +20,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -201,7 +201,7 @@ func InitTestnet(
 		accStakingTokens := sdk.TokensFromConsensusPower(500)
 		coins := sdk.Coins{
 			sdk.NewCoin(fmt.Sprintf("%stoken", nodeDirName), accTokens),
-			sdk.NewCoin(btsgTypes.BondDenom, accStakingTokens),
+			sdk.NewCoin(types.BondDenom, accStakingTokens),
 		}
 
 		genAccounts = append(genAccounts, auth.NewBaseAccount(addr, coins.Sort(), nil, 0, 0))
@@ -210,7 +210,7 @@ func InitTestnet(
 		msg := staking.NewMsgCreateValidator(
 			sdk.ValAddress(addr),
 			valPubKeys[i],
-			sdk.NewCoin(btsgTypes.BondDenom, valTokens),
+			sdk.NewCoin(types.BondDenom, valTokens),
 			staking.NewDescription(nodeDirName, "", "", "", ""),
 			staking.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 			sdk.OneInt(),
@@ -276,7 +276,7 @@ func initGenFiles(
 		return err
 	}
 
-	genDoc := types.GenesisDoc{
+	genDoc := tmtypes.GenesisDoc{
 		ChainID:    chainID,
 		AppState:   appGenStateJSON,
 		Validators: nil,
@@ -313,7 +313,7 @@ func collectGenFiles(
 		nodeID, valPubKey := nodeIDs[i], valPubKeys[i]
 		initCfg := genutil.NewInitConfig(chainID, gentxsDir, moniker, nodeID, valPubKey)
 
-		genDoc, err := types.GenesisDocFromFile(config.GenesisFile())
+		genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
 		if err != nil {
 			return err
 		}

@@ -17,7 +17,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/bitsongofficial/go-bitsong/app"
-	"github.com/bitsongofficial/go-bitsong/types/util"
+	"github.com/bitsongofficial/go-bitsong/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -39,9 +39,9 @@ func main() {
 	app.Init()
 
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(util.Bech32PrefixAccAddr, util.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(util.Bech32PrefixValAddr, util.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(util.Bech32PrefixConsAddr, util.Bech32PrefixConsPub)
+	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
 	config.Seal()
 
 	ctx := server.NewDefaultContext()

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,9 +58,6 @@ var (
 		upgrade.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-
-		// BitSong modules
-		track.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -72,13 +68,11 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		track.ModuleName:          {supply.Minter},
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
 		distr.ModuleName: true,
-		track.ModuleName: true,
 	}
 )
 
@@ -110,9 +104,6 @@ type GoBitsong struct {
 	paramsKeeper   params.Keeper
 	evidenceKeeper evidence.Keeper
 
-	// BitSong modules
-	trackKeeper track.Keeper
-
 	// Module Manager
 	mm *module.Manager
 
@@ -125,21 +116,17 @@ func NewBitsongApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	skipUpgradeHeights map[int64]bool, invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp),
 ) *GoBitsong {
-	// First define the top level codec that will be shared by the different modules
-	// TODO: Remove cdc in favor of appCodec once all modules are migrated.
 	cdc := MakeCodecs()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
+
 	keys := sdk.NewKVStoreKeys(
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, upgrade.StoreKey, params.StoreKey, evidence.StoreKey,
-
-		// BitSong modules
-		track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -215,11 +202,6 @@ func NewBitsongApp(
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	// BitSong modules
-	app.trackKeeper = track.NewKeeper(
-		app.supplyKeeper, app.cdc, app.keys[track.ModuleName],
-	)
-
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -235,9 +217,6 @@ func NewBitsongApp(
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
-
-		// BitSong modules
-		track.NewAppModule(app.trackKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -255,9 +234,6 @@ func NewBitsongApp(
 		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
 		slashing.ModuleName, gov.ModuleName, evidence.ModuleName, mint.ModuleName,
 		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-
-		// BitSong modules
-		track.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -275,9 +251,6 @@ func NewBitsongApp(
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-
-		// BitSong modules
-		track.NewAppModule(app.trackKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -304,7 +277,7 @@ func NewBitsongApp(
 }
 
 // Name returns the name of the App
-//func (app *GoBitsong) Name() string { return app.BaseApp.Name() }
+func (app *GoBitsong) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *GoBitsong) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {

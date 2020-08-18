@@ -188,7 +188,7 @@ contract-tests: setup-transactions
 	dredd && pkill bitsongd
 
 # include simulations
-include sims.mk
+# include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
