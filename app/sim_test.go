@@ -3,8 +3,8 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -17,27 +17,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 	"math/rand"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
 func init() {
 	simapp.GetSimulatorFlags()
-
-	// Setup the config
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
-	config.Seal()
 
 	// Setup the overloads
 	Init()
@@ -61,29 +53,8 @@ func interBlockCacheOpt() func(*baseapp.BaseApp) {
 	return baseapp.SetInterBlockCache(store.NewCommitKVStoreCacheManager())
 }
 
-// SetupSimulation wraps simapp.SetupSimulation in order to create any export directory if they do not exist yet
-func SetupSimulation(dirPrefix, dbName string) (simulation.Config, dbm.DB, string, log.Logger, bool, error) {
-	config, db, dir, logger, skip, err := simapp.SetupSimulation(dirPrefix, dbName)
-
-	paths := []string{config.ExportParamsPath, config.ExportStatePath, config.ExportStatsPath}
-	for _, path := range paths {
-		if len(path) == 0 {
-			continue
-		}
-
-		path = filepath.Dir(path)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			if err := os.MkdirAll(path, os.ModePerm); err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	return config, db, dir, logger, skip, err
-}
-
 func TestFullAppSimulation(t *testing.T) {
-	config, db, dir, logger, skip, err := SetupSimulation("leveldb-app-sim", "Simulation")
+	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
 	if skip {
 		t.Skip("skipping application simulation")
 	}
@@ -94,6 +65,7 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
+	viper.Set(flags.FlagHome, dir)
 	app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
 	require.Equal(t, appName, app.Name())
 
@@ -115,7 +87,7 @@ func TestFullAppSimulation(t *testing.T) {
 }
 
 func TestAppImportExport(t *testing.T) {
-	config, db, dir, logger, skip, err := SetupSimulation("leveldb-app-sim", "Simulation")
+	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
 	if skip {
 		t.Skip("skipping application import/export simulation")
 	}
@@ -126,6 +98,7 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
+	viper.Set(flags.FlagHome, dir)
 	app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
 	require.Equal(t, appName, app.Name())
 
@@ -152,7 +125,7 @@ func TestAppImportExport(t *testing.T) {
 
 	fmt.Printf("importing genesis...\n")
 
-	_, newDB, newDir, _, _, err := SetupSimulation("leveldb-app-sim-2", "Simulation-2")
+	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2")
 	require.NoError(t, err, "simulation setup failed")
 
 	defer func() {
@@ -160,6 +133,7 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
+	viper.Set(flags.FlagHome, dir)
 	newApp := NewBitsongApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, simapp.FlagPeriodValue, fauxMerkleModeOpt)
 	require.Equal(t, appName, newApp.Name())
 
@@ -176,16 +150,17 @@ func TestAppImportExport(t *testing.T) {
 	storeKeysPrefixes := []StoreKeysPrefixes{
 		{app.keys[baseapp.MainStoreKey], newApp.keys[baseapp.MainStoreKey], [][]byte{}},
 		{app.keys[auth.StoreKey], newApp.keys[auth.StoreKey], [][]byte{}},
-		{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey],
-			[][]byte{
-				staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
-			}}, // ordering may change but it doesn't matter
+		/*{app.keys[staking.StoreKey], newApp.keys[staking.StoreKey],
+		[][]byte{
+			staking.UnbondingQueueKey, staking.RedelegationQueueKey, staking.ValidatorQueueKey,
+		}}, // ordering may change but it doesn't matter
+		*/
 		{app.keys[slashing.StoreKey], newApp.keys[slashing.StoreKey], [][]byte{}},
-		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
 		{app.keys[distr.StoreKey], newApp.keys[distr.StoreKey], [][]byte{}},
 		{app.keys[supply.StoreKey], newApp.keys[supply.StoreKey], [][]byte{}},
 		{app.keys[params.StoreKey], newApp.keys[params.StoreKey], [][]byte{}},
 		{app.keys[gov.StoreKey], newApp.keys[gov.StoreKey], [][]byte{}},
+		{app.keys[mint.StoreKey], newApp.keys[mint.StoreKey], [][]byte{}},
 		{app.keys[evidence.StoreKey], newApp.keys[evidence.StoreKey], [][]byte{}},
 	}
 
@@ -201,7 +176,7 @@ func TestAppImportExport(t *testing.T) {
 	}
 }
 func TestAppSimulationAfterImport(t *testing.T) {
-	config, db, dir, logger, skip, err := SetupSimulation("leveldb-app-sim", "Simulation")
+	config, db, dir, logger, skip, err := simapp.SetupSimulation("leveldb-app-sim", "Simulation")
 	if skip {
 		t.Skip("skipping application simulation after import")
 	}
@@ -243,7 +218,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("importing genesis...\n")
 
-	_, newDB, newDir, _, _, err := SetupSimulation("leveldb-app-sim-2", "Simulation-2")
+	_, newDB, newDir, _, _, err := simapp.SetupSimulation("leveldb-app-sim-2", "Simulation-2")
 	require.NoError(t, err, "simulation setup failed")
 
 	defer func() {

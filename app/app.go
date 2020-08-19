@@ -3,6 +3,7 @@ package app
 import (
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -76,6 +77,23 @@ var (
 	}
 )
 
+// MakeCodec constructs the *std.Codec and *codec.Codec instances used by
+// BitsongApp.
+func MakeCodec() *codec.Codec {
+	var cdc = codec.New()
+
+	ModuleBasics.RegisterCodec(cdc)
+	sdk.RegisterCodec(cdc)
+	codec.RegisterCrypto(cdc)
+	codec.RegisterEvidences(cdc)
+	authvesting.RegisterCodec(cdc)
+
+	return cdc.Seal()
+}
+
+// Verify app interface at compile time
+var _ simapp.App = (*GoBitsong)(nil)
+
 // Extended ABCI application
 type GoBitsong struct {
 	*bam.BaseApp
@@ -116,7 +134,7 @@ func NewBitsongApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
 	skipUpgradeHeights map[int64]bool, invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp),
 ) *GoBitsong {
-	cdc := MakeCodecs()
+	cdc := MakeCodec()
 
 	// BaseApp handles interactions with Tendermint through the ABCI protocol
 	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
@@ -329,18 +347,4 @@ func (app *GoBitsong) Codec() *codec.Codec {
 // SimulationManager implements the SimulationApp interface
 func (app *GoBitsong) SimulationManager() *module.SimulationManager {
 	return app.sm
-}
-
-// MakeCodecs constructs the *std.Codec and *codec.Codec instances used by
-// BitsongApp.
-func MakeCodecs() *codec.Codec {
-	var cdc = codec.New()
-
-	ModuleBasics.RegisterCodec(cdc)
-	sdk.RegisterCodec(cdc)
-	codec.RegisterCrypto(cdc)
-	codec.RegisterEvidences(cdc)
-	authvesting.RegisterCodec(cdc)
-
-	return cdc.Seal()
 }

@@ -319,7 +319,7 @@ func TestBitsongCLIGasAuto(t *testing.T) {
 	success, stdout, stderr := f.TxSend(keyFoo, barAddr, sdk.NewCoin(denom, sendTokens), "--gas=auto", "-y")
 	require.NotEmpty(t, stderr)
 	require.True(t, success)
-	cdc := app.MakeCodecs()
+	cdc := app.MakeCodec()
 	sendResp := sdk.TxResponse{}
 	err := cdc.UnmarshalJSON([]byte(stdout), &sendResp)
 	require.Nil(t, err)
@@ -409,7 +409,7 @@ func TestBitsongCLICreateValidator(t *testing.T) {
 func TestBitsongCLIQueryRewards(t *testing.T) {
 	t.Parallel()
 	f := InitFixtures(t)
-	cdc := app.MakeCodecs()
+	cdc := app.MakeCodec()
 
 	genesisState := f.GenesisState()
 	inflationMin := sdk.MustNewDecFromStr("1.0")
@@ -695,7 +695,7 @@ func TestBitsongCLIEncode(t *testing.T) {
 	proc := f.BDStart()
 	defer proc.Stop(false)
 
-	cdc := app.MakeCodecs()
+	cdc := app.MakeCodec()
 
 	// Build a testing transaction and write it to disk
 	barAddr := f.KeyAddress(keyBar)

@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-	cdc := app.MakeCodecs()
+	cdc := app.MakeCodec()
 
 	// Initialize the app overriding the various methods we want to customize
 	app.Init()
