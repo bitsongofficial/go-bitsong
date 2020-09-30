@@ -4,6 +4,7 @@ import "github.com/cosmos/cosmos-sdk/codec"
 
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgAccountCreate{}, "go-bitsong/MsgAccountCreate", nil)
+	cdc.RegisterConcrete(Account{}, "go-bitsong/Account", nil)
 }
 
 // ModuleCdc defines the module codec

@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -43,18 +44,18 @@ func (k Keeper) setAccount(ctx sdk.Context, acc types.Account) {
 	store.Set(types.GetAccountKey(acc.Address), bz)
 }
 
-func (k Keeper) CreateAppAccount(ctx sdk.Context, address sdk.AccAddress, handle string) (account types.Account, err error) {
+func (k Keeper) CreateAccount(ctx sdk.Context, address sdk.AccAddress, pubKey crypto.PubKey, handle string) (account types.Account, err error) {
 
 	// first create a base account
 	baseAccount := auth.NewBaseAccountWithAddress(address)
-	//err := baseAccount.SetPubKey(pubKey)
-	/*if err != nil {
-		return appAccnt, ErrAppAccountCreateFailed(address)
-	}*/
+	err = baseAccount.SetPubKey(pubKey)
+	if err != nil {
+		return account, err
+	}
 	k.accountKeeper.SetAccount(ctx, &baseAccount)
 
 	//  then create an app account
-	account = types.NewAccount(handle, "", ctx.BlockHeader().Time)
+	account = types.NewAccount(address, handle, "", ctx.BlockHeader().Time)
 	k.setAccount(ctx, account)
 
 	k.Logger(ctx).Info(fmt.Sprintf("Created %s", account.String()))

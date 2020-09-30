@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"time"
 )
@@ -9,13 +10,15 @@ import (
 type Account struct {
 	auth.BaseAccount
 
-	Handle      string    `json:"handle"`
-	MetadataURI string    `json:"metadata_uri"`
-	CreatedAt   time.Time `json:"created_at"`
+	Address     sdk.AccAddress `json:"address"`
+	Handle      string         `json:"handle"`
+	MetadataURI string         `json:"metadata_uri"`
+	CreatedAt   time.Time      `json:"created_at"`
 }
 
-func NewAccount(handle, metadataURI string, createdAt time.Time) Account {
+func NewAccount(accAddr sdk.AccAddress, handle, metadataURI string, createdAt time.Time) Account {
 	return Account{
+		Address:     accAddr,
 		Handle:      handle,
 		MetadataURI: metadataURI,
 		CreatedAt:   createdAt,
