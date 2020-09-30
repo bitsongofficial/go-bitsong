@@ -7,14 +7,15 @@ import (
 	"testing"
 )
 
-func TestKeeper_CreateAccount(t *testing.T) {
+func TestKeeper_CreateProfile(t *testing.T) {
 	ctx, keeper := SetupTestInput()
-	pubKey := secp256k1.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubKey.Address())
+	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	handle := "test"
+	metadataURI := "metadata"
 
-	account, err := keeper.CreateAccount(ctx, addr, pubKey, handle)
+	account, err := keeper.CreateProfile(ctx, addr, handle, metadataURI)
 	require.NoError(t, err)
 	require.Equal(t, account.Address, addr)
 	require.Equal(t, account.Handle, handle)
+	require.Equal(t, account.MetadataURI, metadataURI)
 }

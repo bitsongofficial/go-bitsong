@@ -3,8 +3,8 @@ package types
 import "github.com/cosmos/cosmos-sdk/codec"
 
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgAccountCreate{}, "go-bitsong/MsgAccountCreate", nil)
-	cdc.RegisterConcrete(Account{}, "go-bitsong/Account", nil)
+	cdc.RegisterConcrete(MsgProfileCreate{}, "go-bitsong/MsgProfileCreate", nil)
+	cdc.RegisterConcrete(Profile{}, "go-bitsong/Profile", nil)
 }
 
 // ModuleCdc defines the module codec

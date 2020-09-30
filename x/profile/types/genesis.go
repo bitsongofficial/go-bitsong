@@ -1,25 +1,25 @@
 package types
 
 type GenesisState struct {
-	Accounts []Account `json:"accounts"`
+	Profiles []Profile `json:"profiles"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(accounts []Account) GenesisState {
+func NewGenesisState(profiles []Profile) GenesisState {
 	return GenesisState{
-		Accounts: accounts,
+		Profiles: profiles,
 	}
 }
 
 // DefaultGenesisState - default GenesisState
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Accounts: []Account{},
+		Profiles: []Profile{},
 	}
 }
 
 func ValidateGenesis(data GenesisState) error {
-	for _, item := range data.Accounts {
+	for _, item := range data.Profiles {
 		if err := item.Validate(); err != nil {
 			return err
 		}
