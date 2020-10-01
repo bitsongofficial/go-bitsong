@@ -12,7 +12,7 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 
 **Note**: Requires [Go 1.13.6+](https://golang.org/dl/)
 
-# Install BitSong Blockchain
+# Install BitSong Blockchain (mpeg21 test)
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
@@ -35,7 +35,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
     cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout develop
+    git checkout mpeg21
     ```
   3. **Compile**
 		```bash
@@ -124,188 +124,26 @@ bitsongcli query account $(bitsongcli keys show jack -a)
 bitsongcli query supply total
 ```
 
-# Module Tracks
+# Module MPEG21
 
-## Create track
+## Store MPEG21 MCO Contract
 ```bash
-bitsongcli tx track create 7b7c8b44-5c57-4060-a189-4432862114e0 \
-  ./test-data/mp21/download-big-label.json \
-  --entity=100:$(bitsongcli keys show jack -a) \
-  --entity=400:$(bitsongcli keys show alice -a) \
+bitsongcli tx mpeg21 store-mco ./testdata/mpeg21/download-no-label.json \
   --from jack \
-  --gas 500000 \
+  --gas 400000 \
   -b block
 ```
 
-Save trackID `7b7c8b44-5c57-4060-a189-4432862114e0`
-```json
-...
-{
-  "type": "track_create",
-  "attributes": [
-    {
-      "key": "track_id",
-      "value": "7b7c8b44-5c57-4060-a189-4432862114e0"
-    }
-  ]
-},
-...
-```
-
-Save share denom `btrack7b7c8b445c`
-```json
-...
-{
-  "key": "amount",
-  "value": "100btrack7b7c8b445c"
-}
-...
-```
-
-## Query minted shares
+## Query MPEG21 MCO Contract by ID
 ```bash
-bitsongcli query account $(bitsongcli keys show jack -a)
-bitsongcli query account $(bitsongcli keys show alice -a)
-```
+bitsongcli query mpeg21 mco-id contract6
+```t
 
-## Query track shares
+## Query all MPEG21 MCO Contracts
 ```bash
-bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
-
-...
-"total_shares": {
-  "denom": "btrack7b7c8b445c",
-  "amount": "0"
-}
-...
+bitsongcli query mpeg21 mco-all
 ```
 
-## Add share on track
-```bash
-bitsongcli tx track add-share \
-  7b7c8b44-5c57-4060-a189-4432862114e0 \
-  10btrack7b7c8b445c \
-  --from jack --gas 350000 -b block
-
-bitsongcli tx track add-share \
-  7b7c8b44-5c57-4060-a189-4432862114e0 \
-  5btrack7b7c8b445c \
-  --from alice --gas 350000 -b block
-
-bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
-
-...
-"total_shares": {
-  "denom": "btrack7b7c8b445c",
-  "amount": "15"
-}
-...
-```
-
-## Remove share on track
-```bash
-bitsongcli tx track remove-share \
-  7b7c8b44-5c57-4060-a189-4432862114e0 \
-  1btrack7b7c8b445c \
-  --from jack --gas 350000 -b block
-
-bitsongcli query track id 7b7c8b44-5c57-4060-a189-4432862114e0
-
-...
-"total_shares": {
-  "denom": "btrack7b7c8b445c",
-  "amount": "14"
-}
-...
-```
-
-## Report Stream
-TODO
-
-## Report Download
-TODO
-
-## Withdraw Rewards
-TODO
-
-## Query on tracks
-```bash
-# Query all tracks
-bitsongcli query track all
-
-# Query track by id
-bitsongcli query track id f888cbdf-3f63-449d-b4dc-93728195093b
-
-# Query all tracks by creator
-bitsongcli query track creator $(bitsongcli keys show jack -a)
-```
-
-## REST - API
-
-```bash
-# Start LCD
-bitsongcli rest-server
-```
-
-## [`/tracks`](http://localhost:1317/tracks)
-
-### Request
-`GET http://localhost:1317/tracks`
-
-### Response
-```json5
-{
-  "height": "716",
-  "result": [
-    {
-      "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
-      "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
-      "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
-      "track_info": "...",
-      "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
-    },
-    // ...
-  ]
-}
-```
-
-## [`/tracks/:track_id`](http://localhost:1317/tracks/f888cbdf-3f63-449d-b4dc-93728195093b)
-
-### Request
-`GET http://localhost:1317/tracks/f888cbdf-3f63-449d-b4dc-93728195093b`
-
-### Response
-```json5
-{
-  "height": "716",
-  "result": {
-    "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
-    "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
-    "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
-    "track_info": "...",
-    "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
-  }
-}
-```
-
-## [`/tracks/:creator`](http://localhost:1317/tracks/bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w)
-
-### Request
-`GET http://localhost:1317/tracks/bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w`
-
-### Response
-```json5
-{
-  "height": "716",
-  "result": {
-    "creator": "bitsong10gpzmvlrwkj0wjgpa0duy7xn0yyxynrtn0pf6w",
-    "hash": "436d7db6da8250b364663dad59086ef7025e17a33a92f8bb74fb453358e41e3e",
-    "track_id": "f888cbdf-3f63-449d-b4dc-93728195093b",
-    "track_info": "...",
-    "uri": "bitsong:track:f888cbdf-3f63-449d-b4dc-93728195093b"
-  }
-}
-```
 
 ## Resources
 - [Official Website](https://bitsong.io)

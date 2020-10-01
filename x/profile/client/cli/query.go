@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"strings"
@@ -49,22 +48,17 @@ $ %s query %s handle test
 			}
 
 			params := types.NewQueryProfileParams(handle)
-			bz, err := cdc.MarshalJSON(params)
-			if err != nil {
-				return err
-			}
+			bz := cdc.MustMarshalJSON(params)
 
 			route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProfile)
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
-				return sdkerrors.Wrap(types.ErrProfileNotFound, fmt.Sprintf("%s", handle))
+				fmt.Printf("Could not find profile with handle %s \n", handle)
+				return nil
 			}
 
 			var profile types.Profile
-			err = cdc.UnmarshalJSON(res, &profile)
-			if err != nil {
-				return err
-			}
+			cdc.MustUnmarshalJSON(res, &profile)
 
 			return cliCtx.PrintOutput(profile)
 		},
@@ -91,22 +85,17 @@ $ %s query %s owner bitsong12lmjr995d0f6dkzpplm58g5makm75eefh0n9fl
 			}
 
 			params := types.NewQueryByAddressParams(address)
-			bz, err := cdc.MarshalJSON(params)
-			if err != nil {
-				return err
-			}
+			bz := cdc.MustMarshalJSON(params)
 
 			route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryProfileByAddress)
 			res, _, err := cliCtx.QueryWithData(route, bz)
 			if err != nil {
-				return sdkerrors.Wrap(types.ErrProfileNotFound, fmt.Sprintf("%s", address.String()))
+				fmt.Printf("Could not find profile with address %s \n", address.String())
+				return nil
 			}
 
 			var profile types.Profile
-			err = cdc.UnmarshalJSON(res, &profile)
-			if err != nil {
-				return err
-			}
+			cdc.MustUnmarshalJSON(res, &profile)
 
 			return cliCtx.PrintOutput(profile)
 		},
