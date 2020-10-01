@@ -61,16 +61,18 @@ func Test_queryRelease(t *testing.T) {
 	require.NotNil(t, res)
 }
 
-/*func Test_queryProfileByAddress(t *testing.T) {
+func Test_queryAllReleasesForCreator(t *testing.T) {
 	ctx, cdc, keeper := SetupTestInput()
-	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	handle := "test"
+	creator := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	creator2 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	releaseID := "test1"
+	releaseID2 := "test2"
 	metadataURI := "metadata"
 
 	h := NewHandler(keeper)
 	require.NotNil(t, h)
 
-	msg := types.NewMsgProfileCreate(addr, handle, metadataURI)
+	msg := types.NewMsgReleseCreate(releaseID, metadataURI, creator)
 	require.NotNil(t, msg)
 
 	_, err := h(ctx, msg)
@@ -84,21 +86,47 @@ func Test_queryRelease(t *testing.T) {
 	_, err = querier(ctx, []string{"foo", "bar"}, query)
 	require.Error(t, err)
 
-	query.Path = "/custom/profile/profile"
+	query.Path = "/custom/release/release"
 	var res []byte
 
 	query.Data = []byte("?")
-	res, err = querier(ctx, []string{types.QueryProfileByAddress}, query)
+	res, err = querier(ctx, []string{types.QueryAllReleaseForCreator}, query)
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	params := types.NewQueryByAddressParams(addr)
+	params := types.NewQueryAllReleaseForCreatorParams(creator)
 	bz, err := cdc.MarshalJSON(params)
 	require.Nil(t, err)
 
 	query.Data = bz
-	res, err = querier(ctx, []string{types.QueryProfileByAddress}, query)
+	res, err = querier(ctx, []string{types.QueryAllReleaseForCreator}, query)
+	var releases []types.Release
+	keeper.codec.MustUnmarshalJSON(res, &releases)
 	require.NoError(t, err)
 	require.NotNil(t, res)
+	require.Equal(t, 1, len(releases))
+
+	msg = types.NewMsgReleseCreate(releaseID2, metadataURI, creator)
+	require.NotNil(t, msg)
+
+	_, err = h(ctx, msg)
+	require.NoError(t, err)
+
+	res, err = querier(ctx, []string{types.QueryAllReleaseForCreator}, query)
+	keeper.codec.MustUnmarshalJSON(res, &releases)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, 2, len(releases))
+
+	params = types.NewQueryAllReleaseForCreatorParams(creator2)
+	bz, err = cdc.MarshalJSON(params)
+	require.Nil(t, err)
+
+	query.Data = bz
+
+	res, err = querier(ctx, []string{types.QueryAllReleaseForCreator}, query)
+	keeper.codec.MustUnmarshalJSON(res, &releases)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, 0, len(releases))
 }
-*/

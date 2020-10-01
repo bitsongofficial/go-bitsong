@@ -37,23 +37,6 @@ func (k Keeper) GetRelease(ctx sdk.Context, releaseID string) (release types.Rel
 	return release, true
 }
 
-/*func (k Keeper) GetProfileByAddress(ctx sdk.Context, addr sdk.AccAddress) (profile types.Profile, ok bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetAddressKey(addr))
-	if bz == nil {
-		return
-	}
-	var handle string
-	k.codec.MustUnmarshalBinaryLengthPrefixed(bz, &handle)
-
-	bz = store.Get(types.GetProfileKey(handle))
-	if bz == nil {
-		return
-	}
-	k.codec.MustUnmarshalBinaryLengthPrefixed(bz, &profile)
-	return profile, true
-}*/
-
 func (k Keeper) SetRelease(ctx sdk.Context, release types.Release) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.codec.MustMarshalBinaryLengthPrefixed(&release)
@@ -82,6 +65,35 @@ func (k Keeper) GetAllReleases(ctx sdk.Context) []types.Release {
 	return releases
 }
 
+func (k Keeper) SetReleaseForCreator(ctx sdk.Context, release types.Release) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.codec.MustMarshalBinaryLengthPrefixed(&release.ReleaseID)
+	store.Set(types.ReleaseAddressKey(release.Creator, release.ReleaseID), bz)
+}
+
+func (k Keeper) IterateAllReleasesForCreator(ctx sdk.Context, creator sdk.AccAddress, fn func(releaseID string) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.GetReleaseForCreatorKey(creator))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var releaseID string
+		k.codec.MustUnmarshalBinaryLengthPrefixed(iterator.Value(), &releaseID)
+		if fn(releaseID) {
+			break
+		}
+	}
+}
+
+func (k Keeper) GetAllReleaseForCreator(ctx sdk.Context, creator sdk.AccAddress) []types.Release {
+	var releases []types.Release
+	k.IterateAllReleasesForCreator(ctx, creator, func(releaseID string) (stop bool) {
+		release, _ := k.GetRelease(ctx, releaseID)
+		releases = append(releases, release)
+		return false
+	})
+	return releases
+}
+
 func (k Keeper) IsReleaseDuplicated(ctx sdk.Context, releaseID string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.GetReleaseKey(releaseID))
@@ -94,6 +106,7 @@ func (k Keeper) CreateRelease(ctx sdk.Context, address sdk.AccAddress, releaseID
 
 	release = types.NewRelease(releaseID, metadataURI, address, ctx.BlockHeader().Time)
 	k.SetRelease(ctx, release)
+	k.SetReleaseForCreator(ctx, release)
 
 	k.Logger(ctx).Info(fmt.Sprintf("Release Created %s", release.String()))
 

@@ -19,17 +19,22 @@ const (
 // Keys for release store
 // Items are stored with the following key: values
 //
-// - 0x00<handle_Bytes>: Profile
-// - 0x10<accAddr_Bytes>: Creator
+// - 0x00<releaseID_Bytes>: Release
+// - 0x10<accAddr_Bytes><releaseID_Bytes>: releaseID
 var (
-	ReleaseKeyPrefix = []byte{0x00}
-	CreatorKeyPrefix = []byte{0x10}
+	CounterKey                 = []byte{0x00}
+	ReleaseKeyPrefix           = []byte{0x10}
+	ReleaseForCreatorKeyPrefix = []byte{0x20}
 )
 
 func GetReleaseKey(releaseID string) []byte {
 	return append(ReleaseKeyPrefix, []byte(releaseID)...)
 }
 
-func GerCreatorKey(address sdk.AccAddress) []byte {
-	return append(CreatorKeyPrefix, address.Bytes()...)
+func GetReleaseForCreatorKey(address sdk.AccAddress) []byte {
+	return append(ReleaseForCreatorKeyPrefix, address.Bytes()...)
+}
+
+func ReleaseAddressKey(address sdk.AccAddress, releaseID string) []byte {
+	return append(GetReleaseForCreatorKey(address), []byte(releaseID)...)
 }

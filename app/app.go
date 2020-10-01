@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/bitsongofficial/go-bitsong/x/profile"
+	"github.com/bitsongofficial/go-bitsong/x/release"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -63,6 +64,7 @@ var (
 
 		// BitSong modules
 		profile.AppModuleBasic{},
+		release.AppModuleBasic{},
 		track.AppModuleBasic{},
 	)
 
@@ -114,6 +116,7 @@ type GoBitsong struct {
 
 	// BitSong modules
 	profileKeeper profile.Keeper
+	releaseKeeper release.Keeper
 	trackKeeper   track.Keeper
 
 	// Module Manager
@@ -142,7 +145,7 @@ func NewBitsongApp(
 		gov.StoreKey, upgrade.StoreKey, params.StoreKey, evidence.StoreKey,
 
 		// BitSong modules
-		profile.StoreKey, track.StoreKey,
+		profile.StoreKey, release.StoreKey, track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -222,6 +225,9 @@ func NewBitsongApp(
 	app.profileKeeper = profile.NewKeeper(
 		app.keys[profile.ModuleName], app.cdc, app.accountKeeper,
 	)
+	app.releaseKeeper = release.NewKeeper(
+		app.keys[release.ModuleName], app.cdc,
+	)
 	app.trackKeeper = track.NewKeeper(
 		app.supplyKeeper, app.cdc, app.keys[track.ModuleName],
 	)
@@ -244,6 +250,7 @@ func NewBitsongApp(
 
 		// BitSong modules
 		profile.NewAppModule(app.profileKeeper),
+		release.NewAppModule(app.releaseKeeper),
 		track.NewAppModule(app.trackKeeper),
 	)
 
@@ -264,7 +271,7 @@ func NewBitsongApp(
 		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 
 		// BitSong modules
-		profile.ModuleName, track.ModuleName,
+		profile.ModuleName, release.ModuleName, track.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

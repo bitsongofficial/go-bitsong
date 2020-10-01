@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/profile/types"
+	"github.com/bitsongofficial/go-bitsong/x/release/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -27,20 +27,20 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
-		GetCmdProfileCreate(cdc),
+		GetCmdReleaseCreate(cdc),
 	)...)
 
 	return contentTxCmd
 }
 
-func GetCmdProfileCreate(cdc *codec.Codec) *cobra.Command {
+func GetCmdReleaseCreate(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a new profile on bitsong",
+		Short: "Create a new release on bitsong",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Create a new profile on bitsong.
+			fmt.Sprintf(`Create a new release on bitsong.
 Example:
-$ %s tx profile create [handle] [metadataURI] --from <creator>`,
+$ %s tx profile create [releaseID] [metadataURI] --from <creator>`,
 				version.ClientName,
 			),
 		),
@@ -50,10 +50,10 @@ $ %s tx profile create [handle] [metadataURI] --from <creator>`,
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			handle := args[0]
+			releaseID := args[0]
 			metadataURI := args[1]
 
-			msg := types.NewMsgProfileCreate(cliCtx.FromAddress, handle, metadataURI)
+			msg := types.NewMsgReleseCreate(releaseID, metadataURI, cliCtx.FromAddress)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

@@ -1,4 +1,4 @@
-package profile
+package release
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -6,8 +6,9 @@ import (
 )
 
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	for _, account := range data.Profiles {
-		k.SetProfile(ctx, account)
+	for _, release := range data.Releases {
+		k.SetRelease(ctx, release)
+		k.SetReleaseForCreator(ctx, release)
 	}
 
 	return []abci.ValidatorUpdate{}
@@ -15,6 +16,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	return GenesisState{
-		Profiles: k.GetAllProfiles(ctx),
+		Releases: k.GetAllReleases(ctx),
 	}
 }

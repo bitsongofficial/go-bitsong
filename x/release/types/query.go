@@ -3,8 +3,8 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	QueryRelease          = "release"
-	QueryReleaseByCreator = "releaseByCreator"
+	QueryRelease              = "release"
+	QueryAllReleaseForCreator = "allReleaseForCreator"
 )
 
 type QueryReleaseParams struct {
@@ -15,10 +15,10 @@ func NewQueryReleaseParams(releaseID string) QueryReleaseParams {
 	return QueryReleaseParams{ReleaseID: releaseID}
 }
 
-type QueryByCreatorParams struct {
+type QueryAllReleaseForCreatorParams struct {
 	Creator sdk.AccAddress
 }
 
-func NewQueryByCreatorParams(creator sdk.AccAddress) QueryByCreatorParams {
-	return QueryByCreatorParams{Creator: creator}
+func NewQueryAllReleaseForCreatorParams(creator sdk.AccAddress) QueryAllReleaseForCreatorParams {
+	return QueryAllReleaseForCreatorParams{Creator: creator}
 }
