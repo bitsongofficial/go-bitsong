@@ -10,27 +10,49 @@ import (
 )
 
 const (
-	ModuleName   = types.ModuleName
-	StoreKey     = types.StoreKey
-	RouterKey    = types.RouterKey
-	QuerierRoute = types.QuerierRoute
+	ErrCodeProfileNotFound    = types.ErrCodeProfileNotFound
+	ErrCodeProfileCreateError = types.ErrCodeProfileCreateError
+	ModuleName                = types.ModuleName
+	StoreKey                  = types.StoreKey
+	RouterKey                 = types.RouterKey
+	QuerierRoute              = types.QuerierRoute
+	EventTypeProfileCreate    = types.EventTypeProfileCreate
+	AttributeKeyProfileHandle = types.AttributeKeyProfileHandle
+	QueryProfile              = types.QueryProfile
+	QueryProfileByAddress     = types.QueryProfileByAddress
+	TypeMsgProfileCreate      = types.TypeMsgProfileCreate
 )
 
 var (
 	// functions aliases
-	RegisterCodec       = types.RegisterCodec
-	DefaultGenesisState = types.DefaultGenesisState
-	ValidateGenesis     = types.ValidateGenesis
-	NewKeeper           = keeper.NewKeeper
-	NewHandler          = keeper.NewHandler
+	NewKeeper               = keeper.NewKeeper
+	NewQuerier              = keeper.NewQuerier
+	NewHandler              = keeper.NewHandler
+	NewGenesisState         = types.NewGenesisState
+	DefaultGenesisState     = types.DefaultGenesisState
+	ValidateGenesis         = types.ValidateGenesis
+	GetProfileKey           = types.GetProfileKey
+	GetAddressKey           = types.GetAddressKey
+	RegisterCodec           = types.RegisterCodec
+	NewProfile              = types.NewProfile
+	NewQueryProfileParams   = types.NewQueryProfileParams
+	NewQueryByAddressParams = types.NewQueryByAddressParams
+	NewMsgProfileCreate     = types.NewMsgProfileCreate
 
 	// variable aliases
-	ModuleCdc = types.ModuleCdc
+	DefaultCodespace      = types.DefaultCodespace
+	ErrProfileNotFound    = types.ErrProfileNotFound
+	ErrProfileCreateError = types.ErrProfileCreateError
+	ProfileKeyPrefix      = types.ProfileKeyPrefix
+	AddressKeyPrefix      = types.AddressKeyPrefix
+	ModuleCdc             = types.ModuleCdc
 )
 
 type (
-	Profile          = types.Profile
-	MsgProfileCreate = types.MsgProfileCreate
-	GenesisState     = types.GenesisState
-	Keeper           = keeper.Keeper
+	Keeper               = keeper.Keeper
+	GenesisState         = types.GenesisState
+	Profile              = types.Profile
+	QueryProfileParams   = types.QueryProfileParams
+	QueryByAddressParams = types.QueryByAddressParams
+	MsgProfileCreate     = types.MsgProfileCreate
 )

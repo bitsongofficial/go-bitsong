@@ -9,9 +9,10 @@ import (
 )
 
 func Test_handleMsgProfileCreate(t *testing.T) {
-	ctx, keeper := SetupTestInput()
+	ctx, _, keeper := SetupTestInput()
 	addr := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	handle := "test"
+	handle2 := "test2"
 	metadataURI := "metadata"
 
 	h := NewHandler(keeper)
@@ -30,4 +31,16 @@ func Test_handleMsgProfileCreate(t *testing.T) {
 	require.Equal(t, account.Handle, handle)
 	require.Equal(t, account.Address, addr)
 	require.Equal(t, account.MetadataURI, metadataURI)
+
+	msg = types.NewMsgProfileCreate(addr, handle, metadataURI)
+	require.NotNil(t, msg)
+
+	result, err = h(ctx, msg)
+	require.Error(t, err)
+
+	msg = types.NewMsgProfileCreate(addr, handle2, metadataURI)
+	require.NotNil(t, msg)
+
+	result, err = h(ctx, msg)
+	require.Error(t, err)
 }

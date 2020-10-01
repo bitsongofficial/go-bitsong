@@ -2,6 +2,7 @@ package profile
 
 import (
 	"encoding/json"
+	"github.com/bitsongofficial/go-bitsong/x/profile/client/cli"
 	context "github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -52,14 +53,12 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router
 
 // GetTxCmd returns the root tx command for the content module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetTxCmd(cdc)
-	return nil
+	return cli.GetTxCmd(cdc)
 }
 
 // GetQueryCmd returns no root query command for the content module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetQueryCmd(cdc)
-	return nil
+	return cli.GetQueryCmd(cdc)
 }
 
 //____________________________________________________________________________
@@ -104,8 +103,7 @@ func (AppModule) QuerierRoute() string {
 
 // NewQuerierHandler returns the content module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	//return NewQuerier(am.keeper)
-	return nil
+	return NewQuerier(am.keeper)
 }
 
 // InitGenesis performs genesis initialization for the content module. It returns

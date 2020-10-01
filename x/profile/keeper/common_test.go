@@ -13,7 +13,7 @@ import (
 	db "github.com/tendermint/tm-db"
 )
 
-func SetupTestInput() (sdk.Context, Keeper) {
+func SetupTestInput() (sdk.Context, *codec.Codec, Keeper) {
 	// define store keys
 	profileKey := sdk.NewKVStoreKey(types.StoreKey)
 	accountKey := sdk.NewKVStoreKey(auth.StoreKey)
@@ -38,7 +38,7 @@ func SetupTestInput() (sdk.Context, Keeper) {
 	accountKeeper := auth.NewAccountKeeper(cdc, accountKey, paramsKeeper.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	profileKeeper := NewKeeper(profileKey, cdc, accountKeeper)
 
-	return ctx, profileKeeper
+	return ctx, cdc, profileKeeper
 }
 
 func testCodec() *codec.Codec {

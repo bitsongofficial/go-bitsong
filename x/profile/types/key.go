@@ -19,11 +19,17 @@ const (
 // Keys for account store
 // Items are stored with the following key: values
 //
-// - 0x00<accAddr_Bytes>: Profile
+// - 0x00<handle_Bytes>: Profile
+// - 0x10<accAddr_Bytes>: Handle
 var (
 	ProfileKeyPrefix = []byte{0x00}
+	AddressKeyPrefix = []byte{0x10}
 )
 
-func GetProfileKey(accAddr sdk.AccAddress) []byte {
-	return append(ProfileKeyPrefix, accAddr.Bytes()...)
+func GetProfileKey(handle string) []byte {
+	return append(ProfileKeyPrefix, []byte(handle)...)
+}
+
+func GetAddressKey(accAddr sdk.AccAddress) []byte {
+	return append(AddressKeyPrefix, accAddr.Bytes()...)
 }
