@@ -78,13 +78,6 @@ endif
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-build-contract-tests-hooks:
-ifeq ($(OS),Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests.exe ./cmd/contract_tests
-else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
-endif
-
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongcli
@@ -110,7 +103,7 @@ distclean: clean
 ### Testing
 
 test: test-unit test-build
-test-all: check test-race test-cover
+test-all: test-race test-cover
 
 test-unit:
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
@@ -148,35 +141,12 @@ build-docker-go-bitsong:
 
 # Run a 4-node testnet locally
 localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/bitsongd:Z bitsongofficial/go-bitsong testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
+	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then $(CURDIR)/build/bitsongd testnet --v 4 -o ./build --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
 	docker-compose up -d
 
 # Stop testnet
 localnet-stop:
 	docker-compose down
-
-setup-contract-tests-data:
-	echo 'Prepare data for the contract tests'
-	rm -rf /tmp/contract_tests ; \
-	mkdir /tmp/contract_tests ; \
-	cp "${GOPATH}/pkg/mod/${SDK_PACK}/client/lcd/swagger-ui/swagger.yaml" /tmp/contract_tests/swagger.yaml ; \
-	./build/bitsongd init --home /tmp/contract_tests/.bitsongd --chain-id lcd contract-tests ; \
-	tar -xzf lcd_test/testdata/state.tar.gz -C /tmp/contract_tests/
-
-start-go-bitsong: setup-contract-tests-data
-	./build/bitsongd --home /tmp/contract_tests/.bitsongd start &
-	@sleep 2s
-
-setup-transactions: start-go-bitsong
-	@bash ./lcd_test/testdata/setup.sh
-
-run-lcd-contract-tests:
-	@echo "Running Go-Bitsong LCD for contract tests"
-	./build/bitsongcli rest-server --laddr tcp://0.0.0.0:8080 --home /tmp/contract_tests/.bitsongcli --node http://localhost:26657 --chain-id lcd --trust-node true
-
-contract-tests: setup-transactions
-	@echo "Running Go-Bitsong LCD for contract tests"
-	dredd && pkill bitsongd
 
 # include simulations
 include sims.mk
