@@ -1,7 +1,7 @@
 package types
 
 const (
-	EventTypeProfileCreate = "profile_create"
+	EventTypeChannelCreate = "channel_create"
 
 	AttributeKeyProfileHandle = "handle"
 )

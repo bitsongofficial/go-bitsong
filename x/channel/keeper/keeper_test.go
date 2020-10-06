@@ -14,15 +14,15 @@ func TestKeeper_CreateProfile(t *testing.T) {
 	handle2 := "test2"
 	metadataURI := "metadata"
 
-	account, err := keeper.CreateProfile(ctx, addr, handle, metadataURI)
+	account, err := keeper.CreateChannel(ctx, addr, handle, metadataURI)
 	require.NoError(t, err)
-	require.Equal(t, account.Address, addr)
+	require.Equal(t, account.Owner, addr)
 	require.Equal(t, account.Handle, handle)
 	require.Equal(t, account.MetadataURI, metadataURI)
 
-	account, err = keeper.CreateProfile(ctx, addr, handle, metadataURI)
+	account, err = keeper.CreateChannel(ctx, addr, handle, metadataURI)
 	require.Error(t, err)
 
-	account, err = keeper.CreateProfile(ctx, addr, handle2, metadataURI)
+	account, err = keeper.CreateChannel(ctx, addr, handle2, metadataURI)
 	require.Error(t, err)
 }

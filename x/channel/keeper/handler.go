@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/profile/types"
+	"github.com/bitsongofficial/go-bitsong/x/channel/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -10,8 +10,8 @@ import (
 func NewHandler(keeper Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		switch msg := msg.(type) {
-		case types.MsgProfileCreate:
-			return handleMsgProfileCreate(ctx, keeper, msg)
+		case types.MsgChannelCreate:
+			return handleMsgChannelCreate(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -19,21 +19,21 @@ func NewHandler(keeper Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgProfileCreate(ctx sdk.Context, keeper Keeper, msg types.MsgProfileCreate) (*sdk.Result, error) {
-	profile, err := keeper.CreateProfile(ctx, msg.Address, msg.Handle, msg.MetadataURI)
+func handleMsgChannelCreate(ctx sdk.Context, keeper Keeper, msg types.MsgChannelCreate) (*sdk.Result, error) {
+	channel, err := keeper.CreateChannel(ctx, msg.Owner, msg.Handle, msg.MetadataURI)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			types.EventTypeProfileCreate,
-			sdk.NewAttribute(types.AttributeKeyProfileHandle, profile.Handle),
+			types.EventTypeChannelCreate,
+			sdk.NewAttribute(types.AttributeKeyProfileHandle, channel.Handle),
 		),
 	)
 
 	return &sdk.Result{
-		Data:   keeper.codec.MustMarshalBinaryLengthPrefixed(profile),
+		Data:   keeper.codec.MustMarshalBinaryLengthPrefixed(channel),
 		Events: ctx.EventManager().Events(),
 	}, nil
 }

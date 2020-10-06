@@ -3,7 +3,7 @@ package cli
 import (
 	"bufio"
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/profile/types"
+	"github.com/bitsongofficial/go-bitsong/x/channel/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -27,20 +27,20 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	contentTxCmd.AddCommand(flags.PostCommands(
-		GetCmdProfileCreate(cdc),
+		GetCmdChannelCreate(cdc),
 	)...)
 
 	return contentTxCmd
 }
 
-func GetCmdProfileCreate(cdc *codec.Codec) *cobra.Command {
+func GetCmdChannelCreate(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a new profile on bitsong",
+		Short: "Create a new channel on bitsong",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Create a new profile on bitsong.
+			fmt.Sprintf(`Create a new channel on bitsong.
 Example:
-$ %s tx profile create [handle] [metadataURI] --from <creator>`,
+$ %s tx channel create [handle] [metadataURI] --from <owner>`,
 				version.ClientName,
 			),
 		),
@@ -53,7 +53,7 @@ $ %s tx profile create [handle] [metadataURI] --from <creator>`,
 			handle := args[0]
 			metadataURI := args[1]
 
-			msg := types.NewMsgProfileCreate(cliCtx.FromAddress, handle, metadataURI)
+			msg := types.NewMsgChannelCreate(cliCtx.FromAddress, handle, metadataURI)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

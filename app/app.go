@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/profile"
+	"github.com/bitsongofficial/go-bitsong/x/channel"
 	"github.com/bitsongofficial/go-bitsong/x/release"
 	"github.com/bitsongofficial/go-bitsong/x/track"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
@@ -63,7 +63,7 @@ var (
 		evidence.AppModuleBasic{},
 
 		// BitSong modules
-		profile.AppModuleBasic{},
+		channel.AppModuleBasic{},
 		release.AppModuleBasic{},
 		track.AppModuleBasic{},
 	)
@@ -115,7 +115,7 @@ type GoBitsong struct {
 	evidenceKeeper evidence.Keeper
 
 	// BitSong modules
-	profileKeeper profile.Keeper
+	channelKeeper channel.Keeper
 	releaseKeeper release.Keeper
 	trackKeeper   track.Keeper
 
@@ -145,7 +145,7 @@ func NewBitsongApp(
 		gov.StoreKey, upgrade.StoreKey, params.StoreKey, evidence.StoreKey,
 
 		// BitSong modules
-		profile.StoreKey, release.StoreKey, track.StoreKey,
+		channel.StoreKey, release.StoreKey, track.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -222,8 +222,8 @@ func NewBitsongApp(
 	)
 
 	// BitSong modules
-	app.profileKeeper = profile.NewKeeper(
-		app.keys[profile.ModuleName], app.cdc, app.accountKeeper,
+	app.channelKeeper = channel.NewKeeper(
+		app.keys[channel.ModuleName], app.cdc, app.accountKeeper,
 	)
 	app.releaseKeeper = release.NewKeeper(
 		app.keys[release.ModuleName], app.cdc,
@@ -249,7 +249,7 @@ func NewBitsongApp(
 		evidence.NewAppModule(app.evidenceKeeper),
 
 		// BitSong modules
-		profile.NewAppModule(app.profileKeeper),
+		channel.NewAppModule(app.channelKeeper),
 		release.NewAppModule(app.releaseKeeper),
 		track.NewAppModule(app.trackKeeper),
 	)
@@ -271,7 +271,7 @@ func NewBitsongApp(
 		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 
 		// BitSong modules
-		profile.ModuleName, release.ModuleName, track.ModuleName,
+		channel.ModuleName, release.ModuleName, track.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

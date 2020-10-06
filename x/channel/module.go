@@ -1,9 +1,9 @@
-package profile
+package channel
 
 import (
 	"encoding/json"
-	"github.com/bitsongofficial/go-bitsong/x/profile/client/cli"
-	"github.com/bitsongofficial/go-bitsong/x/profile/client/rest"
+	"github.com/bitsongofficial/go-bitsong/x/channel/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/channel/client/rest"
 	context "github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/profile/types"
+	"github.com/bitsongofficial/go-bitsong/x/channel/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -18,27 +18,27 @@ func Test_handleMsgProfileCreate(t *testing.T) {
 	h := NewHandler(keeper)
 	require.NotNil(t, h)
 
-	msg := types.NewMsgProfileCreate(addr, handle, metadataURI)
+	msg := types.NewMsgChannelCreate(addr, handle, metadataURI)
 	require.NotNil(t, msg)
 
 	result, err := h(ctx, msg)
 	require.NoError(t, err)
 
-	account := types.Profile{}
+	account := types.Channel{}
 	err = keeper.codec.UnmarshalBinaryLengthPrefixed(result.Data, &account)
 	require.NoError(t, err)
 
 	require.Equal(t, account.Handle, handle)
-	require.Equal(t, account.Address, addr)
+	require.Equal(t, account.Owner, addr)
 	require.Equal(t, account.MetadataURI, metadataURI)
 
-	msg = types.NewMsgProfileCreate(addr, handle, metadataURI)
+	msg = types.NewMsgChannelCreate(addr, handle, metadataURI)
 	require.NotNil(t, msg)
 
 	result, err = h(ctx, msg)
 	require.Error(t, err)
 
-	msg = types.NewMsgProfileCreate(addr, handle2, metadataURI)
+	msg = types.NewMsgChannelCreate(addr, handle2, metadataURI)
 	require.NotNil(t, msg)
 
 	result, err = h(ctx, msg)

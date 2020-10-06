@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/profile/types"
+	"github.com/bitsongofficial/go-bitsong/x/channel/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -29,7 +29,7 @@ func Test_queryProfile(t *testing.T) {
 	h := NewHandler(keeper)
 	require.NotNil(t, h)
 
-	msg := types.NewMsgProfileCreate(addr, handle, metadataURI)
+	msg := types.NewMsgChannelCreate(addr, handle, metadataURI)
 	require.NotNil(t, msg)
 
 	_, err := h(ctx, msg)
@@ -47,16 +47,16 @@ func Test_queryProfile(t *testing.T) {
 	var res []byte
 
 	query.Data = []byte("?")
-	res, err = querier(ctx, []string{types.QueryProfile}, query)
+	res, err = querier(ctx, []string{types.QueryChannel}, query)
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	params := types.NewQueryProfileParams(handle)
+	params := types.NewQueryChannelParams(handle)
 	bz, err := cdc.MarshalJSON(params)
 	require.Nil(t, err)
 
 	query.Data = bz
-	res, err = querier(ctx, []string{types.QueryProfile}, query)
+	res, err = querier(ctx, []string{types.QueryChannel}, query)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
@@ -70,7 +70,7 @@ func Test_queryProfileByAddress(t *testing.T) {
 	h := NewHandler(keeper)
 	require.NotNil(t, h)
 
-	msg := types.NewMsgProfileCreate(addr, handle, metadataURI)
+	msg := types.NewMsgChannelCreate(addr, handle, metadataURI)
 	require.NotNil(t, msg)
 
 	_, err := h(ctx, msg)
@@ -88,16 +88,16 @@ func Test_queryProfileByAddress(t *testing.T) {
 	var res []byte
 
 	query.Data = []byte("?")
-	res, err = querier(ctx, []string{types.QueryProfileByAddress}, query)
+	res, err = querier(ctx, []string{types.QueryChannelByOwner}, query)
 	require.Error(t, err)
 	require.Nil(t, res)
 
-	params := types.NewQueryByAddressParams(addr)
+	params := types.NewQueryByOwnerParams(addr)
 	bz, err := cdc.MarshalJSON(params)
 	require.Nil(t, err)
 
 	query.Data = bz
-	res, err = querier(ctx, []string{types.QueryProfileByAddress}, query)
+	res, err = querier(ctx, []string{types.QueryChannelByOwner}, query)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }

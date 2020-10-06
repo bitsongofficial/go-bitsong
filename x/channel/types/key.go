@@ -4,7 +4,7 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
 	// ModuleName is the name of the module
-	ModuleName = "profile"
+	ModuleName = "channel"
 
 	// StoreKey to be used when creating the KVStore
 	StoreKey = ModuleName
@@ -19,17 +19,17 @@ const (
 // Keys for account store
 // Items are stored with the following key: values
 //
-// - 0x00<handle_Bytes>: Profile
+// - 0x00<handle_Bytes>: Channel
 // - 0x10<accAddr_Bytes>: Handle
 var (
-	ProfileKeyPrefix = []byte{0x00}
+	ChannelKeyPrefix = []byte{0x00}
 	AddressKeyPrefix = []byte{0x10}
 )
 
-func GetProfileKey(handle string) []byte {
-	return append(ProfileKeyPrefix, []byte(handle)...)
+func GetChannelKey(handle string) []byte {
+	return append(ChannelKeyPrefix, []byte(handle)...)
 }
 
-func GetAddressKey(accAddr sdk.AccAddress) []byte {
+func GetOwnerKey(accAddr sdk.AccAddress) []byte {
 	return append(AddressKeyPrefix, accAddr.Bytes()...)
 }

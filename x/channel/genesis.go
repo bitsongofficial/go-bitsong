@@ -1,4 +1,4 @@
-package profile
+package channel
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -6,8 +6,8 @@ import (
 )
 
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorUpdate {
-	for _, account := range data.Profiles {
-		k.SetProfile(ctx, account)
+	for _, channel := range data.Channels {
+		k.SetChannel(ctx, channel)
 	}
 
 	return []abci.ValidatorUpdate{}
@@ -15,6 +15,6 @@ func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) []abci.ValidatorU
 
 func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	return GenesisState{
-		Profiles: k.GetAllProfiles(ctx),
+		Channels: k.GetAllChannels(ctx),
 	}
 }
