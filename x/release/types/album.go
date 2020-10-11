@@ -34,3 +34,19 @@ func (ba *BaseAlbum) GetReleaseDate() time.Time {
 	year, _ := strconv.Atoi(ba.ReleaseDate)
 	return time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 }
+
+type Album struct {
+	BaseAlbum
+	Copyrights []Copyright `json:"copyrights"`
+	Genres     []string    `json:"genres"`
+	Tracks     []ID        `json:"tracks"`
+	EIDs       EIDs        `json:"eids"`
+}
+
+type AlbumType int
+
+const (
+	AlbumTypeAlbum AlbumType = 1 << iota
+	AlbumTypeSingle
+	AlbumTypeCompilation
+)
