@@ -8,6 +8,7 @@ import (
 
 const (
 	TypeMsgChannelCreate = "channel_create"
+	TypeMsgChannelEdit   = "channel_edit"
 )
 
 var _ sdk.Msg = MsgChannelCreate{}
@@ -38,7 +39,11 @@ func (msg MsgChannelCreate) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel handle must have a length > 3")
 	}
 
-	if len(msg.Handle) > 256 {
+	if len(msg.Handle) > 64 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel Handle cannot be more than 256 characters")
+	}
+
+	if len(msg.MetadataURI) > 256 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel metadataURI cannot be more than 256 characters")
 	}
 
@@ -61,5 +66,52 @@ Owner: %s,
 Handle: %s
 MetadataURI: %s`,
 		msg.Owner.String(), msg.Handle, msg.MetadataURI,
+	)
+}
+
+var _ sdk.Msg = MsgChannelEdit{}
+
+type MsgChannelEdit struct {
+	Owner       sdk.AccAddress `json:"owner" yaml:"owner"`
+	MetadataURI string         `json:"metadata_uri"`
+}
+
+func NewMsgChannelEdit(owner sdk.AccAddress, metadataUri string) MsgChannelEdit {
+	return MsgChannelEdit{
+		Owner:       owner,
+		MetadataURI: metadataUri,
+	}
+}
+
+func (msg MsgChannelEdit) Route() string { return RouterKey }
+func (msg MsgChannelEdit) Type() string  { return TypeMsgChannelEdit }
+
+func (msg MsgChannelEdit) ValidateBasic() error {
+	if msg.Owner.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel owner cannot be empty")
+	}
+
+	if len(msg.MetadataURI) > 256 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel metadataURI cannot be more than 256 characters")
+	}
+
+	return nil
+}
+
+// GetSignBytes encodes the message for signing
+func (msg MsgChannelEdit) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+// GetSigners defines whose signature is required
+func (msg MsgChannelEdit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Owner}
+}
+
+func (msg MsgChannelEdit) String() string {
+	return fmt.Sprintf(`Msg Channel Edit
+Owner: %s,
+MetadataURI: %s`,
+		msg.Owner.String(), msg.MetadataURI,
 	)
 }

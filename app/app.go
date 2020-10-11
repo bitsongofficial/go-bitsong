@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/auth"
 	"github.com/bitsongofficial/go-bitsong/x/channel"
 	"github.com/bitsongofficial/go-bitsong/x/release"
 	"github.com/bitsongofficial/go-bitsong/x/track"
@@ -9,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"

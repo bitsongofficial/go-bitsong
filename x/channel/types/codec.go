@@ -4,6 +4,7 @@ import "github.com/cosmos/cosmos-sdk/codec"
 
 func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgChannelCreate{}, "go-bitsong/MsgChannelCreate", nil)
+	cdc.RegisterConcrete(MsgChannelEdit{}, "go-bitsong/MsgChannelEdit", nil)
 	cdc.RegisterConcrete(Channel{}, "go-bitsong/Channel", nil)
 }
 

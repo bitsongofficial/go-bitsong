@@ -115,3 +115,17 @@ func (k Keeper) CreateChannel(ctx sdk.Context, owner sdk.AccAddress, handle, met
 
 	return channel, nil
 }
+
+func (k Keeper) EditChannel(ctx sdk.Context, owner sdk.AccAddress, metadataURI string) (channel types.Channel, err error) {
+	channel, found := k.GetChannelByOwner(ctx, owner)
+	if !found {
+		return channel, sdkerrors.Wrap(types.ErrChannelNotFound, fmt.Sprintf("channel not found"))
+	}
+
+	channel.MetadataURI = metadataURI
+	k.SetChannel(ctx, channel)
+
+	k.Logger(ctx).Info(fmt.Sprintf("Channel Edited %s", channel.String()))
+
+	return channel, nil
+}

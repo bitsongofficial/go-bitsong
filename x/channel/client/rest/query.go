@@ -11,11 +11,30 @@ import (
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/channel/{handle}", queryProfileHandlerFn(cliCtx)).Methods("GET")
-	r.HandleFunc("/channel/owner/{addr}", queryProfileHandlerFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/channel/{handle}", queryChannelByHandleFn(cliCtx)).Methods("GET")
+	r.HandleFunc("/channel/owner/{addr}", queryChannelByOwnerFn(cliCtx)).Methods("GET")
 }
 
-func queryProfileHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func queryChannelByHandleFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		handle := vars["handle"]
+
+		params := types.NewQueryChannelParams(handle)
+		bz := cliCtx.Codec.MustMarshalJSON(params)
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryChannel)
+		res, _, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func queryChannelByOwnerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		owner, _ := sdk.AccAddressFromBech32(vars["addr"])

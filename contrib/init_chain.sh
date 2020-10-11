@@ -30,6 +30,7 @@ bitsongcli keys add alice
 # with the genesis.app_state.staking.params.bond_denom denom, the default is staking
 bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
 bitsongd add-genesis-account alice 100000000000ubtsg --keyring-backend test
+bitsongd add-genesis-account bitsong1t0f4ktdux33zlka7930ux87p7zkjjv09kj8xkk 100000000000ubtsg
 
 # Generate the transaction that creates your validator
 bitsongd gentx --name jack --amount=10000000ubtsg --keyring-backend test

@@ -12,6 +12,8 @@ func NewHandler(keeper Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgChannelCreate:
 			return handleMsgChannelCreate(ctx, keeper, msg)
+		case types.MsgChannelEdit:
+			return handleMsgChannelEdit(ctx, keeper, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized content message type: %T", msg.Type())
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -28,6 +30,25 @@ func handleMsgChannelCreate(ctx sdk.Context, keeper Keeper, msg types.MsgChannel
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeChannelCreate,
+			sdk.NewAttribute(types.AttributeKeyProfileHandle, channel.Handle),
+		),
+	)
+
+	return &sdk.Result{
+		Data:   keeper.codec.MustMarshalBinaryLengthPrefixed(channel),
+		Events: ctx.EventManager().Events(),
+	}, nil
+}
+
+func handleMsgChannelEdit(ctx sdk.Context, keeper Keeper, msg types.MsgChannelEdit) (*sdk.Result, error) {
+	channel, err := keeper.EditChannel(ctx, msg.Owner, msg.MetadataURI)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeChannelEdit,
 			sdk.NewAttribute(types.AttributeKeyProfileHandle, channel.Handle),
 		),
 	)

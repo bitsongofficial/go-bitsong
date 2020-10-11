@@ -28,6 +28,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	contentTxCmd.AddCommand(flags.PostCommands(
 		GetCmdChannelCreate(cdc),
+		GetCmdChannelEdit(cdc),
 	)...)
 
 	return contentTxCmd
@@ -54,6 +55,33 @@ $ %s tx channel create [handle] [metadataURI] --from <owner>`,
 			metadataURI := args[1]
 
 			msg := types.NewMsgChannelCreate(cliCtx.FromAddress, handle, metadataURI)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	return cmd
+}
+
+func GetCmdChannelEdit(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "edit",
+		Short: "Edit a channel on bitsong",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Edit a channel on bitsong.
+Example:
+$ %s tx channel edit [metadataURI] --from <owner>`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			metadataURI := args[0]
+
+			msg := types.NewMsgChannelEdit(cliCtx.FromAddress, metadataURI)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
