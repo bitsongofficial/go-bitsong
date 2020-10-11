@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/auth"
+	"github.com/bitsongofficial/go-bitsong/x/artist"
 	"github.com/bitsongofficial/go-bitsong/x/channel"
 	"github.com/bitsongofficial/go-bitsong/x/release"
 	"github.com/bitsongofficial/go-bitsong/x/track"
@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -66,6 +67,7 @@ var (
 		channel.AppModuleBasic{},
 		release.AppModuleBasic{},
 		track.AppModuleBasic{},
+		artist.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -118,6 +120,7 @@ type GoBitsong struct {
 	channelKeeper channel.Keeper
 	releaseKeeper release.Keeper
 	trackKeeper   track.Keeper
+	artistKeeper  artist.Keeper
 
 	// Module Manager
 	mm *module.Manager
@@ -145,7 +148,7 @@ func NewBitsongApp(
 		gov.StoreKey, upgrade.StoreKey, params.StoreKey, evidence.StoreKey,
 
 		// BitSong modules
-		channel.StoreKey, release.StoreKey, track.StoreKey,
+		channel.StoreKey, release.StoreKey, track.StoreKey, artist.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(params.TStoreKey)
 
@@ -231,6 +234,9 @@ func NewBitsongApp(
 	app.trackKeeper = track.NewKeeper(
 		app.supplyKeeper, app.cdc, app.keys[track.ModuleName],
 	)
+	app.artistKeeper = artist.NewKeeper(
+		app.keys[artist.ModuleName], app.cdc,
+	)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -252,6 +258,7 @@ func NewBitsongApp(
 		channel.NewAppModule(app.channelKeeper),
 		release.NewAppModule(app.releaseKeeper),
 		track.NewAppModule(app.trackKeeper),
+		artist.NewAppModule(app.artistKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -271,7 +278,7 @@ func NewBitsongApp(
 		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 
 		// BitSong modules
-		channel.ModuleName, release.ModuleName, track.ModuleName,
+		artist.ModuleName, channel.ModuleName, release.ModuleName, track.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/99designs/keyring v1.1.5 // indirect
-	github.com/certikfoundation/shentu v0.13.5 // indirect
 	github.com/cosmos/cosmos-sdk v0.39.1
 	github.com/golang/mock v1.4.3 // indirect
 	github.com/golang/protobuf v1.4.1 // indirect
