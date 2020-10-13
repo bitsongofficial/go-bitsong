@@ -1,4 +1,4 @@
-package account
+package auth
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

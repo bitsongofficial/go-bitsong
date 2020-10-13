@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/account"
 	"github.com/bitsongofficial/go-bitsong/x/artist"
+	"github.com/bitsongofficial/go-bitsong/x/auth"
 	"github.com/bitsongofficial/go-bitsong/x/channel"
 	"github.com/bitsongofficial/go-bitsong/x/release"
 	"github.com/bitsongofficial/go-bitsong/x/track"
@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	//"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authvesting "github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -65,7 +65,7 @@ var (
 		evidence.AppModuleBasic{},
 
 		// BitSong modules
-		account.AppModuleBasic{},
+		//auth.AppModuleBasic{},
 		channel.AppModuleBasic{},
 		release.AppModuleBasic{},
 		track.AppModuleBasic{},
@@ -105,7 +105,7 @@ type GoBitsong struct {
 	subspaces map[string]params.Subspace
 
 	// keepers
-	caccKeeper     auth.AccountKeeper
+	accountKeeper  auth.AccountKeeper
 	bankKeeper     bank.Keeper
 	supplyKeeper   supply.Keeper
 	stakingKeeper  staking.Keeper
@@ -119,7 +119,7 @@ type GoBitsong struct {
 	evidenceKeeper evidence.Keeper
 
 	// BitSong modules
-	accountKeeper account.Keeper
+	baccKeeper    auth.Keeper
 	channelKeeper channel.Keeper
 	releaseKeeper release.Keeper
 	trackKeeper   track.Keeper
@@ -177,14 +177,14 @@ func NewBitsongApp(
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 
 	// Add keepers
-	app.caccKeeper = auth.NewAccountKeeper(
+	app.accountKeeper = auth.NewAccountKeeper(
 		app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount,
 	)
 	app.bankKeeper = bank.NewBaseKeeper(
-		app.caccKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
+		app.accountKeeper, app.subspaces[bank.ModuleName], app.BlacklistedAccAddrs(),
 	)
 	app.supplyKeeper = supply.NewKeeper(
-		app.cdc, keys[supply.StoreKey], app.caccKeeper, app.bankKeeper, maccPerms,
+		app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms,
 	)
 	stakingKeeper := staking.NewKeeper(
 		app.cdc, keys[staking.StoreKey], app.supplyKeeper, app.subspaces[staking.ModuleName],
@@ -228,11 +228,11 @@ func NewBitsongApp(
 	)
 
 	// BitSong modules
-	app.accountKeeper = account.NewKeeper(
-		app.caccKeeper,
+	app.baccKeeper = auth.NewKeeper(
+		app.accountKeeper,
 	)
 	app.channelKeeper = channel.NewKeeper(
-		app.keys[channel.ModuleName], app.cdc, app.caccKeeper,
+		app.keys[channel.ModuleName], app.cdc, app.accountKeeper,
 	)
 	app.releaseKeeper = release.NewKeeper(
 		app.keys[release.ModuleName], app.cdc,
@@ -247,21 +247,20 @@ func NewBitsongApp(
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.caccKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
-		auth.NewAppModule(app.caccKeeper),
-		bank.NewAppModule(app.bankKeeper, app.caccKeeper),
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
+		auth.NewAppModule(app.accountKeeper, app.baccKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.caccKeeper),
-		gov.NewAppModule(app.govKeeper, app.caccKeeper, app.supplyKeeper),
+		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.caccKeeper, app.stakingKeeper),
-		distr.NewAppModule(app.distrKeeper, app.caccKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.caccKeeper, app.supplyKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 
 		// BitSong modules
-		account.NewAppModule(app.accountKeeper),
 		channel.NewAppModule(app.channelKeeper),
 		release.NewAppModule(app.releaseKeeper),
 		track.NewAppModule(app.trackKeeper),
@@ -285,7 +284,6 @@ func NewBitsongApp(
 		supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 
 		// BitSong modules
-		account.ModuleName,
 		artist.ModuleName, channel.ModuleName, release.ModuleName, track.ModuleName,
 	)
 
@@ -297,13 +295,13 @@ func NewBitsongApp(
 	// NOTE: this is not required apps that don't use the simulator for fuzz testing
 	// transactions
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(app.caccKeeper),
-		bank.NewAppModule(app.bankKeeper, app.caccKeeper),
-		supply.NewAppModule(app.supplyKeeper, app.caccKeeper),
-		gov.NewAppModule(app.govKeeper, app.caccKeeper, app.supplyKeeper),
-		distr.NewAppModule(app.distrKeeper, app.caccKeeper, app.supplyKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.caccKeeper, app.supplyKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.caccKeeper, app.stakingKeeper),
+		//auth.NewAppModule(app.accountKeeper),
+		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
+		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
 
 		// BitSong modules
 		track.NewAppModule(app.trackKeeper),
@@ -319,7 +317,7 @@ func NewBitsongApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetAnteHandler(ante.NewAnteHandler(
-		app.caccKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer,
+		app.accountKeeper, app.supplyKeeper, auth.DefaultSigVerificationGasConsumer,
 	))
 	app.SetEndBlocker(app.EndBlocker)
 

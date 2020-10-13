@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/account/types"
+	"github.com/bitsongofficial/go-bitsong/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"

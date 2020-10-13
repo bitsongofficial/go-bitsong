@@ -2,20 +2,24 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/x/auth"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-var ModuleCdc *codec.Codec
+var ModuleCdc = codec.New()
 
 func RegisterCodec(cdc *codec.Codec) {
+	authtypes.RegisterCodec(cdc)
+
 	cdc.RegisterConcrete(&BitSongAccount{}, "bitsong/Account", nil)
 	cdc.RegisterConcrete(MsgRegisterHandle{}, "bitsong/MsgRegisterHandle", nil)
 }
 
+func RegisterAccountTypeCodec(o interface{}, name string) {
+	ModuleCdc.RegisterConcrete(o, name, nil)
+}
+
 func init() {
-	ModuleCdc = codec.New()
 	RegisterCodec(ModuleCdc)
-	auth.RegisterCodec(ModuleCdc)
 	codec.RegisterCrypto(ModuleCdc)
 	ModuleCdc.Seal()
 }

@@ -1,8 +1,8 @@
-package account
+package auth
 
 import (
 	"encoding/json"
-	"github.com/bitsongofficial/go-bitsong/x/account/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,27 +28,31 @@ func (AppModuleBasic) Name() string {
 // RegisterCodec registers the content module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	RegisterCodec(cdc)
+	*CosmosModuleCdc = *ModuleCdc
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the content
 // module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+	//return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+	return CosmosAppModuleBasic{}.DefaultGenesis()
 }
 
 // ValidateGenesis performs genesis state validation for the content module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data GenesisState
+	/*var data GenesisState
 	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-	return ValidateGenesis(data)
+	return ValidateGenesis(data)*/
+	return CosmosAppModuleBasic{}.ValidateGenesis(bz)
 }
 
 // RegisterRESTRoutes registers the REST routes for the content module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	//rest.RegisterRoutes(ctx, rtr)
+	CosmosAppModuleBasic{}.RegisterRESTRoutes(ctx, rtr)
 }
 
 // GetTxCmd returns the root tx command for the content module.
@@ -58,8 +62,7 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // GetQueryCmd returns no root query command for the content module.
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	//return cli.GetQueryCmd(cdc)
-	return nil
+	return CosmosAppModuleBasic{}.GetQueryCmd(cdc)
 }
 
 //____________________________________________________________________________
@@ -67,15 +70,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the content module.
 type AppModule struct {
 	AppModuleBasic
+	cosmosAppModule CosmosAppModule
+	authKeeper      AccountKeeper
 
 	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper) AppModule {
+func NewAppModule(ak AccountKeeper, bacck Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		AppModuleBasic:  AppModuleBasic{},
+		cosmosAppModule: NewCosmosAppModule(ak),
+		keeper:          bacck,
 	}
 }
 
@@ -85,7 +91,9 @@ func (AppModule) Name() string {
 }
 
 // RegisterInvariants registers the content module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	am.cosmosAppModule.RegisterInvariants(ir)
+}
 
 // Route returns the message routing key for the content module.
 func (AppModule) Route() string {
@@ -98,37 +106,34 @@ func (am AppModule) NewHandler() sdk.Handler {
 }
 
 // QuerierRoute returns the content module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return QuerierRoute
+func (am AppModule) QuerierRoute() string {
+	return am.cosmosAppModule.QuerierRoute()
 }
 
 // NewQuerierHandler returns the content module sdk.Querier.
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	//return NewQuerier(am.keeper)
-	return nil
+	return am.cosmosAppModule.NewQuerierHandler()
 }
 
 // InitGenesis performs genesis initialization for the content module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.keeper, genesisState)
+	return am.cosmosAppModule.InitGenesis(ctx, data)
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the content
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	//gs := ExportGenesis(ctx, am.keeper)
-	//return ModuleCdc.MustMarshalJSON(gs)
-	return nil
+	return am.cosmosAppModule.ExportGenesis(ctx)
 }
 
 // BeginBlock returns the begin blocker for the content module.
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (am AppModule) BeginBlock(ctx sdk.Context, rbb abci.RequestBeginBlock) {
+	am.cosmosAppModule.BeginBlock(ctx, rbb)
+}
 
 // EndBlock returns the end blocker for the content module. It returns no validator
 // updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (am AppModule) EndBlock(ctx sdk.Context, rbb abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return am.cosmosAppModule.EndBlock(ctx, rbb)
 }
