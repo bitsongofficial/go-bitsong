@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"time"
 )
 
 type Channel struct {
@@ -41,7 +42,7 @@ func (p Channel) Validate() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel handle must have a length > 3")
 	}
 
-	if len(p.Handle) > 256 {
+	if len(p.MetadataURI) > 256 {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "channel metadataURI cannot be more than 256 characters")
 	}
 
