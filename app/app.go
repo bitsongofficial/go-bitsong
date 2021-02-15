@@ -1,6 +1,9 @@
 package app
 
 import (
+	"io"
+	"os"
+
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -26,9 +29,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	"io"
-	"os"
 
+	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 )
@@ -292,6 +294,17 @@ func NewBitsongApp(
 	}
 
 	return app
+}
+
+func SetupConfig(config *sdk.Config) {
+	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
+
+	// 639 is the registered coin type for BTSG
+	// Following the coin type registered at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	config.SetCoinType(639)
+	config.SetFullFundraiserPath("44'/639'/0'/0/0")
 }
 
 // Name returns the name of the App
