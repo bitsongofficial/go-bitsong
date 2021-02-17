@@ -26,3 +26,13 @@ test-sim-import-export:
 	@echo "Running application import/export simulation..."
 	go test -mod=readonly $(SIMAPP) -run=TestAppImportExport -Enabled=true \
 		-NumBlocks=100 -BlockSize=200 -Commit=true -Seed=99 -Period=5 -v -timeout 10m
+
+.PHONY: \
+test-sim-nondeterminism \
+test-sim-custom-genesis-fast \
+test-sim-fullapp \
+test-sim-import-export \
+
+SIM_NUM_BLOCKS ?= 500
+SIM_BLOCK_SIZE ?= 200
+SIM_COMMIT ?= true		

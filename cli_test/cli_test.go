@@ -3,6 +3,13 @@ package clitest
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/tests"
@@ -13,12 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
-	"testing"
 )
 
 func TestBitsongCLIKeysAddMultisig(t *testing.T) {
@@ -450,7 +451,7 @@ func TestBitsongCLIQuerySupply(t *testing.T) {
 	totalSupply := f.QueryTotalSupply()
 	totalSupplyOf := f.QueryTotalSupplyOf(fooDenom)
 
-	require.Equal(t, totalCoins, totalSupply)
+	require.Equal(t, expTotalCoins, totalSupply)
 	require.True(sdk.IntEq(t, totalCoins.AmountOf(fooDenom), totalSupplyOf))
 
 	f.Cleanup()

@@ -84,6 +84,7 @@ install: go.sum
 
 ########################################
 ### Tools & dependencies
+########################################
 
 go-mod-cache: go.sum
 	@echo "--> Download go modules to local cache"
@@ -99,8 +100,18 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
+.PHONY: distclean clean	
+
+########################################
+### Run
+########################################
+
+run:
+	./scripts/run_with_data.sh
+
 ########################################
 ### Testing
+########################################
 
 test: test-unit test-build
 test-all: test-race test-cover
@@ -117,19 +128,31 @@ test-cover:
 test-build: build
 	@go test -mod=readonly -p 4 `go list ./cli_test/...` -tags=cli_test -v
 
+.PHONY: test test-all test-build test-cover test-unit test-race
+
+benchmark:
+	@go test -mod=readonly -bench=. ./...
+
+.PHONY: benchmark
+
+
+########################################
+### Linting
+########################################
 
 lint: golangci-lint
 	golangci-lint run
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
 	go mod verify
 
+.PHONY:lint
+
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/cosmos/cosmos-sdk
 
-benchmark:
-	@go test -mod=readonly -bench=. ./...
+.PHONY: format
 
 
 ###############################################################################
@@ -154,4 +177,3 @@ include sims.mk
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
 	setup-transactions setup-contract-tests-data start-go-bitsong run-lcd-contract-tests contract-tests \
-	test test-all test-build test-cover test-unit test-race

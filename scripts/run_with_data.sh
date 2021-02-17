@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 
-PASSWORD="Bitsong@123"
+#PASSWORD="Bitsong@123"
+
+rm -rf "$HOME"/.bitsongd
+rm -rf "$HOME"/.bitsongcli
+
+make install # assumes currently in project directory
 
 bitsongd init local --chain-id test-chain
 
-yes $PASSWORD | bitsongcli keys delete raneet --force
-yes $PASSWORD | bitsongcli keys delete angelo --force
+bitsongcli config chain-id test-chain
+bitsongcli config output json
+bitsongcli config indent true
+bitsongcli config trust-node true
+bitsongcli config keyring-backend test
 
-yes $PASSWORD | bitsongcli keys add raneet
-yes $PASSWORD | bitsongcli keys add angelo
+ bitsongcli keys delete raneet --force
+ bitsongcli keys delete angelo --force
+
+ bitsongcli keys add raneet
+ bitsongcli keys add angelo
 
 
 # Note: important to add 'raneet' as a genesis-account since this is the chain's validator
-yes $PASSWORD | bitsongd add-genesis-account "$(bitsongcli keys show raneet -a)" 100000000000ubtsg
-yes $PASSWORD | bitsongd add-genesis-account "$(bitsongcli keys show angelo -a)" 100000000000ubtsg
+ bitsongd add-genesis-account "$(bitsongcli keys show raneet -a)" 1000btsg,100000000000ubtsg
+ bitsongd add-genesis-account "$(bitsongcli keys show angelo -a)" 1000btsg,100000000000ubtsg
 
 
 # Set staking token (both bond_denom and mint_denom)
@@ -36,14 +47,12 @@ FROM="minimum-gas-prices = \"\""
 TO="minimum-gas-prices = \"0.025$FEE_TOKEN\""
 sed -i "s/$FROM/$TO/" "$HOME"/.bitsongd/config/app.toml
 
-bitsongcli config chain-id test
-bitsongcli config output json
-bitsongcli config indent true
-bitsongcli config trust-node true
+ bitsongd gentx --name raneet --amount 1000000ubtsg --keyring-backend test
 
-yes $PASSWORD | bitsongd gentx --name raneet --amount 1000000ubtsg
-
+echo "Collecting genesis txs..."
 bitsongd collect-gentxs
+
+echo "Validating genesis file..."
 bitsongd validate-genesis
 
 # Uncomment the below to broadcast node RPC endpoint
@@ -57,4 +66,4 @@ bitsongd validate-genesis
 #bitsongcli rest-server --chain-id test --laddr="tcp://0.0.0.0:1317" --trust-node && fg
 
 bitsongd start --pruning "everything" &
-bitsongcli rest-server --chain-id test --trust-node && fg
+bitsongcli rest-server --chain-id test-chain --trust-node && fg

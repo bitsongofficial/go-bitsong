@@ -3,6 +3,13 @@ package clitest
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/types"
 	clientkeys "github.com/cosmos/cosmos-sdk/client/keys"
@@ -19,12 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/stretchr/testify/require"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (
@@ -45,6 +46,13 @@ var (
 		sdk.NewCoin(feeDenom, sdk.TokensFromConsensusPower(2000000)),
 		sdk.NewCoin(fooDenom, sdk.TokensFromConsensusPower(2000)),
 		sdk.NewCoin(denom, sdk.TokensFromConsensusPower(300).Add(sdk.NewInt(6))), // add coins from inflation
+	)
+
+	expTotalCoins = sdk.NewCoins(
+		sdk.NewCoin(fee2Denom, sdk.TokensFromConsensusPower(2000000)),
+		sdk.NewCoin(feeDenom, sdk.TokensFromConsensusPower(2000000)),
+		sdk.NewCoin(fooDenom, sdk.TokensFromConsensusPower(2000)),
+		sdk.NewCoin(denom, sdk.TokensFromConsensusPower(300).Add(sdk.NewInt(3))), // supply changes due to inflation ?
 	)
 
 	startCoins = sdk.NewCoins(
@@ -126,14 +134,18 @@ func (f Fixtures) GenesisState() simapp.GenesisState {
 	return appState
 }
 
-// InitFixtures is called at the beginning of a test  and initializes a chain
-// with 1 validator.
-func InitFixtures(t *testing.T) (f *Fixtures) {
+func MakeConfig() {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
 	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
 	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
+}
 
+// InitFixtures is called at the beginning of a test  and initializes a chain
+// with 1 validator.
+func InitFixtures(t *testing.T) (f *Fixtures) {
+
+	MakeConfig()
 	app.Init()
 
 	f = NewFixtures(t)
@@ -303,11 +315,7 @@ func (f *Fixtures) KeysShow(name string, flags ...string) keys.KeyOutput {
 func (f *Fixtures) KeyAddress(name string) sdk.AccAddress {
 	ko := f.KeysShow(name)
 
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
-
+	MakeConfig()
 	accAddr, err := sdk.AccAddressFromBech32(ko.Address)
 	require.NoError(f.T, err)
 	return accAddr
