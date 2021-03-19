@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/bitsongofficial/go-bitsong/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -76,6 +77,18 @@ var (
 		distr.ModuleName: true,
 	}
 )
+
+// SetupConfig add bitsong customizations
+func SetupConfig(config *sdk.Config) {
+	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
+	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
+	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
+
+	// 639 is the registered coin type for BTSG
+	// Following the coin type registered at https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+	config.SetCoinType(639)
+	config.SetFullFundraiserPath("44'/639'/0'/0/0")
+}
 
 // MakeCodec constructs the *std.Codec and *codec.Codec instances used by
 // BitsongApp.

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
 	"os"
@@ -34,9 +33,7 @@ func main() {
 	app.Init()
 
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
+	app.SetupConfig(config)
 	config.Seal()
 
 	// Configure cobra to sort commands

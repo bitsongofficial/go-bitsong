@@ -53,7 +53,7 @@ func TestBitsongCLIKeysAddRecover(t *testing.T) {
 
 	exitSuccess, _, _ = f.KeysAddRecover("test-recover", "dentist task convince chimney quality leave banana trade firm crawl eternal easily")
 	require.True(t, exitSuccess)
-	require.Equal(t, "bitsong1qcfdf69js922qrdr4yaww3ax7gjml6pdpe8jt6", f.KeyAddress("test-recover").String())
+	require.Equal(t, "bitsong120jv2aqfpjey5d3wwa6yg29tymu70kjah488gk", f.KeyAddress("test-recover").String())
 
 	// Cleanup testing directories
 	f.Cleanup()
@@ -64,16 +64,16 @@ func TestBitsongCLIKeysAddRecoverHDPath(t *testing.T) {
 	f := InitFixtures(t)
 
 	f.KeysAddRecoverHDPath("test-recoverHD1", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 0, 0)
-	require.Equal(t, "bitsong1qcfdf69js922qrdr4yaww3ax7gjml6pdpe8jt6", f.KeyAddress("test-recoverHD1").String())
+	require.Equal(t, "bitsong120jv2aqfpjey5d3wwa6yg29tymu70kjah488gk", f.KeyAddress("test-recoverHD1").String())
 
 	f.KeysAddRecoverHDPath("test-recoverHD2", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 1, 5)
-	require.Equal(t, "bitsong1pdfav2cjhry9k79nu6r8kgknnjtq6a7rglf4tt", f.KeyAddress("test-recoverHD2").String())
+	require.Equal(t, "bitsong1er922c6xnduf8e60try83uf3uqspgna6vveg0f", f.KeyAddress("test-recoverHD2").String())
 
 	f.KeysAddRecoverHDPath("test-recoverHD3", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 1, 17)
-	require.Equal(t, "bitsong1909k354n6wl8ujzu6kmh49w4d02ax7qvnl7aju", f.KeyAddress("test-recoverHD3").String())
+	require.Equal(t, "bitsong1qprwj26cqctjg8afn23dx47jmrqzt65drgtrf0", f.KeyAddress("test-recoverHD3").String())
 
 	f.KeysAddRecoverHDPath("test-recoverHD4", "dentist task convince chimney quality leave banana trade firm crawl eternal easily", 2, 17)
-	require.Equal(t, "bitsong1v9plmhvyhgxk3th9ydacm7j4z357s3nh88z6ly", f.KeyAddress("test-recoverHD4").String())
+	require.Equal(t, "bitsong180pmul3gy58t42tdkf6y7qq8j26ce7wtemkpqf", f.KeyAddress("test-recoverHD4").String())
 
 	// Cleanup testing directories
 	f.Cleanup()

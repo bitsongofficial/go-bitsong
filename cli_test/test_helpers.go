@@ -129,12 +129,10 @@ func (f Fixtures) GenesisState() simapp.GenesisState {
 // InitFixtures is called at the beginning of a test  and initializes a chain
 // with 1 validator.
 func InitFixtures(t *testing.T) (f *Fixtures) {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(types.Bech32PrefixAccAddr, types.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(types.Bech32PrefixValAddr, types.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(types.Bech32PrefixConsAddr, types.Bech32PrefixConsPub)
-
 	app.Init()
+
+	config := sdk.GetConfig()
+	app.SetupConfig(config)
 
 	f = NewFixtures(t)
 
