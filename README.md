@@ -19,8 +19,8 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 ## From Source
 1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH` and `$PATH` environment variables, for example:
     ```bash
-    wget https://dl.google.com/go/go1.13.6.linux-amd64.tar.gz
-    sudo tar -xvzf go1.13.6.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.13.15.linux-amd64.tar.gz
+    sudo tar -xvzf go1.13.15.linux-amd64.tar.gz
     sudo mv go /usr/local
      
     cat <<EOF >> ~/.profile  
@@ -35,7 +35,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
     cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout pre-mainnet
+    git checkout v0.7.0-rc1
     ```
   3. **Compile**
 		```bash
