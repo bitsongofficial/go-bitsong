@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/bitsongofficial/go-bitsong/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govTypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -14,6 +15,7 @@ func Init() {
 	mint.DefaultGenesisState = mintGenesisState
 	staking.DefaultGenesisState = stakingGenesisState
 	gov.DefaultGenesisState = govGenesisState
+	crisis.DefaultGenesisState = crisisGenesisState
 }
 
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
@@ -52,5 +54,11 @@ func mintGenesisState() mint.GenesisState {
 			sdk.NewDecWithPrec(67, 2),
 			uint64(60*60*8766/5), // assuming 5 second block times
 		),
+	}
+}
+
+func crisisGenesisState() crisis.GenesisState {
+	return crisis.GenesisState{
+		ConstantFee: sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000000)),
 	}
 }
