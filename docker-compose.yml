@@ -1,14 +1,14 @@
-version: '3'
+version: "3"
 
 services:
   bitsongdnode0:
     container_name: bitsongdnode0
-    image: "tendermint/bitsongdnode"
+    image: "bitsongofficial/go-bitsong"
     ports:
       - "26656-26657:26656-26657"
     environment:
       - ID=0
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-bitsongd.log}
     volumes:
       - ./build:/bitsongd:Z
     networks:
@@ -17,12 +17,12 @@ services:
 
   bitsongdnode1:
     container_name: bitsongdnode1
-    image: "tendermint/bitsongdnode"
+    image: "bitsongofficial/go-bitsong"
     ports:
       - "26659-26660:26656-26657"
     environment:
       - ID=1
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-bitsongd.log}
     volumes:
       - ./build:/bitsongd:Z
     networks:
@@ -31,10 +31,10 @@ services:
 
   bitsongdnode2:
     container_name: bitsongdnode2
-    image: "tendermint/bitsongdnode"
+    image: "bitsongofficial/go-bitsong"
     environment:
       - ID=2
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-bitsongd.log}
     ports:
       - "26661-26662:26656-26657"
     volumes:
@@ -45,10 +45,10 @@ services:
 
   bitsongdnode3:
     container_name: bitsongdnode3
-    image: "tendermint/bitsongdnode"
+    image: "bitsongofficial/go-bitsong"
     environment:
       - ID=3
-      - LOG=$${LOG:-bitsongd.log}
+      - LOG=${LOG:-bitsongd.log}
     ports:
       - "26663-26664:26656-26657"
     volumes:
@@ -63,5 +63,4 @@ networks:
     ipam:
       driver: default
       config:
-      -
-        subnet: 192.168.10.0/16
+        - subnet: 192.168.10.0/16

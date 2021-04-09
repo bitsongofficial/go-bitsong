@@ -2,39 +2,41 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
-**BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus algorythm and the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits. Please make sure you study these projects as well if you are not already familiar.
+**BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus BFT, the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits and the [IPFS](https://ipfs.io/) distribuited filesystem. Please make sure you study these projects as well if you are not already familiar.
 
 **BitSong** is a project dedicated to musicians and their fans, which aims to overcome the bureaucratic and economic obstacles within this industry and reward artists and users for simply using the platform.
-
-On the **BitSong** platform you (artist) will be able to produce songs in which an advertiser can attach advertisements and users can access from any device. Funds via the Bitsong token `$BTSG` will be credited to the artist wallet immediately and they will be able to withdraw or convert as they see fit.
 
 **Artists** need no longer to wait several months before a record label sends various reports, they can check the progress in real time directly within the Wallet.
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
-**Note**: Requires [Go 1.12.4+](https://golang.org/dl/)
+**Note**: Requires [Go 1.13.6+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
 ## From Source
-1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH`, `$GOBIN`, and `$PATH` environment variables, for example:
-	```bash
-	mkdir -p $HOME/go/bin
-	echo  "export GOPATH=$HOME/go" >> ~/.bash_profile
-	echo  "export GOBIN=\$GOPATH/bin" >> ~/.bash_profile
-	echo  "export PATH=\$PATH:\$GOBIN" >> ~/.bash_profile
-	echo  "export GO111MODULE=on" >> ~/.bash_profile
-	source ~/.bash_profile
-	```
+1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH` and `$PATH` environment variables, for example:
+    ```bash
+    wget https://dl.google.com/go/go1.13.15.linux-amd64.tar.gz
+    sudo tar -xvzf go1.13.15.linux-amd64.tar.gz
+    sudo mv go /usr/local
+     
+    cat <<EOF >> ~/.profile  
+    export GOPATH=$HOME/go  
+    export GO111MODULE=on  
+    export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin  
+    EOF
+    ```
 2. **Clone BitSong source code to your machine**
-	```bash
-	mkdir -p $GOPATH/src/github.com/BitSongOfficial
-	cd $GOPATH/src/github.com/BitSongOfficial
-	git clone https://github.com/BitSongOfficial/go-bitsong.git
-	cd go-bitsong
-	```
+    ```bash
+    mkdir -p $GOPATH/src/github.com/BitSongOfficial
+    cd $GOPATH/src/github.com/BitSongOfficial
+    git clone https://github.com/BitSongOfficial/go-bitsong.git
+    cd go-bitsong
+    git checkout v0.7.0-rc1
+    ```
   3. **Compile**
 		```bash
 		# Install the app into your $GOBIN
@@ -49,24 +51,6 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 	bitsongd start
 	```
 
-## Install on Digital Ocean
-1. **Clone repository**
-    ```bash
-	git clone https://github.com/BitSongOfficial/go-bitsong.git
-    chmod +x go-bitsong/scripts/install/install_ubuntu.sh
-	```
-2. **Run the script**
-    ```bash
-    go-bitsong/scripts/install/install_ubuntu.sh
-    source ~/.profile
-	```
-3. Now you should be able to run the following commands:
-	```bash
-	bitsongd help
-	bitsongcli help
-	```
-    The latest `go-bitsongd version` is now installed.
-
 ## Running the test network and using the commands
 
 To initialize configuration and a `genesis.json` file for your application and an account for the transactions, start by running:
@@ -79,7 +63,14 @@ To initialize configuration and a `genesis.json` file for your application and a
 
 ```bash
 # Initialize configuration files and genesis file
-bitsongd init --chain-id bitsong-test-network-1
+bitsongd init MyValidator --chain-id bitsong-localnet
+
+# Configure your CLI to eliminate need for chain-id flag
+bitsongcli config chain-id bitsong-localnet
+bitsongcli config output json
+bitsongcli config indent true
+bitsongcli config trust-node true
+bitsongcli config keyring-backend test
 
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
@@ -89,56 +80,43 @@ bitsongcli keys add jack
 bitsongcli keys add alice
 
 # Add both accounts, with coins to the genesis file
-bitsongd add-genesis-account $(bitsongcli keys show jack -a) 1000btsg
-bitsongd add-genesis-account $(bitsongcli keys show alice -a) 1000btsg
+bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
+bitsongd add-genesis-account alice 100000000000ubtsg --keyring-backend test
 
-# Configure your CLI to eliminate need for chain-id flag
-bitsongcli config chain-id bitsong-test-network-1
-bitsongcli config output json
-bitsongcli config indent true
-bitsongcli config trust-node true
+# Generate the transaction that creates your validator
+bitsongd gentx --name jack --amount=10000000ubtsg --keyring-backend test
+
+# Add the generated bonding transaction to the genesis file
+bitsongd collect-gentxs
+bitsongd validate-genesis
+
+# Now its safe to start `bitsongd`
+bitsongd start
 ```
 
 You can now start `bitsongd` by calling `bitsongd start`. You will see logs begin streaming that represent blocks being produced, this will take a couple of seconds.
 
-Open another terminal to run commands against the network you have just created:
-
-```bash
-# First check the accounts to ensure they have funds
-bitsongcli query account $(bitsongcli keys show jack -a)
-bitsongcli query account $(bitsongcli keys show alice -a)
-```
-
-# Transactions
-You can now start the first transaction
-
-```bash
-bitsongcli tx send --from=$(bitsongcli keys show jack -a)  $(bitsongcli keys show alice -a) 10btsg
-```
-
-# Query
-Query an account
-
-```bash
-bitsongcli query account $(bitsongcli keys show jack -a)
-```
-
 ## Resources
 - [Official Website](https://bitsong.io)
 
+## Buy/Sell BTSG ERC20
+- [Uniswap BTSG/ETH](https://app.uniswap.org/#/swap?outputCurrency=0x05079687d35b93538cbd59fe5596380cae9054a9)
+- [Uniswap Liquidity Pool BTSG/ETH](https://uniswap.info/pair/0x98195a436C46EE53803eDA921dC3932073Ed7f4d)
+
 ### Community
-- [Telegram Channel (English)](https://t.me/BitSongOfficial)
-- [Facebook](https://www.facebook.com/BitSongOfficial)
+- [Discord](https://discord.gg/mZC9Yk3)
 - [Twitter](https://twitter.com/BitSongOfficial)
+- [Telegram Channel (English)](https://t.me/BitSongOfficial)
 - [Medium](https://medium.com/@BitSongOfficial)
 - [Reddit](https://www.reddit.com/r/bitsong/)
+- [Facebook](https://www.facebook.com/BitSongOfficial)
 - [BitcoinTalk ANN](https://bitcointalk.org/index.php?topic=2850943)
 - [Linkedin](https://www.linkedin.com/company/bitsong)
 - [Instagram](https://www.instagram.com/bitsong_official/)
 
 ## License
 
-MIT License
+APACHE 2.0
 
 ## Versioning
 

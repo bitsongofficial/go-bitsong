@@ -1,14 +1,15 @@
+#!/usr/bin/make -f
+
+PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
-GOTOOLS = \
-	github.com/rakyll/statik
-GOBIN ?= $(GOPATH)/bin
-SHASUM := $(shell which sha256sum)
+SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
 
 export GO111MODULE = on
 
 # process build tags
+
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -19,27 +20,18 @@ ifeq ($(LEDGER_ENABLED),true)
       build_tags += ledger
     endif
   else
-    GCC = $(shell command -v gcc 2> /dev/null)
-    ifeq ($(GCC),)
-      $(error gcc not installed for ledger support, please install or set LEDGER_ENABLED=false)
+    UNAME_S = $(shell uname -s)
+    ifeq ($(UNAME_S),OpenBSD)
+      $(warning OpenBSD detected, disabling ledger support (https://github.com/cosmos/cosmos-sdk/issues/1988))
     else
-      build_tags += ledger
+      GCC = $(shell command -v gcc 2> /dev/null)
+      ifeq ($(GCC),)
+        $(error gcc not installed for ledger support, please install or set LEDGER_ENABLED=false)
+      else
+        build_tags += ledger
+      endif
     endif
   endif
-endif
-
-ifeq ($(WITH_CLEVELDB),yes)
-  build_tags += gcc
-endif
-
-# process linker flags
-
-ldflags = -X github.com/BitSongOfficial/go-bitsong/version.Version=$(VERSION) \
-					-X github.com/BitSongOfficial/go-bitsong/version.Commit=$(COMMIT) \
-					-X "github.com/BitSongOfficial/go-bitsong/version.BuildTags=$(build_tags)" \
-
-ifneq ($(SHASUM),)
-	ldflags += -X github.com/BitSongOfficial/go-bitsong/version.GoSumHash=$(shell sha256sum go.sum | cut -d ' ' -f1)
 endif
 
 ifeq ($(WITH_CLEVELDB),yes)
@@ -48,91 +40,118 @@ endif
 build_tags += $(BUILD_TAGS)
 build_tags := $(strip $(build_tags))
 
+whitespace :=
+whitespace += $(whitespace)
+comma := ,
+build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
+
+# process linker flags
+
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=go-bitsong \
+		  -X github.com/cosmos/cosmos-sdk/version.ServerName=bitsongd \
+		  -X github.com/cosmos/cosmos-sdk/version.ClientName=bitsongcli \
+		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
+		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+
+ifeq ($(WITH_CLEVELDB),yes)
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
+endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
-########################################
-### All
+# The below include contains the tools target.
 
-all: clean go-mod-cache install lint
+all: install lint check
 
-########################################
-### Build/Install
-
-build: 
+build: go.sum
 ifeq ($(OS),Windows_NT)
-	go build $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
-	go build $(BUILD_FLAGS) -o build/bitsongcli.exe ./cmd/bitsongcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongcli.exe ./cmd/bitsongcli
 else
-	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
-	go build $(BUILD_FLAGS) -o build/bitsongcli ./cmd/bitsongcli
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongcli ./cmd/bitsongcli
 endif
 
-build-linux:
+build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-install:
-	go install $(BUILD_FLAGS) ./cmd/bitsongd
-	go install $(BUILD_FLAGS) ./cmd/bitsongcli
+install: go.sum
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongcli
 
 ########################################
 ### Tools & dependencies
 
-get_tools:
-	go get github.com/rakyll/statik
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-
-update_tools:
-	@echo "--> Updating tools to correct version"
-	$(MAKE) --always-make get_tools
-
-go-mod-cache: go-sum
+go-mod-cache: go.sum
 	@echo "--> Download go modules to local cache"
 	@go mod download
 
-go-sum: get_tools
+go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
 	@go mod verify
 
-go-release:
-	@echo "--> Dry run for go-release"
-	BUILD_TAGS=$(shell echo \"$(build_tags)\") GOSUM=$(shell sha256sum go.sum | cut -d ' ' -f1) goreleaser release --skip-publish --rm-dist --debug
-
 clean:
-	rm -rf ./dist
-	rm -rf ./build
+	rm -rf snapcraft-local.yaml build/
 
 distclean: clean
 	rm -rf vendor/
 
-
 ########################################
-### Local validator nodes using docker and docker-compose
+### Testing
 
-build-docker-bitsongdnode:
+test: test-unit test-build
+test-all: test-race test-cover
+
+test-unit:
+	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+
+test-race:
+	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
+
+test-cover:
+	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
+
+test-build: build
+	@go test -mod=readonly -p 4 `go list ./cli_test/...` -tags=cli_test -v
+
+
+lint: golangci-lint
+	golangci-lint run
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
+	go mod verify
+
+format:
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofmt -w -s
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/cosmos/cosmos-sdk
+
+benchmark:
+	@go test -mod=readonly -bench=. ./...
+
+
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
+
+build-docker-go-bitsong:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
-localnet-start: localnet-stop
-	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/bitsongd:Z tendermint/bitsongdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 ; fi
-	# replace docker ip to local port, mapped
-	sed -i -e 's/192.168.10.2:26656/localhost:26656/g; s/192.168.10.3:26656/localhost:26659/g; s/192.168.10.4:26656/localhost:26661/g; s/192.168.10.5:26656/localhost:26663/g' $(CURDIR)/build/node0/bitsongd/config/config.toml
-	# change allow duplicated ip option to prevent the error : cant not route ~
-	sed -i -e 's/allow_duplicate_ip \= false/allow_duplicate_ip \= true/g' `find $(CURDIR)/build -name "config.toml"`
+localnet-start: build-linux localnet-stop
+	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then $(CURDIR)/build/bitsongd testnet --v 4 -o ./build --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
 	docker-compose up -d
 
 # Stop testnet
 localnet-stop:
 	docker-compose down
 
+# include simulations
+include sims.mk
 
-# To avoid unintended conflicts with file names, always add to .PHONY
-# unless there is a reason not to.
-# https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
-.PHONY: build install clean distclean \
-get_tools update_tools \
-build-linux build-docker-bitsongdnode localnet-start localnet-stop \
-format update_dev_tools lint \
-go-mod-cache go-sum
+.PHONY: all build-linux install install-debug \
+	go-mod-cache draw-deps clean build \
+	setup-transactions setup-contract-tests-data start-go-bitsong run-lcd-contract-tests contract-tests \
+	test test-all test-build test-cover test-unit test-race

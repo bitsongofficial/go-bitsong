@@ -25,10 +25,8 @@ fi
 ##
 export BITSONGDHOME="/bitsongd/node${ID}/bitsongd"
 
-if [ -d "`dirname ${BITSONGDHOME}/${LOG}`" ]; then
-  "$BINARY" --home "$BITSONGDHOME" "$@" | tee "${BITSONGDHOME}/${LOG}"
+if [ -d "$(dirname "${BITSONGDHOME}"/"${LOG}")" ]; then
+  "${BINARY}" --home "${BITSONGDHOME}" "$@" | tee "${BITSONGDHOME}/${LOG}"
 else
-  "$BINARY" --home "$BITSONGDHOME" "$@"
+  "${BINARY}" --home "${BITSONGDHOME}" "$@"
 fi
-
-chmod 777 -R /bitsongd
