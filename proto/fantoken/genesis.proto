@@ -1,0 +1,14 @@
+syntax = "proto3";
+package bitsongofficial.ledger.fantoken;
+
+// this line is used by starport scaffolding # genesis/proto/import
+import "fantoken/fanToken.proto";
+
+option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+
+// GenesisState defines the fantoken module's genesis state.
+message GenesisState {
+    // this line is used by starport scaffolding # genesis/proto/state
+		repeated FanToken fanTokenList = 1; // this line is used by starport scaffolding # genesis/proto/stateField
+    // this line is used by starport scaffolding # ibc/genesis/proto
+}

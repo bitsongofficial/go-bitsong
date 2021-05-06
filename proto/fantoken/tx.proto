@@ -1,0 +1,24 @@
+syntax = "proto3";
+package bitsongofficial.ledger.fantoken;
+
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+
+// Msg defines the Msg service.
+service Msg {
+    // this line is used by starport scaffolding # proto/tx/rpc
+  rpc Create(MsgCreate) returns (MsgCreateResponse);
+}
+
+// this line is used by starport scaffolding # proto/tx/message
+message MsgCreate {
+  string creator = 1;
+  string denom = 2;
+  string name = 3;
+  int32 initial_supply = 4;
+  bool mintable = 5;
+}
+
+message MsgCreateResponse {
+}

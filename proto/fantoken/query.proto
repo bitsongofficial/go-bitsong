@@ -1,0 +1,39 @@
+syntax = "proto3";
+package bitsongofficial.ledger.fantoken;
+
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+// this line is used by starport scaffolding # 1
+import "fantoken/fanToken.proto";
+
+option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+
+// Query defines the gRPC querier service.
+service Query {
+    // this line is used by starport scaffolding # 2
+	rpc FanToken(QueryGetFanTokenRequest) returns (QueryGetFanTokenResponse) {
+		option (google.api.http).get = "/bitsongofficial/ledger/fantoken/fanToken/{index}";
+	}
+	rpc FanTokenAll(QueryAllFanTokenRequest) returns (QueryAllFanTokenResponse) {
+		option (google.api.http).get = "/bitsongofficial/ledger/fantoken/fanToken";
+	}
+
+}
+
+// this line is used by starport scaffolding # 3
+message QueryGetFanTokenRequest {
+	string index = 1;
+}
+
+message QueryGetFanTokenResponse {
+	FanToken FanToken = 1;
+}
+
+message QueryAllFanTokenRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllFanTokenResponse {
+	repeated FanToken FanToken = 1;
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

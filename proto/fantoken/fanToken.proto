@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bitsongofficial.ledger.fantoken;
+
+option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+
+import "gogoproto/gogo.proto";
+
+// FanToken defines a standard for the fungible token
+message FanToken {
+  string denom = 1; 
+  string name = 2;
+  uint64 initial_supply = 3 [ (gogoproto.moretags) = "yaml:\"initial_supply\"" ];
+  bool mintable = 4;
+  string creator = 5;
+}
