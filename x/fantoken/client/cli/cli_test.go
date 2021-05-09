@@ -16,10 +16,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/go-bitsong/simapp"
-	tokencli "github.com/bitsongofficial/go-bitsong/x/token/client/cli"
-	tokentestutil "github.com/bitsongofficial/go-bitsong/x/token/client/testutil"
-	tokentypes "github.com/bitsongofficial/go-bitsong/x/token/types"
+	tokencli "github.com/bitsongofficial/ledger/x/fantoken/client/cli"
+	tokentestutil "github.com/bitsongofficial/ledger/x/fantoken/client/testutil"
+	tokentypes "github.com/bitsongofficial/ledger/x/fantoken/types"
 )
 
 type IntegrationTestSuite struct {

@@ -10,7 +10,7 @@ import (
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/bitsongofficial/go-bitsong/x/token/types"
+	"github.com/bitsongofficial/ledger/x/fantoken/types"
 )
 
 // GetTokens returns all existing tokens

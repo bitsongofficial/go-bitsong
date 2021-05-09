@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/bitsongofficial/go-bitsong/x/token/types"
+	"github.com/bitsongofficial/ledger/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

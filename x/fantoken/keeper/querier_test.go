@@ -7,8 +7,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/bitsongofficial/go-bitsong/x/token/keeper"
-	"github.com/bitsongofficial/go-bitsong/x/token/types"
+	"github.com/bitsongofficial/ledger/x/fantoken/keeper"
+	"github.com/bitsongofficial/ledger/x/fantoken/types"
 )
 
 func (suite *KeeperTestSuite) TestQueryFanToken() {

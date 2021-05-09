@@ -19,11 +19,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 
-	"github.com/bitsongofficial/go-bitsong/x/token/client/cli"
-	"github.com/bitsongofficial/go-bitsong/x/token/client/rest"
-	"github.com/bitsongofficial/go-bitsong/x/token/keeper"
-	"github.com/bitsongofficial/go-bitsong/x/token/simulation"
-	"github.com/bitsongofficial/go-bitsong/x/token/types"
+	"github.com/bitsongofficial/ledger/x/fantoken/client/cli"
+	"github.com/bitsongofficial/ledger/x/fantoken/client/rest"
+	"github.com/bitsongofficial/ledger/x/fantoken/keeper"
+	"github.com/bitsongofficial/ledger/x/fantoken/simulation"
+	"github.com/bitsongofficial/ledger/x/fantoken/types"
 )
 
 var (

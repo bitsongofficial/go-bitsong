@@ -12,10 +12,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	"github.com/bitsongofficial/go-bitsong/simapp"
-	tokenmodule "github.com/bitsongofficial/go-bitsong/x/token"
-	tokenkeeper "github.com/bitsongofficial/go-bitsong/x/token/keeper"
-	"github.com/bitsongofficial/go-bitsong/x/token/types"
+	"github.com/bitsongofficial/ledger/simapp"
+	tokenmodule "github.com/bitsongofficial/ledger/x/fantoken"
+	tokenkeeper "github.com/bitsongofficial/ledger/x/fantoken/keeper"
+	"github.com/bitsongofficial/ledger/x/fantoken/types"
 )
 
 const (

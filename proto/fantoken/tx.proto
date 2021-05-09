@@ -3,7 +3,7 @@ package go-bitsong.fantoken;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bitsongofficial/go-bitsong/x/token/types";
+option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the oracle Msg service
