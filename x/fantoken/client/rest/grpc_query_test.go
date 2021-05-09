@@ -61,7 +61,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	mintable := true
 	baseURL := val.APIAddress
 
-	//------test GetCmdIssueToken()-------------
+	//------test GetCmdIssueFanToken()-------------
 	args := []string{
 		fmt.Sprintf("--%s=%s", tokencli.FlagDenom, denom),
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
@@ -82,8 +82,8 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().Equal(expectedCode, txResp.Code)
 	tokenDenom := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
 
-	//------test GetCmdQueryTokens()-------------
-	url := fmt.Sprintf("%s/go-bitsong/fantoken/tokens", baseURL)
+	//------test GetCmdQueryFanTokens()-------------
+	url := fmt.Sprintf("%s/ledger/fantoken/tokens", baseURL)
 	resp, err := rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokensResponse{})
 	s.Require().NoError(err)
@@ -91,8 +91,8 @@ func (s *IntegrationTestSuite) TestToken() {
 	tokensResp := respType.(*tokentypes.QueryFanTokensResponse)
 	s.Require().Equal(2, len(tokensResp.FanTokens))
 
-	//------test GetCmdQueryToken()-------------
-	url = fmt.Sprintf("%s/go-bitsong/fantoken/tokens/%s", baseURL, tokenDenom)
+	//------test GetCmdQueryFanToken()-------------
+	url = fmt.Sprintf("%s/ledger/fantoken/tokens/%s", baseURL, tokenDenom)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokenResponse{})
 	var token tokentypes.FanTokenI
@@ -105,7 +105,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().Equal(denom, token.GetDenom())
 
 	//------test GetCmdQueryParams()-------------
-	url = fmt.Sprintf("%s/go-bitsong/fantoken/params", baseURL)
+	url = fmt.Sprintf("%s/ledger/fantoken/params", baseURL)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryParamsResponse{})
 	s.Require().NoError(err)
