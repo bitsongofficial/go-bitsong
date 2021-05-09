@@ -1,4 +1,4 @@
-package token_test
+package fantoken_test
 
 import (
 	"testing"
@@ -21,7 +21,7 @@ func TestExportGenesis(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	// export genesis
-	genesisState := token.ExportGenesis(ctx, app.TokenKeeper)
+	genesisState := token.ExportGenesis(ctx, app.FanTokenKeeper)
 
 	require.Equal(t, types.DefaultParams(), genesisState.Params)
 	for _, token := range genesisState.Tokens {
@@ -48,13 +48,13 @@ func TestInitGenesis(t *testing.T) {
 	}
 
 	// initialize genesis
-	token.InitGenesis(ctx, app.TokenKeeper, genesis)
+	token.InitGenesis(ctx, app.FanTokenKeeper, genesis)
 
 	// query all tokens
-	var tokens = app.TokenKeeper.GetFanTokens(ctx, nil)
+	var tokens = app.FanTokenKeeper.GetFanTokens(ctx, nil)
 	require.Equal(t, len(tokens), 2)
 	require.Equal(t, tokens[0], &ft)
 
-	var coins = app.TokenKeeper.GetAllBurnCoin(ctx)
+	var coins = app.FanTokenKeeper.GetAllBurnCoin(ctx)
 	require.Equal(t, burnCoins, coins)
 }

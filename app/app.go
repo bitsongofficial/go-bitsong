@@ -15,6 +15,9 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	appparams "github.com/bitsongofficial/ledger/app/params"
+	"github.com/bitsongofficial/ledger/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/ledger/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/ledger/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -123,6 +126,7 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		fantoken.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -134,6 +138,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -188,6 +193,8 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
+	FanTokenKeeper fantokenkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 }
@@ -214,6 +221,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
+		fantokentypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -308,6 +316,15 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
+	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		app.GetSubspace(fantokentypes.ModuleName),
+		app.BankKeeper,
+		app.ModuleAccountAddrs(),
+		authtypes.FeeCollectorName,
+	)
+
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -373,6 +390,7 @@ func New(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		fantokentypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -554,6 +572,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(crisistypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
+	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
 	return paramsKeeper
 }

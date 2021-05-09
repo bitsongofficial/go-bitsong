@@ -16,10 +16,10 @@ func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, addr)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.TokenKeeper)
+	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	_ = suite.app.TokenKeeper.AddFanToken(ctx, token)
+	_ = suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 
 	// Query token
 	tokenResp, err := queryClient.FanToken(gocontext.Background(), &types.QueryFanTokenRequest{Denom: "btc"})
@@ -37,11 +37,11 @@ func (suite *KeeperTestSuite) TestGRPCQueryParams() {
 	app, ctx := suite.app, suite.ctx
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.TokenKeeper)
+	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
 	paramsResp, err := queryClient.Params(gocontext.Background(), &types.QueryParamsRequest{})
-	params := app.TokenKeeper.GetParamSet(ctx)
+	params := app.FanTokenKeeper.GetParamSet(ctx)
 	suite.Require().NoError(err)
 	suite.Equal(params, paramsResp.Params)
 }
@@ -50,16 +50,16 @@ func (suite *KeeperTestSuite) TestGRPCQueryTotalBurn() {
 	app, ctx := suite.app, suite.ctx
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.TokenKeeper)
+	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
 	_, _, addr := testdata.KeyTestPubAddr()
 	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, addr)
-	err := suite.app.TokenKeeper.AddFanToken(ctx, token)
+	err := suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 	suite.Require().NoError(err)
 
 	buinCoin := sdk.NewInt64Coin("satoshi", 1000000000000000000)
-	app.TokenKeeper.AddBurnCoin(ctx, buinCoin)
+	app.FanTokenKeeper.AddBurnCoin(ctx, buinCoin)
 
 	resp, err := queryClient.TotalBurn(gocontext.Background(), &types.QueryTotalBurnRequest{})
 	suite.Require().NoError(err)

@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
 	bk          bankkeeper.Keeper
-	app         *simapp.SimApp
+	app         *simapp.App
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.legacyAmino = app.LegacyAmino()
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
-	suite.keeper = app.TokenKeeper
+	suite.keeper = app.FanTokenKeeper
 	suite.bk = app.BankKeeper
 	suite.app = app
 

@@ -1,4 +1,4 @@
-package token
+package fantoken
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

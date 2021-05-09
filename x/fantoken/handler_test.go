@@ -1,4 +1,4 @@
-package token_test
+package fantoken_test
 
 import (
 	"testing"
@@ -48,7 +48,7 @@ func (suite *HandlerSuite) SetupTest() {
 
 	suite.cdc = codec.NewAminoCodec(app.LegacyAmino())
 	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
-	suite.keeper = app.TokenKeeper
+	suite.keeper = app.FanTokenKeeper
 	suite.bk = app.BankKeeper
 
 	// set params
