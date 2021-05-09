@@ -1,5 +1,5 @@
 syntax = "proto3";
-package go-bitsong.fantoken;
+package ledger.fantoken;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
@@ -15,19 +15,19 @@ option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
 service Query {
     // FanToken returns fantoken with fantoken name
     rpc FanToken(QueryFanTokenRequest) returns (QueryFanTokenResponse) {
-        option (google.api.http).get = "/go-bitsong/fantoken/tokens/{denom}";
+        option (google.api.http).get = "/ledger/fantoken/tokens/{denom}";
     }
     // FanTokens returns the fantoken list
     rpc FanTokens(QueryFanTokensRequest) returns (QueryFanTokensResponse) {
-        option (google.api.http).get = "/go-bitsong/fantoken/tokens";
+        option (google.api.http).get = "/ledger/fantoken/tokens";
     }
     // Params queries the fantoken parameters
     rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-        option (google.api.http).get = "/go-bitsong/fantoken/params";
+        option (google.api.http).get = "/ledger/fantoken/params";
     }
     // TotalBurn queries all the burnt coins
     rpc TotalBurn(QueryTotalBurnRequest) returns (QueryTotalBurnResponse) {
-        option (google.api.http).get = "/go-bitsong/fantoken/total_burn";
+        option (google.api.http).get = "/ledger/fantoken/total_burn";
     }
 }
 

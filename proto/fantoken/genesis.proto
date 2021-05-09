@@ -1,5 +1,5 @@
 syntax = "proto3";
-package go-bitsong.fantoken;
+package ledger.fantoken;
 
 import "gogoproto/gogo.proto";
 import "fantoken/fantoken.proto";
