@@ -1,39 +1,77 @@
 syntax = "proto3";
-package bitsongofficial.ledger.fantoken;
+package go-bitsong.fantoken;
 
-import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-// this line is used by starport scaffolding # 1
-import "fantoken/fanToken.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "fantoken/fantoken.proto";
 
-option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/token/types";
 
-// Query defines the gRPC querier service.
+// Query creates service with fantoken as RPC
 service Query {
-    // this line is used by starport scaffolding # 2
-	rpc FanToken(QueryGetFanTokenRequest) returns (QueryGetFanTokenResponse) {
-		option (google.api.http).get = "/bitsongofficial/ledger/fantoken/fanToken/{index}";
-	}
-	rpc FanTokenAll(QueryAllFanTokenRequest) returns (QueryAllFanTokenResponse) {
-		option (google.api.http).get = "/bitsongofficial/ledger/fantoken/fanToken";
-	}
-
+    // FanToken returns fantoken with fantoken name
+    rpc FanToken(QueryFanTokenRequest) returns (QueryFanTokenResponse) {
+        option (google.api.http).get = "/go-bitsong/fantoken/tokens/{denom}";
+    }
+    // FanTokens returns the fantoken list
+    rpc FanTokens(QueryFanTokensRequest) returns (QueryFanTokensResponse) {
+        option (google.api.http).get = "/go-bitsong/fantoken/tokens";
+    }
+    // Params queries the fantoken parameters
+    rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+        option (google.api.http).get = "/go-bitsong/fantoken/params";
+    }
+    // TotalBurn queries all the burnt coins
+    rpc TotalBurn(QueryTotalBurnRequest) returns (QueryTotalBurnResponse) {
+        option (google.api.http).get = "/go-bitsong/fantoken/total_burn";
+    }
 }
 
-// this line is used by starport scaffolding # 3
-message QueryGetFanTokenRequest {
-	string index = 1;
+// QueryFanTokenRequest is request type for the Query/FanToken RPC method
+message QueryFanTokenRequest {
+    string denom = 1;
 }
 
-message QueryGetFanTokenResponse {
-	FanToken FanToken = 1;
+// QueryFanTokenResponse is response type for the Query/FanToken RPC method
+message QueryFanTokenResponse {
+    google.protobuf.Any FanToken = 1
+        [ (cosmos_proto.accepts_interface) = "ContentI" ];
 }
 
-message QueryAllFanTokenRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+// QueryFanTokensRequest is request type for the Query/FanTokens RPC method
+message QueryFanTokensRequest {
+    string owner = 1;
+    // pagination defines an optional pagination for the request.
+    cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
-message QueryAllFanTokenResponse {
-	repeated FanToken FanToken = 1;
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+// QueryFanTokensResponse is response type for the Query/FanTokens RPC method
+message QueryFanTokensResponse {
+    repeated google.protobuf.Any FanTokens = 1
+        [ (cosmos_proto.accepts_interface) = "ContentI" ];
+
+    cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryParametersRequest is request type for the Query/Parameters RPC method
+message QueryParamsRequest {}
+
+// QueryParametersResponse is response type for the Query/Parameters RPC method
+message QueryParamsResponse {
+    fantoken.Params params = 1 [ (gogoproto.nullable) = false ];
+
+    cosmos.base.query.v1beta1.PageResponse res = 2;
+}
+
+// QueryFanTokenRequest is request type for the Query/TotalBurn RPC method
+message QueryTotalBurnRequest {}
+
+// QueryTotalBurnResponse is response type for the Query/TotalBurn RPC method
+message QueryTotalBurnResponse {
+    repeated cosmos.base.v1beta1.Coin burned_coins = 1
+        [ (gogoproto.nullable) = false ];
 }

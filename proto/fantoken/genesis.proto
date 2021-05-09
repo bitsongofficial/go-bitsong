@@ -1,14 +1,16 @@
 syntax = "proto3";
-package bitsongofficial.ledger.fantoken;
+package go-bitsong.fantoken;
 
-// this line is used by starport scaffolding # genesis/proto/import
-import "fantoken/fanToken.proto";
+import "gogoproto/gogo.proto";
+import "fantoken/fantoken.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
-option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/token/types";
 
-// GenesisState defines the fantoken module's genesis state.
+// GenesisState defines the fantoken module's genesis state
 message GenesisState {
-    // this line is used by starport scaffolding # genesis/proto/state
-		repeated FanToken fanTokenList = 1; // this line is used by starport scaffolding # genesis/proto/stateField
-    // this line is used by starport scaffolding # ibc/genesis/proto
+    Params params = 1 [ (gogoproto.nullable) = false ];
+    repeated FanToken tokens = 2 [ (gogoproto.nullable) = false ];
+    repeated cosmos.base.v1beta1.Coin burned_coins = 3
+        [ (gogoproto.nullable) = false ];
 }
