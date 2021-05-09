@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/bitsongofficial/ledger/app"
-	"github.com/bitsongofficial/ledger/cmd/bitsongd/cmd"
+	"github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/cmd/bitsongd/cmd"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )
 
