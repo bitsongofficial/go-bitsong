@@ -10,7 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/ledger/simapp"
+	simapp "github.com/bitsongofficial/ledger/app"
 	token "github.com/bitsongofficial/ledger/x/fantoken"
 	"github.com/bitsongofficial/ledger/x/fantoken/types"
 )

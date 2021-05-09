@@ -12,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	"github.com/bitsongofficial/ledger/simapp"
+	simapp "github.com/bitsongofficial/ledger/app"
 	tokenmodule "github.com/bitsongofficial/ledger/x/fantoken"
 	tokenkeeper "github.com/bitsongofficial/ledger/x/fantoken/keeper"
 	"github.com/bitsongofficial/ledger/x/fantoken/types"
