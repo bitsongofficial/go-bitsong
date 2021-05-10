@@ -10,7 +10,7 @@
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
-**Note**: Requires [Go 1.13.6+](https://golang.org/dl/)
+**Note**: Requires [Go 1.16.0+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 
@@ -19,8 +19,8 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 ## From Source
 1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH` and `$PATH` environment variables, for example:
     ```bash
-    wget https://dl.google.com/go/go1.13.15.linux-amd64.tar.gz
-    sudo tar -xvzf go1.13.15.linux-amd64.tar.gz
+    wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz
+    sudo tar -xvzf go1.16.3.linux-amd64.tar.gz
     sudo mv go /usr/local
      
     cat <<EOF >> ~/.profile  
@@ -35,7 +35,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
     cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout v0.7.0-rc1
+    git checkout sdk-v0.42.x
     ```
   3. **Compile**
 		```bash
@@ -43,7 +43,6 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 		make install
 		# Now you should be able to run the following commands:
 		bitsongd help
-		bitsongcli help
 		```
 		The latest `go-bitsong version` is now installed.
 3. **Run BitSong**
@@ -59,32 +58,19 @@ To initialize configuration and a `genesis.json` file for your application and a
 
 >  _*NOTE*_: If you have run the tutorial before, you can start from scratch with a `bitsongd unsafe-reset-all` or by deleting both of the home folders `rm -rf ~/.bitsong*`
 
->  _*NOTE*_: If you have the Cosmos app for ledger and you want to use it, when you create the key with `bitsongcli keys add jack` just add `--ledger` at the end. That's all you need. When you sign, `jack` will be recognized as a Ledger key and will require a device.
-
 ```bash
 # Initialize configuration files and genesis file
 bitsongd init MyValidator --chain-id bitsong-localnet
 
-# Configure your CLI to eliminate need for chain-id flag
-bitsongcli config chain-id bitsong-localnet
-bitsongcli config output json
-bitsongcli config indent true
-bitsongcli config trust-node true
-bitsongcli config keyring-backend test
-
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
-bitsongcli keys add jack
-
-# Copy the `Address` output here and save it for later use
-bitsongcli keys add alice
+bitsongd keys add jack
 
 # Add both accounts, with coins to the genesis file
 bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
-bitsongd add-genesis-account alice 100000000000ubtsg --keyring-backend test
 
 # Generate the transaction that creates your validator
-bitsongd gentx --name jack --amount=10000000ubtsg --keyring-backend test
+bitsongd gentx jack 10000000ubtsg --keyring-backend test
 
 # Add the generated bonding transaction to the genesis file
 bitsongd collect-gentxs

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/bitsongofficial/ledger/app/params"
+	"github.com/bitsongofficial/bitsong/app/params"
 	"github.com/cosmos/cosmos-sdk/std"
 )
 
