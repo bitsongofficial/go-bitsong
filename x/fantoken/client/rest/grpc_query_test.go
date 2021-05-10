@@ -89,7 +89,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(resp, respType))
 	tokensResp := respType.(*tokentypes.QueryFanTokensResponse)
-	s.Require().Equal(2, len(tokensResp.FanTokens))
+	s.Require().Equal(1, len(tokensResp.FanTokens))
 
 	//------test GetCmdQueryFanToken()-------------
 	url = fmt.Sprintf("%s/bitsong/fantoken/tokens/%s", baseURL, tokenDenom)
@@ -112,7 +112,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(resp, respType))
 	paramsResp := respType.(*tokentypes.QueryParamsResponse)
 	s.Require().NoError(err)
-	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"60000\"}}"
+	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"1000000\"}}"
 	result, _ := json.Marshal(paramsResp.Params)
 	s.Require().Equal(expectedParams, string(result))
 }

@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 	tokensResp, err := queryClient.FanTokens(gocontext.Background(), &types.QueryFanTokensRequest{})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(tokensResp)
-	suite.Len(tokensResp.FanTokens, 2)
+	suite.Len(tokensResp.FanTokens, 1)
 }
 
 func (suite *KeeperTestSuite) TestGRPCQueryParams() {

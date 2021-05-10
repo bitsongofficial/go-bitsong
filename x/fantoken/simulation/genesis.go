@@ -42,7 +42,6 @@ func RandomizedGenState(simState *module.SimulationState) {
 			for i := 0; i < 5; i++ {
 				tokens = append(tokens, randFanToken(r, simState.Accounts))
 			}
-			tokens = append(tokens, types.GetNativeToken())
 		},
 	)
 

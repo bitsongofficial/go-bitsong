@@ -36,9 +36,8 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // DefaultParams return the default params
 func DefaultParams() Params {
-	defaultToken := GetNativeToken()
 	return Params{
-		IssuePrice: sdk.NewCoin(defaultToken.Denom, sdk.NewInt(60000)),
+		IssuePrice: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
 	}
 }
 

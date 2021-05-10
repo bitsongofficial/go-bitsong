@@ -108,7 +108,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType))
 	params := respType.(*tokentypes.Params)
 	s.Require().NoError(err)
-	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"60000\"}}"
+	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"1000000\"}}"
 	result, _ := json.Marshal(params)
 	s.Require().Equal(expectedParams, string(result))
 

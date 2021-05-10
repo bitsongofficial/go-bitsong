@@ -24,9 +24,6 @@ func TestExportGenesis(t *testing.T) {
 	genesisState := token.ExportGenesis(ctx, app.FanTokenKeeper)
 
 	require.Equal(t, types.DefaultParams(), genesisState.Params)
-	for _, token := range genesisState.Tokens {
-		require.Equal(t, token, types.GetNativeToken())
-	}
 }
 
 func TestInitGenesis(t *testing.T) {
@@ -52,7 +49,7 @@ func TestInitGenesis(t *testing.T) {
 
 	// query all tokens
 	var tokens = app.FanTokenKeeper.GetFanTokens(ctx, nil)
-	require.Equal(t, len(tokens), 2)
+	require.Equal(t, len(tokens), 1)
 	require.Equal(t, tokens[0], &ft)
 
 	var coins = app.FanTokenKeeper.GetAllBurnCoin(ctx)

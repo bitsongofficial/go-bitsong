@@ -23,11 +23,9 @@ const (
 )
 
 var (
-	nativeToken = types.GetNativeToken()
-	denom       = nativeToken.Denom
-	owner       = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
-	initAmt     = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin    = sdk.Coins{sdk.NewCoin(denom, initAmt)}
+	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
+	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
+	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 )
 
 func TestHandlerSuite(t *testing.T) {
@@ -82,14 +80,14 @@ func (suite *HandlerSuite) issueFanToken(token types.FanToken) {
 func (suite *HandlerSuite) TestIssueFanToken() {
 	h := tokenmodule.NewHandler(suite.keeper)
 
-	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, denom).Amount
+	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
 
 	msg := types.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), false, owner.String())
 
 	_, err := h(suite.ctx, msg)
 	suite.NoError(err)
 
-	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, denom).Amount
+	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
 
 	params := suite.keeper.GetParamSet(suite.ctx)
 

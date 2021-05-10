@@ -1,8 +1,6 @@
 package fantoken
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
@@ -27,12 +25,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, coin := range data.BurnedCoins {
 		k.AddBurnCoin(ctx, coin)
 	}
-
-	// assert the denom exists
-	if !k.HasDenom(ctx, data.Params.IssuePrice.Denom) {
-		panic(fmt.Sprintf("Token %s does not exist", data.Params.IssuePrice.Denom))
-	}
-
 }
 
 // ExportGenesis outputs the genesis state
@@ -53,6 +45,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 func DefaultGenesisState() *types.GenesisState {
 	return &types.GenesisState{
 		Params: types.DefaultParams(),
-		Tokens: []types.FanToken{types.GetNativeToken()},
+		Tokens: []types.FanToken{},
 	}
 }

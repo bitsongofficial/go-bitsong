@@ -25,10 +25,6 @@ const (
 	OpWeightMsgTransferTokenOwner = "op_weight_msg_transfer_token_owner"
 )
 
-var (
-	nativeToken = types.GetNativeToken()
-)
-
 // WeightedOperations returns all the operations from the module with their respective weights
 func WeightedOperations(
 	appParams simtypes.AppParams,
@@ -299,20 +295,17 @@ func selectOneFanToken(
 	}
 
 	for _, t := range tokens {
-		if t.GetDenom() == types.GetNativeToken().Denom {
-			continue
-		}
 		if !mint {
 			return t, nil, false
 		}
 
 		account := ak.GetAccount(ctx, t.GetOwner())
 		spendable := bk.SpendableCoins(ctx, account.GetAddress())
-		spendableStake := spendable.AmountOf(nativeToken.Denom)
+		spendableStake := spendable.AmountOf(sdk.DefaultBondDenom)
 		if spendableStake.IsZero() {
 			continue
 		}
-		maxFees = sdk.NewCoins(sdk.NewCoin(nativeToken.Denom, spendableStake))
+		maxFees = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, spendableStake))
 		token = t
 		return
 	}
@@ -359,12 +352,12 @@ loop:
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 	account := ak.GetAccount(ctx, simAccount.Address)
 	spendable := bk.SpendableCoins(ctx, account.GetAddress())
-	spendableStake := spendable.AmountOf(nativeToken.Denom)
+	spendableStake := spendable.AmountOf(sdk.DefaultBondDenom)
 	if spendableStake.IsZero() || spendableStake.LT(fee.Amount) {
 		goto loop
 	}
 	owner = account.GetAddress()
-	maxFees = sdk.NewCoins(sdk.NewCoin(nativeToken.Denom, spendableStake).Sub(fee))
+	maxFees = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, spendableStake).Sub(fee))
 	return
 }
 

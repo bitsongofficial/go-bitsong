@@ -22,10 +22,9 @@ const (
 )
 
 var (
-	denom    = types.GetNativeToken().Denom
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin = sdk.Coins{sdk.NewCoin(denom, initAmt)}
+	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 )
 
 type KeeperTestSuite struct {
