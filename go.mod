@@ -1,4 +1,4 @@
-module github.com/bitsongofficial/go-bitsong
+module github.com/bitsongofficial/bitsong
 
 go 1.15
 
