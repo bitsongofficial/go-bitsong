@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 
-	tokencli "github.com/bitsongofficial/ledger/x/fantoken/client/cli"
+	tokencli "github.com/bitsongofficial/bitsong/x/fantoken/client/cli"
 )
 
 func IssueFanTokenExec(clientCtx client.Context, from string, extraArgs ...string) (testutil.BufferWriter, error) {

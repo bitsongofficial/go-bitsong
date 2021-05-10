@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/ledger/x/fantoken/keeper"
-	"github.com/bitsongofficial/ledger/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 // InitGenesis stores the genesis state

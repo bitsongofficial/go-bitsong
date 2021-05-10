@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/bitsongofficial/ledger/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 type ValidateTokenFeeDecorator struct {

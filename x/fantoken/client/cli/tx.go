@@ -13,7 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/ledger/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 // NewTxCmd returns the transaction commands for the token module.

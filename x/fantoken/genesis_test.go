@@ -10,9 +10,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	simapp "github.com/bitsongofficial/ledger/app"
-	token "github.com/bitsongofficial/ledger/x/fantoken"
-	"github.com/bitsongofficial/ledger/x/fantoken/types"
+	simapp "github.com/bitsongofficial/bitsong/app"
+	token "github.com/bitsongofficial/bitsong/x/fantoken"
+	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 func TestExportGenesis(t *testing.T) {

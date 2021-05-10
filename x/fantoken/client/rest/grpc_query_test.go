@@ -14,10 +14,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	simapp "github.com/bitsongofficial/ledger/app"
-	tokencli "github.com/bitsongofficial/ledger/x/fantoken/client/cli"
-	tokentestutil "github.com/bitsongofficial/ledger/x/fantoken/client/testutil"
-	tokentypes "github.com/bitsongofficial/ledger/x/fantoken/types"
+	simapp "github.com/bitsongofficial/bitsong/app"
+	tokencli "github.com/bitsongofficial/bitsong/x/fantoken/client/cli"
+	tokentestutil "github.com/bitsongofficial/bitsong/x/fantoken/client/testutil"
+	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 type IntegrationTestSuite struct {
@@ -83,7 +83,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	tokenDenom := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
 
 	//------test GetCmdQueryFanTokens()-------------
-	url := fmt.Sprintf("%s/ledger/fantoken/tokens", baseURL)
+	url := fmt.Sprintf("%s/bitsong/fantoken/tokens", baseURL)
 	resp, err := rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokensResponse{})
 	s.Require().NoError(err)
@@ -92,7 +92,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().Equal(2, len(tokensResp.FanTokens))
 
 	//------test GetCmdQueryFanToken()-------------
-	url = fmt.Sprintf("%s/ledger/fantoken/tokens/%s", baseURL, tokenDenom)
+	url = fmt.Sprintf("%s/bitsong/fantoken/tokens/%s", baseURL, tokenDenom)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokenResponse{})
 	var token tokentypes.FanTokenI
@@ -105,7 +105,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().Equal(denom, token.GetDenom())
 
 	//------test GetCmdQueryParams()-------------
-	url = fmt.Sprintf("%s/ledger/fantoken/params", baseURL)
+	url = fmt.Sprintf("%s/bitsong/fantoken/params", baseURL)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryParamsResponse{})
 	s.Require().NoError(err)

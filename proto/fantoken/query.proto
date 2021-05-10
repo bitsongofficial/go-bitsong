@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ledger.fantoken;
+package bitsong.fantoken;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
@@ -9,25 +9,25 @@ import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "fantoken/fantoken.proto";
 
-option go_package = "github.com/bitsongofficial/ledger/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/bitsong/x/fantoken/types";
 
 // Query creates service with fantoken as RPC
 service Query {
     // FanToken returns fantoken with fantoken name
     rpc FanToken(QueryFanTokenRequest) returns (QueryFanTokenResponse) {
-        option (google.api.http).get = "/ledger/fantoken/tokens/{denom}";
+        option (google.api.http).get = "/bitsong/fantoken/tokens/{denom}";
     }
     // FanTokens returns the fantoken list
     rpc FanTokens(QueryFanTokensRequest) returns (QueryFanTokensResponse) {
-        option (google.api.http).get = "/ledger/fantoken/tokens";
+        option (google.api.http).get = "/bitsong/fantoken/tokens";
     }
     // Params queries the fantoken parameters
     rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-        option (google.api.http).get = "/ledger/fantoken/params";
+        option (google.api.http).get = "/bitsong/fantoken/params";
     }
     // TotalBurn queries all the burnt coins
     rpc TotalBurn(QueryTotalBurnRequest) returns (QueryTotalBurnResponse) {
-        option (google.api.http).get = "/ledger/fantoken/total_burn";
+        option (google.api.http).get = "/bitsong/fantoken/total_burn";
     }
 }
 

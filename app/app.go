@@ -15,9 +15,9 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	appparams "github.com/bitsongofficial/bitsong/app/params"
-	"github.com/bitsongofficial/ledger/x/fantoken"
-	fantokenkeeper "github.com/bitsongofficial/ledger/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/ledger/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/bitsong/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"

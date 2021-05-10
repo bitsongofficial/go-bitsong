@@ -12,9 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	simapp "github.com/bitsongofficial/ledger/app"
-	"github.com/bitsongofficial/ledger/x/fantoken/keeper"
-	"github.com/bitsongofficial/ledger/x/fantoken/types"
+	simapp "github.com/bitsongofficial/bitsong/app"
+	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 const (
@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
 	bk          bankkeeper.Keeper
-	app         *simapp.App
+	app         *simapp.Bitsong
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

@@ -382,13 +382,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_FanToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"ledger", "fantoken", "tokens", "denom"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FanToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bitsong", "fantoken", "tokens", "denom"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_FanTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"ledger", "fantoken", "tokens"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_FanTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bitsong", "fantoken", "tokens"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"ledger", "fantoken", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bitsong", "fantoken", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_TotalBurn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"ledger", "fantoken", "total_burn"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_TotalBurn_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bitsong", "fantoken", "total_burn"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
