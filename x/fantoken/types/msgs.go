@@ -7,7 +7,7 @@ import (
 
 const (
 	// MsgRoute identifies transaction types
-	MsgRoute = "token"
+	MsgRoute = "fantoken"
 
 	TypeMsgIssueFanToken          = "issue_fan_token"
 	TypeMsgUpdateFanTokenMintable = "update_fan_token_mintable"

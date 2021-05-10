@@ -7,7 +7,7 @@ Definition of data structure of Fungible Token
 type FanToken struct {
 	Denom		string
 	Name		string
-	MaxSupply	uint64
+	MaxSupply	sdk.Int
 	Mintable	bool
 	Owner		string
 }

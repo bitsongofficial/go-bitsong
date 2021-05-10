@@ -1,27 +1,49 @@
 # Events
 
-Events emitted from the Fan Token module.
-
+The fantoken module emits the following events:
 ## MsgIssueFanToken
 
-| Type     | Attr. Key | Attr. Value |
-| -------- | --------- | -------- |
-|          |           |          |
+| Type            | Attribute Key | Attribute Value  |
+| :-------------- | :------------ | :--------------- |
+| issue_fan_token | denom         | {Denom}          |
+| issue_fan_token | creator       | {creatorAddress} |
+| message         | module        | fantoken         |
+| message         | sender        | {ownerAddress}   |
 
-## MsgMintFanToken
+## MsgUpdateFanTokenMintable
 
-| Type     | Attr. Key | Attr. Value |
-| -------- | --------- | -------- |
-|          |           |          |
-
-## MsgBurnFanToken
-
-| Type     | Attr. Key | Attr. Value |
-| -------- | --------- | -------- |
-|          |           |          |
+| Type                      | Attribute Key | Attribute Value |
+| :------------------------ | :------------ | :-------------- |
+| update_fan_token_mintable | denom         | {Denom}         |
+| update_fan_token_mintable | owner         | {ownerAddress}  |
+| message                   | module        | fantoken        |
+| message                   | sender        | {ownerAddress}  |
 
 ## MsgTransferFanTokenOwner
 
-| Type     | Attr. Key | Attr. Value |
-| -------- | --------- | -------- |
-|          |           |          |
+| Type                     | Attribute Key | Attribute Value   |
+| :----------------------- | :------------ | :---------------- |
+| transfer_fan_token_owner | denom         | {Denom}           |
+| transfer_fan_token_owner | owner         | {ownerAddress}    |
+| transfer_fan_token_owner | dst_owner     | {dstOwnerAddress} |
+| message                  | module        | fantoken          |
+| message                  | sender        | {ownerAddress}    |
+
+## MsgMintFanToken
+
+| Type           | Attribute Key | Attribute Value    |
+| :------------- | :------------ | :----------------- |
+| mint_fan_token | denom         | {Denom}            |
+| mint_fan_token | amount        | {amount}           |
+| mint_fan_token | recipient     | {recipientAddress} |
+| message        | module        | fantoken           |
+| message        | sender        | {ownerAddress}     |
+
+## MsgBurnToken
+
+| Type           | Attribute Key | Attribute Value |
+| :------------- | :------------ | :-------------- |
+| burn_fan_token | denom         | {Denom}         |
+| burn_fan_token | amount        | {amount}        |
+| message        | module        | fantoken        |
+| message        | sender        | {ownerAddress}  |

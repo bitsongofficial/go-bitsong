@@ -7,7 +7,18 @@ A new token is created using the `MsgIssueFanToken` message.
 type MsgIssueFanToken struct {
 	Denom		string
 	Name		string
-	MaxSupply	uint64
+	MaxSupply	sdk.Int
+	Mintable	bool
+	Owner		string
+}
+```
+
+# MsgUpdateFanTokenMintable
+The `Mintable` of a token can be updated using the `MsgUpdateFanTokenMintable`.
+
+```go
+type MsgUpdateFanTokenMintable struct {
+	Denom		string
 	Mintable	bool
 	Owner		string
 }
@@ -20,7 +31,7 @@ Only the owner of the fan token can mint new token to a specified account. It fa
 type MsgMintFanToken struct {
 	Recipient	string
 	Denom		string
-	Amount		uint64
+	Amount		sdk.Int
 	Owner		string
 }
 ```
@@ -31,7 +42,7 @@ The action will be completed if the sender balance > balance to burn
 ```go
 type MsgBurnFanToken struct {
 	Denom		string
-	Amount		uint64
+	Amount		sdk.Int
 	Sender		string
 }
 ```

@@ -80,7 +80,7 @@ func TestMsgUpdateFanTokenMintableRoute(t *testing.T) {
 		Mintable: mintable,
 	}
 
-	require.Equal(t, "token", msg.Route())
+	require.Equal(t, "fantoken", msg.Route())
 }
 
 func TestMsgUpdateFanTokenMintableGetSignBytes(t *testing.T) {
