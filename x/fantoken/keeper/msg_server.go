@@ -39,7 +39,7 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 	}
 
 	if err := m.Keeper.IssueFanToken(
-		ctx, msg.Denom, msg.Name, msg.MaxSupply, msg.Mintable, owner,
+		ctx, msg.Denom, msg.Name, msg.MaxSupply, msg.Mintable, msg.MetadataUri, owner,
 	); err != nil {
 		return nil, err
 	}

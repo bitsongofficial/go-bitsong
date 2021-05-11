@@ -17,6 +17,7 @@ type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              codec.Marshaler
 	bankKeeper       types.BankKeeper
+	stakingKeeper    types.StakingKeeper
 	paramSpace       paramstypes.Subspace
 	blockedAddrs     map[string]bool
 	feeCollectorName string
@@ -27,6 +28,7 @@ func NewKeeper(
 	key sdk.StoreKey,
 	paramSpace paramstypes.Subspace,
 	bankKeeper types.BankKeeper,
+	stakingKeeper types.StakingKeeper,
 	blockedAddrs map[string]bool,
 	feeCollectorName string,
 ) Keeper {
@@ -40,6 +42,7 @@ func NewKeeper(
 		cdc:              cdc,
 		paramSpace:       paramSpace,
 		bankKeeper:       bankKeeper,
+		stakingKeeper:    stakingKeeper,
 		feeCollectorName: feeCollectorName,
 		blockedAddrs:     blockedAddrs,
 	}
@@ -57,11 +60,12 @@ func (k Keeper) IssueFanToken(
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
+	metadataUri string,
 	owner sdk.AccAddress,
 ) error {
 	token := types.NewFanToken(
 		denom, name,
-		maxSupply, mintable, owner,
+		maxSupply, mintable, metadataUri, owner,
 	)
 
 	if err := k.AddFanToken(ctx, token); err != nil {

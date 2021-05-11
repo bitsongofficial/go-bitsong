@@ -33,7 +33,7 @@ func TestInitGenesis(t *testing.T) {
 
 	// add token
 	addr := sdk.AccAddress(tmhash.SumTruncated([]byte("addr1")))
-	ft := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(1), true, addr)
+	ft := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(1), true, "test", addr)
 
 	burnCoins := []sdk.Coin{
 		{Denom: ft.Denom, Amount: sdk.NewInt(1000)},

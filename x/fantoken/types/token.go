@@ -26,14 +26,16 @@ func NewFanToken(
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
+	metadataUri string,
 	owner sdk.AccAddress,
 ) FanToken {
 	return FanToken{
-		Denom:     denom,
-		Name:      name,
-		MaxSupply: maxSupply,
-		Mintable:  mintable,
-		Owner:     owner.String(),
+		Denom:       denom,
+		Name:        name,
+		MaxSupply:   maxSupply,
+		Mintable:    mintable,
+		MetadataUri: metadataUri,
+		Owner:       owner.String(),
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 	app, ctx := suite.app, suite.ctx
 	_, _, addr := testdata.KeyTestPubAddr()
-	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, addr)
+	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, "test", addr)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
@@ -54,7 +54,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTotalBurn() {
 	queryClient := types.NewQueryClient(queryHelper)
 
 	_, _, addr := testdata.KeyTestPubAddr()
-	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, addr)
+	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, "test", addr)
 	err := suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 	suite.Require().NoError(err)
 

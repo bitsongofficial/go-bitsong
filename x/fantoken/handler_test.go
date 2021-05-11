@@ -82,7 +82,7 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 
 	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
 
-	msg := types.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), false, owner.String())
+	msg := types.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), false, "test", owner.String())
 
 	_, err := h(suite.ctx, msg)
 	suite.NoError(err)
@@ -98,7 +98,7 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 }
 
 func (suite *HandlerSuite) TestMintFanToken() {
-	token := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, owner)
+	token := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
 	suite.issueFanToken(token)
 
 	beginBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Denom).Amount
@@ -116,7 +116,7 @@ func (suite *HandlerSuite) TestMintFanToken() {
 }
 
 func (suite *HandlerSuite) TestBurnFanToken() {
-	token := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, owner)
+	token := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
 	suite.issueFanToken(token)
 
 	h := tokenmodule.NewHandler(suite.keeper)

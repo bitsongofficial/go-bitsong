@@ -34,7 +34,8 @@ message MsgIssueFanToken {
         (gogoproto.nullable)   = false
     ];
     bool mintable = 4;
-    string owner = 5;
+    string metadata_uri = 5;
+    string owner = 6;
 }
 
 // MsgIssueFanTokenResponse defines the Msg/IssueFanToken response type

@@ -91,7 +91,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak types.AccountKeeper, bk types.Ban
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := types.NewMsgIssueFanToken(token.Denom, token.Name, token.MaxSupply, token.Mintable, token.GetOwner().String())
+		msg := types.NewMsgIssueFanToken(token.Denom, token.Name, token.MaxSupply, token.Mintable, token.MetadataUri, token.GetOwner().String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {

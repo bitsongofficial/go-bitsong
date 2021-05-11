@@ -59,6 +59,10 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (types.FanTokenI, err
 
 // AddToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token types.FanToken) error {
+	if token.Denom == k.stakingKeeper.BondDenom(ctx) {
+		return sdkerrors.Wrapf(types.ErrInvalidDenom, "the bond denom can not be the token denom")
+	}
+
 	if k.HasFanToken(ctx, token.Denom) {
 		return sdkerrors.Wrapf(types.ErrDenomAlreadyExists, "denom already exists: %s", token.Denom)
 	}

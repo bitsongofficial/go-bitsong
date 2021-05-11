@@ -31,3 +31,8 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 }
+
+// StakingKeeper defines the expected staking keeper
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) string
+}
