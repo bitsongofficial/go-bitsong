@@ -48,6 +48,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--denom=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
 				"--mintable=true "+
+				"--description=\"Kitty Token\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -80,13 +81,18 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			description, err := cmd.Flags().GetString(FlagDescription)
+			if err != nil {
+				return err
+			}
 
 			msg := &types.MsgIssueFanToken{
-				Denom:     denom,
-				Name:      name,
-				MaxSupply: maxSupply,
-				Mintable:  mintable,
-				Owner:     owner.String(),
+				Denom:       denom,
+				Name:        name,
+				MaxSupply:   maxSupply,
+				Mintable:    mintable,
+				MetadataUri: description,
+				Owner:       owner.String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {

@@ -61,13 +61,15 @@ func (s *IntegrationTestSuite) TestToken() {
 	name := "Kitty Token"
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
-
+	description := "Kitty Token"
+	fmt.Println(123, s.cfg.BondDenom)
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
 		fmt.Sprintf("--%s=%s", tokencli.FlagDenom, denom),
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%s", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
+		fmt.Sprintf("--%s=%s", tokencli.FlagDescription, description),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -76,6 +78,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	respType := proto.Message(&sdk.TxResponse{})
 	expectedCode := uint32(0)
 	bz, err := tokentestutil.IssueFanTokenExec(clientCtx, from.String(), args...)
+	fmt.Println(123, bz.String())
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -108,7 +111,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType))
 	params := respType.(*tokentypes.Params)
 	s.Require().NoError(err)
-	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"1000000\"}}"
+	expectedParams := "{\"issue_price\":{\"denom\":\"ubtsg\",\"amount\":\"1000000\"}}"
 	result, _ := json.Marshal(params)
 	s.Require().Equal(expectedParams, string(result))
 

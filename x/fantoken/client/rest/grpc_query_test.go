@@ -59,6 +59,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	name := "Kitty Token"
 	maxSupply := int64(200000000)
 	mintable := true
+	description := "Kitty Token"
 	baseURL := val.APIAddress
 
 	//------test GetCmdIssueFanToken()-------------
@@ -67,6 +68,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%d", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
+		fmt.Sprintf("--%s=%s", tokencli.FlagDescription, description),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -112,7 +114,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(resp, respType))
 	paramsResp := respType.(*tokentypes.QueryParamsResponse)
 	s.Require().NoError(err)
-	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"1000000\"}}"
+	expectedParams := "{\"issue_price\":{\"denom\":\"ubtsg\",\"amount\":\"1000000\"}}"
 	result, _ := json.Marshal(paramsResp.Params)
 	s.Require().Equal(expectedParams, string(result))
 }

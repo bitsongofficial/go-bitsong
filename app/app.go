@@ -321,7 +321,6 @@ func New(
 		keys[fantokentypes.StoreKey],
 		app.GetSubspace(fantokentypes.ModuleName),
 		app.BankKeeper,
-		app.StakingKeeper,
 		app.ModuleAccountAddrs(),
 		authtypes.FeeCollectorName,
 	)

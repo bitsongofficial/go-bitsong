@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/bitsongofficial/bitsong/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -70,6 +71,8 @@ func NewConfig() network.Config {
 	cfg.InterfaceRegistry = encCfg.InterfaceRegistry
 	cfg.AppConstructor = SimAppConstructor
 	cfg.GenesisState = NewDefaultGenesisState(cfg.Codec)
+	cfg.BondDenom = types.BondDenom
+	cfg.MinGasPrices = fmt.Sprintf("0.000006%s", types.BondDenom)
 	return cfg
 }
 

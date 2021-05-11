@@ -5,6 +5,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/bitsongofficial/bitsong/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -37,7 +38,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssuePrice: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
+		IssuePrice: sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
 	}
 }
 

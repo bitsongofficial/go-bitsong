@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -33,14 +34,17 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	fmt.Println("IssueFanToken1")
 	// handle fee for token
 	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.Denom); err != nil {
+		fmt.Println("IssueFanToken Error", err)
 		return nil, err
 	}
 
 	if err := m.Keeper.IssueFanToken(
 		ctx, msg.Denom, msg.Name, msg.MaxSupply, msg.Mintable, msg.MetadataUri, owner,
 	); err != nil {
+		fmt.Println("IssueFanToken2 Error", err)
 		return nil, err
 	}
 

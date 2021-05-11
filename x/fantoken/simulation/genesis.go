@@ -10,7 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/types"
+	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 // Simulation parameter constants
@@ -32,7 +33,7 @@ func RandomInt(r *rand.Rand) sdk.Int {
 func RandomizedGenState(simState *module.SimulationState) {
 
 	var issuePrice sdk.Int
-	var tokens []types.FanToken
+	var tokens []tokentypes.FanToken
 
 	simState.AppParams.GetOrGenerate(
 		simState.Cdc, IssuePrice, &issuePrice, simState.Rand,
@@ -45,8 +46,8 @@ func RandomizedGenState(simState *module.SimulationState) {
 		},
 	)
 
-	tokenGenesis := types.NewGenesisState(
-		types.NewParams(sdk.NewCoin(sdk.DefaultBondDenom, issuePrice)),
+	tokenGenesis := tokentypes.NewGenesisState(
+		tokentypes.NewParams(sdk.NewCoin(types.BondDenom, issuePrice)),
 		tokens,
 	)
 
@@ -54,7 +55,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", types.ModuleName, bz)
+	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", tokentypes.ModuleName, bz)
 
-	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&tokenGenesis)
+	simState.GenState[tokentypes.ModuleName] = simState.Cdc.MustMarshalJSON(&tokenGenesis)
 }
