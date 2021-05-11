@@ -9,6 +9,7 @@ type FanToken struct {
 	Name		string
 	MaxSupply	sdk.Int
 	Mintable	bool
+	MetadataUri string
 	Owner		string
 }
 ```

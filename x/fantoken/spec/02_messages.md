@@ -9,6 +9,7 @@ type MsgIssueFanToken struct {
 	Name		string
 	MaxSupply	sdk.Int
 	Mintable	bool
+	MetadataUri string
 	Owner		string
 }
 ```
