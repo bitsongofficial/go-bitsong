@@ -10,8 +10,9 @@ import (
 // Rest variable names
 // nolint
 const (
-	RestParamDenom = "denom"
-	RestParamOwner = "owner"
+	RestParamDenom  = "denom"
+	RestParamSymbol = "symbol"
+	RestParamOwner  = "owner"
 )
 
 // RegisterHandlers registers token-related REST handlers to a router
@@ -23,7 +24,7 @@ func RegisterHandlers(cliCtx client.Context, r *mux.Router) {
 type issueFanTokenReq struct {
 	BaseReq   rest.BaseReq `json:"base_req"`
 	Owner     string       `json:"owner"` // owner of the token
-	Denom     string       `json:"denom"`
+	Symbol    string       `json:"symbol"`
 	Name      string       `json:"name"`
 	MaxSupply string       `json:"max_supply"`
 	Mintable  bool         `json:"mintable"`

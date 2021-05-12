@@ -27,7 +27,7 @@ func (dtf ValidateTokenFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 	for _, msg := range tx.GetMsgs() {
 		switch msg := msg.(type) {
 		case *types.MsgIssueFanToken:
-			fee := dtf.k.GetFanTokenIssueFee(ctx, msg.Denom)
+			fee := dtf.k.GetFanTokenIssueFee(ctx, msg.Symbol)
 
 			if fe, ok := feeMap[msg.Owner]; ok {
 				feeMap[msg.Owner] = fe.Add(fee)

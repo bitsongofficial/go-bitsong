@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	FlagDenom       = "denom"
+	FlagSymbol      = "symbol"
 	FlagName        = "name"
 	FlagMaxSupply   = "max-supply"
 	FlagMintable    = "mintable"
@@ -22,7 +22,7 @@ var (
 )
 
 func init() {
-	FsIssueFanToken.String(FlagDenom, "", "The token denom. Once created, it cannot be modified")
+	FsIssueFanToken.String(FlagSymbol, "", "The token symbol. Once created, it cannot be modified")
 	FsIssueFanToken.String(FlagName, "", "The token name, e.g. Bitsong Network")
 	FsIssueFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")
 	FsIssueFanToken.Bool(FlagMintable, false, "Whether the token can be minted, default to false")

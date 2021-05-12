@@ -22,15 +22,19 @@ func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 	_ = suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 
 	// Query token
-	tokenResp, err := queryClient.FanToken(gocontext.Background(), &types.QueryFanTokenRequest{Denom: "btc"})
+	tokenResp1, err := queryClient.FanToken(gocontext.Background(), &types.QueryFanTokenRequest{Denom: "btc"})
 	suite.Require().NoError(err)
-	suite.Require().NotNil(tokenResp)
+	suite.Require().NotNil(tokenResp1)
+
+	tokenResp2, err := queryClient.FanToken(gocontext.Background(), &types.QueryFanTokenRequest{Denom: "ubtc"})
+	suite.Require().NoError(err)
+	suite.Require().NotNil(tokenResp2)
 
 	// Query tokens
-	tokensResp, err := queryClient.FanTokens(gocontext.Background(), &types.QueryFanTokensRequest{})
+	tokensResp1, err := queryClient.FanTokens(gocontext.Background(), &types.QueryFanTokensRequest{})
 	suite.Require().NoError(err)
-	suite.Require().NotNil(tokensResp)
-	suite.Len(tokensResp.FanTokens, 1)
+	suite.Require().NotNil(tokensResp1)
+	suite.Len(tokensResp1.FanTokens, 1)
 }
 
 func (suite *KeeperTestSuite) TestGRPCQueryParams() {

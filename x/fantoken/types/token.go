@@ -1,47 +1,62 @@
 package types
 
 import (
+	fmt "fmt"
+	"math/big"
+
 	"github.com/gogo/protobuf/proto"
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const FanTokenDecimal = 6
+
 var (
-	_ proto.Message = &FanToken{}
+	_      proto.Message = &FanToken{}
+	tenInt               = big.NewInt(10)
 )
 
 // TokenI defines an interface for Token
 type FanTokenI interface {
-	GetDenom() string
+	GetSymbol() string
 	GetName() string
 	GetMaxSupply() sdk.Int
 	GetMintable() bool
 	GetOwner() sdk.AccAddress
+
+	ToMainCoin(coin sdk.Coin) (sdk.DecCoin, error)
+	ToMinCoin(coin sdk.DecCoin) (sdk.Coin, error)
 }
 
 // NewToken constructs a new Token instance
 func NewFanToken(
-	denom string,
+	symbol string,
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
-	metadataUri string,
+	descriptioin string,
 	owner sdk.AccAddress,
 ) FanToken {
 	return FanToken{
-		Denom:       denom,
+		Symbol:      symbol,
 		Name:        name,
 		MaxSupply:   maxSupply,
 		Mintable:    mintable,
-		MetadataUri: metadataUri,
+		Description: descriptioin,
 		Owner:       owner.String(),
 	}
 }
 
+// GetSymbol implements exported.TokenI
+func (t FanToken) GetSymbol() string {
+	return t.Symbol
+}
+
 // GetDenom implements exported.TokenI
 func (t FanToken) GetDenom() string {
-	return t.Denom
+	return fmt.Sprintf("%s%s", "u", t.Symbol)
 }
 
 // GetName implements exported.TokenI
@@ -68,4 +83,38 @@ func (t FanToken) GetOwner() sdk.AccAddress {
 func (t FanToken) String() string {
 	bz, _ := yaml.Marshal(t)
 	return string(bz)
+}
+
+// ToMainCoin returns the main denom coin from args
+func (t FanToken) ToMainCoin(coin sdk.Coin) (sdk.DecCoin, error) {
+	if t.Symbol != coin.Denom {
+		return sdk.NewDecCoinFromDec(coin.Denom, sdk.ZeroDec()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
+	}
+
+	if t.Symbol == coin.Denom {
+		return sdk.NewDecCoin(coin.Denom, coin.Amount), nil
+	}
+
+	precision := new(big.Int).Exp(tenInt, big.NewInt(FanTokenDecimal), nil)
+	// dest amount = src amount / 10^(scale)
+	amount := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromBigInt(precision))
+	return sdk.NewDecCoinFromDec(t.Symbol, amount), nil
+}
+
+// ToMinCoin returns the min denom coin from args
+func (t FanToken) ToMinCoin(coin sdk.DecCoin) (newCoin sdk.Coin, err error) {
+	if t.Symbol != coin.Denom {
+		return sdk.NewCoin(coin.Denom, sdk.ZeroInt()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
+	}
+
+	minUnit := t.GetDenom()
+
+	if minUnit == coin.Denom {
+		return sdk.NewCoin(coin.Denom, coin.Amount.TruncateInt()), nil
+	}
+
+	precision := new(big.Int).Exp(tenInt, big.NewInt(FanTokenDecimal), nil)
+	// dest amount = src amount * 10^(dest scale)
+	amount := coin.Amount.Mul(sdk.NewDecFromBigInt(precision))
+	return sdk.NewCoin(minUnit, amount.TruncateInt()), nil
 }

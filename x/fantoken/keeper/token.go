@@ -10,7 +10,6 @@ import (
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/bitsongofficial/bitsong/types"
 	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
@@ -20,7 +19,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (tokens []to
 
 	var it sdk.Iterator
 	if owner == nil {
-		it = sdk.KVStorePrefixIterator(store, tokentypes.PrefixFanTokenForDenom)
+		it = sdk.KVStorePrefixIterator(store, tokentypes.PrefixFanTokenForSymbol)
 		defer it.Close()
 
 		for ; it.Valid(); it.Next() {
@@ -36,10 +35,10 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (tokens []to
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
-		var denom gogotypes.StringValue
-		k.cdc.MustUnmarshalBinaryBare(it.Value(), &denom)
+		var symbol gogotypes.StringValue
+		k.cdc.MustUnmarshalBinaryBare(it.Value(), &symbol)
 
-		token, err := k.getFanTokenByDenom(ctx, denom.Value)
+		token, err := k.getFanTokenBySymbol(ctx, symbol.Value)
 		if err != nil {
 			continue
 		}
@@ -48,10 +47,15 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (tokens []to
 	return
 }
 
-// GetToken returns the token of the specified denom or min uint
+// GetToken returns the token of the specified symbol or min uint
 func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (tokentypes.FanTokenI, error) {
-	// query token by denom
-	if token, err := k.getFanTokenByDenom(ctx, denom); err == nil {
+	// query token by symbol
+	if token, err := k.getFanTokenBySymbol(ctx, denom); err == nil {
+		return &token, nil
+	}
+
+	// query token by min unit
+	if token, err := k.getTokenByDenom(ctx, denom); err == nil {
 		return &token, nil
 	}
 
@@ -60,28 +64,32 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (tokentypes.FanTokenI
 
 // AddToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token tokentypes.FanToken) error {
-	if token.Denom == types.BondDenom {
-		return sdkerrors.Wrapf(tokentypes.ErrInvalidDenom, "the bond denom can not be the token denom")
+	if k.HasFanToken(ctx, token.Symbol) {
+		return sdkerrors.Wrapf(tokentypes.ErrSymbolAlreadyExists, "symbol already exists: %s", token.Symbol)
 	}
 
-	if k.HasFanToken(ctx, token.Denom) {
-		return sdkerrors.Wrapf(tokentypes.ErrDenomAlreadyExists, "denom already exists: %s", token.Denom)
+	if k.HasFanToken(ctx, token.GetDenom()) {
+		return sdkerrors.Wrapf(tokentypes.ErrDenomAlreadyExists, "denom already exists: %s", token.GetDenom())
 	}
 
 	// set token
 	k.setFanToken(ctx, token)
 
+	// set token to be prefixed with denom
+	k.setWithDenom(ctx, token.GetDenom(), token.Symbol)
+
 	if len(token.Owner) != 0 {
 		// set token to be prefixed with owner
-		k.setWithOwner(ctx, token.GetOwner(), token.Denom)
+		k.setWithOwner(ctx, token.GetOwner(), token.Symbol)
 	}
 
 	denomMetaData := banktypes.Metadata{
-		Description: token.Name,
-		Base:        token.Denom,
-		Display:     token.Denom,
+		Description: token.Description,
+		Base:        token.GetDenom(),
+		Display:     token.Symbol,
 		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: token.Denom, Exponent: 0},
+			{Denom: token.GetDenom(), Exponent: 0},
+			{Denom: token.Symbol, Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, denomMetaData)
@@ -89,15 +97,20 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token tokentypes.FanToken) error {
 	return nil
 }
 
-// HasDenom asserts a token exists by denom
-func (k Keeper) HasDenom(ctx sdk.Context, denom string) bool {
+// HasSymbol asserts a token exists by symbol
+func (k Keeper) HasSymbol(ctx sdk.Context, symbol string) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(tokentypes.KeyDenom(denom))
+	return store.Has(tokentypes.KeySymbol(symbol))
 }
 
 // HasToken asserts a token exists
 func (k Keeper) HasFanToken(ctx sdk.Context, denom string) bool {
-	return k.HasDenom(ctx, denom)
+	store := ctx.KVStore(k.storeKey)
+	if k.HasSymbol(ctx, denom) {
+		return true
+	}
+
+	return store.Has(tokentypes.KeyDenom(denom))
 }
 
 // GetOwner returns the owner of the specified token
@@ -175,34 +188,61 @@ func (k Keeper) setWithOwner(ctx sdk.Context, owner sdk.AccAddress, symbol strin
 	store.Set(tokentypes.KeyFanTokens(owner, symbol), bz)
 }
 
+func (k Keeper) setWithDenom(ctx sdk.Context, denom, symbol string) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshalBinaryBare(&gogotypes.StringValue{Value: symbol})
+
+	store.Set(tokentypes.KeyDenom(denom), bz)
+}
+
 func (k Keeper) setFanToken(ctx sdk.Context, token tokentypes.FanToken) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryBare(&token)
 
-	store.Set(tokentypes.KeyDenom(token.Denom), bz)
+	store.Set(tokentypes.KeySymbol(token.Symbol), bz)
 }
 
-func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (token tokentypes.FanToken, err error) {
+func (k Keeper) getFanTokenBySymbol(ctx sdk.Context, symbol string) (token tokentypes.FanToken, err error) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(tokentypes.KeyDenom(denom))
+	bz := store.Get(tokentypes.KeySymbol(symbol))
 	if bz == nil {
-		return token, sdkerrors.Wrap(tokentypes.ErrTokenNotExists, fmt.Sprintf("token symbol %s does not exist", denom))
+		return token, sdkerrors.Wrap(tokentypes.ErrTokenNotExists, fmt.Sprintf("token symbol %s does not exist", symbol))
 	}
 
 	k.cdc.MustUnmarshalBinaryBare(bz, &token)
 	return token, nil
 }
 
+func (k Keeper) getTokenByDenom(ctx sdk.Context, denom string) (token tokentypes.FanToken, err error) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(tokentypes.KeyDenom(denom))
+	if bz == nil {
+		return token, sdkerrors.Wrap(tokentypes.ErrTokenNotExists, fmt.Sprintf("token denom %s does not exist", denom))
+	}
+
+	var symbol gogotypes.StringValue
+	k.cdc.MustUnmarshalBinaryBare(bz, &symbol)
+
+	token, err = k.getFanTokenBySymbol(ctx, symbol.Value)
+	if err != nil {
+		return token, err
+	}
+
+	return token, nil
+}
+
 // reset all indices by the new owner for token query
-func (k Keeper) resetStoreKeyForQueryToken(ctx sdk.Context, denom string, srcOwner, dstOwner sdk.AccAddress) {
+func (k Keeper) resetStoreKeyForQueryToken(ctx sdk.Context, symbol string, srcOwner, dstOwner sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 
 	// delete the old key
-	store.Delete(tokentypes.KeyFanTokens(srcOwner, denom))
+	store.Delete(tokentypes.KeyFanTokens(srcOwner, symbol))
 
 	// add the new key
-	k.setWithOwner(ctx, dstOwner, denom)
+	k.setWithOwner(ctx, dstOwner, symbol)
 }
 
 // getTokenSupply queries the token supply from the total supply

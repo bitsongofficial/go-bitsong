@@ -46,7 +46,7 @@ func GetCmdQueryFanToken() *cobra.Command {
 				return err
 			}
 
-			if err := types.ValidateDenom(args[0]); err != nil {
+			if err := types.ValidateSymbol(args[0]); err != nil {
 				return err
 			}
 

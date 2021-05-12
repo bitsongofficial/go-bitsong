@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -34,24 +33,21 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fmt.Println("IssueFanToken1")
-	// handle fee for token
-	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.Denom); err != nil {
-		fmt.Println("IssueFanToken Error", err)
+	if err := m.Keeper.IssueFanToken(
+		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Mintable, msg.Description, owner,
+	); err != nil {
 		return nil, err
 	}
 
-	if err := m.Keeper.IssueFanToken(
-		ctx, msg.Denom, msg.Name, msg.MaxSupply, msg.Mintable, msg.MetadataUri, owner,
-	); err != nil {
-		fmt.Println("IssueFanToken2 Error", err)
+	// handle fee for token
+	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.Symbol); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIssueFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyCreator, msg.Owner),
 		),
 		sdk.NewEvent(
@@ -73,7 +69,7 @@ func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgU
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := m.Keeper.UpdateFanTokenMintable(
-		ctx, msg.Denom, msg.Mintable, owner,
+		ctx, msg.Symbol, msg.Mintable, owner,
 	); err != nil {
 		return nil, err
 	}
@@ -81,7 +77,7 @@ func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgU
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUpdateFanTokenMintable,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.Owner),
 		),
 		sdk.NewEvent(
@@ -117,14 +113,14 @@ func (m msgServer) MintFanToken(goCtx context.Context, msg *types.MsgMintFanToke
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.MintFanToken(ctx, recipient, msg.Denom, msg.Amount, owner); err != nil {
+	if err := m.Keeper.MintFanToken(ctx, recipient, msg.Symbol, msg.Amount, owner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMintFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyRecipient, recipient.String()),
 		),
@@ -145,14 +141,14 @@ func (m msgServer) BurnFanToken(goCtx context.Context, msg *types.MsgBurnFanToke
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := m.Keeper.BurnFanToken(ctx, msg.Denom, msg.Amount, owner); err != nil {
+	if err := m.Keeper.BurnFanToken(ctx, msg.Symbol, msg.Amount, owner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeBurnFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 		),
 		sdk.NewEvent(
@@ -182,14 +178,14 @@ func (m msgServer) TransferFanTokenOwner(goCtx context.Context, msg *types.MsgTr
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.TransferFanTokenOwner(ctx, msg.Denom, srcOwner, dstOwner); err != nil {
+	if err := m.Keeper.TransferFanTokenOwner(ctx, msg.Symbol, srcOwner, dstOwner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeTransferFanTokenOwner,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
+			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.SrcOwner),
 			sdk.NewAttribute(types.AttributeKeyDstOwner, msg.DstOwner),
 		),

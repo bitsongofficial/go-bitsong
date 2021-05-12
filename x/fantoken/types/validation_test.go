@@ -2,7 +2,7 @@ package types
 
 import "testing"
 
-func TestValidateDenom(t *testing.T) {
+func TestValidateSymbol(t *testing.T) {
 	type args struct {
 		denom string
 	}
@@ -49,8 +49,8 @@ func TestValidateDenom(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ValidateDenom(tt.args.denom); (err != nil) != tt.wantErr {
-				t.Errorf("ValidateDenom() error = %v, wantErr %v", err, tt.wantErr)
+			if err := ValidateSymbol(tt.args.denom); (err != nil) != tt.wantErr {
+				t.Errorf("ValidateSymbol() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

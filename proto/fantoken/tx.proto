@@ -26,7 +26,7 @@ service Msg {
 
 // MsgIssueFanToken defines an SDK message for issuing a new fan token
 message MsgIssueFanToken {
-    string denom = 1;
+    string symbol = 1;
     string name = 2;
     bytes max_supply = 3 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -34,7 +34,7 @@ message MsgIssueFanToken {
         (gogoproto.nullable)   = false
     ];
     bool mintable = 4;
-    string metadata_uri = 5;
+    string description = 5;
     string owner = 6;
 }
 
@@ -43,7 +43,7 @@ message MsgIssueFanTokenResponse {}
 
 // MsgTransferFanTokenOwner defines an SDK message for transferring the token owner
 message MsgTransferFanTokenOwner {
-    string denom = 1;
+    string symbol = 1;
     string src_owner = 2 [ (gogoproto.moretags) = "yaml:\"src_owner\"" ];
     string dst_owner = 3 [ (gogoproto.moretags) = "yaml:\"dst_owner\"" ];
 }
@@ -53,7 +53,7 @@ message MsgTransferFanTokenOwnerResponse {}
 
 // MsgUpdateFanTokenMintable defines an SDK message for updating mintable of a new fan token
 message MsgUpdateFanTokenMintable {
-    string denom = 1;
+    string symbol = 1;
     bool mintable = 2;
     string owner = 3;
 }
@@ -64,7 +64,7 @@ message MsgUpdateFanTokenMintableResponse {}
 // MsgMintFanToken defines an SDK message for minting a new fan token
 message MsgMintFanToken {
     string recipient = 1;
-    string denom = 2;
+    string symbol = 2;
     bytes amount = 3 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
         (gogoproto.moretags)   = "yaml:\"amount\"",
@@ -78,7 +78,7 @@ message MsgMintFanTokenResponse {}
 
 // MsgBurnFanToken defines an SDK message for burning some fan tokens
 message MsgBurnFanToken {
-    string denom = 1;
+    string symbol = 1;
     bytes amount = 2 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
         (gogoproto.moretags)   = "yaml:\"amount\"",

@@ -53,7 +53,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // IssueToken issues a new token
 func (k Keeper) IssueFanToken(
 	ctx sdk.Context,
-	denom string,
+	symbol string,
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
@@ -61,7 +61,7 @@ func (k Keeper) IssueFanToken(
 	owner sdk.AccAddress,
 ) error {
 	token := types.NewFanToken(
-		denom, name,
+		symbol, name,
 		maxSupply, mintable, metadataUri, owner,
 	)
 
@@ -75,18 +75,18 @@ func (k Keeper) IssueFanToken(
 // EditToken edits the specified token
 func (k Keeper) UpdateFanTokenMintable(
 	ctx sdk.Context,
-	denom string,
+	symbol string,
 	mintable bool,
 	owner sdk.AccAddress,
 ) error {
 	// get the destination token
-	token, err := k.getFanTokenByDenom(ctx, denom)
+	token, err := k.getFanTokenBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
 
 	if owner.String() != token.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, denom)
+		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, symbol)
 	}
 
 	token.Mintable = mintable
@@ -99,17 +99,17 @@ func (k Keeper) UpdateFanTokenMintable(
 // TransferTokenOwner transfers the owner of the specified token to a new one
 func (k Keeper) TransferFanTokenOwner(
 	ctx sdk.Context,
-	denom string,
+	symbol string,
 	srcOwner sdk.AccAddress,
 	dstOwner sdk.AccAddress,
 ) error {
-	token, err := k.getFanTokenByDenom(ctx, denom)
+	token, err := k.getFanTokenBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
 
 	if srcOwner.String() != token.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", srcOwner, denom)
+		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", srcOwner, symbol)
 	}
 
 	token.Owner = dstOwner.String()
@@ -118,7 +118,7 @@ func (k Keeper) TransferFanTokenOwner(
 	k.setFanToken(ctx, token)
 
 	// reset all indices
-	k.resetStoreKeyForQueryToken(ctx, token.Denom, srcOwner, dstOwner)
+	k.resetStoreKeyForQueryToken(ctx, token.Symbol, srcOwner, dstOwner)
 
 	return nil
 }
@@ -128,27 +128,29 @@ func (k Keeper) TransferFanTokenOwner(
 func (k Keeper) MintFanToken(
 	ctx sdk.Context,
 	recipient sdk.AccAddress,
-	denom string,
+	symbol string,
 	amount sdk.Int,
 	owner sdk.AccAddress,
 ) error {
-	token, err := k.getFanTokenByDenom(ctx, denom)
+	token, err := k.getFanTokenBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
 
 	if owner.String() != token.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, denom)
+		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, symbol)
 	}
 
 	if !token.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", denom)
+		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", symbol)
 	}
 
-	supply := k.getFanTokenSupply(ctx, token.Denom)
-	mintableAmt := token.MaxSupply.Sub(supply)
+	supply := k.getFanTokenSupply(ctx, token.GetDenom())
+	precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
+	mintableAmt := token.MaxSupply.Mul(precision).Sub(supply)
+	mintableMainAmt := mintableAmt.Quo(precision)
 
-	if amount.GT(mintableAmt) {
+	if amount.GT(mintableMainAmt) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidAmount,
 			"the amount exceeds the mintable token amount; expected (0, %d], got %d",
@@ -156,7 +158,7 @@ func (k Keeper) MintFanToken(
 		)
 	}
 
-	mintCoin := sdk.NewCoin(token.Denom, amount)
+	mintCoin := sdk.NewCoin(token.GetDenom(), amount.Mul(precision))
 	mintCoins := sdk.NewCoins(mintCoin)
 
 	// mint coins
@@ -175,16 +177,17 @@ func (k Keeper) MintFanToken(
 // BurnToken burns the specified amount of token
 func (k Keeper) BurnFanToken(
 	ctx sdk.Context,
-	denom string,
+	symbol string,
 	amount sdk.Int,
 	owner sdk.AccAddress,
 ) error {
-	token, err := k.getFanTokenByDenom(ctx, denom)
+	token, err := k.getFanTokenBySymbol(ctx, symbol)
 	if err != nil {
 		return err
 	}
 
-	burnCoin := sdk.NewCoin(token.GetDenom(), amount)
+	precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
+	burnCoin := sdk.NewCoin(token.GetDenom(), amount.Mul(precision))
 	burnCoins := sdk.NewCoins(burnCoin)
 
 	// burn coins

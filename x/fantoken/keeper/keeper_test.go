@@ -74,14 +74,14 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), false, "test", owner)
 
 	err := suite.keeper.IssueFanToken(
-		suite.ctx, token.Denom, token.Name,
-		token.MaxSupply, token.Mintable, token.MetadataUri, token.GetOwner(),
+		suite.ctx, token.Symbol, token.Name,
+		token.MaxSupply, token.Mintable, token.Description, token.GetOwner(),
 	)
 	suite.NoError(err)
 
-	suite.True(suite.keeper.HasFanToken(suite.ctx, token.Denom))
+	suite.True(suite.keeper.HasFanToken(suite.ctx, token.Symbol))
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, token.Denom)
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, token.Symbol)
 	suite.NoError(err)
 
 	suite.Equal(token.Owner, issuedToken.GetOwner().String())
@@ -93,13 +93,13 @@ func (suite *KeeperTestSuite) TestUpdateFanTokenMintable() {
 	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), false, "test", owner)
 	suite.setFanToken(token)
 
-	denom := "btc"
+	symbol := "btc"
 	mintable := true
 
-	err := suite.keeper.UpdateFanTokenMintable(suite.ctx, denom, mintable, owner)
+	err := suite.keeper.UpdateFanTokenMintable(suite.ctx, symbol, mintable, owner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, symbol)
 	suite.NoError(err)
 
 	expToken := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), mintable, "test", owner)
@@ -111,27 +111,27 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
 	suite.issueFanToken(token)
 
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Denom)
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Symbol)
 	suite.Equal("0btc", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
 
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Denom, mintAmount, token.GetOwner())
+	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Symbol, mintAmount, token.GetOwner())
 	suite.NoError(err)
 
-	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Denom)
-	suite.Equal("1000btc", amt.String())
+	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("1000000000ubtc", amt.String())
 
 	// mint token without owner
 
-	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Denom, mintAmount, sdk.AccAddress{})
+	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Symbol, mintAmount, sdk.AccAddress{})
 	suite.Error(err, "can not mint token without owner when the owner exists")
 
 	token = tokentypes.NewFanToken("atom", "Cosmos Hub", sdk.NewInt(2000), true, "test", sdk.AccAddress{})
 	suite.issueFanToken(token)
 
-	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Denom, mintAmount, sdk.AccAddress{})
+	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Symbol, mintAmount, sdk.AccAddress{})
 	suite.NoError(err)
 }
 
@@ -139,22 +139,22 @@ func (suite *KeeperTestSuite) TestBurnFanToken() {
 	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
 	suite.issueFanToken(token)
 
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Denom)
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Symbol)
 	suite.Equal("0btc", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
 
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Denom, mintAmount, token.GetOwner())
+	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Symbol, mintAmount, token.GetOwner())
 	suite.NoError(err)
 
 	burnedAmount := sdk.NewInt(200)
 
-	err = suite.keeper.BurnFanToken(suite.ctx, token.Denom, burnedAmount, token.GetOwner())
+	err = suite.keeper.BurnFanToken(suite.ctx, token.Symbol, burnedAmount, token.GetOwner())
 	suite.NoError(err)
 
-	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Denom)
-	suite.Equal("800btc", amt.String())
+	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("800000000ubtc", amt.String())
 }
 
 func (suite *KeeperTestSuite) TestTransferFanToken() {
@@ -163,10 +163,10 @@ func (suite *KeeperTestSuite) TestTransferFanToken() {
 
 	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))
 
-	err := suite.keeper.TransferFanTokenOwner(suite.ctx, token.Denom, token.GetOwner(), dstOwner)
+	err := suite.keeper.TransferFanTokenOwner(suite.ctx, token.Symbol, token.GetOwner(), dstOwner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, token.Denom)
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, token.Symbol)
 	suite.NoError(err)
 
 	suite.Equal(dstOwner, newToken.GetOwner())

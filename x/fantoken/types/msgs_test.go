@@ -71,12 +71,12 @@ func TestMsgUpdateFanTokenMintable(t *testing.T) {
 }
 
 func TestMsgUpdateFanTokenMintableRoute(t *testing.T) {
-	denom := "btc"
+	symbol := "btc"
 	mintable := false
 
 	// build a MsgEditToken
 	msg := MsgUpdateFanTokenMintable{
-		Denom:    denom,
+		Symbol:   symbol,
 		Mintable: mintable,
 	}
 
@@ -88,13 +88,13 @@ func TestMsgUpdateFanTokenMintableGetSignBytes(t *testing.T) {
 
 	var msg = MsgUpdateFanTokenMintable{
 		Owner:    sdk.AccAddress(tmhash.SumTruncated([]byte("owner"))).String(),
-		Denom:    "btc",
+		Symbol:   "btc",
 		Mintable: mintable,
 	}
 
 	res := msg.GetSignBytes()
 
-	expected := `{"type":"go-bitsong/token/MsgUpdateFanTokenMintable","value":{"denom":"btc","mintable":true,"owner":"cosmos1fsgzj6t7udv8zhf6zj32mkqhcjcpv52ygswxa5"}}`
+	expected := `{"type":"go-bitsong/token/MsgUpdateFanTokenMintable","value":{"mintable":true,"owner":"cosmos1fsgzj6t7udv8zhf6zj32mkqhcjcpv52ygswxa5","symbol":"btc"}}`
 	require.Equal(t, expected, string(res))
 }
 

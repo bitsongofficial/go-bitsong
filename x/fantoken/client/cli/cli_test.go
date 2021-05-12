@@ -57,15 +57,14 @@ func (s *IntegrationTestSuite) TestToken() {
 	// ---------------------------------------------------------------------------
 
 	from := val.Address
-	denom := "kitty"
+	symbol := "kitty"
 	name := "Kitty Token"
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
 	description := "Kitty Token"
-	fmt.Println(123, s.cfg.BondDenom)
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
-		fmt.Sprintf("--%s=%s", tokencli.FlagDenom, denom),
+		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, symbol),
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%s", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
@@ -78,13 +77,12 @@ func (s *IntegrationTestSuite) TestToken() {
 	respType := proto.Message(&sdk.TxResponse{})
 	expectedCode := uint32(0)
 	bz, err := tokentestutil.IssueFanTokenExec(clientCtx, from.String(), args...)
-	fmt.Println(123, bz.String())
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp := respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
-	tokenDenom := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
+	tokenSymbol := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
 
 	//------test GetCmdQueryFanTokens()-------------
 	tokens := &[]tokentypes.FanTokenI{}
@@ -96,13 +94,13 @@ func (s *IntegrationTestSuite) TestToken() {
 	//------test GetCmdQueryFanToken()-------------
 	var token tokentypes.FanTokenI
 	respType = proto.Message(&types.Any{})
-	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenDenom)
+	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenSymbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType))
 	err = clientCtx.InterfaceRegistry.UnpackAny(respType.(*types.Any), &token)
 	s.Require().NoError(err)
 	s.Require().Equal(name, token.GetName())
-	s.Require().Equal(denom, token.GetDenom())
+	s.Require().Equal(symbol, token.GetSymbol())
 
 	//------test GetCmdQueryParams()-------------
 	respType = proto.Message(&tokentypes.Params{})
@@ -117,7 +115,7 @@ func (s *IntegrationTestSuite) TestToken() {
 
 	//------test GetCmdMintFanToken()-------------
 	coinType := proto.Message(&sdk.Coin{})
-	out, err := simapp.QueryBalanceExec(clientCtx, from.String(), denom)
+	out, err := simapp.QueryBalanceExec(clientCtx, from.String(), symbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	initAmount := sdk.ZeroInt()
@@ -132,19 +130,19 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), denom, args...)
+	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), symbol, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), symbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance := coinType.(*sdk.Coin)
-	exceptedAmount := initAmount.Add(mintAmount)
-	s.Require().Equal(exceptedAmount, balance.Amount)
+	expectedAmount := initAmount.Add(mintAmount)
+	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdBurnFanToken()-------------
 
@@ -158,19 +156,19 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), denom, args...)
+	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), symbol, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), symbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance = coinType.(*sdk.Coin)
-	exceptedAmount = exceptedAmount.Sub(burnAmount)
-	s.Require().Equal(exceptedAmount, balance.Amount)
+	expectedAmount = expectedAmount.Sub(burnAmount)
+	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdUpdateFanTokenMintable()-------------
 	newMintable := false
@@ -184,7 +182,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	}
 
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.UpdateFanTokenMintableExec(clientCtx, from.String(), denom, args...)
+	bz, err = tokentestutil.UpdateFanTokenMintableExec(clientCtx, from.String(), symbol, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -193,7 +191,7 @@ func (s *IntegrationTestSuite) TestToken() {
 
 	var token2 tokentypes.FanTokenI
 	respType = proto.Message(&types.Any{})
-	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenDenom)
+	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenSymbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType))
 	err = clientCtx.InterfaceRegistry.UnpackAny(respType.(*types.Any), &token2)
@@ -211,7 +209,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.TransferFanTokenOwnerExec(clientCtx, from.String(), denom, args...)
+	bz, err = tokentestutil.TransferFanTokenOwnerExec(clientCtx, from.String(), symbol, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -220,7 +218,7 @@ func (s *IntegrationTestSuite) TestToken() {
 
 	var token3 tokentypes.FanTokenI
 	respType = proto.Message(&types.Any{})
-	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenDenom)
+	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, tokenSymbol)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType))
 	err = clientCtx.InterfaceRegistry.UnpackAny(respType.(*types.Any), &token3)

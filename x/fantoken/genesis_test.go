@@ -36,7 +36,7 @@ func TestInitGenesis(t *testing.T) {
 	ft := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(1), true, "test", addr)
 
 	burnCoins := []sdk.Coin{
-		{Denom: ft.Denom, Amount: sdk.NewInt(1000)},
+		{Denom: ft.GetDenom(), Amount: sdk.NewInt(1000)},
 	}
 	genesis := types.GenesisState{
 		Params:      types.DefaultParams(),

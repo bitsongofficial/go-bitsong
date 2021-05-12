@@ -17,25 +17,25 @@ const (
 )
 
 // DeductIssueTokenFee performs fee handling for issuing token
-func (k Keeper) DeductIssueFanTokenFee(ctx sdk.Context, owner sdk.AccAddress, denom string) error {
+func (k Keeper) DeductIssueFanTokenFee(ctx sdk.Context, owner sdk.AccAddress, symbol string) error {
 	// get the required issuance fee
-	fee := k.GetFanTokenIssueFee(ctx, denom)
+	fee := k.GetFanTokenIssueFee(ctx, symbol)
 	return feeHandler(ctx, k, owner, fee)
 }
 
 // GetTokenIssueFee returns the token issuance fee
-func (k Keeper) GetFanTokenIssueFee(ctx sdk.Context, denom string) sdk.Coin {
-	fee, _ := k.calcFanTokenIssueFee(ctx, denom)
+func (k Keeper) GetFanTokenIssueFee(ctx sdk.Context, symbol string) sdk.Coin {
+	fee, _ := k.calcFanTokenIssueFee(ctx, symbol)
 	return fee
 }
 
-func (k Keeper) calcFanTokenIssueFee(ctx sdk.Context, denom string) (sdk.Coin, types.Params) {
+func (k Keeper) calcFanTokenIssueFee(ctx sdk.Context, symbol string) (sdk.Coin, types.Params) {
 	// get params
 	params := k.GetParamSet(ctx)
 	issuePrice := params.IssuePrice
 
 	// compute the fee
-	feeAmt := calcFeeByBase(denom, issuePrice.Amount)
+	feeAmt := calcFeeByBase(symbol, issuePrice.Amount)
 	if feeAmt.GT(sdk.NewDec(1)) {
 		return sdk.NewCoin(issuePrice.Denom, feeAmt.TruncateInt()), params
 	}

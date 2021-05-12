@@ -92,7 +92,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.Denom, token.Name, token.MaxSupply, token.Mintable, token.MetadataUri, token.GetOwner().String())
+		msg := tokentypes.NewMsgIssueFanToken(token.Symbol, token.Name, token.MaxSupply, token.Mintable, token.Description, token.GetOwner().String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -140,7 +140,7 @@ func SimulateUpdateFanTokenMintable(k keeper.Keeper, ak tokentypes.AccountKeeper
 		if skip {
 			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgUpdateFanTokenMintable, "skip edit token"), nil, nil
 		}
-		msg := tokentypes.NewMsgUpdateFanTokenMintable(token.GetDenom(), true, token.GetOwner().String())
+		msg := tokentypes.NewMsgUpdateFanTokenMintable(token.GetSymbol(), true, token.GetOwner().String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -191,7 +191,7 @@ func SimulateMintFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk token
 			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgMintFanToken, "skip mint token"), nil, nil
 		}
 		simToAccount, _ := simtypes.RandomAcc(r, accs)
-		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), token.GetDenom(), token.GetOwner().String(), sdk.NewInt(100))
+		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), token.GetSymbol(), token.GetOwner().String(), sdk.NewInt(100))
 
 		ownerAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -244,7 +244,7 @@ func SimulateTransferFanTokenOwner(k keeper.Keeper, ak tokentypes.AccountKeeper,
 			simToAccount, _ = simtypes.RandomAcc(r, accs)
 		}
 
-		msg := tokentypes.NewMsgTransferFanTokenOwner(token.GetDenom(), token.GetOwner().String(), simToAccount.Address.String())
+		msg := tokentypes.NewMsgTransferFanTokenOwner(token.GetSymbol(), token.GetOwner().String(), simToAccount.Address.String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -330,11 +330,11 @@ func genFanToken(ctx sdk.Context,
 	var token tokentypes.FanToken
 	token = randFanToken(r, accs)
 
-	for k.HasFanToken(ctx, token.Denom) {
+	for k.HasFanToken(ctx, token.Symbol) {
 		token = randFanToken(r, accs)
 	}
 
-	issueFee := k.GetFanTokenIssueFee(ctx, token.Denom)
+	issueFee := k.GetFanTokenIssueFee(ctx, token.Symbol)
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
 	token.Owner = account.String()
@@ -363,13 +363,13 @@ loop:
 }
 
 func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
-	denom := randStringBetween(r, tokentypes.MinimumDenomLen, tokentypes.MaximumDenomLen)
+	symbol := randStringBetween(r, tokentypes.MinimumSymbolLen, tokentypes.MaximumSymbolLen)
 	name := randStringBetween(r, 1, tokentypes.MaximumNameLen)
 	maxSupply := sdk.NewInt(10000000000)
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 
 	return tokentypes.FanToken{
-		Denom:     strings.ToLower(denom),
+		Symbol:    strings.ToLower(symbol),
 		Name:      name,
 		MaxSupply: maxSupply,
 		Mintable:  true,

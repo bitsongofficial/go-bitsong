@@ -11,7 +11,7 @@ const (
 	AttributeValueCategory = ModuleName
 
 	AttributeKeyCreator   = "creator"
-	AttributeKeyDenom     = "denom"
+	AttributeKeySymbol    = "symbol"
 	AttributeKeyAmount    = "amount"
 	AttributeKeyOwner     = "owner"
 	AttributeKeyDstOwner  = "dst_owner"

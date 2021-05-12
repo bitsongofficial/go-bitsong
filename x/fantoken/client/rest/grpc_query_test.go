@@ -55,7 +55,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	// ---------------------------------------------------------------------------
 
 	from := val.Address
-	denom := "kitty"
+	symbol := "kitty"
 	name := "Kitty Token"
 	maxSupply := int64(200000000)
 	mintable := true
@@ -64,7 +64,7 @@ func (s *IntegrationTestSuite) TestToken() {
 
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
-		fmt.Sprintf("--%s=%s", tokencli.FlagDenom, denom),
+		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, symbol),
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%d", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
@@ -77,12 +77,13 @@ func (s *IntegrationTestSuite) TestToken() {
 	respType := proto.Message(&sdk.TxResponse{})
 	expectedCode := uint32(0)
 	bz, err := tokentestutil.IssueFanTokenExec(clientCtx, from.String(), args...)
+	fmt.Println(123, bz.String())
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp := respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
-	tokenDenom := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
+	tokenSymbol := gjson.Get(txResp.RawLog, "0.events.0.attributes.0.value").String()
 
 	//------test GetCmdQueryFanTokens()-------------
 	url := fmt.Sprintf("%s/bitsong/fantoken/tokens", baseURL)
@@ -94,7 +95,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().Equal(1, len(tokensResp.FanTokens))
 
 	//------test GetCmdQueryFanToken()-------------
-	url = fmt.Sprintf("%s/bitsong/fantoken/tokens/%s", baseURL, tokenDenom)
+	url = fmt.Sprintf("%s/bitsong/fantoken/tokens/%s", baseURL, tokenSymbol)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokenResponse{})
 	var token tokentypes.FanTokenI
@@ -104,7 +105,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	err = clientCtx.InterfaceRegistry.UnpackAny(tokenResp.FanToken, &token)
 	s.Require().NoError(err)
 	s.Require().Equal(name, token.GetName())
-	s.Require().Equal(denom, token.GetDenom())
+	s.Require().Equal(symbol, token.GetSymbol())
 
 	//------test GetCmdQueryParams()-------------
 	url = fmt.Sprintf("%s/bitsong/fantoken/params", baseURL)

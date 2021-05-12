@@ -1,8 +1,6 @@
 package fantoken
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -19,7 +17,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		switch msg := msg.(type) {
 		case *types.MsgIssueFanToken:
-			fmt.Println("mesasge handler")
 			res, err := msgServer.IssueFanToken(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 

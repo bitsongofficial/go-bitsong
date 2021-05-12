@@ -45,7 +45,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 		Example: fmt.Sprintf(
 			"$ %s tx token issue "+
 				"--name=\"Kitty Token\" "+
-				"--denom=\"kitty\" "+
+				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
 				"--mintable=true "+
 				"--description=\"Kitty Token\" "+
@@ -61,7 +61,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 			}
 
 			owner := clientCtx.GetFromAddress()
-			denom, err := cmd.Flags().GetString(FlagDenom)
+			symbol, err := cmd.Flags().GetString(FlagSymbol)
 			if err != nil {
 				return err
 			}
@@ -87,11 +87,11 @@ func GetCmdIssueFanToken() *cobra.Command {
 			}
 
 			msg := &types.MsgIssueFanToken{
-				Denom:       denom,
+				Symbol:      symbol,
 				Name:        name,
 				MaxSupply:   maxSupply,
 				Mintable:    mintable,
-				MetadataUri: description,
+				Description: description,
 				Owner:       owner.String(),
 			}
 
@@ -104,7 +104,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FsIssueFanToken)
-	_ = cmd.MarkFlagRequired(FlagDenom)
+	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -114,10 +114,10 @@ func GetCmdIssueFanToken() *cobra.Command {
 // GetCmdUpdateFanTokenMintable implements the update fan token mintable command
 func GetCmdUpdateFanTokenMintable() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "update [denom]",
+		Use:  "update [symbol]",
 		Long: "Update an existing fan token mintable.",
 		Example: fmt.Sprintf(
-			"$ %s tx token edit <denom> "+
+			"$ %s tx token edit <symbol> "+
 				"--mintable=true "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -159,10 +159,10 @@ func GetCmdUpdateFanTokenMintable() *cobra.Command {
 
 func GetCmdMintFanToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "mint [denom]",
+		Use:  "mint [symbol]",
 		Long: "Mint tokens to a specified address.",
 		Example: fmt.Sprintf(
-			"$ %s tx token mint <denom> "+
+			"$ %s tx token mint <symbol> "+
 				"--recipient=<recipient>"+
 				"--amount=<amount> "+
 				"--from=<key-name> "+
@@ -220,10 +220,10 @@ func GetCmdMintFanToken() *cobra.Command {
 
 func GetCmdBurnFanToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "burn [denom]",
+		Use:  "burn [symbol]",
 		Long: "Burn fan tokens.",
 		Example: fmt.Sprintf(
-			"$ %s tx token burn <denom> "+
+			"$ %s tx token burn <symbol> "+
 				"--amount=<amount> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -281,10 +281,10 @@ func GetCmdBurnFanToken() *cobra.Command {
 // GetCmdTransferFanTokenOwner implements the transfer fan token owner command
 func GetCmdTransferFanTokenOwner() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "transfer [denom]",
+		Use:  "transfer [symbol]",
 		Long: "Transfer the owner of a token to a new owner.",
 		Example: fmt.Sprintf(
-			"$ %s tx token transfer <denom> "+
+			"$ %s tx token transfer <symbol> "+
 				"--to=<to> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+

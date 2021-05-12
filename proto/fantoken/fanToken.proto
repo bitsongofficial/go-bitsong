@@ -12,7 +12,7 @@ message FanToken {
     option (gogoproto.goproto_stringer) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string denom = 1;
+    string symbol = 1;
     string name = 2;
     bytes max_supply = 3 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
@@ -20,7 +20,7 @@ message FanToken {
         (gogoproto.nullable)   = false
     ];
     bool mintable = 4;
-    string metadata_uri = 5;
+    string description = 5;
     string owner = 6;
 }
 

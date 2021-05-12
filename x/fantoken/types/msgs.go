@@ -29,16 +29,16 @@ var (
 
 // NewMsgIssueToken - construct token issue msg.
 func NewMsgIssueFanToken(
-	denom string, name string,
+	symbol string, name string,
 	maxSupply sdk.Int,
-	mintable bool, metadataUri string, owner string,
+	mintable bool, descriptioin string, owner string,
 ) *MsgIssueFanToken {
 	return &MsgIssueFanToken{
-		Denom:       denom,
+		Symbol:      symbol,
 		Name:        name,
 		MaxSupply:   maxSupply,
 		Mintable:    mintable,
-		MetadataUri: metadataUri,
+		Description: descriptioin,
 		Owner:       owner,
 	}
 }
@@ -58,11 +58,11 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 
 	return ValidateToken(
 		NewFanToken(
-			msg.Denom,
+			msg.Symbol,
 			msg.Name,
 			msg.MaxSupply,
 			msg.Mintable,
-			msg.MetadataUri,
+			msg.Description,
 			owner,
 		),
 	)
@@ -87,9 +87,9 @@ func (msg MsgIssueFanToken) GetSigners() []sdk.AccAddress {
 }
 
 // NewMsgTransferTokenOwner return a instance of MsgTransferTokenOwner
-func NewMsgTransferFanTokenOwner(denom, srcOwner, dstOwner string) *MsgTransferFanTokenOwner {
+func NewMsgTransferFanTokenOwner(symbol, srcOwner, dstOwner string) *MsgTransferFanTokenOwner {
 	return &MsgTransferFanTokenOwner{
-		Denom:    denom,
+		Symbol:   symbol,
 		SrcOwner: srcOwner,
 		DstOwner: dstOwner,
 	}
@@ -131,8 +131,8 @@ func (msg MsgTransferFanTokenOwner) ValidateBasic() error {
 		return ErrInvalidToAddress
 	}
 
-	// check the denom
-	if err := ValidateDenom(msg.Denom); err != nil {
+	// check the symbol
+	if err := ValidateSymbol(msg.Symbol); err != nil {
 		return err
 	}
 
@@ -146,9 +146,9 @@ func (msg MsgTransferFanTokenOwner) Route() string { return MsgRoute }
 func (msg MsgTransferFanTokenOwner) Type() string { return TypeMsgTransferFanTokenOwner }
 
 // NewMsgEditToken creates a MsgEditToken
-func NewMsgUpdateFanTokenMintable(denom string, mintable bool, owner string) *MsgUpdateFanTokenMintable {
+func NewMsgUpdateFanTokenMintable(symbol string, mintable bool, owner string) *MsgUpdateFanTokenMintable {
 	return &MsgUpdateFanTokenMintable{
-		Denom:    denom,
+		Symbol:   symbol,
 		Mintable: mintable,
 		Owner:    owner,
 	}
@@ -186,15 +186,15 @@ func (msg MsgUpdateFanTokenMintable) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
-	// check denom
-	return ValidateDenom(msg.Denom)
+	// check symbol
+	return ValidateSymbol(msg.Symbol)
 }
 
 // NewMsgMintToken creates a MsgMintToken
-func NewMsgMintFanToken(recipient, denom, owner string, amount sdk.Int) *MsgMintFanToken {
+func NewMsgMintFanToken(recipient, symbol, owner string, amount sdk.Int) *MsgMintFanToken {
 	return &MsgMintFanToken{
 		Recipient: recipient,
-		Denom:     denom,
+		Symbol:    symbol,
 		Owner:     owner,
 		Amount:    amount,
 	}
@@ -242,13 +242,13 @@ func (msg MsgMintFanToken) ValidateBasic() error {
 		return err
 	}
 
-	return ValidateDenom(msg.Denom)
+	return ValidateSymbol(msg.Symbol)
 }
 
 // NewMsgBurnToken creates a MsgMintToken
-func NewMsgBurnFanToken(denom string, owner string, amount sdk.Int) *MsgBurnFanToken {
+func NewMsgBurnFanToken(symbol string, owner string, amount sdk.Int) *MsgBurnFanToken {
 	return &MsgBurnFanToken{
-		Denom:  denom,
+		Symbol: symbol,
 		Amount: amount,
 		Sender: owner,
 	}
@@ -289,5 +289,5 @@ func (msg MsgBurnFanToken) ValidateBasic() error {
 		return err
 	}
 
-	return ValidateDenom(msg.Denom)
+	return ValidateSymbol(msg.Symbol)
 }

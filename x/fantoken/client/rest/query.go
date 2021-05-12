@@ -14,7 +14,7 @@ import (
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
-	// Query the token by denom
+	// Query the token by symbol or denom
 	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}", types.ModuleName, RestParamDenom), queryFanTokenHandlerFn(cliCtx)).Methods("GET")
 	// Query tokens by owner
 	r.HandleFunc(fmt.Sprintf("/%s/tokens", types.ModuleName), queryFanTokensHandlerFn(cliCtx)).Methods("GET")

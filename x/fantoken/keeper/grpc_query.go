@@ -62,7 +62,7 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	var pageRes *query.PageResponse
 	store := ctx.KVStore(k.storeKey)
 	if owner == nil {
-		tokenStore := prefix.NewStore(store, types.PrefixFanTokenForDenom)
+		tokenStore := prefix.NewStore(store, types.PrefixFanTokenForSymbol)
 		pageRes, err = query.Paginate(tokenStore, req.Pagination, func(key []byte, value []byte) error {
 			var token types.FanToken
 			k.cdc.MustUnmarshalBinaryBare(value, &token)
@@ -75,9 +75,9 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	} else {
 		tokenStore := prefix.NewStore(store, types.KeyFanTokens(owner, ""))
 		pageRes, err = query.Paginate(tokenStore, req.Pagination, func(key []byte, value []byte) error {
-			var denom gogotypes.StringValue
-			k.cdc.MustUnmarshalBinaryBare(value, &denom)
-			token, err := k.GetFanToken(ctx, denom.Value)
+			var symbol gogotypes.StringValue
+			k.cdc.MustUnmarshalBinaryBare(value, &symbol)
+			token, err := k.GetFanToken(ctx, symbol.Value)
 			if err == nil {
 				tokens = append(tokens, token)
 			}
