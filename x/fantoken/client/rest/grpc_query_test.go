@@ -77,7 +77,6 @@ func (s *IntegrationTestSuite) TestToken() {
 	respType := proto.Message(&sdk.TxResponse{})
 	expectedCode := uint32(0)
 	bz, err := tokentestutil.IssueFanTokenExec(clientCtx, from.String(), args...)
-	fmt.Println(123, bz.String())
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())

@@ -36,7 +36,7 @@ func NewDefaultGenesisState(cdc codec.JSONMarshaler) GenesisState {
 }
 
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
-// bond denom from stake to desmos
+// bond denom from stake to ubtsg
 func stakingGenesisState() *stakingtypes.GenesisState {
 	return &stakingtypes.GenesisState{
 		Params: stakingtypes.NewParams(
