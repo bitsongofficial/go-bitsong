@@ -138,13 +138,13 @@ func (k Keeper) AddBurnCoin(ctx sdk.Context, coin sdk.Coin) {
 }
 
 // GetBurnCoin returns the total amount of the burned tokens
-func (k Keeper) GetBurnCoin(ctx sdk.Context, minUint string) (sdk.Coin, error) {
-	key := tokentypes.KeyBurnFanTokenAmt(minUint)
+func (k Keeper) GetBurnCoin(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	key := tokentypes.KeyBurnFanTokenAmt(denom)
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(key)
 
 	if len(bz) == 0 {
-		return sdk.Coin{}, sdkerrors.Wrapf(tokentypes.ErrNotFoundTokenAmt, "not found symbol: %s", minUint)
+		return sdk.Coin{}, sdkerrors.Wrapf(tokentypes.ErrNotFoundTokenAmt, "not found symbol: %s", denom)
 	}
 
 	var coin sdk.Coin

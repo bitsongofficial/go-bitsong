@@ -8,7 +8,7 @@ import (
 // token module sentinel errors
 var (
 	ErrInvalidName         = sdkerrors.Register(ModuleName, 2, "invalid token name")
-	ErrInvalidMinUnit      = sdkerrors.Register(ModuleName, 3, "invalid token min unit")
+	ErrInvalidDenom        = sdkerrors.Register(ModuleName, 3, "invalid token denom")
 	ErrInvalidSymbol       = sdkerrors.Register(ModuleName, 4, "invalid standard symbol")
 	ErrInvalidInitSupply   = sdkerrors.Register(ModuleName, 5, "invalid token initial supply")
 	ErrInvalidMaxSupply    = sdkerrors.Register(ModuleName, 6, "invalid token maximum supply")

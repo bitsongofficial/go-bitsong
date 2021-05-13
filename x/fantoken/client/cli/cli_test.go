@@ -58,6 +58,7 @@ func (s *IntegrationTestSuite) TestToken() {
 
 	from := val.Address
 	symbol := "kitty"
+	denom := "ukitty"
 	name := "Kitty Token"
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
@@ -137,11 +138,11 @@ func (s *IntegrationTestSuite) TestToken() {
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), symbol)
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance := coinType.(*sdk.Coin)
-	expectedAmount := initAmount.Add(mintAmount)
+	expectedAmount := sdk.NewIntWithDecimal(initAmount.Add(mintAmount).Int64(), tokentypes.FanTokenDecimal)
 	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdBurnFanToken()-------------
@@ -163,11 +164,11 @@ func (s *IntegrationTestSuite) TestToken() {
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), symbol)
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance = coinType.(*sdk.Coin)
-	expectedAmount = expectedAmount.Sub(burnAmount)
+	expectedAmount = expectedAmount.Sub(sdk.NewIntWithDecimal(burnAmount.Int64(), tokentypes.FanTokenDecimal))
 	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdUpdateFanTokenMintable()-------------

@@ -48,6 +48,6 @@ func KeyFanTokens(owner sdk.AccAddress, symbol string) []byte {
 }
 
 // KeyBurnTokenAmt returns the key of the specified min unit.
-func KeyBurnFanTokenAmt(symbol string) []byte {
-	return append(PefixBurnFanTokenAmt, []byte(symbol)...)
+func KeyBurnFanTokenAmt(denom string) []byte {
+	return append(PefixBurnFanTokenAmt, []byte(denom)...)
 }

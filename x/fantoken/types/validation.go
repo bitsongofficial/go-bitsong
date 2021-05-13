@@ -16,6 +16,10 @@ const (
 	MaximumSymbolLen = 64
 	// MaximumNameLen is the maximum limitation for the length of the token's name
 	MaximumNameLen = 32
+	// MinimumDenomLen is the minimum limitation for the length of the token's denom
+	MinimumDenomLen = 3
+	// MaximumMinUnitLen is the maximum limitation for the length of the token's denom
+	MaximumDenomLen = 64
 )
 
 const (
@@ -32,6 +36,9 @@ var (
 
 	regexpSymbolFmt = fmt.Sprintf("^[a-z][a-z0-9]{%d,%d}$", MinimumSymbolLen-1, MaximumSymbolLen-1)
 	regexpSymbol    = regexp.MustCompile(regexpSymbolFmt).MatchString
+
+	regexpDenomFmt = fmt.Sprintf("^[a-z][a-z0-9]{%d,%d}$", MinimumDenomLen-1, MaximumDenomLen-1)
+	regexpDenom    = regexp.MustCompile(regexpDenomFmt).MatchString
 )
 
 // ValidateToken checks if the given token is valid
@@ -47,7 +54,18 @@ func ValidateToken(token FanToken) error {
 	if err := ValidateSymbol(token.Symbol); err != nil {
 		return err
 	}
+	if err := ValidateDenom(token.GetDenom()); err != nil {
+		return err
+	}
 	return nil
+}
+
+// ValidateDenom checks if the given denom is valid
+func ValidateDenom(denom string) error {
+	if !regexpDenom(denom) {
+		return sdkerrors.Wrapf(ErrInvalidDenom, "invalid denom: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", denom, MinimumDenomLen, MaximumDenomLen, regexpDenomFmt)
+	}
+	return ValidateKeywords(denom)
 }
 
 // ValidateName verifies whether the given name is legal
@@ -67,9 +85,9 @@ func ValidateSymbol(symbol string) error {
 }
 
 // ValidateKeywords checks if the given symbol begins with `TokenKeywords`
-func ValidateKeywords(symbol string) error {
-	if regexpKeyword(symbol) {
-		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid token: %s, can not begin with keyword: (%s)", symbol, keywords)
+func ValidateKeywords(denom string) error {
+	if regexpKeyword(denom) {
+		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid token: %s, can not begin with keyword: (%s)", denom, keywords)
 	}
 	return nil
 }

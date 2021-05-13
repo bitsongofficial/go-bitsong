@@ -21,6 +21,7 @@ var (
 // TokenI defines an interface for Token
 type FanTokenI interface {
 	GetSymbol() string
+	GetDenom() string
 	GetName() string
 	GetMaxSupply() sdk.Int
 	GetMintable() bool
@@ -87,7 +88,7 @@ func (t FanToken) String() string {
 
 // ToMainCoin returns the main denom coin from args
 func (t FanToken) ToMainCoin(coin sdk.Coin) (sdk.DecCoin, error) {
-	if t.Symbol != coin.Denom {
+	if t.Symbol != coin.Denom && t.GetDenom() != coin.Denom {
 		return sdk.NewDecCoinFromDec(coin.Denom, sdk.ZeroDec()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
 	}
 
@@ -103,18 +104,16 @@ func (t FanToken) ToMainCoin(coin sdk.Coin) (sdk.DecCoin, error) {
 
 // ToMinCoin returns the min denom coin from args
 func (t FanToken) ToMinCoin(coin sdk.DecCoin) (newCoin sdk.Coin, err error) {
-	if t.Symbol != coin.Denom {
+	if t.Symbol != coin.Denom && t.GetDenom() != coin.Denom {
 		return sdk.NewCoin(coin.Denom, sdk.ZeroInt()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
 	}
 
-	minUnit := t.GetDenom()
-
-	if minUnit == coin.Denom {
+	if t.GetDenom() == coin.Denom {
 		return sdk.NewCoin(coin.Denom, coin.Amount.TruncateInt()), nil
 	}
 
 	precision := new(big.Int).Exp(tenInt, big.NewInt(FanTokenDecimal), nil)
 	// dest amount = src amount * 10^(dest scale)
 	amount := coin.Amount.Mul(sdk.NewDecFromBigInt(precision))
-	return sdk.NewCoin(minUnit, amount.TruncateInt()), nil
+	return sdk.NewCoin(t.GetDenom(), amount.TruncateInt()), nil
 }

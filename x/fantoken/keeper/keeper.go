@@ -154,7 +154,7 @@ func (k Keeper) MintFanToken(
 		return sdkerrors.Wrapf(
 			types.ErrInvalidAmount,
 			"the amount exceeds the mintable token amount; expected (0, %d], got %d",
-			mintableAmt, amount,
+			mintableMainAmt, amount,
 		)
 	}
 

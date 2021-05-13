@@ -22,12 +22,13 @@ func RegisterHandlers(cliCtx client.Context, r *mux.Router) {
 }
 
 type issueFanTokenReq struct {
-	BaseReq   rest.BaseReq `json:"base_req"`
-	Owner     string       `json:"owner"` // owner of the token
-	Symbol    string       `json:"symbol"`
-	Name      string       `json:"name"`
-	MaxSupply string       `json:"max_supply"`
-	Mintable  bool         `json:"mintable"`
+	BaseReq     rest.BaseReq `json:"base_req"`
+	Owner       string       `json:"owner"` // owner of the token
+	Symbol      string       `json:"symbol"`
+	Name        string       `json:"name"`
+	MaxSupply   string       `json:"max_supply"`
+	Mintable    bool         `json:"mintable"`
+	Description string       `json:"description"`
 }
 
 type updateFanTokenMintableReq struct {
