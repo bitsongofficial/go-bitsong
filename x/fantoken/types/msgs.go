@@ -12,11 +12,11 @@ const (
 	// MsgRoute identifies transaction types
 	MsgRoute = "fantoken"
 
-	TypeMsgIssueFanToken          = "issue_fan_token"
-	TypeMsgUpdateFanTokenMintable = "update_fan_token_mintable"
-	TypeMsgMintFanToken           = "mint_fan_token"
-	TypeMsgBurnFanToken           = "burn_fan_token"
-	TypeMsgTransferFanTokenOwner  = "transfer_fan_token_owner"
+	TypeMsgIssueFanToken         = "issue_fan_token"
+	TypeMsgEditFanToken          = "update_fan_token_mintable"
+	TypeMsgMintFanToken          = "mint_fan_token"
+	TypeMsgBurnFanToken          = "burn_fan_token"
+	TypeMsgTransferFanTokenOwner = "transfer_fan_token_owner"
 
 	// DoNotModify used to indicate that some field should not be updated
 	DoNotModify = "[do-not-modify]"
@@ -24,7 +24,7 @@ const (
 
 var (
 	_ sdk.Msg = &MsgIssueFanToken{}
-	_ sdk.Msg = &MsgUpdateFanTokenMintable{}
+	_ sdk.Msg = &MsgEditFanToken{}
 	_ sdk.Msg = &MsgMintFanToken{}
 	_ sdk.Msg = &MsgBurnFanToken{}
 	_ sdk.Msg = &MsgTransferFanTokenOwner{}
@@ -159,8 +159,8 @@ func (msg MsgTransferFanTokenOwner) Route() string { return MsgRoute }
 func (msg MsgTransferFanTokenOwner) Type() string { return TypeMsgTransferFanTokenOwner }
 
 // NewMsgEditToken creates a MsgEditToken
-func NewMsgUpdateFanTokenMintable(symbol string, mintable bool, owner string) *MsgUpdateFanTokenMintable {
-	return &MsgUpdateFanTokenMintable{
+func NewMsgEditFanToken(symbol string, mintable bool, owner string) *MsgEditFanToken {
+	return &MsgEditFanToken{
 		Symbol:   symbol,
 		Mintable: mintable,
 		Owner:    owner,
@@ -168,13 +168,13 @@ func NewMsgUpdateFanTokenMintable(symbol string, mintable bool, owner string) *M
 }
 
 // Route implements Msg
-func (msg MsgUpdateFanTokenMintable) Route() string { return MsgRoute }
+func (msg MsgEditFanToken) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgUpdateFanTokenMintable) Type() string { return TypeMsgUpdateFanTokenMintable }
+func (msg MsgEditFanToken) Type() string { return TypeMsgEditFanToken }
 
 // GetSignBytes implements Msg
-func (msg MsgUpdateFanTokenMintable) GetSignBytes() []byte {
+func (msg MsgEditFanToken) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -184,7 +184,7 @@ func (msg MsgUpdateFanTokenMintable) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgUpdateFanTokenMintable) GetSigners() []sdk.AccAddress {
+func (msg MsgEditFanToken) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -193,7 +193,7 @@ func (msg MsgUpdateFanTokenMintable) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgUpdateFanTokenMintable) ValidateBasic() error {
+func (msg MsgEditFanToken) ValidateBasic() error {
 	// check owner
 	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)

@@ -15,10 +15,10 @@ const (
 )
 
 var (
-	FsIssueFanToken          = flag.NewFlagSet("", flag.ContinueOnError)
-	FsUpdateFanTokenMintable = flag.NewFlagSet("", flag.ContinueOnError)
-	FsTransferFanTokenOwner  = flag.NewFlagSet("", flag.ContinueOnError)
-	FsMintFanToken           = flag.NewFlagSet("", flag.ContinueOnError)
+	FsIssueFanToken         = flag.NewFlagSet("", flag.ContinueOnError)
+	FsEditFanToken          = flag.NewFlagSet("", flag.ContinueOnError)
+	FsTransferFanTokenOwner = flag.NewFlagSet("", flag.ContinueOnError)
+	FsMintFanToken          = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -28,9 +28,9 @@ func init() {
 	FsIssueFanToken.Bool(FlagMintable, false, "Whether the token can be minted, default to false")
 	FsIssueFanToken.String(FlagDescription, "", "The token description")
 
-	FsUpdateFanTokenMintable.String(FlagName, "[do-not-modify]", "The token name, e.g. IRIS Network")
-	FsUpdateFanTokenMintable.String(FlagMaxSupply, "", "The maximum supply of the token")
-	FsUpdateFanTokenMintable.String(FlagMintable, "", "Whether the token can be minted, default to false")
+	FsEditFanToken.String(FlagName, "[do-not-modify]", "The token name, e.g. IRIS Network")
+	FsEditFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")
+	FsEditFanToken.String(FlagMintable, "", "Whether the token can be minted, default to false")
 
 	FsTransferFanTokenOwner.String(FlagRecipient, "", "The new owner")
 

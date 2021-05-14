@@ -81,7 +81,7 @@ func (k Keeper) IssueFanToken(
 }
 
 // EditToken edits the specified token
-func (k Keeper) UpdateFanTokenMintable(
+func (k Keeper) EditFanToken(
 	ctx sdk.Context,
 	symbol string,
 	mintable bool,

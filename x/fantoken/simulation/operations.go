@@ -71,7 +71,7 @@ func WeightedOperations(
 		// ),
 		simulation.NewWeightedOperation(
 			weightEdit,
-			SimulateUpdateFanTokenMintable(k, ak, bk),
+			SimulateEditFanToken(k, ak, bk),
 		),
 		simulation.NewWeightedOperation(
 			weightMint,
@@ -130,7 +130,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 }
 
 // SimulateEditToken tests and runs a single msg edit a existed token
-func SimulateUpdateFanTokenMintable(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
+func SimulateEditFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
@@ -138,9 +138,9 @@ func SimulateUpdateFanTokenMintable(k keeper.Keeper, ak tokentypes.AccountKeeper
 
 		token, _, skip := selectOneFanToken(ctx, k, ak, bk, false)
 		if skip {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgUpdateFanTokenMintable, "skip edit token"), nil, nil
+			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgEditFanToken, "skip edit token"), nil, nil
 		}
-		msg := tokentypes.NewMsgUpdateFanTokenMintable(token.GetSymbol(), true, token.GetOwner().String())
+		msg := tokentypes.NewMsgEditFanToken(token.GetSymbol(), true, token.GetOwner().String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {

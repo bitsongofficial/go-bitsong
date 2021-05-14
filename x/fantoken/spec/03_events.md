@@ -10,7 +10,7 @@ The fantoken module emits the following events:
 | message         | module        | fantoken         |
 | message         | sender        | {ownerAddress}   |
 
-## MsgUpdateFanTokenMintable
+## MsgEditFanToken
 
 | Type                      | Attribute Key | Attribute Value |
 | :------------------------ | :------------ | :-------------- |

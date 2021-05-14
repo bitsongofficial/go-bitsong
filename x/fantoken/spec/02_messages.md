@@ -14,11 +14,11 @@ type MsgIssueFanToken struct {
 }
 ```
 
-# MsgUpdateFanTokenMintable
-The `Mintable` of a token can be updated using the `MsgUpdateFanTokenMintable`.
+# MsgEditFanToken
+The `Mintable` of a token can be updated using the `MsgEditFanToken`.
 
 ```go
-type MsgUpdateFanTokenMintable struct {
+type MsgEditFanToken struct {
 	Denom		string
 	Mintable	bool
 	Owner		string

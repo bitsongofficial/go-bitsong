@@ -20,8 +20,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.IssueFanToken(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgUpdateFanTokenMintable:
-			res, err := msgServer.UpdateFanTokenMintable(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgEditFanToken:
+			res, err := msgServer.EditFanToken(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgMintFanToken:

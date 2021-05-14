@@ -28,7 +28,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		GetCmdIssueFanToken(),
-		GetCmdUpdateFanTokenMintable(),
+		GetCmdEditFanToken(),
 		GetCmdMintFanToken(),
 		GetCmdBurnFanToken(),
 		GetCmdTransferFanTokenOwner(),
@@ -111,8 +111,8 @@ func GetCmdIssueFanToken() *cobra.Command {
 	return cmd
 }
 
-// GetCmdUpdateFanTokenMintable implements the update fan token mintable command
-func GetCmdUpdateFanTokenMintable() *cobra.Command {
+// GetCmdEditFanToken implements the update fan token mintable command
+func GetCmdEditFanToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "update [symbol]",
 		Long: "Update an existing fan token mintable.",
@@ -142,7 +142,7 @@ func GetCmdUpdateFanTokenMintable() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateFanTokenMintable(args[0], mintable, owner)
+			msg := types.NewMsgEditFanToken(args[0], mintable, owner)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func GetCmdUpdateFanTokenMintable() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsUpdateFanTokenMintable)
+	cmd.Flags().AddFlagSet(FsEditFanToken)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

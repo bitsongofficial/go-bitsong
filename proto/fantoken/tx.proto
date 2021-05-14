@@ -11,8 +11,8 @@ service Msg {
     // IssueFanToken defines a method for issuing a new fan token
     rpc IssueFanToken(MsgIssueFanToken) returns (MsgIssueFanTokenResponse);
 
-    // UpdateFanTokenMintable defines a method for updating mintable of a fantoken
-    rpc UpdateFanTokenMintable(MsgUpdateFanTokenMintable) returns (MsgUpdateFanTokenMintableResponse);
+    // EditFanToken defines a method for editing a fantoken
+    rpc EditFanToken(MsgEditFanToken) returns (MsgEditFanTokenResponse);
 
     // MintFanToken defines a method for minting some fan tokens
     rpc MintFanToken(MsgMintFanToken) returns (MsgMintFanTokenResponse);
@@ -51,15 +51,15 @@ message MsgTransferFanTokenOwner {
 // MsgTransferFanTokenOwnerResponse defines the Msg/TransferFanTokenOwner response type
 message MsgTransferFanTokenOwnerResponse {}
 
-// MsgUpdateFanTokenMintable defines an SDK message for updating mintable of a new fan token
-message MsgUpdateFanTokenMintable {
+// MsgEditFanToken defines an SDK message for editing a fan token
+message MsgEditFanToken {
     string symbol = 1;
     bool mintable = 2;
     string owner = 3;
 }
 
-// MsgUpdateFanTokenMintableResponse defines the Msg/UpdateFanTokenMintable response type
-message MsgUpdateFanTokenMintableResponse {}
+// MsgEditFanTokenResponse defines the Msg/EditFanToken response type
+message MsgEditFanTokenResponse {}
 
 // MsgMintFanToken defines an SDK message for minting a new fan token
 message MsgMintFanToken {

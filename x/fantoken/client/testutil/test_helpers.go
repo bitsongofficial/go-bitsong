@@ -22,14 +22,14 @@ func IssueFanTokenExec(clientCtx client.Context, from string, extraArgs ...strin
 	return clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdIssueFanToken(), args)
 }
 
-func UpdateFanTokenMintableExec(clientCtx client.Context, from string, symbol string, extraArgs ...string) (testutil.BufferWriter, error) {
+func EditFanTokenExec(clientCtx client.Context, from string, symbol string, extraArgs ...string) (testutil.BufferWriter, error) {
 	args := []string{
 		symbol,
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 	}
 	args = append(args, extraArgs...)
 
-	return clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdUpdateFanTokenMintable(), args)
+	return clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdEditFanToken(), args)
 }
 
 func MintFanTokenExec(clientCtx client.Context, from string, symbol string, extraArgs ...string) (testutil.BufferWriter, error) {

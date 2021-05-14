@@ -99,7 +99,7 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 	suite.EqualValues(&token, issuedToken.(*tokentypes.FanToken))
 }
 
-func (suite *KeeperTestSuite) TestUpdateFanTokenMintable() {
+func (suite *KeeperTestSuite) TestEditFanToken() {
 	denomMetaData := banktypes.Metadata{
 		Description: "test",
 		Base:        "ubtc",
@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) TestUpdateFanTokenMintable() {
 	symbol := "btc"
 	mintable := true
 
-	err := suite.keeper.UpdateFanTokenMintable(suite.ctx, symbol, mintable, owner)
+	err := suite.keeper.EditFanToken(suite.ctx, symbol, mintable, owner)
 	suite.NoError(err)
 
 	newToken, err := suite.keeper.GetFanToken(suite.ctx, symbol)

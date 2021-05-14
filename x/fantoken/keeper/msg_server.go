@@ -60,7 +60,7 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 	return &types.MsgIssueFanTokenResponse{}, nil
 }
 
-func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgUpdateFanTokenMintable) (*types.MsgUpdateFanTokenMintableResponse, error) {
+func (m msgServer) EditFanToken(goCtx context.Context, msg *types.MsgEditFanToken) (*types.MsgEditFanTokenResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgU
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.UpdateFanTokenMintable(
+	if err := m.Keeper.EditFanToken(
 		ctx, msg.Symbol, msg.Mintable, owner,
 	); err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgU
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateFanTokenMintable,
+			types.EventTypeEditFanToken,
 			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.Owner),
 		),
@@ -87,7 +87,7 @@ func (m msgServer) UpdateFanTokenMintable(goCtx context.Context, msg *types.MsgU
 		),
 	})
 
-	return &types.MsgUpdateFanTokenMintableResponse{}, nil
+	return &types.MsgEditFanTokenResponse{}, nil
 }
 
 func (m msgServer) MintFanToken(goCtx context.Context, msg *types.MsgMintFanToken) (*types.MsgMintFanTokenResponse, error) {

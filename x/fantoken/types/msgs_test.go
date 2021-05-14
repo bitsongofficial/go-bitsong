@@ -47,35 +47,35 @@ func TestMsgIssueAsset(t *testing.T) {
 }
 
 // test ValidateBasic for MsgIssueToken
-func TestMsgUpdateFanTokenMintable(t *testing.T) {
+func TestMsgEditFanToken(t *testing.T) {
 	owner := sdk.AccAddress(tmhash.SumTruncated([]byte("owner"))).String()
 	mintable := false
 
 	tests := []struct {
 		testCase string
-		*MsgUpdateFanTokenMintable
+		*MsgEditFanToken
 		expectPass bool
 	}{
-		{"native basic good", NewMsgUpdateFanTokenMintable("btc", mintable, owner), true},
-		{"wrong denom", NewMsgUpdateFanTokenMintable("BT", mintable, owner), false},
-		{"loss owner", NewMsgUpdateFanTokenMintable("btc", mintable, ""), false},
+		{"native basic good", NewMsgEditFanToken("btc", mintable, owner), true},
+		{"wrong denom", NewMsgEditFanToken("BT", mintable, owner), false},
+		{"loss owner", NewMsgEditFanToken("btc", mintable, ""), false},
 	}
 
 	for _, tc := range tests {
 		if tc.expectPass {
-			require.Nil(t, tc.MsgUpdateFanTokenMintable.ValidateBasic(), "test: %v", tc.testCase)
+			require.Nil(t, tc.MsgEditFanToken.ValidateBasic(), "test: %v", tc.testCase)
 		} else {
-			require.NotNil(t, tc.MsgUpdateFanTokenMintable.ValidateBasic(), "test: %v", tc.testCase)
+			require.NotNil(t, tc.MsgEditFanToken.ValidateBasic(), "test: %v", tc.testCase)
 		}
 	}
 }
 
-func TestMsgUpdateFanTokenMintableRoute(t *testing.T) {
+func TestMsgEditFanTokenRoute(t *testing.T) {
 	symbol := "btc"
 	mintable := false
 
 	// build a MsgEditToken
-	msg := MsgUpdateFanTokenMintable{
+	msg := MsgEditFanToken{
 		Symbol:   symbol,
 		Mintable: mintable,
 	}
@@ -83,10 +83,10 @@ func TestMsgUpdateFanTokenMintableRoute(t *testing.T) {
 	require.Equal(t, "fantoken", msg.Route())
 }
 
-func TestMsgUpdateFanTokenMintableGetSignBytes(t *testing.T) {
+func TestMsgEditFanTokenGetSignBytes(t *testing.T) {
 	mintable := true
 
-	var msg = MsgUpdateFanTokenMintable{
+	var msg = MsgEditFanToken{
 		Owner:    sdk.AccAddress(tmhash.SumTruncated([]byte("owner"))).String(),
 		Symbol:   "btc",
 		Mintable: mintable,
@@ -94,7 +94,7 @@ func TestMsgUpdateFanTokenMintableGetSignBytes(t *testing.T) {
 
 	res := msg.GetSignBytes()
 
-	expected := `{"type":"go-bitsong/token/MsgUpdateFanTokenMintable","value":{"mintable":true,"owner":"cosmos1fsgzj6t7udv8zhf6zj32mkqhcjcpv52ygswxa5","symbol":"btc"}}`
+	expected := `{"type":"go-bitsong/token/MsgEditFanToken","value":{"mintable":true,"owner":"cosmos1fsgzj6t7udv8zhf6zj32mkqhcjcpv52ygswxa5","symbol":"btc"}}`
 	require.Equal(t, expected, string(res))
 }
 

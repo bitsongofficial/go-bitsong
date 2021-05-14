@@ -18,7 +18,7 @@ func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	// issue a token
 	r.HandleFunc(fmt.Sprintf("/%s/tokens", types.ModuleName), issueTokenHandlerFn(cliCtx)).Methods("POST")
 	// edit a token
-	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}", types.ModuleName, RestParamSymbol), updateFanTokenHandlerFn(cliCtx)).Methods("PUT")
+	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}", types.ModuleName, RestParamSymbol), editFanTokenHandlerFn(cliCtx)).Methods("PUT")
 	// transfer owner
 	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/transfer", types.ModuleName, RestParamSymbol), transferOwnerHandlerFn(cliCtx)).Methods("POST")
 	// mint token
@@ -62,12 +62,12 @@ func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func updateFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func editFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		symbol := vars[RestParamSymbol]
 
-		var req updateFanTokenMintableReq
+		var req editFanTokenReq
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
@@ -80,7 +80,7 @@ func updateFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		mintable := req.Mintable
 
 		// create the MsgEditToken message
-		msg := types.NewMsgUpdateFanTokenMintable(symbol, mintable, req.Owner)
+		msg := types.NewMsgEditFanToken(symbol, mintable, req.Owner)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

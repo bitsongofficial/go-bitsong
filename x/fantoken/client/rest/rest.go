@@ -31,7 +31,7 @@ type issueFanTokenReq struct {
 	Description string       `json:"description"`
 }
 
-type updateFanTokenMintableReq struct {
+type editFanTokenReq struct {
 	BaseReq  rest.BaseReq `json:"base_req"`
 	Owner    string       `json:"owner"`    //  owner of the token
 	Mintable bool         `json:"mintable"` // mintable of the token

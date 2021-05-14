@@ -171,7 +171,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	expectedAmount = expectedAmount.Sub(sdk.NewIntWithDecimal(burnAmount.Int64(), tokentypes.FanTokenDecimal))
 	s.Require().Equal(expectedAmount, balance.Amount)
 
-	//------test GetCmdUpdateFanTokenMintable()-------------
+	//------test GetCmdEditFanToken()-------------
 	newMintable := false
 
 	args = []string{
@@ -183,7 +183,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	}
 
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.UpdateFanTokenMintableExec(clientCtx, from.String(), symbol, args...)
+	bz, err = tokentestutil.EditFanTokenExec(clientCtx, from.String(), symbol, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())

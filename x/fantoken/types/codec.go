@@ -25,7 +25,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&FanToken{}, "go-bitsong/token/Token", nil)
 
 	cdc.RegisterConcrete(&MsgIssueFanToken{}, "go-bitsong/token/MsgIssueFanToken", nil)
-	cdc.RegisterConcrete(&MsgUpdateFanTokenMintable{}, "go-bitsong/token/MsgUpdateFanTokenMintable", nil)
+	cdc.RegisterConcrete(&MsgEditFanToken{}, "go-bitsong/token/MsgEditFanToken", nil)
 	cdc.RegisterConcrete(&MsgMintFanToken{}, "go-bitsong/token/MsgMintFanToken", nil)
 	cdc.RegisterConcrete(&MsgBurnFanToken{}, "go-bitsong/token/MsgBurnFanToken", nil)
 	cdc.RegisterConcrete(&MsgTransferFanTokenOwner{}, "go-bitsong/token/MsgTransferFanTokenOwner", nil)
@@ -34,7 +34,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgIssueFanToken{},
-		&MsgUpdateFanTokenMintable{},
+		&MsgEditFanToken{},
 		&MsgMintFanToken{},
 		&MsgBurnFanToken{},
 		&MsgTransferFanTokenOwner{},
