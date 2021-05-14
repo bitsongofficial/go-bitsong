@@ -11,6 +11,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type Keeper struct {
@@ -57,13 +58,20 @@ func (k Keeper) IssueFanToken(
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
-	metadataUri string,
+	description string,
 	owner sdk.AccAddress,
 ) error {
-	token := types.NewFanToken(
-		symbol, name,
-		maxSupply, mintable, metadataUri, owner,
-	)
+	denom := fmt.Sprintf("%s%s", "u", symbol)
+	denomMetaData := banktypes.Metadata{
+		Description: description,
+		Base:        denom,
+		Display:     symbol,
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: denom, Exponent: 0},
+			{Denom: symbol, Exponent: types.FanTokenDecimal},
+		},
+	}
+	token := types.NewFanToken(name, maxSupply, mintable, owner, denomMetaData)
 
 	if err := k.AddFanToken(ctx, token); err != nil {
 		return err
@@ -118,7 +126,7 @@ func (k Keeper) TransferFanTokenOwner(
 	k.setFanToken(ctx, token)
 
 	// reset all indices
-	k.resetStoreKeyForQueryToken(ctx, token.Symbol, srcOwner, dstOwner)
+	k.resetStoreKeyForQueryToken(ctx, token.GetSymbol(), srcOwner, dstOwner)
 
 	return nil
 }

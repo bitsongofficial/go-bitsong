@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
@@ -13,7 +14,16 @@ import (
 func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 	app, ctx := suite.app, suite.ctx
 	_, _, addr := testdata.KeyTestPubAddr()
-	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, "test", addr)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: types.FanTokenDecimal},
+		},
+	}
+	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), true, addr, denomMetaData)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
@@ -58,7 +68,16 @@ func (suite *KeeperTestSuite) TestGRPCQueryTotalBurn() {
 	queryClient := types.NewQueryClient(queryHelper)
 
 	_, _, addr := testdata.KeyTestPubAddr()
-	token := types.NewFanToken("btc", "Bitcoin Token", sdk.NewInt(22000000), true, "test", addr)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: types.FanTokenDecimal},
+		},
+	}
+	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), true, addr, denomMetaData)
 	err := suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 	suite.Require().NoError(err)
 

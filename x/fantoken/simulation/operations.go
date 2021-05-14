@@ -3,7 +3,6 @@ package simulation
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,6 +15,7 @@ import (
 	"github.com/bitsongofficial/bitsong/types"
 	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 // Simulation operation weights constants
@@ -92,7 +92,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.Symbol, token.Name, token.MaxSupply, token.Mintable, token.Description, token.GetOwner().String())
+		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.Mintable, token.MetaData.Description, token.GetOwner().String())
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -330,11 +330,11 @@ func genFanToken(ctx sdk.Context,
 	var token tokentypes.FanToken
 	token = randFanToken(r, accs)
 
-	for k.HasFanToken(ctx, token.Symbol) {
+	for k.HasFanToken(ctx, token.GetSymbol()) {
 		token = randFanToken(r, accs)
 	}
 
-	issueFee := k.GetFanTokenIssueFee(ctx, token.Symbol)
+	issueFee := k.GetFanTokenIssueFee(ctx, token.GetSymbol())
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
 	token.Owner = account.String()
@@ -364,15 +364,26 @@ loop:
 
 func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
 	symbol := randStringBetween(r, tokentypes.MinimumSymbolLen, tokentypes.MaximumSymbolLen)
+	denom := fmt.Sprintf("%s%s", "u", symbol)
 	name := randStringBetween(r, 1, tokentypes.MaximumNameLen)
 	maxSupply := sdk.NewInt(10000000000)
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        denom,
+		Display:     symbol,
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: denom, Exponent: 0},
+			{Denom: symbol, Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+
 	return tokentypes.FanToken{
-		Symbol:    strings.ToLower(symbol),
 		Name:      name,
 		MaxSupply: maxSupply,
 		Mintable:  true,
 		Owner:     simAccount.Address.String(),
+		MetaData:  denomMetaData,
 	}
 }

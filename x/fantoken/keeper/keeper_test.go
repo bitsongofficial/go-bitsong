@@ -16,6 +16,7 @@ import (
 	"github.com/bitsongofficial/bitsong/types"
 	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const (
@@ -71,17 +72,26 @@ func (suite *KeeperTestSuite) issueFanToken(token tokentypes.FanToken) {
 }
 
 func (suite *KeeperTestSuite) TestIssueFanToken() {
-	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), false, "test", owner)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
 
 	err := suite.keeper.IssueFanToken(
-		suite.ctx, token.Symbol, token.Name,
-		token.MaxSupply, token.Mintable, token.Description, token.GetOwner(),
+		suite.ctx, token.GetSymbol(), token.Name,
+		token.MaxSupply, token.Mintable, token.MetaData.Description, token.GetOwner(),
 	)
 	suite.NoError(err)
 
-	suite.True(suite.keeper.HasFanToken(suite.ctx, token.Symbol))
+	suite.True(suite.keeper.HasFanToken(suite.ctx, token.GetSymbol()))
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, token.Symbol)
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, token.GetSymbol())
 	suite.NoError(err)
 
 	suite.Equal(token.Owner, issuedToken.GetOwner().String())
@@ -90,7 +100,16 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestUpdateFanTokenMintable() {
-	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), false, "test", owner)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
 	suite.setFanToken(token)
 
 	symbol := "btc"
@@ -102,22 +121,31 @@ func (suite *KeeperTestSuite) TestUpdateFanTokenMintable() {
 	newToken, err := suite.keeper.GetFanToken(suite.ctx, symbol)
 	suite.NoError(err)
 
-	expToken := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), mintable, "test", owner)
+	expToken := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), mintable, owner, denomMetaData)
 
 	suite.EqualValues(newToken.(*tokentypes.FanToken), &expToken)
 }
 
 func (suite *KeeperTestSuite) TestMintFanToken() {
-	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), true, owner, denomMetaData)
 	suite.issueFanToken(token)
 
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Symbol)
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetSymbol())
 	suite.Equal("0btc", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
 
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Symbol, mintAmount, token.GetOwner())
+	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.GetSymbol(), mintAmount, token.GetOwner())
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
@@ -125,32 +153,50 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 
 	// mint token without owner
 
-	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Symbol, mintAmount, sdk.AccAddress{})
+	err = suite.keeper.MintFanToken(suite.ctx, owner, token.GetSymbol(), mintAmount, sdk.AccAddress{})
 	suite.Error(err, "can not mint token without owner when the owner exists")
 
-	token = tokentypes.NewFanToken("atom", "Cosmos Hub", sdk.NewInt(2000), true, "test", sdk.AccAddress{})
+	denomMetaData = banktypes.Metadata{
+		Description: "test",
+		Base:        "uatom",
+		Display:     "atom",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "uatom", Exponent: 0},
+			{Denom: "atom", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token = tokentypes.NewFanToken("Cosmos Hub", sdk.NewInt(2000), true, sdk.AccAddress{}, denomMetaData)
 	suite.issueFanToken(token)
 
-	err = suite.keeper.MintFanToken(suite.ctx, owner, token.Symbol, mintAmount, sdk.AccAddress{})
+	err = suite.keeper.MintFanToken(suite.ctx, owner, token.GetSymbol(), mintAmount, sdk.AccAddress{})
 	suite.NoError(err)
 }
 
 func (suite *KeeperTestSuite) TestBurnFanToken() {
-	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(2000), true, "test", owner)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), true, owner, denomMetaData)
 	suite.issueFanToken(token)
 
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.Symbol)
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetSymbol())
 	suite.Equal("0btc", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
 
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.Symbol, mintAmount, token.GetOwner())
+	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.GetSymbol(), mintAmount, token.GetOwner())
 	suite.NoError(err)
 
 	burnedAmount := sdk.NewInt(200)
 
-	err = suite.keeper.BurnFanToken(suite.ctx, token.Symbol, burnedAmount, token.GetOwner())
+	err = suite.keeper.BurnFanToken(suite.ctx, token.GetSymbol(), burnedAmount, token.GetOwner())
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
@@ -158,15 +204,24 @@ func (suite *KeeperTestSuite) TestBurnFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestTransferFanToken() {
-	token := tokentypes.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(21000000), false, "test", owner)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
 	suite.setFanToken(token)
 
 	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))
 
-	err := suite.keeper.TransferFanTokenOwner(suite.ctx, token.Symbol, token.GetOwner(), dstOwner)
+	err := suite.keeper.TransferFanTokenOwner(suite.ctx, token.GetSymbol(), token.GetOwner(), dstOwner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, token.Symbol)
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, token.GetSymbol())
 	suite.NoError(err)
 
 	suite.Equal(dstOwner, newToken.GetOwner())

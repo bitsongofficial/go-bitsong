@@ -51,7 +51,7 @@ func ValidateToken(token FanToken) error {
 	if err := ValidateName(token.Name); err != nil {
 		return err
 	}
-	if err := ValidateSymbol(token.Symbol); err != nil {
+	if err := ValidateSymbol(token.GetSymbol()); err != nil {
 		return err
 	}
 	if err := ValidateDenom(token.GetDenom()); err != nil {

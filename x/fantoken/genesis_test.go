@@ -13,6 +13,7 @@ import (
 	simapp "github.com/bitsongofficial/bitsong/app"
 	token "github.com/bitsongofficial/bitsong/x/fantoken"
 	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func TestExportGenesis(t *testing.T) {
@@ -33,7 +34,16 @@ func TestInitGenesis(t *testing.T) {
 
 	// add token
 	addr := sdk.AccAddress(tmhash.SumTruncated([]byte("addr1")))
-	ft := types.NewFanToken("btc", "Bitcoin Network", sdk.NewInt(1), true, "test", addr)
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ubtc",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ubtc", Exponent: 0},
+			{Denom: "btc", Exponent: types.FanTokenDecimal},
+		},
+	}
+	ft := types.NewFanToken("Bitcoin Network", sdk.NewInt(1), true, addr, denomMetaData)
 
 	burnCoins := []sdk.Coin{
 		{Denom: ft.GetDenom(), Amount: sdk.NewInt(1000)},

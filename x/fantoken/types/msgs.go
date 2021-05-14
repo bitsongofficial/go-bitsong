@@ -1,8 +1,11 @@
 package types
 
 import (
+	fmt "fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const (
@@ -56,14 +59,24 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
+	denom := fmt.Sprintf("%s%s", "u", msg.Symbol)
+	denomMetaData := banktypes.Metadata{
+		Description: msg.Description,
+		Base:        denom,
+		Display:     msg.Symbol,
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: denom, Exponent: 0},
+			{Denom: msg.Symbol, Exponent: FanTokenDecimal},
+		},
+	}
+
 	return ValidateToken(
 		NewFanToken(
-			msg.Symbol,
 			msg.Name,
 			msg.MaxSupply,
 			msg.Mintable,
-			msg.Description,
 			owner,
+			denomMetaData,
 		),
 	)
 }

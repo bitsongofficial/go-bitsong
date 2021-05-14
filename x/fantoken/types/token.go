@@ -1,7 +1,6 @@
 package types
 
 import (
-	fmt "fmt"
 	"math/big"
 
 	"github.com/gogo/protobuf/proto"
@@ -9,6 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const FanTokenDecimal = 6
@@ -33,31 +33,29 @@ type FanTokenI interface {
 
 // NewToken constructs a new Token instance
 func NewFanToken(
-	symbol string,
 	name string,
 	maxSupply sdk.Int,
 	mintable bool,
-	descriptioin string,
 	owner sdk.AccAddress,
+	metaData banktypes.Metadata,
 ) FanToken {
 	return FanToken{
-		Symbol:      symbol,
-		Name:        name,
-		MaxSupply:   maxSupply,
-		Mintable:    mintable,
-		Description: descriptioin,
-		Owner:       owner.String(),
+		Name:      name,
+		MaxSupply: maxSupply,
+		Mintable:  mintable,
+		Owner:     owner.String(),
+		MetaData:  metaData,
 	}
 }
 
 // GetSymbol implements exported.TokenI
 func (t FanToken) GetSymbol() string {
-	return t.Symbol
+	return t.MetaData.Display
 }
 
 // GetDenom implements exported.TokenI
 func (t FanToken) GetDenom() string {
-	return fmt.Sprintf("%s%s", "u", t.Symbol)
+	return t.MetaData.Base
 }
 
 // GetName implements exported.TokenI
@@ -88,23 +86,23 @@ func (t FanToken) String() string {
 
 // ToMainCoin returns the main denom coin from args
 func (t FanToken) ToMainCoin(coin sdk.Coin) (sdk.DecCoin, error) {
-	if t.Symbol != coin.Denom && t.GetDenom() != coin.Denom {
+	if t.GetSymbol() != coin.Denom && t.GetDenom() != coin.Denom {
 		return sdk.NewDecCoinFromDec(coin.Denom, sdk.ZeroDec()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
 	}
 
-	if t.Symbol == coin.Denom {
+	if t.GetSymbol() == coin.Denom {
 		return sdk.NewDecCoin(coin.Denom, coin.Amount), nil
 	}
 
 	precision := new(big.Int).Exp(tenInt, big.NewInt(FanTokenDecimal), nil)
 	// dest amount = src amount / 10^(scale)
 	amount := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromBigInt(precision))
-	return sdk.NewDecCoinFromDec(t.Symbol, amount), nil
+	return sdk.NewDecCoinFromDec(t.GetSymbol(), amount), nil
 }
 
 // ToMinCoin returns the min denom coin from args
 func (t FanToken) ToMinCoin(coin sdk.DecCoin) (newCoin sdk.Coin, err error) {
-	if t.Symbol != coin.Denom && t.GetDenom() != coin.Denom {
+	if t.GetSymbol() != coin.Denom && t.GetDenom() != coin.Denom {
 		return sdk.NewCoin(coin.Denom, sdk.ZeroInt()), sdkerrors.Wrapf(ErrTokenNotExists, "token not match")
 	}
 

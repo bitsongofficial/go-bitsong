@@ -8,8 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
@@ -64,8 +62,8 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (tokentypes.FanTokenI
 
 // AddToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token tokentypes.FanToken) error {
-	if k.HasFanToken(ctx, token.Symbol) {
-		return sdkerrors.Wrapf(tokentypes.ErrSymbolAlreadyExists, "symbol already exists: %s", token.Symbol)
+	if k.HasFanToken(ctx, token.GetSymbol()) {
+		return sdkerrors.Wrapf(tokentypes.ErrSymbolAlreadyExists, "symbol already exists: %s", token.GetSymbol())
 	}
 
 	if k.HasFanToken(ctx, token.GetDenom()) {
@@ -76,23 +74,14 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token tokentypes.FanToken) error {
 	k.setFanToken(ctx, token)
 
 	// set token to be prefixed with denom
-	k.setWithDenom(ctx, token.GetDenom(), token.Symbol)
+	k.setWithDenom(ctx, token.GetDenom(), token.GetSymbol())
 
 	if len(token.Owner) != 0 {
 		// set token to be prefixed with owner
-		k.setWithOwner(ctx, token.GetOwner(), token.Symbol)
+		k.setWithOwner(ctx, token.GetOwner(), token.GetSymbol())
 	}
 
-	denomMetaData := banktypes.Metadata{
-		Description: token.Description,
-		Base:        token.GetDenom(),
-		Display:     token.Symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: token.GetDenom(), Exponent: 0},
-			{Denom: token.Symbol, Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	k.bankKeeper.SetDenomMetaData(ctx, denomMetaData)
+	k.bankKeeper.SetDenomMetaData(ctx, token.MetaData)
 
 	return nil
 }
@@ -200,7 +189,7 @@ func (k Keeper) setFanToken(ctx sdk.Context, token tokentypes.FanToken) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryBare(&token)
 
-	store.Set(tokentypes.KeySymbol(token.Symbol), bz)
+	store.Set(tokentypes.KeySymbol(token.GetSymbol()), bz)
 }
 
 func (k Keeper) getFanTokenBySymbol(ctx sdk.Context, symbol string) (token tokentypes.FanToken, err error) {
