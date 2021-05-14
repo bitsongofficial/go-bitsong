@@ -2,32 +2,46 @@ syntax = "proto3";
 package bitsong.fantoken;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/bank/v1beta1/bank.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/bitsongofficial/bitsong/x/fantoken/types";
 option (gogoproto.goproto_getters_all) = false;
 
+message SocialProof {
+    string social = 1;
+    string handler = 2;
+    string proof_uri = 3;
+    google.protobuf.Timestamp expire_at = 4 [
+        (gogoproto.moretags)   = "yaml:\"expire_at\"",
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
 // FanToken defines a standard for the fungible token
 message FanToken {
-    option (gogoproto.goproto_stringer) = false;
     option (gogoproto.goproto_getters) = false;
 
-    string symbol = 1;
-    string name = 2;
-    bytes max_supply = 3 [
+    string name = 1;
+    bytes max_supply = 2 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
         (gogoproto.moretags)   = "yaml:\"max_supply\"",
         (gogoproto.nullable)   = false
     ];
-    bool mintable = 4;
-    string description = 5;
-    string owner = 6;
+    bool mintable = 3;
+    string owner = 4;
+    cosmos.bank.v1beta1.Metadata meta_data = 5 [
+        (gogoproto.moretags) = "yaml:\"meta_data\"",
+        (gogoproto.nullable) = false
+    ];
+    repeated SocialProof social_proofs = 6;
 }
 
 // Params defines fantoken module's parameters
 message Params {
     option (gogoproto.equal) = true;
-    option (gogoproto.goproto_stringer) = false;
 
     cosmos.base.v1beta1.Coin issue_price = 2 [
         (gogoproto.moretags) = "yaml:\"issue_price\"",
