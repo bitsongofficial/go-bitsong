@@ -33,9 +33,8 @@ message MsgIssueFanToken {
         (gogoproto.moretags)   = "yaml:\"max_supply\"",
         (gogoproto.nullable)   = false
     ];
-    bool mintable = 4;
-    string description = 5;
-    string owner = 6;
+    string description = 4;
+    string owner = 5;
 }
 
 // MsgIssueFanTokenResponse defines the Msg/IssueFanToken response type

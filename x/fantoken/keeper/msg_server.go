@@ -34,7 +34,7 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := m.Keeper.IssueFanToken(
-		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Mintable, msg.Description, owner,
+		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Description, owner,
 	); err != nil {
 		return nil, err
 	}

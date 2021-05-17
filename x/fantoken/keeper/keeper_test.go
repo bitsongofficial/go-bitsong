@@ -81,11 +81,11 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
 
 	err := suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.Mintable, token.MetaData.Description, token.GetOwner(),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(),
 	)
 	suite.NoError(err)
 
@@ -109,11 +109,11 @@ func (suite *KeeperTestSuite) TestEditFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
 	suite.setFanToken(token)
 
 	symbol := "btc"
-	mintable := true
+	mintable := false
 
 	err := suite.keeper.EditFanToken(suite.ctx, symbol, mintable, owner)
 	suite.NoError(err)
@@ -121,7 +121,13 @@ func (suite *KeeperTestSuite) TestEditFanToken() {
 	newToken, err := suite.keeper.GetFanToken(suite.ctx, symbol)
 	suite.NoError(err)
 
-	expToken := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), mintable, owner, denomMetaData)
+	expToken := tokentypes.FanToken{
+		Name:      "Bitcoin Network",
+		MaxSupply: sdk.ZeroInt(),
+		Mintable:  false,
+		Owner:     owner.String(),
+		MetaData:  denomMetaData,
+	}
 
 	suite.EqualValues(newToken.(*tokentypes.FanToken), &expToken)
 }
@@ -136,7 +142,7 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), true, owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
 	suite.issueFanToken(token)
 
 	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetSymbol())
@@ -165,7 +171,7 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 			{Denom: "atom", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token = tokentypes.NewFanToken("Cosmos Hub", sdk.NewInt(2000), true, sdk.AccAddress{}, denomMetaData)
+	token = tokentypes.NewFanToken("Cosmos Hub", sdk.NewInt(2000), sdk.AccAddress{}, denomMetaData)
 	suite.issueFanToken(token)
 
 	err = suite.keeper.MintFanToken(suite.ctx, owner, token.GetSymbol(), mintAmount, sdk.AccAddress{})
@@ -182,7 +188,7 @@ func (suite *KeeperTestSuite) TestBurnFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), true, owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
 	suite.issueFanToken(token)
 
 	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetSymbol())
@@ -213,7 +219,7 @@ func (suite *KeeperTestSuite) TestTransferFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), false, owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
 	suite.setFanToken(token)
 
 	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))

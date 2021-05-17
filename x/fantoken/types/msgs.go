@@ -34,13 +34,12 @@ var (
 func NewMsgIssueFanToken(
 	symbol string, name string,
 	maxSupply sdk.Int,
-	mintable bool, descriptioin string, owner string,
+	descriptioin string, owner string,
 ) *MsgIssueFanToken {
 	return &MsgIssueFanToken{
 		Symbol:      symbol,
 		Name:        name,
 		MaxSupply:   maxSupply,
-		Mintable:    mintable,
 		Description: descriptioin,
 		Owner:       owner,
 	}
@@ -74,7 +73,6 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 		NewFanToken(
 			msg.Name,
 			msg.MaxSupply,
-			msg.Mintable,
 			owner,
 			denomMetaData,
 		),

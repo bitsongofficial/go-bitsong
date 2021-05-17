@@ -47,7 +47,6 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--name=\"Kitty Token\" "+
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
-				"--mintable=true "+
 				"--description=\"Kitty Token\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -77,10 +76,6 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if !ok {
 				return fmt.Errorf("failed to parse max supply: %s", maxSupplyStr)
 			}
-			mintable, err := cmd.Flags().GetBool(FlagMintable)
-			if err != nil {
-				return err
-			}
 			description, err := cmd.Flags().GetString(FlagDescription)
 			if err != nil {
 				return err
@@ -90,7 +85,6 @@ func GetCmdIssueFanToken() *cobra.Command {
 				Symbol:      symbol,
 				Name:        name,
 				MaxSupply:   maxSupply,
-				Mintable:    mintable,
 				Description: description,
 				Owner:       owner.String(),
 			}

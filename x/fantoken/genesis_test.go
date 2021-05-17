@@ -43,7 +43,7 @@ func TestInitGenesis(t *testing.T) {
 			{Denom: "btc", Exponent: types.FanTokenDecimal},
 		},
 	}
-	ft := types.NewFanToken("Bitcoin Network", sdk.NewInt(1), true, addr, denomMetaData)
+	ft := types.NewFanToken("Bitcoin Network", sdk.NewInt(1), addr, denomMetaData)
 
 	burnCoins := []sdk.Coin{
 		{Denom: ft.GetDenom(), Amount: sdk.NewInt(1000)},

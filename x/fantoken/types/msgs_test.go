@@ -26,15 +26,15 @@ func TestMsgIssueAsset(t *testing.T) {
 		*MsgIssueFanToken
 		expectPass bool
 	}{
-		{"basic good", NewMsgIssueFanToken("stake", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), true},
-		{"denom empty", NewMsgIssueFanToken("", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), false},
-		{"denom error", NewMsgIssueFanToken("b&stake", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), false},
-		{"denom first letter is num", NewMsgIssueFanToken("4stake", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), false},
-		{"denom too long", NewMsgIssueFanToken("stake123456789012345678901234567890123456789012345678901234567890", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), false},
-		{"denom too short", NewMsgIssueFanToken("ht", "Bitcoin Network", sdk.NewInt(1), true, "test", addr), false},
-		{"name empty", NewMsgIssueFanToken("stake", "", sdk.NewInt(1), true, "test", addr), false},
-		{"name too long", NewMsgIssueFanToken("stake", "Bitcoin Network aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", sdk.NewInt(1), true, "test", addr), false},
-		{"max supply is zero", NewMsgIssueFanToken("stake", "Bitcoin Network", sdk.ZeroInt(), true, "test", addr), true},
+		{"basic good", NewMsgIssueFanToken("stake", "Bitcoin Network", sdk.NewInt(1), "test", addr), true},
+		{"denom empty", NewMsgIssueFanToken("", "Bitcoin Network", sdk.NewInt(1), "test", addr), false},
+		{"denom error", NewMsgIssueFanToken("b&stake", "Bitcoin Network", sdk.NewInt(1), "test", addr), false},
+		{"denom first letter is num", NewMsgIssueFanToken("4stake", "Bitcoin Network", sdk.NewInt(1), "test", addr), false},
+		{"denom too long", NewMsgIssueFanToken("stake123456789012345678901234567890123456789012345678901234567890", "Bitcoin Network", sdk.NewInt(1), "test", addr), false},
+		{"denom too short", NewMsgIssueFanToken("ht", "Bitcoin Network", sdk.NewInt(1), "test", addr), false},
+		{"name empty", NewMsgIssueFanToken("stake", "", sdk.NewInt(1), "test", addr), false},
+		{"name too long", NewMsgIssueFanToken("stake", "Bitcoin Network aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", sdk.NewInt(1), "test", addr), false},
+		{"max supply is zero", NewMsgIssueFanToken("stake", "Bitcoin Network", sdk.ZeroInt(), "test", addr), true},
 	}
 
 	for _, tc := range tests {

@@ -57,7 +57,6 @@ func (k Keeper) IssueFanToken(
 	symbol string,
 	name string,
 	maxSupply sdk.Int,
-	mintable bool,
 	description string,
 	owner sdk.AccAddress,
 ) error {
@@ -71,7 +70,7 @@ func (k Keeper) IssueFanToken(
 			{Denom: symbol, Exponent: types.FanTokenDecimal},
 		},
 	}
-	token := types.NewFanToken(name, maxSupply, mintable, owner, denomMetaData)
+	token := types.NewFanToken(name, maxSupply, owner, denomMetaData)
 
 	if err := k.AddFanToken(ctx, token); err != nil {
 		return err
@@ -97,7 +96,17 @@ func (k Keeper) EditFanToken(
 		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, symbol)
 	}
 
+	if !token.Mintable {
+		return sdkerrors.Wrapf(types.ErrNotMintable, "the fantoken %s is not mintable", symbol)
+	}
+
 	token.Mintable = mintable
+
+	if !mintable {
+		supply := k.getFanTokenSupply(ctx, token.GetDenom())
+		precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
+		token.MaxSupply = supply.Quo(precision)
+	}
 
 	k.setFanToken(ctx, token)
 

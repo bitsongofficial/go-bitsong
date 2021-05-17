@@ -50,7 +50,6 @@ func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			Symbol:    req.Symbol,
 			Name:      req.Name,
 			MaxSupply: maxSupply,
-			Mintable:  req.Mintable,
 			Owner:     req.Owner,
 		}
 		if err := msg.ValidateBasic(); err != nil {

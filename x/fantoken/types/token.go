@@ -35,14 +35,13 @@ type FanTokenI interface {
 func NewFanToken(
 	name string,
 	maxSupply sdk.Int,
-	mintable bool,
 	owner sdk.AccAddress,
 	metaData banktypes.Metadata,
 ) FanToken {
 	return FanToken{
 		Name:      name,
 		MaxSupply: maxSupply,
-		Mintable:  mintable,
+		Mintable:  true,
 		Owner:     owner.String(),
 		MetaData:  metaData,
 	}

@@ -23,7 +23,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryToken() {
 			{Denom: "btc", Exponent: types.FanTokenDecimal},
 		},
 	}
-	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), true, addr, denomMetaData)
+	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), addr, denomMetaData)
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.FanTokenKeeper)
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestGRPCQueryTotalBurn() {
 			{Denom: "btc", Exponent: types.FanTokenDecimal},
 		},
 	}
-	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), true, addr, denomMetaData)
+	token := types.NewFanToken("Bitcoin Network", sdk.NewInt(22000000), addr, denomMetaData)
 	err := suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 	suite.Require().NoError(err)
 
