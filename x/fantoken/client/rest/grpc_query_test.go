@@ -59,6 +59,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	name := "Kitty Token"
 	maxSupply := int64(200000000)
 	mintable := true
+	issueFee := sdk.NewInt(1000000)
 	description := "Kitty Token"
 	baseURL := val.APIAddress
 
@@ -68,6 +69,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%d", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
+		fmt.Sprintf("--%s=%s", tokencli.FlagIssueFee, issueFee),
 		fmt.Sprintf("--%s=%s", tokencli.FlagDescription, description),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),

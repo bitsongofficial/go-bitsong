@@ -48,8 +48,8 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--name=\"Kitty Token\" "+
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
-				"--description=\"Kitty Token\" "+
 				"--issue-fee=\"1000000\" "+
+				"--description=\"Kitty Token\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -88,7 +88,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 			}
 			issueFeeAmount, ok := sdk.NewIntFromString(issueFeeStr)
 			if !ok {
-				return fmt.Errorf("failed to parse max supply: %s", issueFeeStr)
+				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
 			}
 
 			msg := &tokentypes.MsgIssueFanToken{
@@ -112,6 +112,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
 	_ = cmd.MarkFlagRequired(FlagMaxSupply)
+	_ = cmd.MarkFlagRequired(FlagIssueFee)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

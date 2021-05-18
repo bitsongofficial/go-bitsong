@@ -62,6 +62,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	name := "Kitty Token"
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
+	issueFee := sdk.NewInt(1000000)
 	description := "Kitty Token"
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
@@ -69,6 +70,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
 		fmt.Sprintf("--%s=%s", tokencli.FlagMaxSupply, maxSupply),
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
+		fmt.Sprintf("--%s=%s", tokencli.FlagIssueFee, issueFee),
 		fmt.Sprintf("--%s=%s", tokencli.FlagDescription, description),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
