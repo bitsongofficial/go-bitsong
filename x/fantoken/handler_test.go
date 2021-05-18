@@ -82,18 +82,18 @@ func (suite *HandlerSuite) issueFanToken(token tokentypes.FanToken) {
 func (suite *HandlerSuite) TestIssueFanToken() {
 	h := tokenmodule.NewHandler(suite.keeper)
 
+	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
+
 	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
 
-	msg := tokentypes.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), "test", owner.String())
+	msg := tokentypes.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), "test", owner.String(), issueFee)
 
 	_, err := h(suite.ctx, msg)
 	suite.NoError(err)
 
 	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
 
-	params := suite.keeper.GetParamSet(suite.ctx)
-
-	suite.Equal(nativeTokenAmt1.Sub(params.IssuePrice.Amount), nativeTokenAmt2)
+	suite.Equal(nativeTokenAmt1.Sub(issueFee.Amount), nativeTokenAmt2)
 
 	nativeTokenAmt3 := suite.bk.GetBalance(suite.ctx, owner, "ubtc").Amount
 	suite.Equal(nativeTokenAmt3, sdk.ZeroInt())

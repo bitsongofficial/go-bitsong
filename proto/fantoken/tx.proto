@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bitsong.fantoken;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bitsongofficial/bitsong/x/fantoken/types";
@@ -35,6 +36,10 @@ message MsgIssueFanToken {
     ];
     string description = 4;
     string owner = 5;
+    cosmos.base.v1beta1.Coin issue_fee = 6 [
+        (gogoproto.moretags) = "yaml:\"issue_fee\"",
+        (gogoproto.nullable) = false
+    ];
 }
 
 // MsgIssueFanTokenResponse defines the Msg/IssueFanToken response type

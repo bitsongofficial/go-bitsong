@@ -92,7 +92,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String())
+		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)))
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -334,7 +334,7 @@ func genFanToken(ctx sdk.Context,
 		token = randFanToken(r, accs)
 	}
 
-	issueFee := k.GetFanTokenIssueFee(ctx, token.GetSymbol())
+	issueFee := k.GetFanTokenIssueFee(ctx, sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)), token.GetSymbol())
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
 	token.Owner = account.String()

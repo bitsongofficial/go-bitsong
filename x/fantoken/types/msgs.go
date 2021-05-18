@@ -34,7 +34,7 @@ var (
 func NewMsgIssueFanToken(
 	symbol string, name string,
 	maxSupply sdk.Int,
-	descriptioin string, owner string,
+	descriptioin string, owner string, issueFee sdk.Coin,
 ) *MsgIssueFanToken {
 	return &MsgIssueFanToken{
 		Symbol:      symbol,
@@ -42,6 +42,7 @@ func NewMsgIssueFanToken(
 		MaxSupply:   maxSupply,
 		Description: descriptioin,
 		Owner:       owner,
+		IssueFee:    issueFee,
 	}
 }
 

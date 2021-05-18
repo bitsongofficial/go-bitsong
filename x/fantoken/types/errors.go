@@ -21,4 +21,5 @@ var (
 	ErrNotMintable         = sdkerrors.Register(ModuleName, 13, "token is not mintable")
 	ErrNotFoundTokenAmt    = sdkerrors.Register(ModuleName, 14, "burned token amount not found")
 	ErrInvalidAmount       = sdkerrors.Register(ModuleName, 15, "invalid amount")
+	ErrLessIssueFee        = sdkerrors.Register(ModuleName, 16, "less issue fee")
 )

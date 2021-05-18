@@ -29,6 +29,7 @@ type issueFanTokenReq struct {
 	MaxSupply   string       `json:"max_supply"`
 	Mintable    bool         `json:"mintable"`
 	Description string       `json:"description"`
+	IssueFee    string       `json:"issue_fee"`
 }
 
 type editFanTokenReq struct {

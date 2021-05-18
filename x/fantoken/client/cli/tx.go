@@ -13,13 +13,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/types"
+	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
 )
 
 // NewTxCmd returns the transaction commands for the token module.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        types.ModuleName,
+		Use:                        tokentypes.ModuleName,
 		Short:                      "Token transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -48,6 +49,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
 				"--description=\"Kitty Token\" "+
+				"--issue-fee=\"1000000\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -80,13 +82,22 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			issueFeeStr, err := cmd.Flags().GetString(FlagIssueFee)
+			if err != nil {
+				return err
+			}
+			issueFeeAmount, ok := sdk.NewIntFromString(issueFeeStr)
+			if !ok {
+				return fmt.Errorf("failed to parse max supply: %s", issueFeeStr)
+			}
 
-			msg := &types.MsgIssueFanToken{
+			msg := &tokentypes.MsgIssueFanToken{
 				Symbol:      symbol,
 				Name:        name,
 				MaxSupply:   maxSupply,
 				Description: description,
 				Owner:       owner.String(),
+				IssueFee:    sdk.NewCoin(types.BondDenom, issueFeeAmount),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -100,6 +111,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 	cmd.Flags().AddFlagSet(FsIssueFanToken)
 	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
+	_ = cmd.MarkFlagRequired(FlagMaxSupply)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -136,7 +148,7 @@ func GetCmdEditFanToken() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgEditFanToken(args[0], mintable, owner)
+			msg := tokentypes.NewMsgEditFanToken(args[0], mintable, owner)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -193,7 +205,7 @@ func GetCmdMintFanToken() *cobra.Command {
 				}
 			}
 
-			msg := types.NewMsgMintFanToken(
+			msg := tokentypes.NewMsgMintFanToken(
 				addr, strings.TrimSpace(args[0]), owner, amount,
 			)
 
@@ -253,7 +265,7 @@ func GetCmdBurnFanToken() *cobra.Command {
 				}
 			}
 
-			msg := types.NewMsgBurnFanToken(
+			msg := tokentypes.NewMsgBurnFanToken(
 				strings.TrimSpace(args[0]), owner, amount,
 			)
 
@@ -302,7 +314,7 @@ func GetCmdTransferFanTokenOwner() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgTransferFanTokenOwner(strings.TrimSpace(args[0]), owner, toAddr)
+			msg := tokentypes.NewMsgTransferFanTokenOwner(strings.TrimSpace(args[0]), owner, toAddr)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

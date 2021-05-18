@@ -34,13 +34,13 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := m.Keeper.IssueFanToken(
-		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Description, owner,
+		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Description, owner, msg.IssueFee,
 	); err != nil {
 		return nil, err
 	}
 
 	// handle fee for token
-	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.Symbol); err != nil {
+	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.IssueFee, msg.Symbol); err != nil {
 		return nil, err
 	}
 

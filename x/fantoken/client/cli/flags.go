@@ -12,6 +12,7 @@ const (
 	FlagDescription = "description"
 	FlagRecipient   = "recipient"
 	FlagAmount      = "amount"
+	FlagIssueFee    = "issue-fee"
 )
 
 var (
@@ -27,6 +28,7 @@ func init() {
 	FsIssueFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")
 	FsIssueFanToken.Bool(FlagMintable, false, "Whether the token can be minted, default to false")
 	FsIssueFanToken.String(FlagDescription, "", "The token description")
+	FsIssueFanToken.String(FlagIssueFee, "", "The fan token issue fee")
 
 	FsEditFanToken.String(FlagName, "[do-not-modify]", "The token name, e.g. IRIS Network")
 	FsEditFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")

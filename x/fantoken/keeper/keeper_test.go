@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 
 	err := suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
 	)
 	suite.NoError(err)
 

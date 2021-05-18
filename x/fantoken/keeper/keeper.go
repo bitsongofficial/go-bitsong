@@ -59,7 +59,13 @@ func (k Keeper) IssueFanToken(
 	maxSupply sdk.Int,
 	description string,
 	owner sdk.AccAddress,
+	issueFee sdk.Coin,
 ) error {
+	issuePrice := k.GetParamSet(ctx).IssuePrice
+	if issueFee.Amount.LT(issuePrice.Amount) {
+		return sdkerrors.Wrapf(types.ErrLessIssueFee, "the issue fee %s is less than %s", issueFee.String(), issuePrice.String())
+	}
+
 	denom := fmt.Sprintf("%s%s", "u", symbol)
 	denomMetaData := banktypes.Metadata{
 		Description: description,
