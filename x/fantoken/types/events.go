@@ -12,6 +12,7 @@ const (
 
 	AttributeKeyCreator   = "creator"
 	AttributeKeySymbol    = "symbol"
+	AttributeKeyDenom     = "denom"
 	AttributeKeyAmount    = "amount"
 	AttributeKeyOwner     = "owner"
 	AttributeKeyDstOwner  = "dst_owner"

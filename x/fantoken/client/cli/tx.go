@@ -166,7 +166,7 @@ func GetCmdEditFanToken() *cobra.Command {
 
 func GetCmdMintFanToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "mint [symbol]",
+		Use:  "mint [denom]",
 		Long: "Mint tokens to a specified address.",
 		Example: fmt.Sprintf(
 			"$ %s tx token mint <symbol> "+

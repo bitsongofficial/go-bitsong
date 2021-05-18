@@ -203,10 +203,10 @@ func (msg MsgEditFanToken) ValidateBasic() error {
 }
 
 // NewMsgMintToken creates a MsgMintToken
-func NewMsgMintFanToken(recipient, symbol, owner string, amount sdk.Int) *MsgMintFanToken {
+func NewMsgMintFanToken(recipient, denom, owner string, amount sdk.Int) *MsgMintFanToken {
 	return &MsgMintFanToken{
 		Recipient: recipient,
-		Symbol:    symbol,
+		Denom:     denom,
 		Owner:     owner,
 		Amount:    amount,
 	}
@@ -254,7 +254,7 @@ func (msg MsgMintFanToken) ValidateBasic() error {
 		return err
 	}
 
-	return ValidateSymbol(msg.Symbol)
+	return ValidateDenom(msg.Denom)
 }
 
 // NewMsgBurnToken creates a MsgMintToken

@@ -23,7 +23,7 @@ func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	// transfer owner
 	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/transfer", tokentypes.ModuleName, RestParamSymbol), transferOwnerHandlerFn(cliCtx)).Methods("POST")
 	// mint token
-	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/mint", tokentypes.ModuleName, RestParamSymbol), mintFanTokenHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/mint", tokentypes.ModuleName, RestParamDenom), mintFanTokenHandlerFn(cliCtx)).Methods("POST")
 	// burn token
 	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/burn", tokentypes.ModuleName, RestParamSymbol), burnFanTokenHandlerFn(cliCtx)).Methods("POST")
 }
@@ -127,7 +127,7 @@ func transferOwnerHandlerFn(cliCtx client.Context) http.HandlerFunc {
 func mintFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		symbol := vars[RestParamSymbol]
+		denom := vars[RestParamDenom]
 
 		var req mintFanTokenReq
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
@@ -146,7 +146,7 @@ func mintFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		// create the MsgMintFanToken message
-		msg := tokentypes.NewMsgMintFanToken(req.Recipient, symbol, req.Owner, amount)
+		msg := tokentypes.NewMsgMintFanToken(req.Recipient, denom, req.Owner, amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

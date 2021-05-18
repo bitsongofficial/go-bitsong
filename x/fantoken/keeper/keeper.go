@@ -151,37 +151,35 @@ func (k Keeper) TransferFanTokenOwner(
 func (k Keeper) MintFanToken(
 	ctx sdk.Context,
 	recipient sdk.AccAddress,
-	symbol string,
+	denom string,
 	amount sdk.Int,
 	owner sdk.AccAddress,
 ) error {
-	token, err := k.getFanTokenBySymbol(ctx, symbol)
+	token, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
 	if owner.String() != token.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, symbol)
+		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the token %s", owner, denom)
 	}
 
 	if !token.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", symbol)
+		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", denom)
 	}
 
 	supply := k.getFanTokenSupply(ctx, token.GetDenom())
-	precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
-	mintableAmt := token.MaxSupply.Mul(precision).Sub(supply)
-	mintableMainAmt := mintableAmt.Quo(precision)
+	mintableAmt := token.MaxSupply.Sub(supply)
 
-	if amount.GT(mintableMainAmt) {
+	if amount.GT(mintableAmt) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidAmount,
 			"the amount exceeds the mintable token amount; expected (0, %d], got %d",
-			mintableMainAmt, amount,
+			mintableAmt, amount,
 		)
 	}
 
-	mintCoin := sdk.NewCoin(token.GetDenom(), amount.Mul(precision))
+	mintCoin := sdk.NewCoin(token.GetDenom(), amount)
 	mintCoins := sdk.NewCoins(mintCoin)
 
 	// mint coins

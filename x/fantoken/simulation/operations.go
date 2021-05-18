@@ -191,7 +191,7 @@ func SimulateMintFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk token
 			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgMintFanToken, "skip mint token"), nil, nil
 		}
 		simToAccount, _ := simtypes.RandomAcc(r, accs)
-		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), token.GetSymbol(), token.GetOwner().String(), sdk.NewInt(100))
+		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), token.GetDenom(), token.GetOwner().String(), sdk.NewInt(100))
 
 		ownerAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {

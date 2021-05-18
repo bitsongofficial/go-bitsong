@@ -53,7 +53,7 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (tokentypes.FanTokenI
 	}
 
 	// query token by min unit
-	if token, err := k.getTokenByDenom(ctx, denom); err == nil {
+	if token, err := k.getFanTokenByDenom(ctx, denom); err == nil {
 		return &token, nil
 	}
 
@@ -204,7 +204,7 @@ func (k Keeper) getFanTokenBySymbol(ctx sdk.Context, symbol string) (token token
 	return token, nil
 }
 
-func (k Keeper) getTokenByDenom(ctx sdk.Context, denom string) (token tokentypes.FanToken, err error) {
+func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (token tokentypes.FanToken, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(tokentypes.KeyDenom(denom))

@@ -113,14 +113,14 @@ func (m msgServer) MintFanToken(goCtx context.Context, msg *types.MsgMintFanToke
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.MintFanToken(ctx, recipient, msg.Symbol, msg.Amount, owner); err != nil {
+	if err := m.Keeper.MintFanToken(ctx, recipient, msg.Denom, msg.Amount, owner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeMintFanToken,
-			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyRecipient, recipient.String()),
 		),

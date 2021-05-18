@@ -68,7 +68,7 @@ message MsgEditFanTokenResponse {}
 // MsgMintFanToken defines an SDK message for minting a new fan token
 message MsgMintFanToken {
     string recipient = 1;
-    string symbol = 2;
+    string denom = 2;
     bytes amount = 3 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
         (gogoproto.moretags)   = "yaml:\"amount\"",
