@@ -81,11 +81,11 @@ func (suite *KeeperTestSuite) TestGRPCQueryTotalBurn() {
 	err := suite.app.FanTokenKeeper.AddFanToken(ctx, token)
 	suite.Require().NoError(err)
 
-	buinCoin := sdk.NewInt64Coin("satoshi", 1000000000000000000)
-	app.FanTokenKeeper.AddBurnCoin(ctx, buinCoin)
+	burnCoin := sdk.NewInt64Coin("satoshi", 1000000000000000000)
+	app.FanTokenKeeper.AddBurnCoin(ctx, burnCoin)
 
 	resp, err := queryClient.TotalBurn(gocontext.Background(), &types.QueryTotalBurnRequest{})
 	suite.Require().NoError(err)
 	suite.Len(resp.BurnedCoins, 1)
-	suite.EqualValues(buinCoin, resp.BurnedCoins[0])
+	suite.EqualValues(burnCoin, resp.BurnedCoins[0])
 }

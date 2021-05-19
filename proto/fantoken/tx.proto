@@ -82,7 +82,7 @@ message MsgMintFanTokenResponse {}
 
 // MsgBurnFanToken defines an SDK message for burning some fan tokens
 message MsgBurnFanToken {
-    string symbol = 1;
+    string denom = 1;
     bytes amount = 2 [
         (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
         (gogoproto.moretags)   = "yaml:\"amount\"",

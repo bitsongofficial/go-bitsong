@@ -25,7 +25,7 @@ func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	// mint token
 	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/mint", tokentypes.ModuleName, RestParamDenom), mintFanTokenHandlerFn(cliCtx)).Methods("POST")
 	// burn token
-	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/burn", tokentypes.ModuleName, RestParamSymbol), burnFanTokenHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc(fmt.Sprintf("/%s/tokens/{%s}/burn", tokentypes.ModuleName, RestParamDenom), burnFanTokenHandlerFn(cliCtx)).Methods("POST")
 }
 
 func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
@@ -159,7 +159,7 @@ func mintFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 func burnFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		symbol := vars[RestParamSymbol]
+		denom := vars[RestParamDenom]
 
 		var req burnFanTokenReq
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
@@ -178,7 +178,7 @@ func burnFanTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		// create the MsgMintToken message
-		msg := tokentypes.NewMsgBurnFanToken(symbol, req.Sender, amount)
+		msg := tokentypes.NewMsgBurnFanToken(denom, req.Sender, amount)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

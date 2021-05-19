@@ -198,17 +198,16 @@ func (k Keeper) MintFanToken(
 // BurnToken burns the specified amount of token
 func (k Keeper) BurnFanToken(
 	ctx sdk.Context,
-	symbol string,
+	denom string,
 	amount sdk.Int,
 	owner sdk.AccAddress,
 ) error {
-	token, err := k.getFanTokenBySymbol(ctx, symbol)
+	_, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
-	burnCoin := sdk.NewCoin(token.GetDenom(), amount.Mul(precision))
+	burnCoin := sdk.NewCoin(denom, amount)
 	burnCoins := sdk.NewCoins(burnCoin)
 
 	// burn coins

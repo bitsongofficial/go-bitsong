@@ -133,7 +133,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), symbol, args...)
+	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -144,7 +144,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance := coinType.(*sdk.Coin)
-	expectedAmount := sdk.NewIntWithDecimal(initAmount.Add(mintAmount).Int64(), tokentypes.FanTokenDecimal)
+	expectedAmount := initAmount.Add(mintAmount)
 	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdBurnFanToken()-------------
@@ -159,7 +159,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), symbol, args...)
+	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -170,7 +170,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.JSONMarshaler.UnmarshalJSON(out.Bytes(), coinType))
 	balance = coinType.(*sdk.Coin)
-	expectedAmount = expectedAmount.Sub(sdk.NewIntWithDecimal(burnAmount.Int64(), tokentypes.FanTokenDecimal))
+	expectedAmount = expectedAmount.Sub(burnAmount)
 	s.Require().Equal(expectedAmount, balance.Amount)
 
 	//------test GetCmdEditFanToken()-------------

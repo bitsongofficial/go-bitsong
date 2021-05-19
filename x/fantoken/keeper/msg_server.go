@@ -141,14 +141,14 @@ func (m msgServer) BurnFanToken(goCtx context.Context, msg *types.MsgBurnFanToke
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	if err := m.Keeper.BurnFanToken(ctx, msg.Symbol, msg.Amount, owner); err != nil {
+	if err := m.Keeper.BurnFanToken(ctx, msg.Denom, msg.Amount, owner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeBurnFanToken,
-			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
+			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
 		),
 		sdk.NewEvent(

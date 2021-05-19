@@ -169,7 +169,7 @@ func GetCmdMintFanToken() *cobra.Command {
 		Use:  "mint [denom]",
 		Long: "Mint tokens to a specified address.",
 		Example: fmt.Sprintf(
-			"$ %s tx token mint <symbol> "+
+			"$ %s tx token mint <denom> "+
 				"--recipient=<recipient>"+
 				"--amount=<amount> "+
 				"--from=<key-name> "+
@@ -227,7 +227,7 @@ func GetCmdMintFanToken() *cobra.Command {
 
 func GetCmdBurnFanToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "burn [symbol]",
+		Use:  "burn [denom]",
 		Long: "Burn fan tokens.",
 		Example: fmt.Sprintf(
 			"$ %s tx token burn <symbol> "+

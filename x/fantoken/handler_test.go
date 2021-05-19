@@ -117,12 +117,12 @@ func (suite *HandlerSuite) TestMintFanToken() {
 
 	h := tokenmodule.NewHandler(suite.keeper)
 
-	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetSymbol(), token.Owner, sdk.NewInt(1000))
+	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetDenom(), token.Owner, sdk.NewInt(1000))
 	_, err := h(suite.ctx, msgMintFanToken)
 	suite.NoError(err)
 
 	endBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	mintBtcAmt := sdk.NewIntWithDecimal(msgMintFanToken.Amount.Int64(), tokentypes.FanTokenDecimal)
+	mintBtcAmt := msgMintFanToken.Amount
 	suite.Equal(beginBtcAmt.Add(mintBtcAmt), endBtcAmt)
 }
 
@@ -141,19 +141,19 @@ func (suite *HandlerSuite) TestBurnFanToken() {
 
 	h := tokenmodule.NewHandler(suite.keeper)
 
-	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetSymbol(), token.Owner, sdk.NewInt(1000))
+	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetDenom(), token.Owner, sdk.NewInt(1000))
 	_, err := h(suite.ctx, msgMintFanToken)
 	suite.NoError(err)
 
 	beginBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	suite.Equal(sdk.NewInt(1000000000), beginBtcAmt)
+	suite.Equal(sdk.NewInt(1000), beginBtcAmt)
 
-	msgBurnFanToken := tokentypes.NewMsgBurnFanToken(token.GetSymbol(), token.Owner, sdk.NewInt(200))
+	msgBurnFanToken := tokentypes.NewMsgBurnFanToken(token.GetDenom(), token.Owner, sdk.NewInt(200))
 	_, err = h(suite.ctx, msgBurnFanToken)
 	suite.NoError(err)
 
 	endBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	burnBtcAmt := sdk.NewIntWithDecimal(msgBurnFanToken.Amount.Int64(), tokentypes.FanTokenDecimal)
+	burnBtcAmt := msgBurnFanToken.Amount
 
 	suite.Equal(beginBtcAmt.Sub(burnBtcAmt), endBtcAmt)
 }
