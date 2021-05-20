@@ -85,6 +85,12 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 
 	err := suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(999999)),
+	)
+	suite.Error(err, "the issue fee is less than the standard")
+
+	err = suite.keeper.IssueFanToken(
+		suite.ctx, token.GetSymbol(), token.Name,
 		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
 	)
 	suite.NoError(err)
