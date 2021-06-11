@@ -18,6 +18,9 @@ import (
 	"github.com/bitsongofficial/bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/bitsong/x/nft"
+	nftkeeper "github.com/bitsongofficial/bitsong/x/nft/keeper"
+	nfttypes "github.com/bitsongofficial/bitsong/x/nft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -127,6 +130,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
+		nft.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -194,6 +198,7 @@ type Bitsong struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	FanTokenKeeper fantokenkeeper.Keeper
+	NFTKeeper      nftkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -221,7 +226,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		fantokentypes.StoreKey,
+		fantokentypes.StoreKey, nfttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -325,6 +330,8 @@ func New(
 		authtypes.FeeCollectorName,
 	)
 
+	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
+
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -359,6 +366,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
+		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -392,6 +400,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		fantokentypes.ModuleName,
+		nfttypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
