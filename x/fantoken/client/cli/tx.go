@@ -289,9 +289,9 @@ func GetCmdBurnFanToken() *cobra.Command {
 func GetCmdTransferFanTokenOwner() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "transfer [symbol]",
-		Long: "Transfer the owner of a token to a new owner.",
+		Long: "Transfer the owner of a fantoken to a new owner.",
 		Example: fmt.Sprintf(
-			"$ %s tx token transfer <symbol> "+
+			"$ %s tx fantoken transfer <symbol> "+
 				"--to=<to> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
