@@ -13,7 +13,7 @@ const (
 	MsgRoute = "fantoken"
 
 	TypeMsgIssueFanToken         = "issue_fan_token"
-	TypeMsgEditFanToken          = "update_fan_token_mintable"
+	TypeMsgEditFanToken          = "edit_fan_token_mintable"
 	TypeMsgMintFanToken          = "mint_fan_token"
 	TypeMsgBurnFanToken          = "burn_fan_token"
 	TypeMsgTransferFanTokenOwner = "transfer_fan_token_owner"

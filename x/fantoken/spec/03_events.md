@@ -14,8 +14,8 @@ The fantoken module emits the following events:
 
 | Type                      | Attribute Key | Attribute Value |
 | :------------------------ | :------------ | :-------------- |
-| update_fan_token_mintable | denom         | {Denom}         |
-| update_fan_token_mintable | owner         | {ownerAddress}  |
+| edit_fan_token_mintable | denom         | {Denom}         |
+| edit_fan_token_mintable | owner         | {ownerAddress}  |
 | message                   | module        | fantoken        |
 | message                   | sender        | {ownerAddress}  |
 
