@@ -292,7 +292,7 @@ func GetCmdTransferFanTokenOwner() *cobra.Command {
 		Long: "Transfer the owner of a fantoken to a new owner.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken transfer <symbol> "+
-				"--to=<to> "+
+				"--recipient=<recipient> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
