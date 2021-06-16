@@ -21,7 +21,7 @@ import (
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        tokentypes.ModuleName,
-		Short:                      "Token transaction subcommands",
+		Short:                      "FanToken transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
