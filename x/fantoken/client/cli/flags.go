@@ -23,19 +23,19 @@ var (
 )
 
 func init() {
-	FsIssueFanToken.String(FlagSymbol, "", "The token symbol. Once created, it cannot be modified")
-	FsIssueFanToken.String(FlagName, "", "The token name, e.g. Bitsong Network")
-	FsIssueFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")
-	FsIssueFanToken.Bool(FlagMintable, false, "Whether the token can be minted, default to false")
-	FsIssueFanToken.String(FlagDescription, "", "The token description")
-	FsIssueFanToken.String(FlagIssueFee, "", "The fan token issue fee")
+	FsIssueFanToken.String(FlagSymbol, "", "The fantoken symbol. Once created, it cannot be modified")
+	FsIssueFanToken.String(FlagName, "", "The fantoken name, e.g. Bitsong Network")
+	FsIssueFanToken.String(FlagMaxSupply, "", "The maximum supply of the fantoken")
+	FsIssueFanToken.Bool(FlagMintable, false, "Whether the fantoken can be minted, default to false")
+	FsIssueFanToken.String(FlagDescription, "", "The fantoken description")
+	FsIssueFanToken.String(FlagIssueFee, "", "The fan fantoken issue fee")
 
-	FsEditFanToken.String(FlagName, "[do-not-modify]", "The token name, e.g. IRIS Network")
-	FsEditFanToken.String(FlagMaxSupply, "", "The maximum supply of the token")
-	FsEditFanToken.String(FlagMintable, "", "Whether the token can be minted, default to false")
+	FsEditFanToken.String(FlagName, "[do-not-modify]", "The fantoken name, e.g. IRIS Network")
+	FsEditFanToken.String(FlagMaxSupply, "", "The maximum supply of the fantoken")
+	FsEditFanToken.String(FlagMintable, "", "Whether the fantoken can be minted, default to false")
 
 	FsTransferFanTokenOwner.String(FlagRecipient, "", "The new owner")
 
-	FsMintFanToken.String(FlagRecipient, "", "Address to which the token is to be minted")
-	FsMintFanToken.String(FlagAmount, "", "Amount of the token to be minted")
+	FsMintFanToken.String(FlagRecipient, "", "Address to which the fantoken is to be minted")
+	FsMintFanToken.String(FlagAmount, "", "Amount of the fantoken to be minted")
 }

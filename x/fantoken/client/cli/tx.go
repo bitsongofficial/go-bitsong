@@ -124,10 +124,10 @@ func GetCmdIssueFanToken() *cobra.Command {
 // GetCmdEditFanToken implements the edit fan token mintable command
 func GetCmdEditFanToken() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "edit [symbol]",
+		Use:  "edit [denom]",
 		Long: "Edit an existing fan token mintable.",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken edit <symbol> "+
+			"$ %s tx fantoken edit <denom> "+
 				"--mintable=true "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -233,7 +233,7 @@ func GetCmdBurnFanToken() *cobra.Command {
 		Use:  "burn [denom]",
 		Long: "Burn fan tokens.",
 		Example: fmt.Sprintf(
-			"$ %s tx token burn <symbol> "+
+			"$ %s tx token burn <denom> "+
 				"--amount=<amount> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+

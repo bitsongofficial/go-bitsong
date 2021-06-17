@@ -36,7 +36,7 @@ func GetQueryCmd() *cobra.Command {
 func GetCmdQueryFanToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "token [denom]",
-		Long:    "Query a token by symbol or min unit.",
+		Long:    "Query a token by symbol or denom.",
 		Example: fmt.Sprintf("$ %s query token token <denom>", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
