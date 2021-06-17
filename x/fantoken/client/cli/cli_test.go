@@ -62,7 +62,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	name := "Kitty Token"
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
-	issueFee := sdk.NewInt(1000000)
+	issueFee := "1000000ubtsg"
 	description := "Kitty Token"
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{

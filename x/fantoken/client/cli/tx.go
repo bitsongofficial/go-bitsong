@@ -48,7 +48,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--name=\"Kitty Token\" "+
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
-				"--issue-fee=\"1000000\" "+
+				"--issue-fee=\"1000000ubtsg\" "+
 				"--description=\"Kitty Token\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -86,9 +86,12 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			issueFeeAmount, ok := sdk.NewIntFromString(issueFeeStr)
-			if !ok {
+			issueFee, err := sdk.ParseCoinNormalized(issueFeeStr)
+			if err != nil {
 				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
+			}
+			if issueFee.Denom != types.BondDenom {
+				return fmt.Errorf("the issue fee denom should be bond denom")
 			}
 
 			msg := &tokentypes.MsgIssueFanToken{
@@ -97,7 +100,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				MaxSupply:   maxSupply,
 				Description: description,
 				Owner:       owner.String(),
-				IssueFee:    sdk.NewCoin(types.BondDenom, issueFeeAmount),
+				IssueFee:    issueFee,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
