@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {

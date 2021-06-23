@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/bitsongofficial/bitsong/types"
+	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

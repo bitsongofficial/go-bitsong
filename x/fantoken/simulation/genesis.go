@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/bitsongofficial/bitsong/types"
-	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/types"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // Simulation parameter constants

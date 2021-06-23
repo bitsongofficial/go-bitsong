@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // NewHandler handles all "token" type messages.

@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // fee factor formula: (ln(len({name}))/ln{base})^{exp}

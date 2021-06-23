@@ -15,7 +15,7 @@ import (
 
 	gogotypes "github.com/gogo/protobuf/types"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 var _ types.QueryServer = Keeper{}

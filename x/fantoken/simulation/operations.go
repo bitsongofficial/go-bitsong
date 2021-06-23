@@ -12,9 +12,9 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/bitsongofficial/bitsong/types"
-	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
-	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

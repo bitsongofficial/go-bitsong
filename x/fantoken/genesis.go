@@ -3,8 +3,8 @@ package fantoken
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
-	"github.com/bitsongofficial/bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // InitGenesis stores the genesis state

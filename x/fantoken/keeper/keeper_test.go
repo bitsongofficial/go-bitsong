@@ -12,10 +12,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	simapp "github.com/bitsongofficial/bitsong/app"
-	"github.com/bitsongofficial/bitsong/types"
-	"github.com/bitsongofficial/bitsong/x/fantoken/keeper"
-	tokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
