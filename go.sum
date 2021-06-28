@@ -303,6 +303,8 @@ github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0U
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/gravity-devs/liquidity v1.2.8 h1:aUz+9K9ILQZAmin8BjgSTCRrO5o1TSUa5ZE5RSM9z5k=
 github.com/gravity-devs/liquidity v1.2.8/go.mod h1:UHTAT5fAhc/0fEC1WZHE5gLEqz27iKtE5l3YKbr9KRk=
+github.com/gravity-devs/liquidity v1.2.9 h1:s7hUL25q2DutBT9kOfm7GlHbo/sN9J5SAgpEmOnt3AM=
+github.com/gravity-devs/liquidity v1.2.9/go.mod h1:UpfrpdGgeoLcpeJaMej/WuwLW5YyCC5hxEPnJbQOTN8=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.0/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4/go.mod h1:FiyG127CGDf3tlThmgyCl78X/SZQqEOJBCDaAfeWzPs=
 github.com/grpc-ecosystem/go-grpc-middleware v1.2.1/go.mod h1:EaizFBKfUKtMIF5iaDEhniwNedqGo9FuLFzppDr3uwI=
