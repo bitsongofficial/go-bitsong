@@ -5,8 +5,8 @@
 BINARY=bitsongd
 CHAIN_ID=localnet
 CHAIN_DIR=./data
-USER_1_ADDRESS=cosmos1mzgucqnfr2l8cj5apvdpllhzt4zeuh2cshz5xu
-USER_2_ADDRESS=cosmos185fflsvwrz0cx46w6qada7mdy92m6kx4gqx0ny
+USER_1_ADDRESS=bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw
+USER_2_ADDRESS=bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw
 
 # Ensure jq is installed
 if [[ ! -x "$(which jq)" ]]; then

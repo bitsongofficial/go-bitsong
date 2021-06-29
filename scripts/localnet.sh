@@ -18,7 +18,7 @@ if pgrep -x "$BINARY" >/dev/null; then
 fi
 
 # Remove previous data
-rm -rf $CHAIN_DIR/$CHAIN_ID
+# rm -rf $CHAIN_DIR/$CHAIN_ID
 
 # Add directory for chain, exit if error
 if ! mkdir -p $CHAIN_DIR/$CHAIN_ID 2>/dev/null; then
