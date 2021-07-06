@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bitsongofficial/bitsong/types"
+	"github.com/bitsongofficial/chainmodules/types"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"

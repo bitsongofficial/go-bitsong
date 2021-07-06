@@ -9,18 +9,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/spf13/cast"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
-
-	appparams "github.com/bitsongofficial/bitsong/app/params"
-	"github.com/bitsongofficial/bitsong/x/fantoken"
-	fantokenkeeper "github.com/bitsongofficial/bitsong/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/bitsong/x/fantoken/types"
-	"github.com/bitsongofficial/bitsong/x/nft"
-	nftkeeper "github.com/bitsongofficial/bitsong/x/nft/keeper"
-	nfttypes "github.com/bitsongofficial/bitsong/x/nft/types"
+	appTypes "github.com/bitsongofficial/chainmodules/types"
+	"github.com/bitsongofficial/chainmodules/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/chainmodules/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	"github.com/bitsongofficial/chainmodules/x/nft"
+	nftkeeper "github.com/bitsongofficial/chainmodules/x/nft/keeper"
+	nfttypes "github.com/bitsongofficial/chainmodules/x/nft/types"
+	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -28,6 +24,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -86,8 +83,15 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/gravity-devs/liquidity/x/liquidity"
+	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
+	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/tendermint/tendermint/libs/log"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	dbm "github.com/tendermint/tm-db"
 )
 
 const Name = "bitsongd"
@@ -130,6 +134,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
+		liquidity.AppModuleBasic{},
 		nft.AppModuleBasic{},
 	)
 
@@ -141,8 +146,9 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -197,8 +203,9 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper fantokenkeeper.Keeper
-	NFTKeeper      nftkeeper.Keeper
+	FanTokenKeeper  fantokenkeeper.Keeper
+	LiquidityKeeper liquiditykeeper.Keeper
+	NFTKeeper       nftkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -226,7 +233,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		fantokentypes.StoreKey, nfttypes.StoreKey,
+		fantokentypes.StoreKey, liquiditytypes.StoreKey, nfttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -330,6 +337,11 @@ func New(
 		authtypes.FeeCollectorName,
 	)
 
+	app.LiquidityKeeper = liquiditykeeper.NewKeeper(
+		appCodec, keys[liquiditytypes.StoreKey], app.GetSubspace(liquiditytypes.ModuleName),
+		app.BankKeeper, app.AccountKeeper, app.DistrKeeper,
+	)
+
 	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -364,9 +376,10 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		transferModule,
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
+		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
+		transferModule,
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -375,10 +388,10 @@ func New(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
-		evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
+		evidencetypes.ModuleName, stakingtypes.ModuleName, liquiditytypes.ModuleName, ibchost.ModuleName,
 	)
 
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, liquiditytypes.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
@@ -398,9 +411,10 @@ func New(
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
-		ibctransfertypes.ModuleName,
 		fantokentypes.ModuleName,
+		liquiditytypes.ModuleName,
 		nfttypes.ModuleName,
+		ibctransfertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -422,6 +436,27 @@ func New(
 		),
 	)
 	app.SetEndBlocker(app.EndBlocker)
+	app.UpgradeKeeper.SetUpgradeHandler("Gravity-DEX",
+		func(ctx sdk.Context, plan upgradetypes.Plan) {
+			var genState liquiditytypes.GenesisState
+			genState.Params = liquiditytypes.DefaultParams()
+			genState.Params.PoolCreationFee = sdk.NewCoins(sdk.NewCoin(appTypes.BondDenom, sdk.NewInt(1000000000)))
+			app.LiquidityKeeper.InitGenesis(ctx, genState)
+		})
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == "Gravity-DEX" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{liquiditytypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -580,9 +615,10 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
+	paramsKeeper.Subspace(fantokentypes.ModuleName)
+	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
-	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
 	return paramsKeeper
 }
