@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/spf13/cast"
 
-	appTypes "github.com/bitsongofficial/chainmodules/types"
 	"github.com/bitsongofficial/chainmodules/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/chainmodules/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
@@ -436,22 +435,15 @@ func New(
 		),
 	)
 	app.SetEndBlocker(app.EndBlocker)
-	app.UpgradeKeeper.SetUpgradeHandler("Gravity-DEX",
-		func(ctx sdk.Context, plan upgradetypes.Plan) {
-			var genState liquiditytypes.GenesisState
-			genState.Params = liquiditytypes.DefaultParams()
-			genState.Params.PoolCreationFee = sdk.NewCoins(sdk.NewCoin(appTypes.BondDenom, sdk.NewInt(1000000000)))
-			app.LiquidityKeeper.InitGenesis(ctx, genState)
-		})
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == "Gravity-DEX" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == "NFT" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{liquiditytypes.ModuleName},
+			Added: []string{nfttypes.ModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
