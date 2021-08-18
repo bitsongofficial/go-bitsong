@@ -124,6 +124,28 @@ bitsongcli query account $(bitsongcli keys show jack -a)
 bitsongcli query supply total
 ```
 
+# Branch Details
+
+There are several branches in the repo for now.
+
+master = the most stable branch which was released and already running.
+
+develop = the branch which has the latest dev features.
+
+v0.42.x = the branch where only ibc module was enabled on the default cosmos-sdk chain.
+
+module/fantoken = v0.42.x + fantoken module
+
+module/liquidity = module/fantoken + liquidity module
+
+module/nft = module/liquidity + nft module
+
+The reason to have v0.42.x, module/fantoken, module/liquidity, module/nft separately is because we decided to activate every module one by one by governance proposal and we want to build binary easily based on the separated branches.
+
+ex:) Let's assume module/fantoken was activated and now want to activate the module/liquidity
+
+the bitsong binary of module/fantoken is already running now. Using this binary, need to submit chain upgrade proposal with target block. In the target block, if the proposal passes, the chain will be halted. After that, need to get new bitsong binary using module/liquidity and run it.
+
 # Module MPEG21
 
 ## Store MPEG21 MCO Contract
