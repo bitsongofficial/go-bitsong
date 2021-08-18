@@ -14,6 +14,9 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bitsongofficial/chainmodules/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/chainmodules/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -22,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -124,6 +128,7 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
+		fantoken.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -134,6 +139,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 )
@@ -189,6 +195,8 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
+	FanTokenKeeper fantokenkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 
@@ -218,6 +226,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
+		fantokentypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -312,6 +321,15 @@ func New(
 		&stakingKeeper, govRouter,
 	)
 
+	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		app.GetSubspace(fantokentypes.ModuleName),
+		app.BankKeeper,
+		app.ModuleAccountAddrs(),
+		authtypes.FeeCollectorName,
+	)
+
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -344,6 +362,7 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		transferModule,
 	)
 
@@ -376,6 +395,7 @@ func New(
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
+		fantokentypes.ModuleName,
 		ibctransfertypes.ModuleName,
 	)
 
@@ -413,6 +433,20 @@ func New(
 		),
 	)
 	app.SetEndBlocker(app.EndBlocker)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == "fantoken" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{fantokentypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -576,6 +610,7 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
+	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 
