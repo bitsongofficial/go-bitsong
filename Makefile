@@ -65,7 +65,7 @@ ldflags := $(strip $(ldflags))
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 
-all: install tools lint check
+all: install tools lint
 
 # The below include contains the tools.
 include contrib/devtools/Makefile
@@ -80,18 +80,8 @@ endif
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-build-contract-tests-hooks:
-ifeq ($(OS),Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests.exe ./cmd/contract_tests
-else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
-endif
-
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
-
-install-debug: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/gaiadebug
 
 ########################################
 ### Tools & dependencies
@@ -114,8 +104,6 @@ clean:
 
 distclean: clean
 	rm -rf vendor/
-
-proto-all: proto-tools proto-gen
 
 proto-gen:
 	@./scripts/protocgen.sh
@@ -140,57 +128,12 @@ lint: golangci-lint
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./lite/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
 	go mod verify
 
-format:
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./lite/*/statik.go" -not -path "*.pb.go" | xargs gofmt -w -s
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./lite/*/statik.go" -not -path "*.pb.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./lite/*/statik.go" -not -path "*.pb.go" | xargs goimports -w -local github.com/bitsongofficial/chainmodules
-
 benchmark:
 	@go test -mod=readonly -bench=. ./...
-
-###############################################################################
-###                                Localnet                                 ###
-###############################################################################
-
-build-docker-go-bitsong:
-	$(MAKE) -C networks/local
-
-# Run a 4-node testnet locally
-localnet-start: build-linux localnet-stop
-	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/bitsongd:Z bitsongofficial/go-bitsong testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
-	docker-compose up -d
-
-# Stop testnet
-localnet-stop:
-	docker-compose down
-
-setup-contract-tests-data:
-	echo 'Prepare data for the contract tests'
-	rm -rf /tmp/contract_tests ; \
-	mkdir /tmp/contract_tests ; \
-	cp "${GOPATH}/pkg/mod/${SDK_PACK}/client/lcd/swagger-ui/swagger.yaml" /tmp/contract_tests/swagger.yaml ; \
-	./build/bitsongd init --home /tmp/contract_tests/.bitsongd --chain-id lcd contract-tests ; \
-	tar -xzf lcd_test/testdata/state.tar.gz -C /tmp/contract_tests/
-
-start-go-bitsong: setup-contract-tests-data
-	./build/bitsongd --home /tmp/contract_tests/.bitsongd start &
-	@sleep 2s
-
-setup-transactions: start-go-bitsong
-	@bash ./lcd_test/testdata/setup.sh
-
-run-lcd-contract-tests:
-	@echo "Running Go-Bitsong LCD for contract tests"
-	./build/bitsongcli rest-server --laddr tcp://0.0.0.0:8080 --home /tmp/contract_tests/.bitsongcli --node http://localhost:26657 --chain-id lcd --trust-node true
-
-contract-tests: setup-transactions
-	@echo "Running Go-Bitsong LCD for contract tests"
-	dredd && pkill bitsongd
 
 # include simulations
 include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
-	setup-transactions setup-contract-tests-data start-go-bitsong run-lcd-contract-tests contract-tests \
-	test test-all test-build test-cover test-unit test-race
+	test test-all test-cover
