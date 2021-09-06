@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/bitsongofficial/chainmodules v0.0.0-20210705143912-90636d0f2a23
-	github.com/cosmos/cosmos-sdk v0.42.6
+	github.com/cosmos/cosmos-sdk v0.42.9
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cast v1.3.1
