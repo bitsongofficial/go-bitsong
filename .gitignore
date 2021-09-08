@@ -50,3 +50,5 @@ contract_tests/*
 data
 buf-stamp
 
+tmp
+tmp-swagger-gen
