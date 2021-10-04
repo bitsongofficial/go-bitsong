@@ -86,7 +86,7 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
-update-swagger-docs: statik proto-swagger-gen
+update-swagger-docs: statik
 	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
 	@if [ -n "$(git status --porcelain)" ]; then \
         echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
