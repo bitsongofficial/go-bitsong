@@ -7,7 +7,7 @@
   },
   "apis": [
     {
-      "url": "./tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "AuthParams"
@@ -15,7 +15,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "BankParams"
@@ -23,7 +23,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "DistributionParams"
@@ -31,7 +31,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/evidence/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/evidence/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "EvidenceParams"
@@ -39,7 +39,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "GovParams"
@@ -47,7 +47,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/params/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/params/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "Params"
@@ -55,7 +55,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "SlashingParams"
@@ -63,7 +63,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "StakingParams",
@@ -73,7 +73,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/cosmos/upgrade/v1beta1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "UpgradeParams"
@@ -81,7 +81,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "IBCChannelParams"
@@ -89,7 +89,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/ibc/core/client/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "IBCClientParams"
@@ -97,7 +97,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "IBCConnectionParams"
@@ -105,7 +105,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json",
+      "url": "./scripts/tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json",
       "operationIds": {
         "rename": {
           "Params": "IBCTransferParams"
