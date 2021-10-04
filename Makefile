@@ -83,6 +83,15 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
+update-swagger-docs: statik proto-swagger-gen
+	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
+	@if [ -n "$(git status --porcelain)" ]; then \
+        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
+        exit 1;\
+    else \
+    	echo "\033[92mSwagger docs are in sync\033[0m";\
+    fi
+
 ########################################
 ### Tools & dependencies
 
@@ -105,8 +114,13 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
+proto-all: proto-tools proto-gen proto-swagger-gen
+
 proto-gen:
 	@./scripts/protocgen.sh
+
+proto-swagger-gen:
+	@./scripts/protoc-swagger-gen.sh
 
 ########################################
 ### Testing
@@ -125,7 +139,7 @@ test-cover:
 
 lint: golangci-lint
 	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./lite/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./swagger/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
 	go mod verify
 
 benchmark:
