@@ -47,3 +47,5 @@ dependency-graph.png
 *.synctex.gz
 contract_tests/*
 buf-stamp
+
+data
