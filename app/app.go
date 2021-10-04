@@ -86,6 +86,9 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	// unnamed import of statik for swagger UI support
+	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
 
 const Name = "bitsongd"
