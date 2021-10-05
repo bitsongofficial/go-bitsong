@@ -140,6 +140,7 @@ $ %s migrate /path/to/genesis.json --chain-id=bitsong-2 --genesis-time=2021-07-0
 			}
 
 			genesis.InitialHeight = initialHeight
+			genesis.ConsensusParams.Evidence.MaxBytes = 1048576
 
 			// Replace validator keys for testnet
 			replacementKeys, _ := cmd.Flags().GetString(flagTestnetReplaceKeys)
