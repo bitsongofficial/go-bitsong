@@ -3,7 +3,7 @@ module github.com/bitsongofficial/go-bitsong
 go 1.16
 
 require (
-	github.com/bitsongofficial/chainmodules v0.0.0-20211115121652-120622246386
+	github.com/bitsongofficial/chainmodules v0.0.0-20211117175647-3a4401d90123
 	github.com/cosmos/cosmos-sdk v0.42.10
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/gorilla/mux v1.8.0
