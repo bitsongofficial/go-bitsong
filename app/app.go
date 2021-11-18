@@ -160,6 +160,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		auctiontypes.ModuleName:        {},
 	}
 )
 
