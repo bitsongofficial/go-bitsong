@@ -5,7 +5,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/bank/v1beta1/bank.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bitsongofficial/chainmodules/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // FanToken defines a standard for the fungible token

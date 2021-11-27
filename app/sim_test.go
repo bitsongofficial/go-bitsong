@@ -13,8 +13,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	fantokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
-	nfttypes "github.com/bitsongofficial/chainmodules/x/nft/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
@@ -170,9 +169,8 @@ func TestAppImportExport(t *testing.T) {
 		{app.keys[distrtypes.StoreKey], newApp.keys[distrtypes.StoreKey], [][]byte{}},
 		{app.keys[slashingtypes.StoreKey], newApp.keys[slashingtypes.StoreKey], [][]byte{}},
 
-		//check chainmodules
+		//check bitsong modules
 		{app.keys[fantokentypes.StoreKey], newApp.keys[fantokentypes.StoreKey], [][]byte{}},
-		{app.keys[nfttypes.StoreKey], newApp.keys[nfttypes.StoreKey], [][]byte{}},
 	}
 
 	for _, skp := range storeKeysPrefixes {

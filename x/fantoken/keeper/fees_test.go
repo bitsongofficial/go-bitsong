@@ -3,8 +3,8 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/chainmodules/types"
-	tokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/types"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
+	simapp "github.com/bitsongofficial/go-bitsong/types"
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/bitsongofficial/chainmodules/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -38,7 +38,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssuePrice: sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
+		IssuePrice: sdk.NewCoin(simapp.BondDenom, sdk.NewInt(1000000)),
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	tokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // GetTokens returns all existing tokens

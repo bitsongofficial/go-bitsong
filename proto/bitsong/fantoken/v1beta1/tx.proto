@@ -4,7 +4,7 @@ package bitsong.fantoken;
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bitsongofficial/chainmodules/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the oracle Msg service

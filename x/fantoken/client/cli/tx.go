@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	simapp "github.com/bitsongofficial/go-bitsong/types"
 	"strconv"
 	"strings"
 
@@ -13,8 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/chainmodules/types"
-	tokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // NewTxCmd returns the transaction commands for the token module.
@@ -90,7 +90,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
 			}
-			if issueFee.Denom != types.BondDenom {
+			if issueFee.Denom != simapp.BondDenom {
 				return fmt.Errorf("the issue fee denom should be bond denom")
 			}
 

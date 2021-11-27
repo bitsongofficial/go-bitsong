@@ -1,6 +1,9 @@
 package app
 
 import (
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"io"
 	"net/http"
 	"os"
@@ -18,15 +21,6 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/bitsongofficial/chainmodules/x/auction"
-	auctionkeeper "github.com/bitsongofficial/chainmodules/x/auction/keeper"
-	auctiontypes "github.com/bitsongofficial/chainmodules/x/auction/types"
-	"github.com/bitsongofficial/chainmodules/x/fantoken"
-	fantokenkeeper "github.com/bitsongofficial/chainmodules/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/chainmodules/x/fantoken/types"
-	"github.com/bitsongofficial/chainmodules/x/nft"
-	nftkeeper "github.com/bitsongofficial/chainmodules/x/nft/keeper"
-	nfttypes "github.com/bitsongofficial/chainmodules/x/nft/types"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -94,9 +88,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/gravity-devs/liquidity/x/liquidity"
-	liquiditykeeper "github.com/gravity-devs/liquidity/x/liquidity/keeper"
-	liquiditytypes "github.com/gravity-devs/liquidity/x/liquidity/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -144,9 +135,6 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
-		liquidity.AppModuleBasic{},
-		nft.AppModuleBasic{},
-		auction.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -159,8 +147,6 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-		liquiditytypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
-		auctiontypes.ModuleName:        {},
 	}
 )
 
@@ -216,9 +202,6 @@ type Bitsong struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	FanTokenKeeper  fantokenkeeper.Keeper
-	LiquidityKeeper liquiditykeeper.Keeper
-	NFTKeeper       nftkeeper.Keeper
-	AuctionKeeper   auctionkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -249,7 +232,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		fantokentypes.StoreKey, liquiditytypes.StoreKey, nfttypes.StoreKey, auctiontypes.StoreKey,
+		fantokentypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -353,15 +336,6 @@ func New(
 		authtypes.FeeCollectorName,
 	)
 
-	app.LiquidityKeeper = liquiditykeeper.NewKeeper(
-		appCodec, keys[liquiditytypes.StoreKey], app.GetSubspace(liquiditytypes.ModuleName),
-		app.BankKeeper, app.AccountKeeper, app.DistrKeeper,
-	)
-
-	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey])
-
-	app.AuctionKeeper = auctionkeeper.NewKeeper(appCodec, keys[auctiontypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.NFTKeeper)
-
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
@@ -396,9 +370,6 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
-		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
-		auction.NewAppModule(appCodec, app.AuctionKeeper, app.AccountKeeper, app.BankKeeper, app.NFTKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -407,10 +378,10 @@ func New(
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName,
-		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName, liquiditytypes.ModuleName,
+		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
 	)
 
-	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, liquiditytypes.ModuleName)
+	app.mm.SetOrderEndBlockers(crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName)
 
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
@@ -432,9 +403,6 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		fantokentypes.ModuleName,
-		liquiditytypes.ModuleName,
-		nfttypes.ModuleName,
-		auctiontypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -453,8 +421,6 @@ func New(
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
-		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
-		auction.NewAppModule(appCodec, app.AuctionKeeper, app.AccountKeeper, app.BankKeeper, app.NFTKeeper),
 	)
 
 	app.sm.RegisterStoreDecoders()
@@ -656,7 +622,6 @@ func initParamsKeeper(appCodec codec.BinaryMarshaler, legacyAmino *codec.LegacyA
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
-	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 
 	return paramsKeeper
 }

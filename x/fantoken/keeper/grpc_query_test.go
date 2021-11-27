@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 func (suite *KeeperTestSuite) TestGRPCQueryToken() {

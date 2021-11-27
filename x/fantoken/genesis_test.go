@@ -10,9 +10,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	simapp "github.com/bitsongofficial/chainmodules/app"
-	token "github.com/bitsongofficial/chainmodules/x/fantoken"
-	"github.com/bitsongofficial/chainmodules/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/app"
+	token "github.com/bitsongofficial/go-bitsong/x/fantoken"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 

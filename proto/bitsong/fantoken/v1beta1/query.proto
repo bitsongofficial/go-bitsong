@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "bitsong/fantoken/v1beta1/fantoken.proto";
 
-option go_package = "github.com/bitsongofficial/chainmodules/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
 
 // Query creates service with fantoken as RPC
 service Query {
