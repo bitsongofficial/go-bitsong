@@ -1,0 +1,70 @@
+syntax = "proto3";
+package bitsong.fantoken.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/fantoken/v1beta1/fantoken.proto";
+
+option go_package = "github.com/bitsongofficial/chainmodules/x/fantoken/types";
+
+// Query creates service with fantoken as RPC
+service Query {
+    // FanToken returns fantoken with fantoken name
+    rpc FanToken(QueryFanTokenRequest) returns (QueryFanTokenResponse) {
+        option (google.api.http).get = "/bitsong/fantoken/v1beta1/denom/{denom}";
+    }
+    // FanTokens returns the fantoken list
+    rpc FanTokens(QueryFanTokensRequest) returns (QueryFanTokensResponse) {
+        option (google.api.http).get = "/bitsong/fantoken/v1beta1/fantokens";
+    }
+    // Params queries the fantoken parameters
+    rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+        option (google.api.http).get = "/bitsong/fantoken/v1beta1/params";
+    }
+    // TotalBurn queries all the burnt coins
+    rpc TotalBurn(QueryTotalBurnRequest) returns (QueryTotalBurnResponse) {
+        option (google.api.http).get = "/bitsong/fantoken/v1beta1/total_burn";
+    }
+}
+
+// QueryFanTokenRequest is request type for the Query/FanToken RPC method
+message QueryFanTokenRequest {
+    string denom = 1;
+}
+
+// QueryFanTokenResponse is response type for the Query/FanToken RPC method
+message QueryFanTokenResponse {
+    bitsong.fantoken.v1beta1.FanToken token = 1;
+}
+
+// QueryFanTokensRequest is request type for the Query/FanTokens RPC method
+message QueryFanTokensRequest {
+    string owner = 1;
+    // pagination defines an optional pagination for the request.
+    cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryFanTokensResponse is response type for the Query/FanTokens RPC method
+message QueryFanTokensResponse {
+    repeated bitsong.fantoken.v1beta1.FanToken tokens = 1;
+    cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryParametersRequest is request type for the Query/Parameters RPC method
+message QueryParamsRequest {}
+
+// QueryParametersResponse is response type for the Query/Parameters RPC method
+message QueryParamsResponse {
+    bitsong.fantoken.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryTotalBurnRequest is request type for the Query/TotalBurn RPC method
+message QueryTotalBurnRequest {}
+
+// QueryTotalBurnResponse is response type for the Query/TotalBurn RPC method
+message QueryTotalBurnResponse {
+    repeated cosmos.base.v1beta1.Coin burned_coins = 1
+        [ (gogoproto.nullable) = false ];
+}
