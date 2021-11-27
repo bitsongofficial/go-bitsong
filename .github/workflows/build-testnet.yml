@@ -1,0 +1,42 @@
+name: Compile BitSong Testnet
+
+# Controls when the action will run.
+#  This workflow run on pushes to testnet & every Pull Requests. (Or when manually triggered)
+on:
+  pull_request:
+  push:
+    branches:
+      - angelorc/x/fantoken
+  workflow_dispatch:
+
+# This workflow makes x86_64 binaries for mac, windows, and linux.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        targetos: [darwin, linux]
+        include:
+          - targetos: windows
+            arch: amd64
+    name: bitsong ${{ matrix.arch }} for ${{ matrix.targetos }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2.1.3
+        with:
+          go-version: '^1.16'
+        env:
+          GOOS: ${{ matrix.targetos }}
+          GOARCH: ${{ matrix.arch }}
+
+      - name: Compile bitsong
+        run: |
+          go mod download
+          cd cmd/bitsongd
+          go build .
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: bitsongd ${{ matrix.targetos }} ${{ matrix.arch }}
+          path: cmd/bitsongd/bitsongd
