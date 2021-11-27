@@ -92,7 +92,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	// unnamed import of statik for swagger UI support
-	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	_ "github.com/bitsongofficial/go-bitsong/client/docs/statik"
 )
 
 const Name = "bitsongd"
@@ -201,7 +201,7 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper  fantokenkeeper.Keeper
+	FanTokenKeeper fantokenkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager

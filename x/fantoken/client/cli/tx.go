@@ -24,7 +24,7 @@ func NewTxCmd() *cobra.Command {
 		Short:                      "FanToken transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
-		RunE:                       client.ValidateCmd,
+		RunE: client.ValidateCmd,
 	}
 
 	txCmd.AddCommand(

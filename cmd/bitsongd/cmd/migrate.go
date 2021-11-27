@@ -31,14 +31,14 @@ import (
 )
 
 const (
-	flagGenesisTime   = "genesis-time"
-	flagInitialHeight = "initial-height"
+	flagGenesisTime        = "genesis-time"
+	flagInitialHeight      = "initial-height"
 	flagTestnetReplaceKeys = "testnet-replace-cons-keys"
 )
 
 func migrateCmd() *cobra.Command {
 	cmd := cobra.Command{
-		Use: "migrate [genesis-file]",
+		Use:   "migrate [genesis-file]",
 		Short: "Migrate Genesis File from v0.7 to v0.8",
 		Long: fmt.Sprintf(`Migrate the source genesis into the target version and print to STDOUT.
 Example:
@@ -86,8 +86,8 @@ $ %s migrate /path/to/genesis.json --chain-id=bitsong-2 --genesis-time=2021-07-0
 			currentState = migrateFn(currentState, ctx)
 
 			var (
-				bankGenesis banktypes.GenesisState
-				stakingGenesis stakingtypes.GenesisState
+				bankGenesis        banktypes.GenesisState
+				stakingGenesis     stakingtypes.GenesisState
 				ibcTransferGenesis = ibctransfertypes.DefaultGenesisState()
 				ibcGenesis         = ibctypes.DefaultGenesisState()
 				capabilityGenesis  = capabilitytypes.DefaultGenesis()
