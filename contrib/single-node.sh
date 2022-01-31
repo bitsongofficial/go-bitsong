@@ -39,7 +39,7 @@ $BINARY --home $CHAIN_DIR/$CHAIN_ID add-genesis-account $($BINARY --home $CHAIN_
 $BINARY --home $CHAIN_DIR/$CHAIN_ID add-genesis-account $($BINARY --home $CHAIN_DIR/$CHAIN_ID keys show user2 --keyring-backend test -a) $GENESIS_COINS
 
 echo "Creating and collecting gentx..."
-$BINARY --home $CHAIN_DIR/$CHAIN_ID gentx validator 1000000000ubtsg --chain-id $CHAIN_ID --keyring-backend test
+$BINARY --home $CHAIN_DIR/$CHAIN_ID gentx validator 1000000000ubtsg --commission-rate "0.01" --chain-id $CHAIN_ID --keyring-backend test
 $BINARY --home $CHAIN_DIR/$CHAIN_ID collect-gentxs
 
 # Set proper defaults and change ports (MacOS)

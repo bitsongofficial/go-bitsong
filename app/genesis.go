@@ -2,8 +2,8 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/bitsongofficial/go-bitsong/types"
 
-	"github.com/bitsongofficial/chainmodules/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -22,7 +22,7 @@ import (
 type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState(cdc codec.JSONMarshaler) GenesisState {
+func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 	genesis := ModuleBasics.DefaultGenesis(cdc)
 	mintGenesis := mintGenesisState()
 	stakingGenesis := stakingGenesisState()
