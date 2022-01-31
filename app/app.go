@@ -108,6 +108,8 @@ import (
 
 const appName = "BitsongApp"
 const upgradeName = "v010"
+const cassiniMultiSig = "bitsong12r2d9hhnd2ez4kgk63ar8m40vhaje8yaa94h8w"
+const cassiniMintAmount = 9_656_879_130_000
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
@@ -534,11 +536,11 @@ func New(
 
 			// Proposal #6
 			// Mint BTSGs for Cassini-Bridge
-			multisigWallet, err := sdk.AccAddressFromBech32("bitsong1lt292m9d7xq5rtg95p5llr2mqua8d4mx20pa92")
+			multisigWallet, err := sdk.AccAddressFromBech32(cassiniMultiSig)
 			if err != nil {
 				return nil, err
 			}
-			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(9_656_879_130_000)))
+			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(cassiniMintAmount)))
 
 			// mint coins
 			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
