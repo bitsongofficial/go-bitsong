@@ -532,7 +532,10 @@ func New(
 			}
 
 			// Proposal #6
-			multisigWallet := "bitsong1lt292m9d7xq5rtg95p5llr2mqua8d4mx20pa92"
+			multisigWallet, err := sdk.AccAddressFromBech32("bitsong1lt292m9d7xq5rtg95p5llr2mqua8d4mx20pa92")
+			if err != nil {
+				return nil, err
+			}
 			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(1_000_000)))
 
 			// mint coins
@@ -540,7 +543,7 @@ func New(
 				return nil, err
 			}
 
-			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, sdk.AccAddress(multisigWallet), mintCoins); err != nil {
+			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, multisigWallet, mintCoins); err != nil {
 				return nil, err
 			}
 
