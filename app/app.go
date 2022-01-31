@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	btsgtypes "github.com/bitsongofficial/go-bitsong/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -528,6 +529,19 @@ func New(
 
 					app.StakingKeeper.SetValidator(ctx, v)
 				}
+			}
+
+			// Proposal #6
+			multisigWallet := "bitsong1lt292m9d7xq5rtg95p5llr2mqua8d4mx20pa92"
+			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(1_000_000)))
+
+			// mint coins
+			if err := app.BankKeeper.MintCoins(ctx, distrtypes.ModuleName, mintCoins); err != nil {
+				return nil, err
+			}
+
+			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, sdk.AccAddress(multisigWallet), mintCoins); err != nil {
+				return nil, err
 			}
 
 			// RunMigrations twice is just a way to make auth module's migrates after staking
