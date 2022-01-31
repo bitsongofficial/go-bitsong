@@ -536,11 +536,11 @@ func New(
 			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(1_000_000)))
 
 			// mint coins
-			if err := app.BankKeeper.MintCoins(ctx, distrtypes.ModuleName, mintCoins); err != nil {
+			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
 				return nil, err
 			}
 
-			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, sdk.AccAddress(multisigWallet), mintCoins); err != nil {
+			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, sdk.AccAddress(multisigWallet), mintCoins); err != nil {
 				return nil, err
 			}
 
