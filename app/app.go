@@ -510,6 +510,26 @@ func New(
 			// now update auth version back to 1, to make the second RunMigrations includes only auth
 			newVM[authtypes.ModuleName] = 1
 
+			// Proposal #5
+			// force an update of validator min commission
+			validators := app.StakingKeeper.GetAllValidators(ctx)
+			minCommissionRate := sdk.NewDecWithPrec(5, 2)
+			for _, v := range validators {
+				if v.Commission.Rate.LT(minCommissionRate) {
+					if v.Commission.MaxRate.LT(minCommissionRate) {
+						v.Commission.MaxRate = minCommissionRate
+					}
+
+					v.Commission.Rate = minCommissionRate
+					v.Commission.UpdateTime = ctx.BlockHeader().Time
+
+					// call the before-modification hook since we're about to update the commission
+					app.StakingKeeper.BeforeValidatorModified(ctx, v.GetOperator())
+
+					app.StakingKeeper.SetValidator(ctx, v)
+				}
+			}
+
 			// RunMigrations twice is just a way to make auth module's migrates after staking
 			return app.mm.RunMigrations(ctx, app.configurator, newVM)
 		},
@@ -520,7 +540,7 @@ func New(
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if upgradeInfo.Name == upgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == "v010" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
 		}
