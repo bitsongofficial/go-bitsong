@@ -489,6 +489,7 @@ func New(
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
+			// Upgrade from v0.42.x to v0.44.5
 			app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 			fromVM := make(map[string]uint64)
@@ -512,7 +513,7 @@ func New(
 			newVM[authtypes.ModuleName] = 1
 
 			// Proposal #5
-			// force an update of validator min commission
+			// Force an update of validator min commission
 			validators := app.StakingKeeper.GetAllValidators(ctx)
 			minCommissionRate := sdk.NewDecWithPrec(5, 2)
 			for _, v := range validators {
@@ -532,11 +533,12 @@ func New(
 			}
 
 			// Proposal #6
+			// Mint BTSGs for Cassini-Bridge
 			multisigWallet, err := sdk.AccAddressFromBech32("bitsong1lt292m9d7xq5rtg95p5llr2mqua8d4mx20pa92")
 			if err != nil {
 				return nil, err
 			}
-			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(1_000_000)))
+			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(9_656_879_130_000)))
 
 			// mint coins
 			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {

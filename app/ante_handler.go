@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	channelkeeper "github.com/cosmos/ibc-go/v2/modules/core/04-channel/keeper"
 	ibcante "github.com/cosmos/ibc-go/v2/modules/core/ante"
 )
@@ -14,6 +15,42 @@ type HandlerOptions struct {
 	ante.HandlerOptions
 
 	IBCChannelkeeper channelkeeper.Keeper
+}
+
+type MinValCommissionDecorator struct{}
+
+func NewMinValCommissionDecorator() MinValCommissionDecorator {
+	return MinValCommissionDecorator{}
+}
+
+func (MinValCommissionDecorator) AnteHandle(
+	ctx sdk.Context, tx sdk.Tx,
+	simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	msgs := tx.GetMsgs()
+	minCommissionRate := sdk.NewDecWithPrec(5, 2)
+	for _, m := range msgs {
+		switch msg := m.(type) {
+		case *stakingtypes.MsgCreateValidator:
+			// prevent new validators joining the set with
+			// commission set below 5%
+			c := msg.Commission
+			if c.Rate.LT(minCommissionRate) {
+				return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%")
+			}
+		case *stakingtypes.MsgEditValidator:
+			// if commission rate is nil, it means only
+			// other fields are affected - skip
+			if msg.CommissionRate == nil {
+				continue
+			}
+			if msg.CommissionRate.LT(minCommissionRate) {
+				return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%")
+			}
+		default:
+			continue
+		}
+	}
+	return next(ctx, tx, simulate)
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -34,6 +71,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),
+		NewMinValCommissionDecorator(),
 		ante.NewRejectExtensionOptionsDecorator(),
 		ante.NewMempoolFeeDecorator(),
 		ante.NewValidateBasicDecorator(),
