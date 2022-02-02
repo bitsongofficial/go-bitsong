@@ -1,0 +1,39 @@
+syntax = "proto3";
+package bitsong.fantoken.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// FanToken defines a standard for the fungible token
+message FanToken {
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string name = 1;
+  string max_supply = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"max_supply\"",
+    (gogoproto.nullable) = false
+  ];
+  bool mintable = 3;
+  string owner = 4;
+  cosmos.bank.v1beta1.Metadata meta_data = 5 [
+    (gogoproto.moretags) = "yaml:\"meta_data\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// Params defines fantoken module's parameters
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin issue_price = 1 [
+    (gogoproto.moretags) = "yaml:\"issue_price\"",
+    (gogoproto.nullable) = false
+  ];
+}
