@@ -3,11 +3,11 @@ name: Compile bitsong
 # Controls when the action will run.
 #  This workflow runr on pushes to master & every Pull Requests. (Or when manually triggered)
 on:
-  pull_request:
   push:
-    branches:
-      - fixs
-  workflow_dispatch:
+    #branches:
+    #  - "fixs"
+    tags:
+      - "test-v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   goreleaser:
