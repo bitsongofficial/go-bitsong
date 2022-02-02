@@ -27,6 +27,3 @@ release:
 archives:
   - format: binary
   - name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-# - files:
-#    - LICENSE
-#    - README.md
