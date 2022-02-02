@@ -107,7 +107,7 @@ import (
 	"github.com/strangelove-ventures/packet-forward-middleware/router"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	// unnamed import of statik for swagger UI support
-	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	_ "github.com/bitsongofficial/go-bitsong/client/docs/statik"
 )
 
 const appName = "BitsongApp"
@@ -737,7 +737,8 @@ func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
 	}
 
 	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
+	rtr.PathPrefix("/swagger/").Handler(staticServer)
 }
 
 // GetMaccPerms returns a copy of the module account permissions

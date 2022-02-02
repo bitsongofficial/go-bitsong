@@ -18660,7 +18660,7 @@
             sigmaf: "ς",
             sigmav: "ς",
             sim: "∼",
-            irisot: "⩪",
+            simdot: "⩪",
             sime: "≃",
             simeq: "≃",
             simg: "⪞",

@@ -11,6 +11,7 @@
 # Build
 vendor
 build
+**/*/node_modules
 tools/bin/*
 examples/build/*
 docs/_build
