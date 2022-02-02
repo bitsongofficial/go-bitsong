@@ -9,33 +9,33 @@ on:
       - fixs
   workflow_dispatch:
 
-# This workflow makes x86_64 binaries for mac, windows, and linux.
 jobs:
-  build:
+  goreleaser:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-        targetos: [darwin, linux]
-        include:
-          - targetos: windows
-            arch: amd64
-    name: bitsong ${{ matrix.arch }} for ${{ matrix.targetos }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2.1.4
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
         with:
-          go-version: '^1.17'
-        env:
-          GOOS: ${{ matrix.targetos }}
-          GOARCH: ${{ matrix.arch }}
+          fetch-depth: 0
 
-      - name: Compile bitsong
-        run: |
-          go mod download
-          cd cmd/bitsongd
-          go build .
-      - uses: actions/upload-artifact@v2
+      - uses: actions/setup-go@v2
         with:
-          name: bitsongd ${{ matrix.targetos }} ${{ matrix.arch }}
-          path: cmd/bitsongd/bitsongd
+          go-version: '1.17'
+
+      - run: echo ":rocket::rocket::rocket:" > ../release_notes.md
+        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Build
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: build --skip-validate   # skip validate skips initial sanity checks in order to be able to fully run
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          version: latest
+          args: release --rm-dist --release-notes=../release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

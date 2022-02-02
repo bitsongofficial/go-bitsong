@@ -1,27 +1,30 @@
----
-project_name: go-bitsong
+project_name: bitsongd
 
-release:
-  github:
-    owner: bitsongofficial
-    name: go-bitsong
+env:
+  # Require use of Go modules.
+  - GO111MODULE=on
 
 builds:
-  - skip: true
+  - id: "bitsongd"
+    main: ./cmd/bitsongd/main.go
+    ldflags:
+      - -X github.com/cosmos/cosmos-sdk/version.Name=go-bitsong -X github.com/cosmos/cosmos-sdk/version.AppName=bitsongd -X github.com/cosmos/cosmos-sdk/version.Version={{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+checksum:
+  name_template: SHA256SUMS-{{.Version}}.txt
+  algorithm: sha256
+
+release:
+  name_template: "Release {{.Version}}"
 
 archives:
-  - format: tar.gz
-    wrap_in_directory: true
-    format_overrides:
-      - goos: windows
-        format: zip
-    name_template: "{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    files:
+  - files:
       - LICENSE
       - README.md
-
-snapshot:
-  name_template: SNAPSHOT-{{ .Commit }}
-
-changelog:
-  skip: true
