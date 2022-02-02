@@ -18,13 +18,15 @@ builds:
       - arm64
 
 checksum:
-  name_template: SHA256SUMS-{{.Version}}.txt
+  name_template: SHA256SUMS-v{{.Version}}.txt
   algorithm: sha256
 
 release:
-  name_template: "Release {{.Version}}"
+  name_template: "BitSong v{{.Version}}"
 
 archives:
-  - files:
-      - LICENSE
-      - README.md
+  - format: binary
+  - name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+# - files:
+#    - LICENSE
+#    - README.md
