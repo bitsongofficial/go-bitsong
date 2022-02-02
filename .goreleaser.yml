@@ -26,6 +26,8 @@ release:
 
 archives:
   - format: binary
-  - name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
-  - files:
-    - none*
+    name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    replacements:
+      amd64: x86_64
+    files:
+      - none*
