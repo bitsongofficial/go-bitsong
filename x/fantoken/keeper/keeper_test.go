@@ -36,7 +36,7 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
 	bk          bankkeeper.Keeper
-	app         *simapp.BitsongApp
+	app         *simapp.Bitsong
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
