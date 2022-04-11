@@ -50,3 +50,101 @@ func (suite *KeeperTestSuite) TestMsgIssueFanToken() {
 	endBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom)
 	suite.Equal(beginBondDenomAmt.Sub(endBondDenomAmt).Amount, sdk.NewInt(1000000))
 }
+
+func (suite *KeeperTestSuite) TestMsgEditFanToken() {
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
+	suite.setFanToken(token)
+
+	denom := "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b"
+	mintable := false
+
+	msgServer := keeper.NewMsgServerImpl(suite.keeper)
+	_, err := msgServer.EditFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgEditFanToken(denom, mintable, owner.String()))
+	suite.NoError(err)
+
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	suite.NoError(err)
+
+	expToken := tokentypes.FanToken{
+		Name:      "Bitcoin Network",
+		MaxSupply: sdk.ZeroInt(),
+		Mintable:  false,
+		Owner:     owner.String(),
+		MetaData:  denomMetaData,
+	}
+
+	suite.EqualValues(newToken.(*tokentypes.FanToken), &expToken)
+}
+
+func (suite *KeeperTestSuite) TestMsgMintFanToken() {
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	suite.issueFanToken(token)
+
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("0ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
+
+	mintAmount := sdk.NewInt(1000)
+	recipient := sdk.AccAddress{}
+
+	msgServer := keeper.NewMsgServerImpl(suite.keeper)
+	_, err := msgServer.MintFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgMintFanToken(recipient.String(), token.GetDenom(), token.GetOwner().String(), mintAmount))
+	suite.NoError(err)
+
+	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("1000ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
+
+	// mint token without owner
+
+	err = suite.keeper.MintFanToken(suite.ctx, owner, token.GetDenom(), mintAmount, sdk.AccAddress{})
+	suite.Error(err, "can not mint token without owner when the owner exists")
+}
+
+func (suite *KeeperTestSuite) TestMsgBurnFanToken() {
+	denomMetaData := banktypes.Metadata{
+		Description: "test",
+		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
+		Display:     "btc",
+		DenomUnits: []*banktypes.DenomUnit{
+			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
+			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
+		},
+	}
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	suite.issueFanToken(token)
+
+	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("0ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
+
+	mintAmount := sdk.NewInt(1000)
+	recipient := sdk.AccAddress{}
+
+	msgServer := keeper.NewMsgServerImpl(suite.keeper)
+	_, err := msgServer.MintFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgMintFanToken(recipient.String(), token.GetDenom(), token.GetOwner().String(), mintAmount))
+	suite.NoError(err)
+
+	burnedAmount := sdk.NewInt(200)
+
+	_, err = msgServer.BurnFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgBurnFanToken(token.GetDenom(), token.GetOwner().String(), burnedAmount))
+	suite.NoError(err)
+
+	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
+	suite.Equal("800ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
+}
