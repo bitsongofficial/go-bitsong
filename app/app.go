@@ -2,9 +2,16 @@ package app
 
 import (
 	"fmt"
+
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+
+	"io"
+	stdlog "log"
+	"net/http"
+	"os"
+	"path/filepath"
 
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -19,11 +26,6 @@ import (
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
-	"io"
-	stdlog "log"
-	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -93,12 +95,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ica "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts"
-	icacontrollertypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v3/modules/apps/27-interchain-accounts/types"
 	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
@@ -110,6 +106,7 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -211,7 +208,6 @@ type Bitsong struct {
 	UpgradeKeeper    upgradekeeper.Keeper
 	ParamsKeeper     paramskeeper.Keeper
 	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	ICAHostKeeper    icahostkeeper.Keeper
 	EvidenceKeeper   evidencekeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
@@ -282,7 +278,6 @@ func New(
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	scopedICAHostKeeper := app.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
@@ -366,25 +361,12 @@ func New(
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
-	app.ICAHostKeeper = icahostkeeper.NewKeeper(
-		appCodec, keys[icahosttypes.StoreKey],
-		app.GetSubspace(icahosttypes.SubModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		scopedICAHostKeeper,
-		app.MsgServiceRouter(),
-	)
-	icaModule := ica.NewAppModule(nil, &app.ICAHostKeeper)
-	icaHostIBCModule := icahost.NewIBCModule(app.ICAHostKeeper)
-
 	app.RouterKeeper = routerkeeper.NewKeeper(appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper)
 
 	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -535,49 +517,6 @@ func New(
 	app.UpgradeKeeper.SetUpgradeHandler(
 		upgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
-			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
-			// create ICS27 Controller submodule params
-			controllerParams := icacontrollertypes.Params{}
-			// create ICS27 Host submodule params
-			hostParams := icahosttypes.Params{
-				HostEnabled: true,
-				AllowMessages: []string{
-					authzMsgExec,
-					authzMsgGrant,
-					authzMsgRevoke,
-					bankMsgSend,
-					bankMsgMultiSend,
-					distrMsgSetWithdrawAddr,
-					distrMsgWithdrawValidatorCommission,
-					distrMsgFundCommunityPool,
-					distrMsgWithdrawDelegatorReward,
-					feegrantMsgGrantAllowance,
-					feegrantMsgRevokeAllowance,
-					govMsgVoteWeighted,
-					govMsgSubmitProposal,
-					govMsgDeposit,
-					govMsgVote,
-					stakingMsgEditValidator,
-					stakingMsgDelegate,
-					stakingMsgUndelegate,
-					stakingMsgBeginRedelegate,
-					stakingMsgCreateValidator,
-					vestingMsgCreateVestingAccount,
-					transferMsgTransfer,
-					liquidityMsgCreatePool,
-					liquidityMsgSwapWithinBatch,
-					liquidityMsgDepositWithinBatch,
-					liquidityMsgWithdrawWithinBatch,
-				},
-			}
-
-			ctx.Logger().Info("start to init interchainaccount module...")
-			// initialize ICS27 module
-			icaModule.InitModule(ctx, controllerParams, hostParams)
-
-			ctx.Logger().Info("start to run module migrations...")
-
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
