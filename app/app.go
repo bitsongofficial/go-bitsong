@@ -59,6 +59,7 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -425,10 +426,18 @@ func New(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
 		routertypes.ModuleName,
+		genutiltypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
+		feegrant.ModuleName, authtypes.ModuleName, banktypes.ModuleName,
+		govtypes.ModuleName, crisistypes.ModuleName,
+		authz.ModuleName, paramstypes.ModuleName,
+		ibctransfertypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, feegrant.ModuleName, authz.ModuleName,
+		distrtypes.ModuleName, upgradetypes.ModuleName, evidencetypes.ModuleName, genutiltypes.ModuleName, banktypes.ModuleName,
+		minttypes.ModuleName, slashingtypes.ModuleName, fantokentypes.ModuleName, ibchost.ModuleName, paramstypes.ModuleName,
+		capabilitytypes.ModuleName, ibctransfertypes.ModuleName, routertypes.ModuleName, authtypes.ModuleName, vestingtypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -454,6 +463,9 @@ func New(
 		feegrant.ModuleName,
 		authz.ModuleName,
 		routertypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+		paramstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
