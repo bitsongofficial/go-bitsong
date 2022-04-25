@@ -1,0 +1,87 @@
+syntax = "proto3";
+package bitsong.nft.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+
+message Data {
+  /// The name of the asset
+  string name = 1;
+  /// The symbol for the asset
+  string symbol = 2;
+  /// URI pointing to JSON representing the asset
+  string uri = 3;
+  /// Royalty basis points that goes to creators in secondary sales (0-10000)
+  uint32 seller_fee_basis_points = 4;
+  /// Array of creators, optional
+  repeated Creator creators = 5;
+}
+
+message Metadata {
+  uint64 id = 1;
+  string update_authority = 2;
+  string mint = 3;
+  Data data = 4;
+  // Immutable, once flipped, all sales of this metadata are considered
+  // secondary.
+  bool primary_sale_happened = 5;
+  // Whether or not the data struct is mutable, default is not
+  bool is_mutable = 6;
+}
+
+message Collection {
+  uint64 id = 1;
+  string name = 2;
+  string uri = 3;
+  string update_authority = 4;
+}
+
+message CollectionRecord {
+  uint64 nft_id = 1;
+  uint64 collection_id = 2;
+}
+
+message Creator {
+  string address = 1;
+  bool verified = 2;
+  // In percentages, NOT basis points ;) Watch out!
+  uint32 share = 3;
+}
+
+message NFT {
+  uint64 id = 1;
+  string owner = 2;
+  uint64 metadata_id = 3;
+}
+
+// message MasterEdition {
+//   uint64 supply = 1;
+//   uint64 max_supply = 2;
+// }
+
+// /// All Editions should never have a supply greater than 1.
+// /// To enforce this, a transfer mint authority instruction will happen when
+// /// a normal token is turned into an Edition, and in order for a Metadata update
+// /// authority to do this transaction they will also need to sign the transaction
+// /// as the Mint authority.
+// message Edition {
+//   /// Points at MasterEdition struct
+//   string parent = 1;
+
+//   /// Starting at 0 for master record, this is incremented for each edition
+//   /// minted.
+//   uint64 edition = 2;
+// }
+
+// Params defines nft module's parameters
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin issue_price = 1 [
+    (gogoproto.moretags) = "yaml:\"issue_price\"",
+    (gogoproto.nullable) = false
+  ];
+}

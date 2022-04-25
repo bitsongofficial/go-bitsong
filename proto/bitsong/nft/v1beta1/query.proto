@@ -1,0 +1,52 @@
+syntax = "proto3";
+package bitsong.nft.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+
+// Query creates service with nft as RPC
+service Query {
+  // NFTInfo returns NFT information
+  rpc NFTInfo(QueryNFTInfoRequest) returns (QueryNFTInfoResponse) {
+    option (google.api.http).get = "/bitsong/nft/v1beta1/nft_info/{id}";
+  }
+  // Metadata returns Metadata
+  rpc Metadata(QueryMetadataRequest) returns (QueryMetadataResponse) {
+    option (google.api.http).get = "/bitsong/nft/v1beta1/metadata/{id}";
+  }
+  // Collection returns collection information
+  rpc Collection(QueryCollectionRequest) returns (QueryCollectionResponse) {
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collection/{id}";
+  }
+}
+
+// QueryNFTInfoRequest is request type for the nft
+message QueryNFTInfoRequest { string id = 1; }
+
+// QueryNFTInfoResponse is response type for the Query/NFTInfo RPC method
+message QueryNFTInfoResponse {
+  bitsong.nft.v1beta1.NFT nft = 1 [ (gogoproto.nullable) = false ];
+  bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
+}
+
+// QueryMetadataRequest is request type for the metadata
+message QueryMetadataRequest { string id = 1; }
+
+// QueryMetadataResponse is response type for the Query/Metadata RPC method
+message QueryMetadataResponse {
+  bitsong.nft.v1beta1.Metadata metadata = 1 [ (gogoproto.nullable) = false ];
+}
+
+// QueryCollectionRequest is request type for the collection
+message QueryCollectionRequest { string id = 1; }
+
+// QueryCollectionResponse is response type for the Query/Collection RPC method
+message QueryCollectionResponse {
+  bitsong.nft.v1beta1.Collection collection = 1 [ (gogoproto.nullable) = false ];
+  repeated uint64 nft_ids = 2;
+}

@@ -1,0 +1,22 @@
+syntax = "proto3";
+package bitsong.nft.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the nft module's genesis state
+message GenesisState {
+  bitsong.nft.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+  repeated bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
+  uint64 last_metadata_id = 3;
+  repeated bitsong.nft.v1beta1.NFT nfts = 4 [ (gogoproto.nullable) = false ];
+  uint64 last_nft_id = 5;
+  repeated bitsong.nft.v1beta1.Collection collections = 6 [ (gogoproto.nullable) = false ];
+  uint64 last_collection_id = 7;
+  repeated bitsong.nft.v1beta1.CollectionRecord collection_records = 8 [ (gogoproto.nullable) = false ];
+}

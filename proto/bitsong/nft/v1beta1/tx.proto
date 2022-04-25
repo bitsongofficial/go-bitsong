@@ -1,0 +1,82 @@
+syntax = "proto3";
+package bitsong.nft;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the Msg service
+service Msg {
+  rpc CreateNFT(MsgCreateNFT) returns (MsgCreateNFTResponse);
+  rpc TransferNFT(MsgTransferNFT) returns (MsgTransferNFTResponse);
+
+  rpc SignMetadata(MsgSignMetadata) returns (MsgSignMetadataResponse);
+  rpc UpdateMetadata(MsgUpdateMetadata) returns (MsgUpdateMetadataResponse);
+  rpc UpdateMetadataAuthority(MsgUpdateMetadataAuthority) returns (MsgUpdateMetadataAuthorityResponse);
+
+  rpc CreateCollection(MsgCreateCollection) returns (MsgCreateCollectionResponse);
+  rpc VerifyCollection(MsgVerifyCollection) returns (MsgVerifyCollectionResponse);
+  rpc UpdateCollectionAuthority(MsgUpdateCollectionAuthority) returns (MsgUpdateCollectionAuthorityResponse);
+}
+
+message MsgCreateNFT {
+  string sender = 1;
+  bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
+}
+message MsgCreateNFTResponse {
+  uint64 id = 1;
+  uint64 metadata_id = 2;
+}
+
+message MsgTransferNFT {
+  string sender = 1;
+  uint64 id = 2;
+}
+message MsgTransferNFTResponse {}
+
+message MsgSignMetadata {
+    string sender = 1;
+    uint64 metadata_id = 2;
+}
+message MsgSignMetadataResponse {}
+
+message MsgUpdateMetadata {
+  string sender = 1;
+  bitsong.nft.v1beta1.Data data = 2;
+  // Immutable, once flipped, all sales of this metadata are considered
+  // secondary.
+  bool primary_sale_happened = 3;
+}
+message MsgUpdateMetadataResponse {}
+
+message MsgUpdateMetadataAuthority {
+  string sender = 1;
+  string new_authority = 2;
+}
+message MsgUpdateMetadataAuthorityResponse {}
+
+message MsgCreateCollection {
+  string sender = 1;
+  string name = 2;
+  string uri = 3;
+  string update_authority = 4;
+}
+message MsgCreateCollectionResponse {
+    uint64 id = 1;
+}
+
+message MsgVerifyCollection {
+  string sender = 1;
+  uint64 collection_id = 2;
+  uint64 nft_id = 3;
+}
+message MsgVerifyCollectionResponse {}
+
+message MsgUpdateCollectionAuthority {
+  string sender = 1;
+  string new_authority = 2;
+}
+message MsgUpdateCollectionAuthorityResponse {}
