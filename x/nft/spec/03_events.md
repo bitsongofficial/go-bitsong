@@ -16,6 +16,6 @@ The nft module emits the following events:
 
 ## MsgVerifyCollection
 
-## MsgUpdateCollectionAuthority
+## MsgUnverifyCollection
 
-## MsgCreateCollection
+## MsgUpdateCollectionAuthority

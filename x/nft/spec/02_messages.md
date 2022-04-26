@@ -14,6 +14,6 @@
 
 ## MsgVerifyCollection
 
-## MsgUpdateCollectionAuthority
+## MsgUnverifyCollection
 
-## MsgCreateCollection
+## MsgUpdateCollectionAuthority

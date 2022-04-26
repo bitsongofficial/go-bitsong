@@ -19,6 +19,7 @@ service Msg {
 
   rpc CreateCollection(MsgCreateCollection) returns (MsgCreateCollectionResponse);
   rpc VerifyCollection(MsgVerifyCollection) returns (MsgVerifyCollectionResponse);
+  rpc UnverifyCollection(MsgUnverifyCollection) returns (MsgUnverifyCollectionResponse);
   rpc UpdateCollectionAuthority(MsgUpdateCollectionAuthority) returns (MsgUpdateCollectionAuthorityResponse);
 }
 
@@ -74,6 +75,13 @@ message MsgVerifyCollection {
   uint64 nft_id = 3;
 }
 message MsgVerifyCollectionResponse {}
+
+message MsgUnverifyCollection {
+  string sender = 1;
+  uint64 collection_id = 2;
+  uint64 nft_id = 3;
+}
+message MsgUnverifyCollectionResponse {}
 
 message MsgUpdateCollectionAuthority {
   string sender = 1;
