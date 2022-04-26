@@ -30,7 +30,7 @@ func NewParams(issuePrice sdk.Coin) Params {
 	}
 }
 
-// ParamKeyTable returns the TypeTable for the token module
+// ParamKeyTable returns the TypeTable for the module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
