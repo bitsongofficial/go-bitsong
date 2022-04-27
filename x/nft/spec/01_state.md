@@ -13,6 +13,8 @@ message NFT {
 ```
 
 - NFT: `0x01 | format(id) -> NFT`
+- NFT by Owner: `0x02 | owner | format(id) -> nft_id`
+- LastNftId `0x06 -> id`
 
 ## Metadata
 
@@ -52,7 +54,8 @@ message Creator {
 }
 ```
 
-- Metadata: `0x02 | format(id) -> Metadata`
+- Metadata: `0x03 | format(id) -> Metadata`
+- LastMetadataId `0x07 -> id`
 
 ## Collection
 
@@ -68,7 +71,8 @@ message Collection {
 }
 ```
 
-- Collection: `0x03 | format(id) -> Collection`
+- Collection: `0x04 | format(id) -> Collection`
+- LastCollectionId `0x08 -> id`
 
 ```protobuf
 message CollectionRecord {
@@ -77,7 +81,7 @@ message CollectionRecord {
 }
 ```
 
-- CollectionRecord: `0x04 | format(collection_id) | format(nft_id) -> CollectionRecord`
+- CollectionRecord: `0x05 | format(collection_id) | format(nft_id) -> CollectionRecord`
 
 ## Params
 
