@@ -85,3 +85,56 @@ message Params {
     (gogoproto.nullable) = false
   ];
 }
+
+message EventMetadataCreation {
+  string creator = 1;
+  Metadata metadata = 2;
+}
+
+message EventNFTCreation {
+  string creator = 1;
+  NFT nft = 2;
+}
+
+message EventNFTTransfer {
+  uint64 nft_id = 1;
+  string sender = 2;
+  string receiver = 3;
+}
+
+message EventMetadataSign {
+  string signer = 1;
+  uint64 metadata_id = 2;
+}
+
+message EventMetadataUpdate {
+  string updater = 1;
+  Metadata new_metadata = 2;
+}
+
+message EventMetadataAuthorityUpdate {
+  string metadata_id = 1;
+  string new_authority = 2;
+}
+
+message EventCollectionCreation {
+  string creator = 1;
+  Collection collection = 2;
+}
+
+message EventCollectionVerification {
+  string verifier = 1;
+  uint64 collection_id = 2;
+  uint64 nft_id = 3;
+}
+
+message EventCollectionUnverification {
+  string verifier = 1;
+  uint64 collection_id = 2;
+  uint64 nft_id = 3;
+}
+
+message EventUpdateCollectionAuthority {
+  uint64 collection_id = 1;
+  string new_authority = 2;
+}

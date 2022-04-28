@@ -19,10 +19,19 @@ func (k Keeper) NFTInfo(c context.Context, req *types.QueryNFTInfoRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
 
-	// TODO: implement!
-	return &types.QueryNFTInfoResponse{}, nil
+	nft, err := k.GetNFTById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	metadata, err := k.GetMetadataById(ctx, nft.MetadataId)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryNFTInfoResponse{
+		Nft:      nft,
+		Metadata: metadata,
+	}, nil
 }
 
 func (k Keeper) Metadata(c context.Context, req *types.QueryMetadataRequest) (*types.QueryMetadataResponse, error) {
@@ -31,10 +40,14 @@ func (k Keeper) Metadata(c context.Context, req *types.QueryMetadataRequest) (*t
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
 
-	// TODO: implement!
-	return &types.QueryMetadataResponse{}, nil
+	metadata, err := k.GetMetadataById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryMetadataResponse{
+		Metadata: metadata,
+	}, nil
 }
 
 func (k Keeper) Collection(c context.Context, req *types.QueryCollectionRequest) (*types.QueryCollectionResponse, error) {
@@ -43,8 +56,15 @@ func (k Keeper) Collection(c context.Context, req *types.QueryCollectionRequest)
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
 
-	// TODO: implement!
-	return &types.QueryCollectionResponse{}, nil
+	collection, err := k.GetCollectionById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	nftIds := k.GetCollectionNftRecords(ctx, req.Id)
+	return &types.QueryCollectionResponse{
+		Collection: collection,
+		NftIds:     nftIds,
+	}, nil
 }

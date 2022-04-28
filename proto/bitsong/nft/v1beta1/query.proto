@@ -26,7 +26,7 @@ service Query {
 }
 
 // QueryNFTInfoRequest is request type for the nft
-message QueryNFTInfoRequest { string id = 1; }
+message QueryNFTInfoRequest { uint64 id = 1; }
 
 // QueryNFTInfoResponse is response type for the Query/NFTInfo RPC method
 message QueryNFTInfoResponse {
@@ -35,7 +35,7 @@ message QueryNFTInfoResponse {
 }
 
 // QueryMetadataRequest is request type for the metadata
-message QueryMetadataRequest { string id = 1; }
+message QueryMetadataRequest { uint64 id = 1; }
 
 // QueryMetadataResponse is response type for the Query/Metadata RPC method
 message QueryMetadataResponse {
@@ -43,7 +43,7 @@ message QueryMetadataResponse {
 }
 
 // QueryCollectionRequest is request type for the collection
-message QueryCollectionRequest { string id = 1; }
+message QueryCollectionRequest { uint64 id = 1; }
 
 // QueryCollectionResponse is response type for the Query/Collection RPC method
 message QueryCollectionResponse {

@@ -35,6 +35,7 @@ message MsgCreateNFTResponse {
 message MsgTransferNFT {
   string sender = 1;
   uint64 id = 2;
+  string new_owner = 3;
 }
 message MsgTransferNFTResponse {}
 
@@ -46,16 +47,18 @@ message MsgSignMetadataResponse {}
 
 message MsgUpdateMetadata {
   string sender = 1;
-  bitsong.nft.v1beta1.Data data = 2;
+  uint64 metadata_id = 2;
+  bitsong.nft.v1beta1.Data data = 3;
   // Immutable, once flipped, all sales of this metadata are considered
   // secondary.
-  bool primary_sale_happened = 3;
+  bool primary_sale_happened = 4;
 }
 message MsgUpdateMetadataResponse {}
 
 message MsgUpdateMetadataAuthority {
   string sender = 1;
-  string new_authority = 2;
+  uint64 metadata_id = 2;
+  string new_authority = 3;
 }
 message MsgUpdateMetadataAuthorityResponse {}
 
@@ -85,6 +88,7 @@ message MsgUnverifyCollectionResponse {}
 
 message MsgUpdateCollectionAuthority {
   string sender = 1;
-  string new_authority = 2;
+  uint64 collection_id = 2;
+  string new_authority = 3;
 }
 message MsgUpdateCollectionAuthorityResponse {}
