@@ -65,8 +65,12 @@ func (msg MsgCreateNFT) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgTransferNFT{}
 
-func NewMsgTransferNFT() *MsgTransferNFT {
-	return &MsgTransferNFT{}
+func NewMsgTransferNFT(sender sdk.AccAddress, nftId uint64, newOwner string) *MsgTransferNFT {
+	return &MsgTransferNFT{
+		Sender:   sender.String(),
+		Id:       nftId,
+		NewOwner: newOwner,
+	}
 }
 
 func (msg MsgTransferNFT) Route() string { return RouterKey }
@@ -102,8 +106,11 @@ func (msg MsgTransferNFT) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgSignMetadata{}
 
-func NewMsgSignMetadata() *MsgSignMetadata {
-	return &MsgSignMetadata{}
+func NewMsgSignMetadata(sender sdk.AccAddress, metadataId uint64) *MsgSignMetadata {
+	return &MsgSignMetadata{
+		Sender:     sender.String(),
+		MetadataId: metadataId,
+	}
 }
 
 func (msg MsgSignMetadata) Route() string { return RouterKey }
@@ -139,8 +146,13 @@ func (msg MsgSignMetadata) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMetadata{}
 
-func NewMsgUpdateMetadata() *MsgUpdateMetadata {
-	return &MsgUpdateMetadata{}
+func NewMsgUpdateMetadata(sender sdk.AccAddress, metadataId uint64, presaleHappened bool, data *Data) *MsgUpdateMetadata {
+	return &MsgUpdateMetadata{
+		Sender:              sender.String(),
+		MetadataId:          metadataId,
+		PrimarySaleHappened: presaleHappened,
+		Data:                data,
+	}
 }
 
 func (msg MsgUpdateMetadata) Route() string { return RouterKey }
@@ -176,8 +188,12 @@ func (msg MsgUpdateMetadata) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMetadataAuthority{}
 
-func NewMsgUpdateMetadataAuthority() *MsgUpdateMetadataAuthority {
-	return &MsgUpdateMetadataAuthority{}
+func NewMsgUpdateMetadataAuthority(sender sdk.AccAddress, metadataId uint64, newAuthority string) *MsgUpdateMetadataAuthority {
+	return &MsgUpdateMetadataAuthority{
+		Sender:       sender.String(),
+		MetadataId:   metadataId,
+		NewAuthority: newAuthority,
+	}
 }
 
 func (msg MsgUpdateMetadataAuthority) Route() string { return RouterKey }
@@ -213,8 +229,13 @@ func (msg MsgUpdateMetadataAuthority) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgCreateCollection{}
 
-func NewMsgCreateCollection() *MsgCreateCollection {
-	return &MsgCreateCollection{}
+func NewMsgCreateCollection(sender sdk.AccAddress, name, uri, updateAuthority string) *MsgCreateCollection {
+	return &MsgCreateCollection{
+		Sender:          sender.String(),
+		Name:            name,
+		Uri:             uri,
+		UpdateAuthority: updateAuthority,
+	}
 }
 
 func (msg MsgCreateCollection) Route() string { return RouterKey }
@@ -250,8 +271,12 @@ func (msg MsgCreateCollection) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgVerifyCollection{}
 
-func NewMsgVerifyCollection() *MsgVerifyCollection {
-	return &MsgVerifyCollection{}
+func NewMsgVerifyCollection(sender sdk.AccAddress, collectionId, nftId uint64) *MsgVerifyCollection {
+	return &MsgVerifyCollection{
+		Sender:       sender.String(),
+		CollectionId: collectionId,
+		NftId:        nftId,
+	}
 }
 
 func (msg MsgVerifyCollection) Route() string { return RouterKey }
@@ -287,8 +312,12 @@ func (msg MsgVerifyCollection) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUnverifyCollection{}
 
-func NewMsgUnverifyCollection() *MsgUnverifyCollection {
-	return &MsgUnverifyCollection{}
+func NewMsgUnverifyCollection(sender sdk.AccAddress, collectionId, nftId uint64) *MsgUnverifyCollection {
+	return &MsgUnverifyCollection{
+		Sender:       sender.String(),
+		CollectionId: collectionId,
+		NftId:        nftId,
+	}
 }
 
 func (msg MsgUnverifyCollection) Route() string { return RouterKey }
@@ -324,8 +353,12 @@ func (msg MsgUnverifyCollection) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateCollectionAuthority{}
 
-func NewMsgUpdateCollectionAuthority() *MsgUpdateCollectionAuthority {
-	return &MsgUpdateCollectionAuthority{}
+func NewMsgUpdateCollectionAuthority(sender sdk.AccAddress, collectionId uint64, newAuthority string) *MsgUpdateCollectionAuthority {
+	return &MsgUpdateCollectionAuthority{
+		Sender:       sender.String(),
+		CollectionId: collectionId,
+		NewAuthority: newAuthority,
+	}
 }
 
 func (msg MsgUpdateCollectionAuthority) Route() string { return RouterKey }
