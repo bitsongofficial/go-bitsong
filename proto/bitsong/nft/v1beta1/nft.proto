@@ -88,12 +88,12 @@ message Params {
 
 message EventMetadataCreation {
   string creator = 1;
-  Metadata metadata = 2;
+  uint64 metadata_id = 2;
 }
 
 message EventNFTCreation {
   string creator = 1;
-  NFT nft = 2;
+  uint64 nft_id = 2;
 }
 
 message EventNFTTransfer {
@@ -109,7 +109,7 @@ message EventMetadataSign {
 
 message EventMetadataUpdate {
   string updater = 1;
-  Metadata new_metadata = 2;
+  uint64 metadata_id = 2;
 }
 
 message EventMetadataAuthorityUpdate {
@@ -119,7 +119,7 @@ message EventMetadataAuthorityUpdate {
 
 message EventCollectionCreation {
   string creator = 1;
-  Collection collection = 2;
+  uint64 collection_id = 2;
 }
 
 message EventCollectionVerification {

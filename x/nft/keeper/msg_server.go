@@ -31,8 +31,8 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	}
 	m.Keeper.SetMetadata(ctx, msg.Metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataCreation{
-		Creator:  msg.Sender,
-		Metadata: &msg.Metadata,
+		Creator:    msg.Sender,
+		MetadataId: msg.Metadata.Id,
 	})
 
 	// create nft
@@ -46,7 +46,7 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	m.Keeper.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
 		Creator: msg.Sender,
-		Nft:     &nft,
+		NftId:   nftId,
 	})
 
 	return &types.MsgCreateNFTResponse{
@@ -126,8 +126,8 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 	}
 	m.Keeper.SetMetadata(ctx, metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataUpdate{
-		Updater:     msg.Sender,
-		NewMetadata: &metadata,
+		Updater:    msg.Sender,
+		MetadataId: metadata.Id,
 	})
 
 	return &types.MsgUpdateMetadataResponse{}, nil
@@ -169,8 +169,8 @@ func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateC
 	}
 	m.Keeper.SetCollection(ctx, collection)
 	ctx.EventManager().EmitTypedEvent(&types.EventCollectionCreation{
-		Creator:    msg.Sender,
-		Collection: &collection,
+		Creator:      msg.Sender,
+		CollectionId: collection.Id,
 	})
 
 	return &types.MsgCreateCollectionResponse{

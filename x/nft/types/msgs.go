@@ -19,8 +19,17 @@ const (
 
 var _ sdk.Msg = &MsgCreateNFT{}
 
-func NewMsgCreateNFT() *MsgCreateNFT {
-	return &MsgCreateNFT{}
+func NewMsgCreateNFT(sender sdk.AccAddress, updateAuthority string, data Data, presaleHappened, isMutable bool) *MsgCreateNFT {
+	return &MsgCreateNFT{
+		Sender: sender.String(),
+		Metadata: Metadata{
+			UpdateAuthority:     updateAuthority,
+			Mint:                sender.String(),
+			Data:                &data,
+			PrimarySaleHappened: presaleHappened,
+			IsMutable:           isMutable,
+		},
+	}
 }
 
 func (msg MsgCreateNFT) Route() string { return RouterKey }
