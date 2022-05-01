@@ -335,7 +335,7 @@ func genFanToken(ctx sdk.Context,
 		token = randFanToken(r, accs)
 	}
 
-	issueFee := k.GetFanTokenIssueFee(ctx, sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)), token.GetSymbol())
+	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
 	token.Owner = account.String()
