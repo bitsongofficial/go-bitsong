@@ -34,6 +34,7 @@ func (k Keeper) FanToken(c context.Context, req *types.QueryFanTokenRequest) (*t
 		MaxSupply: token.GetMaxSupply(),
 		Mintable:  token.GetMintable(),
 		Owner:     token.GetOwner().String(),
+		URI:       token.GetUri(),
 		MetaData:  token.GetMetaData(),
 	}}, nil
 }

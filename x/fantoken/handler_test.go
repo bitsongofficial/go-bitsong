@@ -27,6 +27,7 @@ const (
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
+	uri      = "ipfs://"
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
 	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
 )
@@ -83,15 +84,21 @@ func (suite *HandlerSuite) issueFanToken(token tokentypes.FanToken) {
 func (suite *HandlerSuite) TestIssueFanToken() {
 	h := tokenmodule.NewHandler(suite.keeper)
 
+	symbol := "btc"
+	name := "satoshi"
 	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
 
 	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
 
-	msg := tokentypes.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), "test", owner.String(), issueFee)
+	msg := tokentypes.NewMsgIssueFanToken(symbol, name, sdk.NewInt(21000000), "test", owner.String(), uri, issueFee)
 	denom := tokentypes.GetFantokenDenom(owner, msg.Symbol, msg.Name)
 
 	_, err := h(suite.ctx, msg)
 	suite.NoError(err)
+
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	suite.NoError(err)
+	suite.Equal(uri, issuedToken.GetUri())
 
 	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
 
@@ -111,7 +118,7 @@ func (suite *HandlerSuite) TestMintFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, uri, denomMetaData)
 	suite.issueFanToken(token)
 
 	beginBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
@@ -138,7 +145,7 @@ func (suite *HandlerSuite) TestBurnFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, uri, denomMetaData)
 	suite.issueFanToken(token)
 
 	h := tokenmodule.NewHandler(suite.keeper)

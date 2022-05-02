@@ -16,6 +16,8 @@ const (
 	MaximumSymbolLen = 64
 	// MaximumNameLen is the maximum limitation for the length of the token's name
 	MaximumNameLen = 32
+	// MaximumUriLen is the maximum limitation for the length of the token's uri
+	MaximumUriLen = 256
 	// MinimumDenomLen is the minimum limitation for the length of the token's denom
 	MinimumDenomLen = 3
 	// MaximumMinUnitLen is the maximum limitation for the length of the token's denom
@@ -52,6 +54,9 @@ func ValidateToken(token FanToken) error {
 		return err
 	}
 	if err := ValidateDenom(token.GetDenom()); err != nil {
+		return err
+	}
+	if err := ValidateUri(token.GetUri()); err != nil {
 		return err
 	}
 	return nil
@@ -93,6 +98,14 @@ func ValidateKeywords(denom string) error {
 func ValidateAmount(amount sdk.Int) error {
 	if amount.IsZero() {
 		return sdkerrors.Wrapf(ErrInvalidMaxSupply, "invalid token amount %d, only accepts positive amount", amount)
+	}
+	return nil
+}
+
+// ValidateUri checks if the given uri is valid
+func ValidateUri(uri string) error {
+	if len(uri) > MaximumUriLen {
+		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length (0, %d]", uri, MaximumUriLen)
 	}
 	return nil
 }

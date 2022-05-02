@@ -25,6 +25,7 @@ const (
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
+	uri      = "ipfs://"
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
 	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
 )
@@ -84,17 +85,18 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 			{Denom: symbol, Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken(name, sdk.NewInt(21000000), owner, denomMetaData)
+	uri := "ipfs://"
+	token := tokentypes.NewFanToken(name, sdk.NewInt(21000000), owner, uri, denomMetaData)
 
 	_, err := suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(999999)),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(999999)),
 	)
 	suite.Error(err, "the issue fee is less than the standard")
 
 	_, err = suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
 	)
 	suite.NoError(err)
 
@@ -104,6 +106,7 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 	suite.NoError(err)
 
 	suite.Equal(token.Owner, issuedToken.GetOwner().String())
+	suite.Equal(token.URI, issuedToken.GetUri())
 
 	suite.EqualValues(&token, issuedToken.(*tokentypes.FanToken))
 }
@@ -118,7 +121,7 @@ func (suite *KeeperTestSuite) TestEditFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, uri, denomMetaData)
 	suite.setFanToken(token)
 
 	denom := "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b"
@@ -135,6 +138,7 @@ func (suite *KeeperTestSuite) TestEditFanToken() {
 		MaxSupply: sdk.ZeroInt(),
 		Mintable:  false,
 		Owner:     owner.String(),
+		URI:       uri,
 		MetaData:  denomMetaData,
 	}
 
@@ -151,7 +155,7 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, uri, denomMetaData)
 	suite.issueFanToken(token)
 
 	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
@@ -182,7 +186,7 @@ func (suite *KeeperTestSuite) TestBurnFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, uri, denomMetaData)
 	suite.issueFanToken(token)
 
 	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
@@ -213,7 +217,7 @@ func (suite *KeeperTestSuite) TestTransferFanToken() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, uri, denomMetaData)
 	suite.setFanToken(token)
 
 	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))

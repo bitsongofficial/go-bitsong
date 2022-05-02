@@ -37,7 +37,8 @@ message MsgIssueFanToken {
   ];
   string description = 4;
   string owner = 5;
-  cosmos.base.v1beta1.Coin issue_fee = 6 [
+  string uri = 6 [(gogoproto.customname) = "URI"];
+  cosmos.base.v1beta1.Coin issue_fee = 7 [
     (gogoproto.moretags) = "yaml:\"issue_fee\"",
     (gogoproto.nullable) = false
   ];

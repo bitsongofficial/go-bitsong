@@ -21,7 +21,7 @@ func (suite *KeeperTestSuite) TestDeductIssueFanTokenFee() {
 			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
 		},
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
+	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, uri, denomMetaData)
 	suite.issueFanToken(token)
 
 	issueFeeAmt := sdk.NewInt(1000000)

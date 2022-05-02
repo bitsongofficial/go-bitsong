@@ -60,6 +60,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	denom := tokentypes.GetFantokenDenom(from, symbol, name)
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
+	uri := "ipfs://"
 	issueFee := "1000000ubtsg"
 	description := "Kitty Token"
 	//------test GetCmdIssueFanToken()-------------
@@ -70,6 +71,7 @@ func (s *IntegrationTestSuite) TestToken() {
 		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
 		fmt.Sprintf("--%s=%s", tokencli.FlagIssueFee, issueFee),
 		fmt.Sprintf("--%s=%s", tokencli.FlagDescription, description),
+		fmt.Sprintf("--%s=%s", tokencli.FlagURI, uri),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -100,6 +102,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	token = respType.(*tokentypes.FanToken)
 	s.Require().Equal(name, token.GetName())
 	s.Require().Equal(symbol, token.GetSymbol())
+	s.Require().Equal(uri, token.GetUri())
 
 	//------test GetCmdQueryParams()-------------
 	respType = proto.Message(&tokentypes.Params{})

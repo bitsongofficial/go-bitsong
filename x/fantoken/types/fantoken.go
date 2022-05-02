@@ -14,7 +14,7 @@ var (
 	_ proto.Message = &FanToken{}
 )
 
-// TokenI defines an interface for Token
+// FanTokenI defines an interface for FanToken
 type FanTokenI interface {
 	GetSymbol() string
 	GetDenom() string
@@ -22,14 +22,16 @@ type FanTokenI interface {
 	GetMaxSupply() sdk.Int
 	GetMintable() bool
 	GetOwner() sdk.AccAddress
+	GetUri() string
 	GetMetaData() banktypes.Metadata
 }
 
-// NewToken constructs a new Token instance
+// NewFanToken constructs a new Token instance
 func NewFanToken(
 	name string,
 	maxSupply sdk.Int,
 	owner sdk.AccAddress,
+	uri string,
 	metaData banktypes.Metadata,
 ) FanToken {
 	return FanToken{
@@ -37,47 +39,53 @@ func NewFanToken(
 		MaxSupply: maxSupply,
 		Mintable:  true,
 		Owner:     owner.String(),
+		URI:       uri,
 		MetaData:  metaData,
 	}
 }
 
-// GetSymbol implements exported.TokenI
-func (t FanToken) GetSymbol() string {
-	return t.MetaData.Display
+// GetSymbol implements exported.FanTokenI
+func (ft FanToken) GetSymbol() string {
+	return ft.MetaData.Display
 }
 
-// GetDenom implements exported.TokenI
-func (t FanToken) GetDenom() string {
-	return t.MetaData.Base
+// GetDenom implements exported.FanTokenI
+func (ft FanToken) GetDenom() string {
+	return ft.MetaData.Base
 }
 
-// GetName implements exported.TokenI
-func (t FanToken) GetName() string {
-	return t.Name
+// GetName implements exported.FanTokenI
+func (ft FanToken) GetName() string {
+	return ft.Name
 }
 
-// GetMaxSupply implements exported.TokenI
-func (t FanToken) GetMaxSupply() sdk.Int {
-	return t.MaxSupply
+// GetMaxSupply implements exported.FanTokenI
+func (ft FanToken) GetMaxSupply() sdk.Int {
+	return ft.MaxSupply
 }
 
-// GetMintable implements exported.TokenI
-func (t FanToken) GetMintable() bool {
-	return t.Mintable
+// GetMintable implements exported.FanTokenI
+func (ft FanToken) GetMintable() bool {
+	return ft.Mintable
 }
 
-// GetOwner implements exported.TokenI
-func (t FanToken) GetOwner() sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(t.Owner)
+// GetOwner implements exported.FanTokenI
+func (ft FanToken) GetOwner() sdk.AccAddress {
+	owner, _ := sdk.AccAddressFromBech32(ft.Owner)
 	return owner
 }
 
-// GetMetaData returns metadata of the fantoken
-func (t FanToken) GetMetaData() banktypes.Metadata {
-	return t.MetaData
+// GetUri implements exported.FanTokenI
+func (ft FanToken) GetUri() string {
+	return ft.URI
 }
 
-func (t FanToken) String() string {
-	bz, _ := yaml.Marshal(t)
+// GetMetaData returns metadata of the fantoken
+func (ft FanToken) GetMetaData() banktypes.Metadata {
+	return ft.MetaData
+}
+
+func (ft FanToken) String() string {
+	bz, _ := yaml.Marshal(ft)
 	return string(bz)
 }

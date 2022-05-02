@@ -32,7 +32,7 @@ var (
 func NewMsgIssueFanToken(
 	symbol string, name string,
 	maxSupply sdk.Int,
-	descriptioin string, owner string, issueFee sdk.Coin,
+	descriptioin string, owner, uri string, issueFee sdk.Coin,
 ) *MsgIssueFanToken {
 	return &MsgIssueFanToken{
 		Symbol:      symbol,
@@ -40,6 +40,7 @@ func NewMsgIssueFanToken(
 		MaxSupply:   maxSupply,
 		Description: descriptioin,
 		Owner:       owner,
+		URI:         uri,
 		IssueFee:    issueFee,
 	}
 }
@@ -73,6 +74,7 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 			msg.Name,
 			msg.MaxSupply,
 			owner,
+			msg.URI,
 			denomMetaData,
 		),
 	)

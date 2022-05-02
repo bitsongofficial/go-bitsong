@@ -21,7 +21,8 @@ message FanToken {
   ];
   bool mintable = 3;
   string owner = 4;
-  cosmos.bank.v1beta1.Metadata meta_data = 5 [
+  string uri = 5 [(gogoproto.customname) = "URI"];
+  cosmos.bank.v1beta1.Metadata meta_data = 6 [
     (gogoproto.moretags) = "yaml:\"meta_data\"",
     (gogoproto.nullable) = false
   ];

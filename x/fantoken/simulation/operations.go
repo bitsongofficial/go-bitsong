@@ -66,10 +66,10 @@ func WeightedOperations(
 	)
 
 	return simulation.WeightedOperations{
-		// simulation.NewWeightedOperation(
-		// 	weightIssue,
-		// 	SimulateIssueFanToken(k, ak, bk),
-		// ),
+		simulation.NewWeightedOperation(
+			weightIssue,
+			SimulateIssueFanToken(k, ak, bk),
+		),
 		simulation.NewWeightedOperation(
 			weightEdit,
 			SimulateEditFanToken(k, ak, bk),
@@ -93,7 +93,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)))
+		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)))
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -368,6 +368,7 @@ func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
 	denom := fmt.Sprintf("%s%s", "u", symbol)
 	name := randStringBetween(r, 1, tokentypes.MaximumNameLen)
 	maxSupply := sdk.NewInt(10000000000)
+	uri := randStringBetween(r, 0, tokentypes.MaximumUriLen)
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 
 	denomMetaData := banktypes.Metadata{
@@ -385,6 +386,7 @@ func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
 		MaxSupply: maxSupply,
 		Mintable:  true,
 		Owner:     simAccount.Address.String(),
+		URI:       uri,
 		MetaData:  denomMetaData,
 	}
 }

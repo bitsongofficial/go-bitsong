@@ -22,4 +22,5 @@ var (
 	ErrNotFoundTokenAmt    = sdkerrors.Register(ModuleName, 14, "burned fantoken amount not found")
 	ErrInvalidAmount       = sdkerrors.Register(ModuleName, 15, "invalid amount")
 	ErrLessIssueFee        = sdkerrors.Register(ModuleName, 16, "less issue fee")
+	ErrInvalidUri          = sdkerrors.Register(ModuleName, 17, "invalid uri length")
 )

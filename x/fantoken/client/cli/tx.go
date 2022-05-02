@@ -50,6 +50,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--max-supply=\"1000000000000\" "+
 				"--issue-fee=\"1000000ubtsg\" "+
 				"--description=\"Kitty Token\" "+
+				"--uri=\"ipfs://...\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -82,6 +83,10 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			uri, err := cmd.Flags().GetString(FlagURI)
+			if err != nil {
+				return fmt.Errorf("the uri field is invalid")
+			}
 			issueFeeStr, err := cmd.Flags().GetString(FlagIssueFee)
 			if err != nil {
 				return err
@@ -100,6 +105,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				MaxSupply:   maxSupply,
 				Description: description,
 				Owner:       owner.String(),
+				URI:         uri,
 				IssueFee:    issueFee,
 			}
 

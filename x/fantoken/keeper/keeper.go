@@ -59,6 +59,7 @@ func (k Keeper) IssueFanToken(
 	maxSupply sdk.Int,
 	description string,
 	owner sdk.AccAddress,
+	uri string,
 	issueFee sdk.Coin,
 ) (denom string, err error) {
 	issuePrice := k.GetParamSet(ctx).IssuePrice
@@ -79,7 +80,7 @@ func (k Keeper) IssueFanToken(
 			{Denom: symbol, Exponent: types.FanTokenDecimal},
 		},
 	}
-	fantoken := types.NewFanToken(name, maxSupply, owner, denomMetaData)
+	fantoken := types.NewFanToken(name, maxSupply, owner, uri, denomMetaData)
 
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
