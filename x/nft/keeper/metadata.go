@@ -38,3 +38,19 @@ func (k Keeper) SetMetadata(ctx sdk.Context, metadata types.Metadata) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(append(types.PrefixMetadata, idBz...), bz)
 }
+
+func (k Keeper) GetAllMetadata(ctx sdk.Context) []types.Metadata {
+	store := ctx.KVStore(k.storeKey)
+	it := sdk.KVStorePrefixIterator(store, types.PrefixMetadata)
+	defer it.Close()
+
+	allMetadata := []types.Metadata{}
+	for ; it.Valid(); it.Next() {
+		var metadata types.Metadata
+		k.cdc.MustUnmarshal(it.Value(), &metadata)
+
+		allMetadata = append(allMetadata, metadata)
+	}
+
+	return allMetadata
+}

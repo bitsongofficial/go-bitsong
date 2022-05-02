@@ -64,3 +64,19 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 	}
 	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), bz)
 }
+
+func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {
+	store := ctx.KVStore(k.storeKey)
+	it := sdk.KVStorePrefixIterator(store, types.PrefixNFT)
+	defer it.Close()
+
+	allNFTs := []types.NFT{}
+	for ; it.Valid(); it.Next() {
+		var nft types.NFT
+		k.cdc.MustUnmarshal(it.Value(), &nft)
+
+		allNFTs = append(allNFTs, nft)
+	}
+
+	return allNFTs
+}

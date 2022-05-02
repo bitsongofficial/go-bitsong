@@ -2,9 +2,18 @@ package app
 
 import (
 	"fmt"
+	"io"
+	stdlog "log"
+	"net/http"
+	"os"
+	"path/filepath"
+
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/nft"
+	nftkeeper "github.com/bitsongofficial/go-bitsong/x/nft/keeper"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 
 	btsgtypes "github.com/bitsongofficial/go-bitsong/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
@@ -22,11 +31,6 @@ import (
 	"github.com/rakyll/statik/fs"
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/router/types"
-	"io"
-	stdlog "log"
-	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -106,6 +110,7 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
 	"github.com/strangelove-ventures/packet-forward-middleware/router"
 	tmjson "github.com/tendermint/tendermint/libs/json"
+
 	// unnamed import of statik for swagger UI support
 	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -150,6 +155,7 @@ var (
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
+		nft.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -162,6 +168,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -220,6 +227,7 @@ type Bitsong struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	FanTokenKeeper fantokenkeeper.Keeper
+	NFTKeeper      nftkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -251,7 +259,7 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, nfttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -380,6 +388,8 @@ func New(
 		authtypes.FeeCollectorName,
 	)
 
+	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.GetSubspace(nfttypes.ModuleName), app.BankKeeper)
+
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -405,6 +415,7 @@ func New(
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
+		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
@@ -444,6 +455,7 @@ func New(
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
 		fantokentypes.ModuleName,
+		nfttypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -474,6 +486,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
+		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
@@ -765,6 +778,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
+	paramsKeeper.Subspace(nfttypes.ModuleName)
 
 	return paramsKeeper
 }
