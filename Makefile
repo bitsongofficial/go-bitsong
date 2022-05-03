@@ -10,9 +10,11 @@ VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
+TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') # grab everything after the space in "github.com/tendermint/tendermint v0.34.7"
 
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
+TEST_DOCKER_REPO=bitsongofficial/bitsongdnode
 
 export GO111MODULE = on
 
@@ -59,7 +61,8 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=go-bitsong \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=bitsongd \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
+          -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TENDERMINT_VERSION)
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
@@ -95,6 +98,35 @@ update-swagger-docs: statik
     else \
     	echo "\033[92mSwagger docs are in sync\033[0m";\
     fi
+
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
+
+build-docker-bitsongdnode:
+	$(MAKE) -C contrib/localnet
+
+# Run a 4-node testnet locally
+localnet-start: build-linux build-docker-bitsongdnode
+	@if ! [ -f build/node0/bitsongd/config/genesis.json ]; \
+		then docker run --rm -v $(CURDIR)/build:/bitsongd:Z bitsongofficial/bitsongdnode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; \
+	fi
+	docker-compose up -d
+
+# Stop testnet
+localnet-stop:
+	docker-compose down
+
+test-docker:
+	@docker build -f contrib/Dockerfile.test -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) .
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
+
+test-docker-push: test-docker
+	@docker push ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD)
+	@docker push ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
+	@docker push ${TEST_DOCKER_REPO}:latest
+
 
 ########################################
 ### Tools & dependencies
@@ -247,4 +279,5 @@ include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
+	build-docker-bitsongdnode localnet-start localnet-stop test-docker test-docker-push \
 	test test-all test-cover
