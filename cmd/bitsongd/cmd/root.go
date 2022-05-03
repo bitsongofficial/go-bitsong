@@ -96,6 +96,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
 		tmcli.NewCompletionCmd(rootCmd, true),
+		testnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
 		debug.Cmd(),
 		config.Cmd(),
 	)
