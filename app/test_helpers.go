@@ -20,10 +20,10 @@ import (
 	"github.com/tendermint/tmlibs/cli"
 )
 
-func setup(withGenesis bool, invCheckPeriod uint) (*Bitsong, GenesisState) {
+func setup(withGenesis bool, invCheckPeriod uint) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, simapp.EmptyAppOptions{})
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, simapp.EmptyAppOptions{})
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Marshaler)
 	}
@@ -31,7 +31,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*Bitsong, GenesisState) {
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
-func Setup(isCheckTx bool) *Bitsong {
+func Setup(isCheckTx bool) *BitsongApp {
 	app, genesisState := setup(!isCheckTx, 5)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
@@ -54,7 +54,7 @@ func Setup(isCheckTx bool) *Bitsong {
 }
 
 func SimAppConstructor(val network.Validator) servertypes.Application {
-	return New(
+	return NewBitsongApp(
 		val.Ctx.Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool),
 		val.Ctx.Config.RootDir, 0, MakeEncodingConfig(), simapp.EmptyAppOptions{},
 		bam.SetPruning(storetypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),

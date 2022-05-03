@@ -63,7 +63,7 @@ func TestFullAppSimulation(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := New(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, "SimApp", app.Name())
 
 	// run randomized simulation
@@ -101,7 +101,7 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := New(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, "SimApp", app.Name())
 
 	// Run randomized simulation
@@ -141,7 +141,7 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := New(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewBitsongApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, "SimApp", newApp.Name())
 
 	var genesisState GenesisState
@@ -192,7 +192,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(dir))
 	}()
 
-	app := New(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, "SimApp", app.Name())
 
 	// Run randomized simulation
@@ -237,7 +237,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := New(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
+	newApp := NewBitsongApp(log.NewNopLogger(), newDB, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, fauxMerkleModeOpt)
 	require.Equal(t, "SimApp", newApp.Name())
 
 	newApp.InitChain(abci.RequestInitChain{
@@ -288,7 +288,7 @@ func TestAppStateDeterminism(t *testing.T) {
 			}
 
 			db := dbm.NewMemDB()
-			app := New(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, interBlockCacheOpt())
+			app := NewBitsongApp(logger, db, nil, true, map[int64]bool{}, DefaultNodeHome, sdksimapp.FlagPeriodValue, MakeEncodingConfig(), sdksimapp.EmptyAppOptions{}, interBlockCacheOpt())
 
 			fmt.Printf(
 				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
