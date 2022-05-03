@@ -223,10 +223,10 @@ func GetCmdUpdateMetadata() *cobra.Command {
 
 func GetCmdUpdateMetadataAuthority() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "update-metadata",
+		Use:  "update-metadata-authority",
 		Long: "Update metadata by id and params",
 		Example: fmt.Sprintf(
-			`$ %s tx nft update-metadata
+			`$ %s tx nft update-metadata-authority
 				--metadata-id=1
 				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
 			version.AppName,

@@ -11,4 +11,5 @@ var (
 	ErrCollectionDoesNotExist = sdkerrors.Register(ModuleName, 4, "collection does not exist")
 	ErrNotNFTOwner            = sdkerrors.Register(ModuleName, 5, "not the owner of nft")
 	ErrNotEnoughPermission    = sdkerrors.Register(ModuleName, 6, "not enough permission")
+	ErrMetadataImmutable      = sdkerrors.Register(ModuleName, 7, "metadata is immutable")
 )

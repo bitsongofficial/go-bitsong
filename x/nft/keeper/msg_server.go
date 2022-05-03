@@ -115,6 +115,10 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 		return nil, err
 	}
 
+	if !metadata.IsMutable {
+		return nil, types.ErrMetadataImmutable
+	}
+
 	if metadata.UpdateAuthority != msg.Sender {
 		return nil, types.ErrNotEnoughPermission
 	}
@@ -188,6 +192,12 @@ func (m msgServer) VerifyCollection(goCtx context.Context, msg *types.MsgVerifyC
 	if collection.UpdateAuthority != msg.Sender {
 		return nil, types.ErrNotEnoughPermission
 	}
+	if m.Keeper.GetLastCollectionId(ctx) < msg.CollectionId {
+		return nil, types.ErrCollectionDoesNotExist
+	}
+	if m.Keeper.GetLastNftId(ctx) < msg.NftId {
+		return nil, types.ErrNFTDoesNotExist
+	}
 
 	m.Keeper.SetCollectionNftRecord(ctx, msg.CollectionId, msg.NftId)
 	ctx.EventManager().EmitTypedEvent(&types.EventCollectionVerification{
@@ -208,6 +218,13 @@ func (m msgServer) UnverifyCollection(goCtx context.Context, msg *types.MsgUnver
 	}
 	if collection.UpdateAuthority != msg.Sender {
 		return nil, types.ErrNotEnoughPermission
+	}
+
+	if m.Keeper.GetLastCollectionId(ctx) < msg.CollectionId {
+		return nil, types.ErrCollectionDoesNotExist
+	}
+	if m.Keeper.GetLastNftId(ctx) < msg.NftId {
+		return nil, types.ErrNFTDoesNotExist
 	}
 
 	m.Keeper.DeleteCollectionNftRecord(ctx, msg.CollectionId, msg.NftId)
