@@ -11,7 +11,6 @@ import (
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
-	btsgtypes "github.com/bitsongofficial/go-bitsong/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -555,7 +554,7 @@ func NewBitsongApp(
 			if err != nil {
 				return nil, err
 			}
-			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(cassiniMintAmount)))
+			mintCoins := sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, sdk.NewInt(cassiniMintAmount)))
 
 			// mint coins
 			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
