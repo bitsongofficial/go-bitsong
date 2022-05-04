@@ -35,6 +35,24 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 		MetadataId: msg.Metadata.Id,
 	})
 
+	// burn fees before minting an nft
+	fee := m.GetParamSet(ctx).IssuePrice
+	if fee.IsPositive() {
+		feeCoins := sdk.Coins{fee}
+		sender, err := sdk.AccAddressFromBech32(msg.Sender)
+		if err != nil {
+			return nil, err
+		}
+		err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, feeCoins)
+		if err != nil {
+			return nil, err
+		}
+		err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, feeCoins)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	// create nft
 	nftId := m.Keeper.GetLastNftId(ctx) + 1
 	m.Keeper.SetLastNftId(ctx, nftId)
