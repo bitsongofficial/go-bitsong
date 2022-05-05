@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bitsongofficial/go-bitsong/app/params"
 	"os"
 
 	"github.com/bitsongofficial/go-bitsong/app"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	params.SetAddressPrefixes()
+
 	rootCmd, _ := cmd.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		os.Exit(1)
