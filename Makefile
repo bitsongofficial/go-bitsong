@@ -275,7 +275,7 @@ benchmark:
 	@go test -mod=readonly -bench=. ./...
 
 # include simulations
-include sims.mk
+# include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \
