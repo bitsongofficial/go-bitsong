@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
 
 	"io"
 	stdlog "log"
@@ -21,7 +22,6 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
@@ -112,9 +112,6 @@ import (
 )
 
 const appName = "BitsongApp"
-const upgradeName = "v010"
-const cassiniMultiSig = "bitsong12r2d9hhnd2ez4kgk63ar8m40vhaje8yaa94h8w"
-const cassiniMintAmount = 9_656_879_130_000
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
@@ -502,87 +499,8 @@ func NewBitsongApp(
 	app.SetEndBlocker(app.EndBlocker)
 
 	// upgrade info
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			// Upgrade from v0.42.x to v0.44.5
-			app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
-
-			fromVM := make(map[string]uint64)
-			for moduleName := range app.mm.Modules {
-				fromVM[moduleName] = 1
-			}
-			// delete new modules from the map, for _new_ modules as to not skip InitGenesis
-			delete(fromVM, authz.ModuleName)
-			delete(fromVM, feegrant.ModuleName)
-			delete(fromVM, routertypes.ModuleName)
-
-			// make fromVM[authtypes.ModuleName] = 2 to skip the first RunMigrations for auth (because from version 2 to migration version 2 will not migrate)
-			fromVM[authtypes.ModuleName] = 2
-
-			// the first RunMigrations, which will migrate all the old modules except auth module
-			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			if err != nil {
-				return nil, err
-			}
-			// now update auth version back to 1, to make the second RunMigrations includes only auth
-			newVM[authtypes.ModuleName] = 1
-
-			// Proposal #5
-			// Force an update of validator min commission
-			validators := app.StakingKeeper.GetAllValidators(ctx)
-			minCommissionRate := sdk.NewDecWithPrec(5, 2)
-			for _, v := range validators {
-				if v.Commission.Rate.LT(minCommissionRate) {
-					if v.Commission.MaxRate.LT(minCommissionRate) {
-						v.Commission.MaxRate = minCommissionRate
-					}
-
-					v.Commission.Rate = minCommissionRate
-					v.Commission.UpdateTime = ctx.BlockHeader().Time
-
-					// call the before-modification hook since we're about to update the commission
-					app.StakingKeeper.BeforeValidatorModified(ctx, v.GetOperator())
-
-					app.StakingKeeper.SetValidator(ctx, v)
-				}
-			}
-
-			// Proposal #6
-			// Mint BTSGs for Cassini-Bridge
-			multisigWallet, err := sdk.AccAddressFromBech32(cassiniMultiSig)
-			if err != nil {
-				return nil, err
-			}
-			mintCoins := sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, sdk.NewInt(cassiniMintAmount)))
-
-			// mint coins
-			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
-				return nil, err
-			}
-
-			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, multisigWallet, mintCoins); err != nil {
-				return nil, err
-			}
-
-			// RunMigrations twice is just a way to make auth module's migrates after staking
-			return app.mm.RunMigrations(ctx, app.configurator, newVM)
-		},
-	)
-
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == "v010" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
+	app.setupUpgradeHandlers()
+	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -721,6 +639,29 @@ func (app *BitsongApp) RegisterTxService(clientCtx client.Context) {
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *BitsongApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+func (app *BitsongApp) setupUpgradeStoreLoaders() {
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	if upgradeInfo.Name == v010.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+func (app *BitsongApp) setupUpgradeHandlers() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v010.UpgradeName,
+		v010.CreateUpgradeHandler(app.mm, app.configurator, app.BankKeeper, app.IBCKeeper, &app.StakingKeeper),
+	)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
