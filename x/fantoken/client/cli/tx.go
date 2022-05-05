@@ -13,7 +13,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/go-bitsong/types"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
@@ -95,9 +94,11 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
 			}
-			if issueFee.Denom != types.BondDenom {
+
+			// TODO: this should be removed from here
+			/*if issueFee.Denom != tokentypes.DefaultBondDenom {
 				return fmt.Errorf("the issue fee denom should be bond denom")
-			}
+			}*/
 
 			msg := &tokentypes.MsgIssueFanToken{
 				Symbol:      symbol,

@@ -13,7 +13,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	simapp "github.com/bitsongofficial/go-bitsong/app"
-	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -27,7 +26,7 @@ var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
+	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 )
 
 type KeeperTestSuite struct {
@@ -37,7 +36,7 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
 	bk          bankkeeper.Keeper
-	app         *simapp.Bitsong
+	app         *simapp.BitsongApp
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -90,13 +89,13 @@ func (suite *KeeperTestSuite) TestIssueFanToken() {
 
 	_, err := suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(999999)),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(999999)),
 	)
 	suite.Error(err, "the issue fee is less than the standard")
 
 	_, err = suite.keeper.IssueFanToken(
 		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
+		token.MaxSupply, token.MetaData.Description, token.GetOwner(), token.GetUri(), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
 	)
 	suite.NoError(err)
 

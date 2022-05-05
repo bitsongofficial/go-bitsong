@@ -7,7 +7,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// DeductIssueTokenFee performs fee handling for issuing token
+// DeductIssueFanTokenFee performs fee handling for issuing token
 func (k Keeper) DeductIssueFanTokenFee(ctx sdk.Context, owner sdk.AccAddress, issueFee sdk.Coin, symbol string) error {
 	burnCoins := sdk.NewCoins(issueFee)
 

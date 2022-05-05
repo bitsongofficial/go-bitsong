@@ -13,7 +13,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -93,7 +92,7 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
 		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), token.GetUri(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)))
+		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), token.GetUri(), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
 
 		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
 		if !found {
@@ -303,11 +302,11 @@ func selectOneFanToken(
 
 		account := ak.GetAccount(ctx, t.GetOwner())
 		spendable := bk.SpendableCoins(ctx, account.GetAddress())
-		spendableStake := spendable.AmountOf(types.BondDenom)
+		spendableStake := spendable.AmountOf(sdk.DefaultBondDenom)
 		if spendableStake.IsZero() {
 			continue
 		}
-		maxFees = sdk.NewCoins(sdk.NewCoin(types.BondDenom, spendableStake))
+		maxFees = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, spendableStake))
 		token = t
 		return
 	}
@@ -335,7 +334,7 @@ func genFanToken(ctx sdk.Context,
 		token = randFanToken(r, accs)
 	}
 
-	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
+	issueFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000))
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
 	token.Owner = account.String()
@@ -354,12 +353,12 @@ loop:
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 	account := ak.GetAccount(ctx, simAccount.Address)
 	spendable := bk.SpendableCoins(ctx, account.GetAddress())
-	spendableStake := spendable.AmountOf(types.BondDenom)
+	spendableStake := spendable.AmountOf(sdk.DefaultBondDenom)
 	if spendableStake.IsZero() || spendableStake.LT(fee.Amount) {
 		goto loop
 	}
 	owner = account.GetAddress()
-	maxFees = sdk.NewCoins(sdk.NewCoin(types.BondDenom, spendableStake).Sub(fee))
+	maxFees = sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, spendableStake).Sub(fee))
 	return
 }
 

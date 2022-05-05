@@ -17,8 +17,6 @@ import (
 	tokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/bitsongofficial/go-bitsong/types"
 )
 
 const (
@@ -29,7 +27,7 @@ var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
+	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 )
 
 func TestHandlerSuite(t *testing.T) {
@@ -86,9 +84,9 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 
 	symbol := "btc"
 	name := "satoshi"
-	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
+	issueFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000))
 
-	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
+	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
 
 	msg := tokentypes.NewMsgIssueFanToken(symbol, name, sdk.NewInt(21000000), "test", owner.String(), uri, issueFee)
 	denom := tokentypes.GetFantokenDenom(owner, msg.Symbol, msg.Name)
@@ -100,7 +98,7 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 	suite.NoError(err)
 	suite.Equal(uri, issuedToken.GetUri())
 
-	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
+	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
 
 	suite.Equal(nativeTokenAmt1.Sub(issueFee.Amount), nativeTokenAmt2)
 

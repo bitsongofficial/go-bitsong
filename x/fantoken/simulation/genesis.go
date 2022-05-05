@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/bitsongofficial/go-bitsong/types"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
@@ -47,7 +46,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 	)
 
 	tokenGenesis := tokentypes.NewGenesisState(
-		tokentypes.NewParams(sdk.NewCoin(types.BondDenom, issuePrice)),
+		tokentypes.NewParams(sdk.NewCoin(sdk.DefaultBondDenom, issuePrice)),
 		tokens,
 	)
 

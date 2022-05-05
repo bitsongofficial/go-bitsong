@@ -30,7 +30,7 @@ type IntegrationTestSuite struct {
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 
-	cfg := simapp.NewConfig()
+	cfg := simapp.DefaultConfig()
 	cfg.NumValidators = 1
 
 	s.cfg = cfg
@@ -61,7 +61,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	maxSupply := sdk.NewInt(200000000)
 	mintable := true
 	uri := "ipfs://"
-	issueFee := "1000000ubtsg"
+	issueFee := "1000000stake"
 	description := "Kitty Token"
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
@@ -111,7 +111,7 @@ func (s *IntegrationTestSuite) TestToken() {
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType))
 	params := respType.(*tokentypes.Params)
 	s.Require().NoError(err)
-	expectedParams := "{\"issue_price\":{\"denom\":\"ubtsg\",\"amount\":\"1000000\"}}"
+	expectedParams := "{\"issue_price\":{\"denom\":\"stake\",\"amount\":\"1000000\"}}"
 	result, _ := json.Marshal(params)
 	s.Require().Equal(expectedParams, string(result))
 

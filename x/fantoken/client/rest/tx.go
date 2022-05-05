@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 
-	apptypes "github.com/bitsongofficial/go-bitsong/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -46,8 +45,8 @@ func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		issueFee, ok := sdk.NewIntFromString(req.IssueFee)
-		if !ok {
+		issueFee, err := sdk.ParseCoinNormalized(req.IssueFee)
+		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to parse issue fee: %s", req.IssueFee))
 			return
 		}
@@ -59,7 +58,7 @@ func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			MaxSupply:   maxSupply,
 			Description: req.Description,
 			Owner:       req.Owner,
-			IssueFee:    sdk.NewCoin(apptypes.BondDenom, issueFee),
+			IssueFee:    issueFee,
 		}
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

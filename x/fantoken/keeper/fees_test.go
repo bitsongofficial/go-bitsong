@@ -3,14 +3,13 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bitsongofficial/go-bitsong/types"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func (suite *KeeperTestSuite) TestDeductIssueFanTokenFee() {
-	beginBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom)
-	suite.Equal("100000000000000ubtsg", beginBondDenomAmt.String())
+	beginBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom)
+	suite.Equal("100000000000000stake", beginBondDenomAmt.String())
 
 	denomMetaData := banktypes.Metadata{
 		Description: "test",
@@ -25,9 +24,9 @@ func (suite *KeeperTestSuite) TestDeductIssueFanTokenFee() {
 	suite.issueFanToken(token)
 
 	issueFeeAmt := sdk.NewInt(1000000)
-	err := suite.keeper.DeductIssueFanTokenFee(suite.ctx, owner, sdk.NewCoin(types.BondDenom, issueFeeAmt), token.GetSymbol())
+	err := suite.keeper.DeductIssueFanTokenFee(suite.ctx, owner, sdk.NewCoin(sdk.DefaultBondDenom, issueFeeAmt), token.GetSymbol())
 	suite.NoError(err)
 
-	endBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom)
+	endBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom)
 	suite.Equal(beginBondDenomAmt.Sub(endBondDenomAmt).Amount, issueFeeAmt)
 }

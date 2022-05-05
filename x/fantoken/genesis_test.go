@@ -18,7 +18,6 @@ import (
 
 func TestExportGenesis(t *testing.T) {
 	app := simapp.Setup(false)
-
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	// export genesis
