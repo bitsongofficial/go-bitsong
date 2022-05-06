@@ -137,9 +137,3 @@ func (suite *KeeperTestSuite) TestCollectionNftRecordGetSet() {
 	collection2NftRecords = suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, 2)
 	suite.Require().Len(collection2NftRecords, 1)
 }
-
-// TODO: test
-// SetCollectionNftRecord
-// DeleteCollectionNftRecord
-// GetCollectionNftRecords
-// GetAllCollectionNftRecords
