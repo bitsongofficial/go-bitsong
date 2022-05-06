@@ -45,7 +45,7 @@ func (k Keeper) GetAllCollections(ctx sdk.Context) []types.Collection {
 	store := ctx.KVStore(k.storeKey)
 
 	collections := []types.Collection{}
-	it := sdk.KVStorePrefixIterator(store, types.PrefixCollectionRecord)
+	it := sdk.KVStorePrefixIterator(store, types.PrefixCollection)
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
