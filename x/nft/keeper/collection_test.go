@@ -1,8 +1,16 @@
 package keeper_test
 
-// TODO: test
-// GetLastCollectionId
-// SetLastCollectionId
+func (suite *KeeperTestSuite) TestCollectionIdGetSet() {
+
+	lastCollectionId := suite.app.NFTKeeper.GetLastCollectionId(suite.ctx)
+	suite.Require().Equal(lastCollectionId, uint64(0))
+
+	newCollectionId := uint64(2)
+	suite.app.NFTKeeper.SetLastCollectionId(suite.ctx, newCollectionId)
+
+	lastCollectionId = suite.app.NFTKeeper.GetLastCollectionId(suite.ctx)
+	suite.Require().Equal(lastCollectionId, newCollectionId)
+}
 
 // TODO: test
 // GetCollectionById
