@@ -15,6 +15,10 @@ service Query {
   rpc NFTInfo(QueryNFTInfoRequest) returns (QueryNFTInfoResponse) {
     option (google.api.http).get = "/bitsong/nft/v1beta1/nft_info/{id}";
   }
+  // NFTsByOwner returns NFTs information by owner
+  rpc NFTsByOwner(QueryNFTsByOwnerRequest) returns (QueryNFTsByOwnerResponse) {
+    option (google.api.http).get = "/bitsong/nft/v1beta1/nfts_by_owner/{owner}";
+  }
   // Metadata returns Metadata
   rpc Metadata(QueryMetadataRequest) returns (QueryMetadataResponse) {
     option (google.api.http).get = "/bitsong/nft/v1beta1/metadata/{id}";
@@ -32,6 +36,16 @@ message QueryNFTInfoRequest { uint64 id = 1; }
 message QueryNFTInfoResponse {
   bitsong.nft.v1beta1.NFT nft = 1 [ (gogoproto.nullable) = false ];
   bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
+}
+
+// QueryNFTInfoRequest is request type for the nft
+message QueryNFTsByOwnerRequest { string owner = 1; }
+
+// QueryNFTInfoResponse is response type for the Query/NFTsByOwner RPC method
+message QueryNFTsByOwnerResponse {
+  repeated bitsong.nft.v1beta1.NFT nfts = 1 [ (gogoproto.nullable) = false ];
+  repeated bitsong.nft.v1beta1.Metadata metadata = 2
+      [ (gogoproto.nullable) = false ];
 }
 
 // QueryMetadataRequest is request type for the metadata

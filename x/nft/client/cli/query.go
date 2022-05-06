@@ -23,6 +23,7 @@ func GetQueryCmd() *cobra.Command {
 
 	queryCmd.AddCommand(
 		GetCmdQueryNFTInfo(),
+		GetCmdQueryNFTsByOwner(),
 		GetCmdQueryMetadata(),
 		GetCmdQueryCollection(),
 	)
@@ -52,6 +53,37 @@ func GetCmdQueryNFTInfo() *cobra.Command {
 
 			res, err := queryClient.NFTInfo(context.Background(), &types.QueryNFTInfoRequest{
 				Id: uint64(id),
+			})
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryNFTsByOwner() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "nfts-by-owner [owner]",
+		Long:    "Query all nfts information by owner.",
+		Example: fmt.Sprintf(`$ %s query nft nfts-by-owner [owner]`, version.AppName),
+		Args:    cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.NFTsByOwner(context.Background(), &types.QueryNFTsByOwnerRequest{
+				Owner: args[0],
 			})
 
 			if err != nil {

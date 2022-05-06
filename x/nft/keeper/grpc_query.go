@@ -34,6 +34,37 @@ func (k Keeper) NFTInfo(c context.Context, req *types.QueryNFTInfoRequest) (*typ
 	}, nil
 }
 
+func (k Keeper) NFTsByOwner(c context.Context, req *types.QueryNFTsByOwnerRequest) (*types.QueryNFTsByOwnerResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	owner, err := sdk.AccAddressFromBech32(req.Owner)
+	if err != nil {
+		return nil, err
+	}
+
+	nfts := k.GetNFTsByOwner(ctx, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata := []types.Metadata{}
+	for _, nft := range nfts {
+		meta, err := k.GetMetadataById(ctx, nft.Id)
+		if err != nil {
+			return nil, err
+		}
+		metadata = append(metadata, meta)
+	}
+	return &types.QueryNFTsByOwnerResponse{
+		Nfts:     nfts,
+		Metadata: metadata,
+	}, nil
+}
+
 func (k Keeper) Metadata(c context.Context, req *types.QueryMetadataRequest) (*types.QueryMetadataResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
