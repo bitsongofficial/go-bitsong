@@ -62,7 +62,7 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), bz)
+	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), idBz)
 }
 
 func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {
