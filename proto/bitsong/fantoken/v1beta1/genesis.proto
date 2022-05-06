@@ -10,8 +10,10 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
 // GenesisState defines the fantoken module's genesis state
 message GenesisState {
   bitsong.fantoken.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
-  repeated bitsong.fantoken.v1beta1.FanToken tokens = 2
+
+  repeated bitsong.fantoken.v1beta1.FanToken fan_tokens = 2
       [ (gogoproto.nullable) = false ];
+
   repeated cosmos.base.v1beta1.Coin burned_coins = 3
       [ (gogoproto.nullable) = false ];
 }

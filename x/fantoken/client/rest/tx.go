@@ -45,20 +45,13 @@ func issueTokenHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		issueFee, err := sdk.ParseCoinNormalized(req.IssueFee)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to parse issue fee: %s", req.IssueFee))
-			return
-		}
-
 		// create the MsgIssueToken message
 		msg := &types.MsgIssueFanToken{
-			Symbol:      req.Symbol,
-			Name:        req.Name,
-			MaxSupply:   maxSupply,
-			Description: req.Description,
-			Owner:       req.Owner,
-			IssueFee:    issueFee,
+			Symbol:    req.Symbol,
+			Name:      req.Name,
+			MaxSupply: maxSupply,
+			Owner:     req.Owner,
+			URI:       req.URI,
 		}
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

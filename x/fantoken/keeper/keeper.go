@@ -10,14 +10,16 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	distr "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              codec.Codec
 	bankKeeper       types.BankKeeper
+	distrKeeper      distr.Keeper
 	paramSpace       paramstypes.Subspace
 	blockedAddrs     map[string]bool
 	feeCollectorName string
@@ -28,6 +30,7 @@ func NewKeeper(
 	key sdk.StoreKey,
 	paramSpace paramstypes.Subspace,
 	bankKeeper types.BankKeeper,
+	distrKeeper distr.Keeper,
 	blockedAddrs map[string]bool,
 	feeCollectorName string,
 ) Keeper {
@@ -41,6 +44,7 @@ func NewKeeper(
 		cdc:              cdc,
 		paramSpace:       paramSpace,
 		bankKeeper:       bankKeeper,
+		distrKeeper:      distrKeeper,
 		feeCollectorName: feeCollectorName,
 		blockedAddrs:     blockedAddrs,
 	}
@@ -52,36 +56,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // IssueFanToken issues a new fantoken
-func (k Keeper) IssueFanToken(
-	ctx sdk.Context,
-	symbol string,
-	name string,
-	maxSupply sdk.Int,
-	description string,
-	owner sdk.AccAddress,
-	uri string,
-	issueFee sdk.Coin,
-) (denom string, err error) {
-	issuePrice := k.GetParamSet(ctx).IssuePrice
-	if issueFee.Denom != issuePrice.GetDenom() {
-		return denom, sdkerrors.Wrapf(types.ErrInvalidDenom, "the issue fee denom %s is invalid", issueFee.String())
-	}
-	if issueFee.Amount.LT(issuePrice.Amount) {
-		return denom, sdkerrors.Wrapf(types.ErrLessIssueFee, "the issue fee %s is less than %s", issueFee.String(), issuePrice.String())
+func (k Keeper) IssueFanToken(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress) (denom string, err error) {
+	// handle fee for token
+	if err := k.DeductIssueFanTokenFee(ctx, owner); err != nil {
+		return denom, err
 	}
 
-	denom = types.GetFantokenDenom(owner, symbol, name)
-	denomMetaData := banktypes.Metadata{
-		Description: description,
-		Base:        denom,
-		Display:     symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: denom, Exponent: 0},
-			{Denom: symbol, Exponent: types.FanTokenDecimal},
-		},
-	}
-	fantoken := types.NewFanToken(name, maxSupply, owner, uri, denomMetaData)
-
+	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, owner)
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
 	}
@@ -90,13 +71,8 @@ func (k Keeper) IssueFanToken(
 }
 
 // EditFanToken edits the specified fantoken
-func (k Keeper) EditFanToken(
-	ctx sdk.Context,
-	denom string,
-	mintable bool,
-	owner sdk.AccAddress,
-) error {
-	// get the destination fantoken
+func (k Keeper) EditFanToken(ctx sdk.Context, denom string, mintable bool, owner sdk.AccAddress) error {
+	// get the fantoken
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
@@ -124,12 +100,7 @@ func (k Keeper) EditFanToken(
 }
 
 // TransferFanTokenOwner transfers the owner of the specified fantoken to a new one
-func (k Keeper) TransferFanTokenOwner(
-	ctx sdk.Context,
-	denom string,
-	srcOwner sdk.AccAddress,
-	dstOwner sdk.AccAddress,
-) error {
+func (k Keeper) TransferFanTokenOwner(ctx sdk.Context, denom string, srcOwner, dstOwner sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
@@ -151,13 +122,7 @@ func (k Keeper) TransferFanTokenOwner(
 }
 
 // MintFanToken mints the specified amount of fantoken to the specified recipient
-func (k Keeper) MintFanToken(
-	ctx sdk.Context,
-	recipient sdk.AccAddress,
-	denom string,
-	amount sdk.Int,
-	owner sdk.AccAddress,
-) error {
+func (k Keeper) MintFanToken(ctx sdk.Context, recipient sdk.AccAddress, denom string, amount sdk.Int, owner sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
@@ -198,16 +163,15 @@ func (k Keeper) MintFanToken(
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, mintCoins)
 }
 
-// BurnToken burns the specified amount of fantoken
-func (k Keeper) BurnFanToken(
-	ctx sdk.Context,
-	denom string,
-	amount sdk.Int,
-	owner sdk.AccAddress,
-) error {
-	_, err := k.getFanTokenByDenom(ctx, denom)
-	if err != nil {
-		return err
+// BurnFanToken burns the specified amount of fantoken
+func (k Keeper) BurnFanToken(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.AccAddress) error {
+	found := k.HasFanToken(ctx, denom)
+	if !found {
+		return sdkerrors.Wrapf(
+			types.ErrFanTokenNotExists,
+			"fantoken not found: %s",
+			denom,
+		)
 	}
 
 	burnCoin := sdk.NewCoin(denom, amount)

@@ -18,19 +18,19 @@ func TestValidateParams(t *testing.T) {
 		{
 			"Minimum value",
 			Params{
-				IssuePrice: sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+				IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 			},
 			true,
 		}, {
 			"Maximum value",
 			Params{
-				IssuePrice: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)),
+				IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(math.MaxInt64)),
 			},
 			true,
 		}, {
-			"IssuePrice is negative",
+			"IssueFee is negative",
 			Params{
-				IssuePrice: sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(-1)},
+				IssueFee: sdk.Coin{Denom: sdk.DefaultBondDenom, Amount: sdk.NewInt(-1)},
 			},
 			false,
 		},

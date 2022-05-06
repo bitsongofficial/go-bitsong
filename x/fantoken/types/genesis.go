@@ -1,10 +1,10 @@
 package types
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params, tokens []FanToken) GenesisState {
+func NewGenesisState(params Params, fantokens []FanToken) GenesisState {
 	return GenesisState{
-		Params: params,
-		Tokens: tokens,
+		Params:    params,
+		FanTokens: fantokens,
 	}
 }
 
@@ -15,9 +15,9 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	// validate token
-	for _, token := range data.Tokens {
-		if err := ValidateToken(token); err != nil {
+	// validate fantoken
+	for _, token := range data.FanTokens {
+		if err := ValidateFanToken(token); err != nil {
 			return err
 		}
 	}

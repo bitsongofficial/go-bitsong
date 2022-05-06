@@ -15,7 +15,6 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 // Simulation operation weights constants
@@ -84,19 +83,19 @@ func WeightedOperations(
 	}
 }
 
-// SimulateIssueToken tests and runs a single msg issue a new token
+// SimulateIssueFanToken tests and runs a single msg issue a new fantoken
 func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-		token, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
-		msg := tokentypes.NewMsgIssueFanToken(token.GetSymbol(), token.Name, token.MaxSupply, token.MetaData.Description, token.GetOwner().String(), token.GetUri(), sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)))
+		fantoken, maxFees := genFanToken(ctx, r, k, ak, bk, accs)
+		msg := tokentypes.NewMsgIssueFanToken(fantoken.GetName(), fantoken.GetSymbol(), fantoken.GetUri(), fantoken.MaxSupply, fantoken.GetOwner().String())
 
-		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
+		simAccount, found := simtypes.FindAccount(accs, fantoken.GetOwner())
 		if !found {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", token.Owner)), nil, fmt.Errorf("account %s not found", token.Owner)
+			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", fantoken.Owner)), nil, fmt.Errorf("account %s not found", fantoken.Owner)
 		}
 
 		owner, _ := sdk.AccAddressFromBech32(msg.Owner)
@@ -129,22 +128,22 @@ func SimulateIssueFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk toke
 	}
 }
 
-// SimulateEditToken tests and runs a single msg edit a existed token
+// SimulateEditFanToken tests and runs a single msg edit a existed fantoken
 func SimulateEditFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-		token, _, skip := selectOneFanToken(ctx, k, ak, bk, false)
+		fantoken, _, skip := selectOneFanToken(ctx, k, ak, bk, false)
 		if skip {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgEditFanToken, "skip edit token"), nil, nil
+			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgEditFanToken, "skip edit fantoken"), nil, nil
 		}
-		msg := tokentypes.NewMsgEditFanToken(token.GetSymbol(), true, token.GetOwner().String())
+		msg := tokentypes.NewMsgEditFanToken(fantoken.GetDenom(), true, fantoken.GetOwner().String())
 
-		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
+		simAccount, found := simtypes.FindAccount(accs, fantoken.GetOwner())
 		if !found {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", token.GetOwner())), nil, fmt.Errorf("account %s not found", token.GetOwner())
+			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", fantoken.GetOwner())), nil, fmt.Errorf("account %s not found", fantoken.GetOwner())
 		}
 
 		owner, _ := sdk.AccAddressFromBech32(msg.Owner)
@@ -179,23 +178,23 @@ func SimulateEditFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk token
 	}
 }
 
-// SimulateMintToken tests and runs a single msg mint a existed token
+// SimulateMintFanToken tests and runs a single msg mint an existed fantoken
 func SimulateMintFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-		token, maxFee, skip := selectOneFanToken(ctx, k, ak, bk, true)
+		fantoken, maxFee, skip := selectOneFanToken(ctx, k, ak, bk, true)
 		if skip {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgMintFanToken, "skip mint token"), nil, nil
+			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgMintFanToken, "skip mint fantoken"), nil, nil
 		}
 		simToAccount, _ := simtypes.RandomAcc(r, accs)
-		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), token.GetDenom(), token.GetOwner().String(), sdk.NewInt(100))
+		msg := tokentypes.NewMsgMintFanToken(simToAccount.Address.String(), fantoken.GetDenom(), fantoken.GetOwner().String(), sdk.NewInt(100))
 
-		ownerAccount, found := simtypes.FindAccount(accs, token.GetOwner())
+		ownerAccount, found := simtypes.FindAccount(accs, fantoken.GetOwner())
 		if !found {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", token.GetOwner())), nil, fmt.Errorf("account %s not found", token.GetOwner())
+			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", fantoken.GetOwner())), nil, fmt.Errorf("account %s not found", fantoken.GetOwner())
 		}
 
 		owner, _ := sdk.AccAddressFromBech32(msg.Owner)
@@ -228,27 +227,27 @@ func SimulateMintFanToken(k keeper.Keeper, ak tokentypes.AccountKeeper, bk token
 	}
 }
 
-// SimulateTransferTokenOwner tests and runs a single msg transfer to others
+// SimulateTransferFanTokenOwner tests and runs a single msg transfer to others
 func SimulateTransferFanTokenOwner(k keeper.Keeper, ak tokentypes.AccountKeeper, bk tokentypes.BankKeeper) simtypes.Operation {
 	return func(
 		r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context,
 		accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-		token, _, skip := selectOneFanToken(ctx, k, ak, bk, false)
+		fantoken, _, skip := selectOneFanToken(ctx, k, ak, bk, false)
 		if skip {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgTransferFanTokenOwner, "skip TransferTokenOwner"), nil, nil
+			return simtypes.NoOpMsg(tokentypes.ModuleName, tokentypes.TypeMsgTransferFanTokenOwner, "skip TransferFanTokenOwner"), nil, nil
 		}
 		var simToAccount, _ = simtypes.RandomAcc(r, accs)
-		for simToAccount.Address.Equals(token.GetOwner()) {
+		for simToAccount.Address.Equals(fantoken.GetOwner()) {
 			simToAccount, _ = simtypes.RandomAcc(r, accs)
 		}
 
-		msg := tokentypes.NewMsgTransferFanTokenOwner(token.GetSymbol(), token.GetOwner().String(), simToAccount.Address.String())
+		msg := tokentypes.NewMsgTransferFanTokenOwner(fantoken.GetDenom(), fantoken.GetOwner().String(), simToAccount.Address.String())
 
-		simAccount, found := simtypes.FindAccount(accs, token.GetOwner())
+		simAccount, found := simtypes.FindAccount(accs, fantoken.GetOwner())
 		if !found {
-			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", token.GetOwner())), nil, fmt.Errorf("account %s not found", token.GetOwner())
+			return simtypes.NoOpMsg(tokentypes.ModuleName, msg.Type(), fmt.Sprintf("account %s not found", fantoken.GetOwner())), nil, fmt.Errorf("account %s not found", fantoken.GetOwner())
 		}
 
 		srcOwner, _ := sdk.AccAddressFromBech32(msg.SrcOwner)
@@ -327,19 +326,19 @@ func genFanToken(ctx sdk.Context,
 	accs []simtypes.Account,
 ) (tokentypes.FanToken, sdk.Coins) {
 
-	var token tokentypes.FanToken
-	token = randFanToken(r, accs)
+	var fantoken tokentypes.FanToken
+	fantoken = randFanToken(r, accs)
 
-	for k.HasFanToken(ctx, token.GetSymbol()) {
-		token = randFanToken(r, accs)
+	for k.HasFanToken(ctx, fantoken.GetDenom()) {
+		fantoken = randFanToken(r, accs)
 	}
 
 	issueFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000))
 
 	account, maxFees := filterAccount(ctx, r, ak, bk, accs, issueFee)
-	token.Owner = account.String()
+	fantoken.Owner = account.String()
 
-	return token, maxFees
+	return fantoken, maxFees
 }
 
 func filterAccount(
@@ -364,28 +363,10 @@ loop:
 
 func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
 	symbol := randStringBetween(r, tokentypes.MinimumSymbolLen, tokentypes.MaximumSymbolLen)
-	denom := fmt.Sprintf("%s%s", "u", symbol)
 	name := randStringBetween(r, 1, tokentypes.MaximumNameLen)
 	maxSupply := sdk.NewInt(10000000000)
 	uri := randStringBetween(r, 0, tokentypes.MaximumUriLen)
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        denom,
-		Display:     symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: denom, Exponent: 0},
-			{Denom: symbol, Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-
-	return tokentypes.FanToken{
-		Name:      name,
-		MaxSupply: maxSupply,
-		Mintable:  true,
-		Owner:     simAccount.Address.String(),
-		URI:       uri,
-		MetaData:  denomMetaData,
-	}
+	return tokentypes.NewFanToken(name, symbol, uri, maxSupply, simAccount.Address)
 }

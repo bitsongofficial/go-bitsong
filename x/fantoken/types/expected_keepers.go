@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 // BankKeeper defines the expected bank keeper (noalias)
@@ -19,9 +18,6 @@ type BankKeeper interface {
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-
-	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
-	GetDenomMetaData(ctx sdk.Context, denom string) (banktypes.Metadata, bool)
 }
 
 // AccountKeeper defines the expected account keeper

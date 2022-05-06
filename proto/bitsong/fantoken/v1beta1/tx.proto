@@ -35,13 +35,8 @@ message MsgIssueFanToken {
     (gogoproto.moretags) = "yaml:\"max_supply\"",
     (gogoproto.nullable) = false
   ];
-  string description = 4;
-  string owner = 5;
-  string uri = 6 [(gogoproto.customname) = "URI"];
-  cosmos.base.v1beta1.Coin issue_fee = 7 [
-    (gogoproto.moretags) = "yaml:\"issue_fee\"",
-    (gogoproto.nullable) = false
-  ];
+  string owner = 4;
+  string uri = 5 [ (gogoproto.customname) = "URI" ];
 }
 
 // MsgIssueFanTokenResponse defines the Msg/IssueFanToken response type

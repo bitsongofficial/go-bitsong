@@ -24,18 +24,17 @@ func (k Keeper) FanToken(c context.Context, req *types.QueryFanTokenRequest) (*t
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	token, err := k.GetFanToken(ctx, req.Denom)
+	fantoken, err := k.GetFanToken(ctx, req.Denom)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "token %s not found", req.Denom)
 	}
 
-	return &types.QueryFanTokenResponse{Token: &types.FanToken{
-		Name:      token.GetName(),
-		MaxSupply: token.GetMaxSupply(),
-		Mintable:  token.GetMintable(),
-		Owner:     token.GetOwner().String(),
-		URI:       token.GetUri(),
-		MetaData:  token.GetMetaData(),
+	return &types.QueryFanTokenResponse{Fantoken: &types.FanToken{
+		Denom:     fantoken.GetDenom(),
+		MaxSupply: fantoken.GetMaxSupply(),
+		Mintable:  fantoken.GetMintable(),
+		Owner:     fantoken.GetOwner().String(),
+		MetaData:  fantoken.GetMetaData(),
 	}}, nil
 }
 
@@ -54,28 +53,28 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 		}
 	}
 
-	var tokens []types.FanTokenI
+	var fantokens []types.FanTokenI
 	var pageRes *query.PageResponse
 	store := ctx.KVStore(k.storeKey)
 	if owner == nil {
-		tokenStore := prefix.NewStore(store, types.PrefixFanTokenForDenom)
-		pageRes, err = query.Paginate(tokenStore, req.Pagination, func(key []byte, value []byte) error {
-			var token types.FanToken
-			k.cdc.MustUnmarshal(value, &token)
-			tokens = append(tokens, &token)
+		fantokenStore := prefix.NewStore(store, types.PrefixFanTokenForDenom)
+		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(key []byte, value []byte) error {
+			var fantoken types.FanToken
+			k.cdc.MustUnmarshal(value, &fantoken)
+			fantokens = append(fantokens, &fantoken)
 			return nil
 		})
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "paginate: %v", err)
 		}
 	} else {
-		tokenStore := prefix.NewStore(store, types.KeyFanTokens(owner, ""))
-		pageRes, err = query.Paginate(tokenStore, req.Pagination, func(key []byte, value []byte) error {
+		fantokenStore := prefix.NewStore(store, types.KeyFanTokens(owner, ""))
+		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(key []byte, value []byte) error {
 			var denom gogotypes.StringValue
 			k.cdc.MustUnmarshal(value, &denom)
-			token, err := k.GetFanToken(ctx, denom.Value)
+			fantoken, err := k.GetFanToken(ctx, denom.Value)
 			if err == nil {
-				tokens = append(tokens, token)
+				fantokens = append(fantokens, fantoken)
 			}
 			return nil
 		})
@@ -84,20 +83,20 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 		}
 	}
 	var result []*types.FanToken
-	for _, token := range tokens {
+	for _, fantoken := range fantokens {
 		result = append(result, &types.FanToken{
-			Name:      token.GetName(),
-			MaxSupply: token.GetMaxSupply(),
-			Mintable:  token.GetMintable(),
-			Owner:     token.GetOwner().String(),
-			MetaData:  token.GetMetaData(),
+			Denom:     fantoken.GetDenom(),
+			MaxSupply: fantoken.GetMaxSupply(),
+			Mintable:  fantoken.GetMintable(),
+			Owner:     fantoken.GetOwner().String(),
+			MetaData:  fantoken.GetMetaData(),
 		})
 	}
 
-	return &types.QueryFanTokensResponse{Tokens: result, Pagination: pageRes}, nil
+	return &types.QueryFanTokensResponse{Fantokens: result, Pagination: pageRes}, nil
 }
 
-// Params return the all the parameter in tonken module
+// Params return the all the parameter in fantoken module
 func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := k.GetParamSet(ctx)

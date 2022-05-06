@@ -10,53 +10,42 @@ import (
 )
 
 const (
-	// MinimumSymbolLen is the minimum limitation for the length of the token's symbol
-	MinimumSymbolLen = 3
-	// MaximumSymbolLen is the maximum limitation for the length of the token's symbol
+	// MinimumSymbolLen is the minimum limitation for the length of the fantoken's symbol
+	MinimumSymbolLen = 1
+	// MaximumSymbolLen is the maximum limitation for the length of the fantoken's symbol
 	MaximumSymbolLen = 64
-	// MaximumNameLen is the maximum limitation for the length of the token's name
-	MaximumNameLen = 32
-	// MaximumUriLen is the maximum limitation for the length of the token's uri
-	MaximumUriLen = 256
-	// MinimumDenomLen is the minimum limitation for the length of the token's denom
-	MinimumDenomLen = 3
-	// MaximumMinUnitLen is the maximum limitation for the length of the token's denom
-	MaximumDenomLen = 64
-)
-
-const (
-	ReservedPeg  = "peg"
-	ReservedIBC  = "ibc"
-	ReservedSwap = "swap"
-	ReservedHTLT = "htlt"
+	// MinimumNameLen is the minimum limitation for the length of the fantoken's name
+	MinimumNameLen = 0
+	// MaximumNameLen is the maximum limitation for the length of the fantoken's name
+	MaximumNameLen = 128
+	// MinimumUriLen is the minimum limitation for the length of the fantoken's uri
+	MinimumUriLen = 0
+	// MaximumUriLen is the maximum limitation for the length of the fantoken's uri
+	MaximumUriLen = 512
 )
 
 var (
-	keywords          = strings.Join([]string{ReservedPeg, ReservedIBC, ReservedSwap, ReservedHTLT}, "|")
-	regexpKeywordsFmt = fmt.Sprintf("^(%s).*", keywords)
-	regexpKeyword     = regexp.MustCompile(regexpKeywordsFmt).MatchString
-
-	regexpSymbolFmt = fmt.Sprintf("^[a-z][a-z0-9]{%d,%d}$", MinimumSymbolLen-1, MaximumSymbolLen-1)
+	regexpSymbolFmt = fmt.Sprintf("^[a-z]{%d,%d}$", MinimumSymbolLen-1, MaximumSymbolLen-1)
 	regexpSymbol    = regexp.MustCompile(regexpSymbolFmt).MatchString
 )
 
-// ValidateToken checks if the given token is valid
-func ValidateToken(token FanToken) error {
-	if len(token.Owner) > 0 {
-		if _, err := sdk.AccAddressFromBech32(token.Owner); err != nil {
+// ValidateFanToken checks if the given token is valid
+func ValidateFanToken(fantoken FanToken) error {
+	if len(fantoken.Owner) > 0 {
+		if _, err := sdk.AccAddressFromBech32(fantoken.Owner); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 		}
 	}
-	if err := ValidateName(token.Name); err != nil {
+	if err := ValidateName(fantoken.GetName()); err != nil {
 		return err
 	}
-	if err := ValidateSymbol(token.GetSymbol()); err != nil {
+	if err := ValidateSymbol(fantoken.GetSymbol()); err != nil {
 		return err
 	}
-	if err := ValidateDenom(token.GetDenom()); err != nil {
+	if err := ValidateDenom(fantoken.GetDenom()); err != nil {
 		return err
 	}
-	if err := ValidateUri(token.GetUri()); err != nil {
+	if err := ValidateUri(fantoken.GetUri()); err != nil {
 		return err
 	}
 	return nil
@@ -67,13 +56,14 @@ func ValidateDenom(denom string) error {
 	if !strings.HasPrefix(denom, "ft") {
 		return sdkerrors.Wrapf(ErrInvalidDenom, "invalid denom: %s, denom starts with ft", denom)
 	}
-	return ValidateKeywords(denom)
+
+	return sdk.ValidateDenom(denom)
 }
 
-// ValidateName verifies whether the given name is legal
+// ValidateName verifies whether the given name is valid
 func ValidateName(name string) error {
-	if len(name) == 0 || len(name) > MaximumNameLen {
-		return sdkerrors.Wrapf(ErrInvalidName, "invalid token name %s, only accepts length (0, %d]", name, MaximumNameLen)
+	if len(name) > MaximumNameLen {
+		return sdkerrors.Wrapf(ErrInvalidName, "invalid fantoken name %s, only accepts length (%d, %d]", name, MinimumNameLen, MaximumNameLen)
 	}
 	return nil
 }
@@ -83,21 +73,13 @@ func ValidateSymbol(symbol string) error {
 	if !regexpSymbol(symbol) {
 		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid symbol: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", symbol, MinimumSymbolLen, MaximumSymbolLen, regexpSymbolFmt)
 	}
-	return ValidateKeywords(symbol)
-}
-
-// ValidateKeywords checks if the given symbol begins with `TokenKeywords`
-func ValidateKeywords(denom string) error {
-	if regexpKeyword(denom) {
-		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid token: %s, can not begin with keyword: (%s)", denom, keywords)
-	}
 	return nil
 }
 
 // ValidateAmount checks if the given amount is positive amount
 func ValidateAmount(amount sdk.Int) error {
 	if amount.IsZero() {
-		return sdkerrors.Wrapf(ErrInvalidMaxSupply, "invalid token amount %d, only accepts positive amount", amount)
+		return sdkerrors.Wrapf(ErrInvalidMaxSupply, "invalid fantoken amount %d, only accepts positive amount", amount)
 	}
 	return nil
 }
@@ -105,7 +87,7 @@ func ValidateAmount(amount sdk.Int) error {
 // ValidateUri checks if the given uri is valid
 func ValidateUri(uri string) error {
 	if len(uri) > MaximumUriLen {
-		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length (0, %d]", uri, MaximumUriLen)
+		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length (%d, %d]", uri, MinimumUriLen, MaximumUriLen)
 	}
 	return nil
 }

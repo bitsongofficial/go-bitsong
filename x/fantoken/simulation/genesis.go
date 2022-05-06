@@ -15,7 +15,7 @@ import (
 
 // Simulation parameter constants
 const (
-	IssuePrice = "issue_price"
+	IssueFee = "issue_fee"
 )
 
 // RandomDec randomized sdk.RandomDec
@@ -31,30 +31,30 @@ func RandomInt(r *rand.Rand) sdk.Int {
 // RandomizedGenState generates a random GenesisState for bank
 func RandomizedGenState(simState *module.SimulationState) {
 
-	var issuePrice sdk.Int
-	var tokens []tokentypes.FanToken
+	var issueFee sdk.Int
+	var fantokens []tokentypes.FanToken
 
 	simState.AppParams.GetOrGenerate(
-		simState.Cdc, IssuePrice, &issuePrice, simState.Rand,
+		simState.Cdc, IssueFee, &issueFee, simState.Rand,
 		func(r *rand.Rand) {
-			issuePrice = sdk.NewInt(int64(10))
+			issueFee = sdk.NewInt(int64(10))
 
 			for i := 0; i < 5; i++ {
-				tokens = append(tokens, randFanToken(r, simState.Accounts))
+				fantokens = append(fantokens, randFanToken(r, simState.Accounts))
 			}
 		},
 	)
 
-	tokenGenesis := tokentypes.NewGenesisState(
-		tokentypes.NewParams(sdk.NewCoin(sdk.DefaultBondDenom, issuePrice)),
-		tokens,
+	fantokenGenesis := tokentypes.NewGenesisState(
+		tokentypes.NewParams(sdk.NewCoin(sdk.DefaultBondDenom, issueFee)),
+		fantokens,
 	)
 
-	bz, err := json.MarshalIndent(&tokenGenesis, "", " ")
+	bz, err := json.MarshalIndent(&fantokenGenesis, "", " ")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Selected randomly generated %s parameters:\n%s\n", tokentypes.ModuleName, bz)
 
-	simState.GenState[tokentypes.ModuleName] = simState.Cdc.MustMarshalJSON(&tokenGenesis)
+	simState.GenState[tokentypes.ModuleName] = simState.Cdc.MustMarshalJSON(&fantokenGenesis)
 }

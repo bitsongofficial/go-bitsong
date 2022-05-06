@@ -33,7 +33,7 @@ service Query {
 message QueryFanTokenRequest { string denom = 1; }
 
 // QueryFanTokenResponse is response type for the Query/FanToken RPC method
-message QueryFanTokenResponse { bitsong.fantoken.v1beta1.FanToken token = 1; }
+message QueryFanTokenResponse { bitsong.fantoken.v1beta1.FanToken fantoken = 1; }
 
 // QueryFanTokensRequest is request type for the Query/FanTokens RPC method
 message QueryFanTokensRequest {
@@ -44,7 +44,7 @@ message QueryFanTokensRequest {
 
 // QueryFanTokensResponse is response type for the Query/FanTokens RPC method
 message QueryFanTokensResponse {
-  repeated bitsong.fantoken.v1beta1.FanToken tokens = 1;
+  repeated bitsong.fantoken.v1beta1.FanToken fantokens = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

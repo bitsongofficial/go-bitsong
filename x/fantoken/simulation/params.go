@@ -10,28 +10,16 @@ import (
 )
 
 const (
-	keyTokenTaxRate      = "TokenTaxRate"
-	keyIssueTokenBaseFee = "IssueTokenBaseFee"
-	keyMintTokenFeeRatio = "MintTokenFeeRatio"
+	keyIssueFee = "IssueFee"
 )
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation
 func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, keyTokenTaxRate,
-			func(r *rand.Rand) string {
-				return RandomDec(r).String()
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyIssueTokenBaseFee,
+		simulation.NewSimParamChange(types.ModuleName, keyIssueFee,
 			func(r *rand.Rand) string {
 				return RandomInt(r).String()
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, keyMintTokenFeeRatio,
-			func(r *rand.Rand) string {
-				return RandomDec(r).String()
 			},
 		),
 	}

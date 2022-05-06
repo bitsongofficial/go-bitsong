@@ -22,7 +22,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryTotalBurn:
 			return queryTotalBurn(ctx, req, k, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown token query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown fantoken query endpoint")
 		}
 	}
 }
@@ -33,12 +33,12 @@ func queryFanToken(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacy
 		return nil, err
 	}
 
-	token, err := keeper.GetFanToken(ctx, params.Denom)
+	fantoken, err := keeper.GetFanToken(ctx, params.Denom)
 	if err != nil {
 		return nil, err
 	}
 
-	return codec.MarshalJSONIndent(legacyQuerierCdc, token)
+	return codec.MarshalJSONIndent(legacyQuerierCdc, fantoken)
 }
 
 func queryFanTokens(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
@@ -46,8 +46,8 @@ func queryFanTokens(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	if err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, err
 	}
-	tokens := keeper.GetFanTokens(ctx, params.Owner)
-	return codec.MarshalJSONIndent(legacyQuerierCdc, tokens)
+	fantokens := keeper.GetFanTokens(ctx, params.Owner)
+	return codec.MarshalJSONIndent(legacyQuerierCdc, fantokens)
 }
 
 func queryParams(ctx sdk.Context, _ abci.RequestQuery, keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {

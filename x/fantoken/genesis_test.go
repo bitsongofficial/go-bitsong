@@ -13,7 +13,18 @@ import (
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	token "github.com/bitsongofficial/go-bitsong/x/fantoken"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+)
+
+var (
+	owner     = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
+	name      = "Bitcoin"
+	symbol    = "btc"
+	uri       = "ipfs://"
+	maxSupply = sdk.NewInt(200000000)
+	mintable  = true
+	initAmt   = sdk.NewIntWithDecimal(100000000, int(6))
+	initCoin  = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
+	issueFee  = sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000))
 )
 
 func TestExportGenesis(t *testing.T) {
@@ -33,36 +44,24 @@ func TestInitGenesis(t *testing.T) {
 
 	// add token
 	addr := sdk.AccAddress(tmhash.SumTruncated([]byte("addr1")))
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ftbtc",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ftbtc", Exponent: 0},
-			{Denom: "btc", Exponent: types.FanTokenDecimal},
-		},
-	}
-
-	uri := "ipfs://"
-
-	ft := types.NewFanToken("Bitcoin Network", sdk.NewInt(1), addr, uri, denomMetaData)
+	fantokenObj := types.NewFanToken(name, symbol, uri, maxSupply, addr)
 
 	burnCoins := []sdk.Coin{
-		{Denom: ft.GetDenom(), Amount: sdk.NewInt(1000)},
+		{Denom: fantokenObj.GetDenom(), Amount: sdk.NewInt(1000)},
 	}
 	genesis := types.GenesisState{
 		Params:      types.DefaultParams(),
-		Tokens:      []types.FanToken{ft},
+		FanTokens:   []types.FanToken{fantokenObj},
 		BurnedCoins: burnCoins,
 	}
 
 	// initialize genesis
 	token.InitGenesis(ctx, app.FanTokenKeeper, genesis)
 
-	// query all tokens
-	var tokens = app.FanTokenKeeper.GetFanTokens(ctx, nil)
-	require.Equal(t, len(tokens), 1)
-	require.Equal(t, tokens[0], &ft)
+	// query all fantokens
+	var fantokens = app.FanTokenKeeper.GetFanTokens(ctx, nil)
+	require.Equal(t, len(fantokens), 1)
+	require.Equal(t, fantokens[0], &fantokenObj)
 
 	var coins = app.FanTokenKeeper.GetAllBurnCoin(ctx)
 	require.Equal(t, burnCoins, coins)

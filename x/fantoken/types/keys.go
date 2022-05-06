@@ -16,16 +16,15 @@ const (
 
 	// RouterKey is the msg router key for the token module
 	RouterKey string = ModuleName
-
-	// DefaultParamspace is the default name for parameter store
-	DefaultParamspace = ModuleName
 )
 
 var (
 	// PrefixFanTokenForDenom defines a denom prefix for the fan token
 	PrefixFanTokenForDenom = []byte{0x01}
+
 	// PrefixFanTokens defines a prefix for the fan tokens
 	PrefixFanTokens = []byte{0x02}
+
 	// PeffxBurnFanTokenAmt defines a prefix for the amount of fan token burnt
 	PefixBurnFanTokenAmt = []byte{0x03}
 )

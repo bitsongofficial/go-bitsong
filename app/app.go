@@ -377,6 +377,7 @@ func NewBitsongApp(
 		keys[fantokentypes.StoreKey],
 		app.GetSubspace(fantokentypes.ModuleName),
 		app.BankKeeper,
+		app.DistrKeeper,
 		app.ModuleAccountAddrs(),
 		authtypes.FeeCollectorName,
 	)

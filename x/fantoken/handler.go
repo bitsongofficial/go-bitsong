@@ -8,7 +8,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// NewHandler handles all "token" type messages.
+// NewHandler handles all fantoken type messages.
 func NewHandler(k keeper.Keeper) sdk.Handler {
 	msgServer := keeper.NewMsgServerImpl(k)
 
@@ -37,7 +37,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized nft message type: %T", msg)
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized fantoken message type: %T", msg)
 		}
 	}
 }

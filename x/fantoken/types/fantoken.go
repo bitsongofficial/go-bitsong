@@ -5,7 +5,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const FanTokenDecimal = 6
@@ -16,47 +15,49 @@ var (
 
 // FanTokenI defines an interface for FanToken
 type FanTokenI interface {
+	GetName() string
 	GetSymbol() string
 	GetDenom() string
-	GetName() string
+	GetUri() string
 	GetMaxSupply() sdk.Int
 	GetMintable() bool
 	GetOwner() sdk.AccAddress
-	GetUri() string
-	GetMetaData() banktypes.Metadata
+	GetMetaData() Metadata
 }
 
-// NewFanToken constructs a new Token instance
-func NewFanToken(
-	name string,
-	maxSupply sdk.Int,
-	owner sdk.AccAddress,
-	uri string,
-	metaData banktypes.Metadata,
-) FanToken {
+// NewFanToken constructs a new FanToken instance
+func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress) FanToken {
 	return FanToken{
-		Name:      name,
+		Denom:     GetFantokenDenom(owner, symbol, name),
 		MaxSupply: maxSupply,
 		Mintable:  true,
 		Owner:     owner.String(),
-		URI:       uri,
-		MetaData:  metaData,
+		MetaData:  NewMetadata(name, symbol, uri),
+	}
+}
+
+// NewMetadata constructs a new FanToken Metadata instance
+func NewMetadata(name, symbol, uri string) Metadata {
+	return Metadata{
+		Name:   name,
+		Symbol: symbol,
+		URI:    uri,
 	}
 }
 
 // GetSymbol implements exported.FanTokenI
 func (ft FanToken) GetSymbol() string {
-	return ft.MetaData.Display
+	return ft.MetaData.Symbol
 }
 
 // GetDenom implements exported.FanTokenI
 func (ft FanToken) GetDenom() string {
-	return ft.MetaData.Base
+	return ft.Denom
 }
 
 // GetName implements exported.FanTokenI
 func (ft FanToken) GetName() string {
-	return ft.Name
+	return ft.MetaData.Name
 }
 
 // GetMaxSupply implements exported.FanTokenI
@@ -77,11 +78,11 @@ func (ft FanToken) GetOwner() sdk.AccAddress {
 
 // GetUri implements exported.FanTokenI
 func (ft FanToken) GetUri() string {
-	return ft.URI
+	return ft.MetaData.URI
 }
 
 // GetMetaData returns metadata of the fantoken
-func (ft FanToken) GetMetaData() banktypes.Metadata {
+func (ft FanToken) GetMetaData() Metadata {
 	return ft.MetaData
 }
 

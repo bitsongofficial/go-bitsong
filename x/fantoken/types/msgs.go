@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const (
@@ -28,20 +27,14 @@ var (
 	_ sdk.Msg = &MsgTransferFanTokenOwner{}
 )
 
-// NewMsgIssueToken - construct token issue msg.
-func NewMsgIssueFanToken(
-	symbol string, name string,
-	maxSupply sdk.Int,
-	descriptioin string, owner, uri string, issueFee sdk.Coin,
-) *MsgIssueFanToken {
+// NewMsgIssueFanToken - construct token issue msg.
+func NewMsgIssueFanToken(name, symbol, uri string, maxSupply sdk.Int, owner string) *MsgIssueFanToken {
 	return &MsgIssueFanToken{
-		Symbol:      symbol,
-		Name:        name,
-		MaxSupply:   maxSupply,
-		Description: descriptioin,
-		Owner:       owner,
-		URI:         uri,
-		IssueFee:    issueFee,
+		Name:      name,
+		Symbol:    symbol,
+		URI:       uri,
+		MaxSupply: maxSupply,
+		Owner:     owner,
 	}
 }
 
@@ -58,26 +51,9 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
-	denom := GetFantokenDenom(owner, msg.Symbol, msg.Name)
-	denomMetaData := banktypes.Metadata{
-		Description: msg.Description,
-		Base:        denom,
-		Display:     msg.Symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: denom, Exponent: 0},
-			{Denom: msg.Symbol, Exponent: FanTokenDecimal},
-		},
-	}
+	fantoken := NewFanToken(msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, owner)
 
-	return ValidateToken(
-		NewFanToken(
-			msg.Name,
-			msg.MaxSupply,
-			owner,
-			msg.URI,
-			denomMetaData,
-		),
-	)
+	return ValidateFanToken(fantoken)
 }
 
 // GetSignBytes Implements Msg.
@@ -98,7 +74,7 @@ func (msg MsgIssueFanToken) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{from}
 }
 
-// NewMsgTransferTokenOwner return a instance of MsgTransferTokenOwner
+// NewMsgTransferFanTokenOwner return a instance of MsgTransferFanTokenOwner
 func NewMsgTransferFanTokenOwner(denom, srcOwner, dstOwner string) *MsgTransferFanTokenOwner {
 	return &MsgTransferFanTokenOwner{
 		Denom:    denom,
@@ -157,7 +133,7 @@ func (msg MsgTransferFanTokenOwner) Route() string { return MsgRoute }
 // Type implements Msg
 func (msg MsgTransferFanTokenOwner) Type() string { return TypeMsgTransferFanTokenOwner }
 
-// NewMsgEditToken creates a MsgEditToken
+// NewMsgEditFanToken creates a MsgEditFanToken
 func NewMsgEditFanToken(denom string, mintable bool, owner string) *MsgEditFanToken {
 	return &MsgEditFanToken{
 		Denom:    denom,
@@ -198,11 +174,10 @@ func (msg MsgEditFanToken) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
-	// check symbol
 	return ValidateDenom(msg.Denom)
 }
 
-// NewMsgMintToken creates a MsgMintToken
+// NewMsgMintFanToken creates a MsgMintFanToken
 func NewMsgMintFanToken(recipient, denom, owner string, amount sdk.Int) *MsgMintFanToken {
 	return &MsgMintFanToken{
 		Recipient: recipient,
@@ -257,8 +232,8 @@ func (msg MsgMintFanToken) ValidateBasic() error {
 	return ValidateDenom(msg.Denom)
 }
 
-// NewMsgBurnToken creates a MsgMintToken
-func NewMsgBurnFanToken(denom string, owner string, amount sdk.Int) *MsgBurnFanToken {
+// NewMsgBurnFanToken creates a MsgBurnFanToken
+func NewMsgBurnFanToken(denom, owner string, amount sdk.Int) *MsgBurnFanToken {
 	return &MsgBurnFanToken{
 		Denom:  denom,
 		Amount: amount,

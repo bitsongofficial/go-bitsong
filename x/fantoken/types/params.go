@@ -12,19 +12,19 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 // parameter keys
 var (
-	KeyIssuePrice = []byte("IssuePrice")
+	KeyIssueFee = []byte("IssueFee")
 )
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyIssuePrice, &p.IssuePrice, validateIssuePrice),
+		paramtypes.NewParamSetPair(KeyIssueFee, &p.IssueFee, validateIssueFee),
 	}
 }
 
 // NewParams constructs a new Params instance
-func NewParams(issuePrice sdk.Coin) Params {
+func NewParams(issueFee sdk.Coin) Params {
 	return Params{
-		IssuePrice: issuePrice,
+		IssueFee: issueFee,
 	}
 }
 
@@ -36,7 +36,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssuePrice: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
+		IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
 	}
 }
 
@@ -48,20 +48,20 @@ func (p Params) String() string {
 
 // ValidateParams validates the given params
 func ValidateParams(p Params) error {
-	if err := validateIssuePrice(p.IssuePrice); err != nil {
+	if err := validateIssueFee(p.IssueFee); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validateIssuePrice(i interface{}) error {
+func validateIssueFee(i interface{}) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v.IsNegative() {
-		return fmt.Errorf("issue price should not be negative")
+		return fmt.Errorf("issue fee should not be negative")
 	}
 	return nil
 }

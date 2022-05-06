@@ -33,16 +33,8 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	denom, err := m.Keeper.IssueFanToken(
-		ctx, msg.Symbol, msg.Name, msg.MaxSupply, msg.Description, owner, msg.URI, msg.IssueFee,
-	)
-
+	denom, err := m.Keeper.IssueFanToken(ctx, msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, owner)
 	if err != nil {
-		return nil, err
-	}
-
-	// handle fee for token
-	if err := m.Keeper.DeductIssueFanTokenFee(ctx, owner, msg.IssueFee, msg.Symbol); err != nil {
 		return nil, err
 	}
 
@@ -50,8 +42,6 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 		sdk.NewEvent(
 			types.EventTypeIssueFanToken,
 			sdk.NewAttribute(types.AttributeKeyDenom, denom),
-			sdk.NewAttribute(types.AttributeKeySymbol, msg.Symbol),
-			sdk.NewAttribute(types.AttributeKeyCreator, msg.Owner),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -71,9 +61,7 @@ func (m msgServer) EditFanToken(goCtx context.Context, msg *types.MsgEditFanToke
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := m.Keeper.EditFanToken(
-		ctx, msg.Denom, msg.Mintable, owner,
-	); err != nil {
+	if err := m.Keeper.EditFanToken(ctx, msg.Denom, msg.Mintable, owner); err != nil {
 		return nil, err
 	}
 
@@ -81,7 +69,6 @@ func (m msgServer) EditFanToken(goCtx context.Context, msg *types.MsgEditFanToke
 		sdk.NewEvent(
 			types.EventTypeEditFanToken,
 			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.Owner),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

@@ -2,11 +2,11 @@
 package types
 
 const (
-	EventTypeIssueFanToken         = "issue_fan_token"
-	EventTypeEditFanToken          = "edit_fan_token"
-	EventTypeMintFanToken          = "mint_fan_token"
-	EventTypeBurnFanToken          = "burn_fan_token"
-	EventTypeTransferFanTokenOwner = "transfer_fan_token_owner"
+	EventTypeIssueFanToken         = "issue_fantoken"
+	EventTypeEditFanToken          = "edit_fantoken"
+	EventTypeMintFanToken          = "mint_fantoken"
+	EventTypeBurnFanToken          = "burn_fantoken"
+	EventTypeTransferFanTokenOwner = "transfer_fantoken_owner"
 
 	AttributeValueCategory = ModuleName
 

@@ -16,7 +16,7 @@ import (
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// NewTxCmd returns the transaction commands for the token module.
+// NewTxCmd returns the transaction commands for the fantoken module.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        tokentypes.ModuleName,
@@ -37,7 +37,7 @@ func NewTxCmd() *cobra.Command {
 	return txCmd
 }
 
-// GetCmdIssueFanToken implements the issue fan token command
+// GetCmdIssueFanToken implements the issue fantoken command
 func GetCmdIssueFanToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "issue",
@@ -47,8 +47,6 @@ func GetCmdIssueFanToken() *cobra.Command {
 				"--name=\"Kitty Token\" "+
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
-				"--issue-fee=\"1000000ubtsg\" "+
-				"--description=\"Kitty Token\" "+
 				"--uri=\"ipfs://...\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
@@ -78,36 +76,17 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if !ok {
 				return fmt.Errorf("failed to parse max supply: %s", maxSupplyStr)
 			}
-			description, err := cmd.Flags().GetString(FlagDescription)
-			if err != nil {
-				return err
-			}
 			uri, err := cmd.Flags().GetString(FlagURI)
 			if err != nil {
 				return fmt.Errorf("the uri field is invalid")
 			}
-			issueFeeStr, err := cmd.Flags().GetString(FlagIssueFee)
-			if err != nil {
-				return err
-			}
-			issueFee, err := sdk.ParseCoinNormalized(issueFeeStr)
-			if err != nil {
-				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
-			}
-
-			// TODO: this should be removed from here
-			/*if issueFee.Denom != tokentypes.DefaultBondDenom {
-				return fmt.Errorf("the issue fee denom should be bond denom")
-			}*/
 
 			msg := &tokentypes.MsgIssueFanToken{
-				Symbol:      symbol,
-				Name:        name,
-				MaxSupply:   maxSupply,
-				Description: description,
-				Owner:       owner.String(),
-				URI:         uri,
-				IssueFee:    issueFee,
+				Symbol:    symbol,
+				Name:      name,
+				MaxSupply: maxSupply,
+				Owner:     owner.String(),
+				URI:       uri,
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -122,7 +101,6 @@ func GetCmdIssueFanToken() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
 	_ = cmd.MarkFlagRequired(FlagMaxSupply)
-	_ = cmd.MarkFlagRequired(FlagIssueFee)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -276,9 +254,9 @@ func GetCmdBurnFanToken() *cobra.Command {
 				}
 			}
 
-			msg := tokentypes.NewMsgBurnFanToken(
-				strings.TrimSpace(args[0]), owner, amount,
-			)
+			denom := strings.TrimSpace(args[0])
+
+			msg := tokentypes.NewMsgBurnFanToken(denom, owner, amount)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
