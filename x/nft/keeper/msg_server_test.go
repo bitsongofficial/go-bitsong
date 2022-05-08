@@ -9,8 +9,6 @@ import (
 )
 
 // TODO: test
-// SignMetadata
-// UpdateMetadata
 // UpdateMetadataAuthority
 // CreateCollection
 // VerifyCollection
@@ -26,6 +24,44 @@ func (suite *KeeperTestSuite) CreateNFT(creator sdk.AccAddress) *types.MsgCreate
 			Uri:                  "punk.com",
 			SellerFeeBasisPoints: 0,
 			Creators:             []*types.Creator{},
+		}, false, false,
+	))
+	suite.Require().NoError(err)
+	return resp
+}
+
+func (suite *KeeperTestSuite) CreateMutableNFT(creator sdk.AccAddress) *types.MsgCreateNFTResponse {
+	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
+		creator, creator.String(), types.Data{
+			Name:                 "Punk",
+			Symbol:               "PUNK",
+			Uri:                  "punk.com",
+			SellerFeeBasisPoints: 0,
+			Creators:             []*types.Creator{},
+		}, false, true,
+	))
+	suite.Require().NoError(err)
+	return resp
+}
+
+func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, creatorAccs []sdk.AccAddress) *types.MsgCreateNFTResponse {
+	creators := []*types.Creator{}
+	for _, creatorAcc := range creatorAccs {
+		creators = append(creators, &types.Creator{
+			Address:  creatorAcc.String(),
+			Verified: false,
+			Share:    100,
+		})
+	}
+	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
+		creator, creator.String(), types.Data{
+			Name:                 "Punk",
+			Symbol:               "PUNK",
+			Uri:                  "punk.com",
+			SellerFeeBasisPoints: 0,
+			Creators:             creators,
 		}, false, false,
 	))
 	suite.Require().NoError(err)
@@ -195,6 +231,123 @@ func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(nft.Id, tc.nftId)
 			suite.Require().Equal(nft.Owner, tc.target)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerSignMetadata() {
+	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	nftInfo := suite.CreateNFTWithCreators(creator1, []sdk.AccAddress{creator1, creator2})
+
+	tests := []struct {
+		testCase   string
+		metadataId uint64
+		sender     sdk.AccAddress
+		expectPass bool
+	}{
+		{
+			"not existing metadata",
+			0,
+			creator3,
+			false,
+		},
+		{
+			"sign correct metadata",
+			nftInfo.MetadataId,
+			creator1,
+			true,
+		},
+		{
+			"try sign metadata - not mine",
+			nftInfo.MetadataId,
+			creator3,
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.SignMetadata(sdk.WrapSDKContext(suite.ctx), types.NewMsgSignMetadata(
+			tc.sender, tc.metadataId,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, tc.metadataId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(metadata.Id, tc.metadataId)
+
+			for _, creator := range metadata.Data.Creators {
+				if creator.Address == tc.sender.String() {
+					suite.Require().Equal(creator.Verified, true)
+				}
+			}
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
+	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	immutableNft := suite.CreateNFT(creator1)
+	mutableNft := suite.CreateMutableNFT(creator2)
+
+	tests := []struct {
+		testCase   string
+		metadataId uint64
+		sender     sdk.AccAddress
+		expectPass bool
+	}{
+		{
+			"not existing metadata",
+			0,
+			creator3,
+			false,
+		},
+		{
+			"try updating not mutable metadata",
+			immutableNft.MetadataId,
+			creator1,
+			false,
+		},
+		{
+			"try updating not owned metadata",
+			mutableNft.MetadataId,
+			creator3,
+			false,
+		},
+		{
+			"update with correct values",
+			mutableNft.MetadataId,
+			creator2,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.UpdateMetadata(sdk.WrapSDKContext(suite.ctx), types.NewMsgUpdateMetadata(
+			tc.sender, tc.metadataId, true, &types.Data{Name: "NewPUNK", Creators: []*types.Creator{
+				{Address: creator1.String(), Verified: true, Share: 100},
+			}},
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, tc.metadataId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(metadata.Id, tc.metadataId)
+
+			suite.Require().Equal(len(metadata.Data.Creators), 1)
+			suite.Require().Equal(metadata.Data.Creators[0].Verified, false)
+			suite.Require().Equal(metadata.PrimarySaleHappened, true)
 		} else {
 			suite.Require().Error(err)
 		}
