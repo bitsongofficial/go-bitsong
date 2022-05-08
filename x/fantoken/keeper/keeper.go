@@ -67,7 +67,7 @@ func (k Keeper) IssueFanToken(ctx sdk.Context, name, symbol, uri string, maxSupp
 		return denom, err
 	}
 
-	return denom, nil
+	return fantoken.GetDenom(), nil
 }
 
 // EditFanToken edits the specified fantoken
