@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	regexpSymbolFmt = fmt.Sprintf("^[a-z]{%d,%d}$", MinimumSymbolLen-1, MaximumSymbolLen-1)
+	regexpSymbolFmt = fmt.Sprintf("^[a-z0-9]{%d,%d}$", MinimumSymbolLen-1, MaximumSymbolLen-1)
 	regexpSymbol    = regexp.MustCompile(regexpSymbolFmt).MatchString
 )
 
