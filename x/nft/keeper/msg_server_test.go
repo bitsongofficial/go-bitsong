@@ -435,14 +435,64 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCollection() {
 			// test response is correct
 			suite.Require().Equal(resp.Id, tc.expectedCollectionId)
 
-			// test lastmetadataId and lastNftId are updated correctly
-			lastNftId := suite.app.NFTKeeper.GetLastCollectionId(suite.ctx)
-			suite.Require().Equal(lastNftId, tc.expectedCollectionId)
+			// test last collectionId id updated correctly
+			lastCollectionId := suite.app.NFTKeeper.GetLastCollectionId(suite.ctx)
+			suite.Require().Equal(lastCollectionId, tc.expectedCollectionId)
 
-			// test metadataId and nftId to set correctly
+			// test collection is set correctly
 			collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, resp.Id)
 			suite.Require().NoError(err)
 			suite.Require().Equal(collection.Id, tc.expectedCollectionId)
+			suite.Require().Equal(collection.UpdateAuthority, creator.String())
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerUpdateCollectionAuthority() {
+	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	collectionInfo1 := suite.CreateCollection(creator1)
+	collectionInfo2 := suite.CreateCollection(creator2)
+
+	tests := []struct {
+		testCase     string
+		sender       sdk.AccAddress
+		targetOwner  string
+		collectionId uint64
+		expectPass   bool
+	}{
+		{
+			"update collection authority with owner",
+			creator1,
+			creator2.String(),
+			collectionInfo1.Id,
+			true,
+		},
+		{
+			"try updating collection authority with non-owner",
+			creator1,
+			creator2.String(),
+			collectionInfo2.Id,
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.UpdateCollectionAuthority(sdk.WrapSDKContext(suite.ctx), types.NewMsgUpdateCollectionAuthority(
+			tc.sender, tc.collectionId, tc.targetOwner,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// test authority is updated correctly
+			collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, tc.collectionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(collection.Id, tc.collectionId)
+			suite.Require().Equal(collection.UpdateAuthority, tc.targetOwner)
 		} else {
 			suite.Require().Error(err)
 		}
@@ -452,4 +502,3 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCollection() {
 // TODO: test
 // VerifyCollection
 // UnverifyCollection
-// UpdateCollectionAuthority
