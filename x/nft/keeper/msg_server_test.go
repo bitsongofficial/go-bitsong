@@ -8,13 +8,6 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
-// TODO: test
-// UpdateMetadataAuthority
-// CreateCollection
-// VerifyCollection
-// UnverifyCollection
-// UpdateCollectionAuthority
-
 func (suite *KeeperTestSuite) CreateNFT(creator sdk.AccAddress) *types.MsgCreateNFTResponse {
 	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
@@ -353,3 +346,110 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
 		}
 	}
 }
+
+func (suite *KeeperTestSuite) TestMsgServerUpdateMetadataAuthority() {
+	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	immutableNft := suite.CreateNFT(creator1)
+	mutableNft := suite.CreateMutableNFT(creator2)
+
+	tests := []struct {
+		testCase   string
+		metadataId uint64
+		sender     sdk.AccAddress
+		newOwner   string
+		expectPass bool
+	}{
+		{
+			"not existing metadata",
+			0,
+			creator3,
+			creator3.String(),
+			false,
+		},
+		{
+			"try updating not owned metadata",
+			mutableNft.MetadataId,
+			creator3,
+			creator3.String(),
+			false,
+		},
+		{
+			"update with correct value",
+			mutableNft.MetadataId,
+			creator2,
+			creator3.String(),
+			true,
+		},
+		{
+			"update with original value",
+			immutableNft.MetadataId,
+			creator1,
+			creator1.String(),
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.UpdateMetadataAuthority(sdk.WrapSDKContext(suite.ctx), types.NewMsgUpdateMetadataAuthority(
+			tc.sender, tc.metadataId, tc.newOwner),
+		)
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, tc.metadataId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(metadata.Id, tc.metadataId)
+			suite.Require().Equal(metadata.UpdateAuthority, tc.newOwner)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerCreateCollection() {
+	tests := []struct {
+		testCase             string
+		expectPass           bool
+		expectedCollectionId uint64
+	}{
+		{
+			"create a collection",
+			true,
+			1,
+		},
+	}
+
+	for _, tc := range tests {
+		creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		resp, err := msgServer.CreateCollection(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateCollection(
+			creator, "Punk Collection", "punk.com", creator.String(),
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// test response is correct
+			suite.Require().Equal(resp.Id, tc.expectedCollectionId)
+
+			// test lastmetadataId and lastNftId are updated correctly
+			lastNftId := suite.app.NFTKeeper.GetLastCollectionId(suite.ctx)
+			suite.Require().Equal(lastNftId, tc.expectedCollectionId)
+
+			// test metadataId and nftId to set correctly
+			collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, resp.Id)
+			suite.Require().NoError(err)
+			suite.Require().Equal(collection.Id, tc.expectedCollectionId)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+// TODO: test
+// VerifyCollection
+// UnverifyCollection
+// UpdateCollectionAuthority
