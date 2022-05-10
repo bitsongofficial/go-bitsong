@@ -499,6 +499,96 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateCollectionAuthority() {
 	}
 }
 
-// TODO: test
-// VerifyCollection
-// UnverifyCollection
+func (suite *KeeperTestSuite) TestMsgServerVerifyCollection() {
+	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	collectionInfo := suite.CreateCollection(creator)
+	nftInfo1 := suite.CreateNFT(creator)
+
+	tests := []struct {
+		testCase     string
+		sender       sdk.AccAddress
+		collectionId uint64
+		nftId        uint64
+		expectPass   bool
+	}{
+		{
+			"verify collection with owner",
+			creator,
+			collectionInfo.Id,
+			nftInfo1.Id,
+			true,
+		},
+		{
+			"try verifying collection with non-owner",
+			creator2,
+			collectionInfo.Id,
+			nftInfo1.Id,
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.VerifyCollection(sdk.WrapSDKContext(suite.ctx), types.NewMsgVerifyCollection(
+			tc.sender, tc.collectionId, tc.nftId,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// test number of nfts are correctly put on the collection
+			nftIds := suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, tc.collectionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(len(nftIds), 1)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerUnverifyCollection() {
+	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	collectionInfo := suite.CreateCollection(creator)
+	nftInfo1 := suite.CreateNFT(creator)
+	nftInfo2 := suite.CreateNFT(creator)
+	suite.VerifyCollection(creator, collectionInfo.Id, nftInfo1.Id)
+	suite.VerifyCollection(creator, collectionInfo.Id, nftInfo2.Id)
+
+	tests := []struct {
+		testCase     string
+		sender       sdk.AccAddress
+		collectionId uint64
+		nftId        uint64
+		expectPass   bool
+	}{
+		{
+			"unverify a nft on collection with owner",
+			creator,
+			collectionInfo.Id,
+			nftInfo1.Id,
+			true,
+		},
+		{
+			"try unverifying collection with non-owner",
+			creator2,
+			collectionInfo.Id,
+			nftInfo1.Id,
+			false,
+		},
+	}
+
+	for _, tc := range tests {
+
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		_, err := msgServer.UnverifyCollection(sdk.WrapSDKContext(suite.ctx), types.NewMsgUnverifyCollection(
+			tc.sender, tc.collectionId, tc.nftId,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
