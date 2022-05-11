@@ -31,3 +31,18 @@ func CreateNFT(clientCtx client.Context, from string, bondDenom string) (testuti
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(100))).String()),
 	})
 }
+
+func CreateCollection(clientCtx client.Context, from string, bondDenom string) (testutil.BufferWriter, error) {
+	cmd := nftcli.GetCmdCreateCollection()
+
+	return clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("--%s=%s", nftcli.FlagName, "Punk"),
+		fmt.Sprintf("--%s=%s", nftcli.FlagUri, "https://punk.com"),
+		fmt.Sprintf("--%s=%s", nftcli.FlagUpdateAuthority, from),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(bondDenom, sdk.NewInt(100))).String()),
+	})
+}

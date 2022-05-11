@@ -40,6 +40,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	clientCtx := val.ClientCtx
 	_, err = testutil.CreateNFT(clientCtx, val.Address.String(), s.cfg.BondDenom)
 	s.Require().NoError(err)
+
+	_, err = testutil.CreateCollection(clientCtx, val.Address.String(), s.cfg.BondDenom)
+	s.Require().NoError(err)
+
+	_, err = s.network.WaitForHeight(1)
+	s.Require().NoError(err)
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
@@ -50,9 +56,6 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
-
-// TODO: test
-// GetCmdQueryCollection()
 
 func (s *IntegrationTestSuite) TestGetCmdQueryNFTInfo() {
 	val := s.network.Validators[0]
@@ -94,6 +97,26 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMetadata() {
 	clientCtx.JSONCodec.MustUnmarshalJSON(out.Bytes(), &resp)
 }
 
+func (s *IntegrationTestSuite) TestGetCmdQueryCollection() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := nftcli.GetCmdQueryCollection()
+
+	out, err := clitestutil.ExecTestCLICmd(
+		clientCtx,
+		cmd,
+		[]string{
+			"1",
+			"--output=json",
+		},
+	)
+	s.Require().NoError(err)
+
+	var resp nfttypes.QueryCollectionResponse
+	clientCtx.JSONCodec.MustUnmarshalJSON(out.Bytes(), &resp)
+}
+
 func (s *IntegrationTestSuite) TestGetCmdCreateNFT() {
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
@@ -117,12 +140,45 @@ func (s *IntegrationTestSuite) TestGetCmdCreateNFT() {
 	s.Require().NoError(err)
 }
 
+func (s *IntegrationTestSuite) TestGetCmdTransferNFT() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := nftcli.GetCmdTransferNFT()
+	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("--%s=%d", nftcli.FlagNftId, 1),
+		fmt.Sprintf("--%s=%s", nftcli.FlagNewOwner, val.Address.String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(100))).String()),
+	})
+	s.Require().NoError(err)
+}
+
+func (s *IntegrationTestSuite) TestGetCmdCreateCollection() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := nftcli.GetCmdCreateCollection()
+	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("--%s=%s", nftcli.FlagName, "Punk"),
+		fmt.Sprintf("--%s=%s", nftcli.FlagUri, "https://punk.com"),
+		fmt.Sprintf("--%s=%s", nftcli.FlagUpdateAuthority, val.Address.String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(100))).String()),
+	})
+	s.Require().NoError(err)
+}
+
 // TODO: test
-// GetCmdTransferNFT()
 // GetCmdSignMetadata()
 // GetCmdUpdateMetadata()
 // GetCmdUpdateMetadataAuthority()
-// GetCmdCreateCollection()
 // GetCmdVerifyCollection()
 // GetCmdUnverifyCollection()
 // GetCmdUpdateCollectionAuthority()
