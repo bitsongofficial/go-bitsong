@@ -1,0 +1,24 @@
+syntax = "proto3";
+package bitsong.marketplace.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/marketplace/v1beta1/auction.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+
+// Query creates service with marketplace as RPC
+service Query {
+  rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/v1beta1/auction/{id}";
+  }
+}
+
+message QueryAuctionRequest { uint64 id = 1; }
+
+message QueryAuctionResponse {
+  bitsong.marketplace.v1beta1.Auction auction = 1
+      [ (gogoproto.nullable) = false ];
+}

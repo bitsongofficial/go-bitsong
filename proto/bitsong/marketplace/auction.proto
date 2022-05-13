@@ -1,0 +1,239 @@
+syntax = "proto3";
+package bitsong.marketplace.v1beta1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+
+message AuctionData {
+    // unique identifier of the auction
+    uint64 id = 1;
+    /// authority with permission to modify this auction.
+    string authority = 2;
+    /// NFT being used to bid
+    uint64 nft_id = 3;
+    /// The time the last bid was placed, used to keep track of auction timing.
+    google.protobuf.Timestamp last_bid = 4 [(gogoproto.stdtime) = true];
+    /// Slot time the auction was officially ended by.
+    google.protobuf.Timestamp ended_at = 5 [(gogoproto.stdtime) = true];
+    /// End time is the cut-off point that the auction is forced to end by.
+    google.protobuf.Timestamp end_auction_at = 6 [(gogoproto.stdtime) = true];
+    /// Gap time is the amount of time in slots after the previous bid at which the auction ends.
+    google.protobuf.Duration end_auction_gap = 7 [(gogoproto.stdduration) = true];
+    /// Minimum price for any bid to meet.
+    uint64 price_floor = 8;
+    /// The state the auction is in, whether it has started or ended.
+    AuctionState state = 9;
+    /// Auction Bids, each user may have one bid open at a time.
+    BidState bid_state = 10;
+    /// Total uncancelled bids
+    uint64 total_uncancelled_bids = 11;
+    /// Tick size
+    uint64 tick_size = 12;
+    /// gap_tick_size_percentage - two decimal points
+    uint32 gap_tick_size_percentage = 13;
+}
+
+/// Define valid auction state transitions.
+enum AuctionState {
+  CREATED = 0 [ (gogoproto.enumvalue_customname) = "Created" ];
+  STARTED = 0 [ (gogoproto.enumvalue_customname) = "Started" ];
+  ENDED = 0 [ (gogoproto.enumvalue_customname) = "Ended" ];
+}
+
+/// Bids associate a bidding key with an amount bid.
+message Bid {
+    string address = 1;
+    uint64 amount = 2;
+}
+
+/// BidState tracks the running state of an auction, each variant represents a different kind of
+/// auction being run.
+message BidState {
+    repeated Bid bids = 1 [(gogoproto.nullable) = false];
+    uint64 max = 2;
+}
+
+/// Models a set of metadata for a bidder, meant to be stored in a PDA. This allows looking up
+/// information about a bidder regardless of if they have won, lost or cancelled.
+message BidderMetadata {
+    // Relationship with the bidder who's metadata this covers.
+    string bidder = 1;
+    // Relationship with the auction this bid was placed on.
+    string auction_id = 2;
+    // Amount that the user bid.
+    uint64 last_bid = 3;
+    // Tracks the last time this user bid.
+    google.protobuf.Timestamp last_bid_timestamp = 4 [ (gogoproto.stdtime) = true ];
+    // Whether the last bid the user made was cancelled. This should also be enough to know if the
+    // user is a winner, as if cancelled it implies previous bids were also cancelled.
+    bool cancelled = 5;
+}
+
+message AuctionManager {
+    // pub key: Key,
+
+    // pub store: Pubkey,
+
+    // pub authority: Pubkey,
+
+    // pub auction: Pubkey,
+
+    // pub vault: Pubkey,
+
+    // pub accept_payment: Pubkey,
+
+    AuctionManagerState state = 1;
+
+    AuctionManagerSettings settings = 2;
+
+    /// True if this is only winning configs of one item each, used for optimization in saving.
+    bool straight_shot_optimization = 3;
+}
+
+message AuctionManagerState {
+    AuctionManagerStatus status = 1;
+    /// When all configs are validated the auction is started and auction manager moves to Running
+    uint32 winning_config_items_validated = 2;
+
+    WinningConfigState winning_config_states = 3;
+
+    ParticipationState participation_state = 4;
+}
+
+message AuctionManagerSettings {
+    /// The safety deposit box index in the vault containing the winning items, in order of place
+    /// The same index can appear multiple times if that index contains n tokens for n appearances (this will be checked)
+    WinningConfig winning_configs = 1;
+
+    /// The participation config is separated because it is structurally a bit different,
+    /// having different options and also because it has no real "winning place" in the array.
+    ParticipationConfig participation_config  = 2;
+}
+
+message ParticipationState {
+    /// We have this variable below to keep track in the case of the participation NFTs, whose
+    /// income will trickle in over time, how much the artists have in the escrow account and
+    /// how much would/should be owed to them if they try to claim it relative to the winning bids.
+    /// It's  abit tougher than a straightforward bid which has a price attached to it, because
+    /// there are many bids of differing amounts (in the case of GivenForBidPrice) and they dont all
+    /// come in at one time, so this little ledger here keeps track.
+    uint64 collected_to_accept_payment = 1;
+
+    /// Record of primary sale or not at time of auction creation, set during validation step
+    bool primary_sale_happened = 2;
+
+    bool validated = 3;
+}
+
+message ParticipationConfig {
+    /// Setups:
+    /// 1. Winners get participation + not charged extra
+    /// 2. Winners dont get participation prize
+    WinningConstraint winner_constraint = 1;
+
+    /// Setups:
+    /// 1. Non-winners get prize for free
+    /// 2. Non-winners get prize but pay fixed price
+    /// 3. Non-winners get prize but pay bid price
+    NonWinningConstraint non_winning_constraint = 2;
+
+    /// The safety deposit box index in the vault containing the template for the participation prize
+    uint32 safety_deposit_box_index = 3;
+
+    /// Setting this field disconnects the participation prizes price from the bid. Any bid you submit, regardless
+    /// of amount, charges you the same fixed price.
+    uint64 fixed_price = 4;
+}
+
+enum WinningConstraint {
+  NO_PARTICIPATION_PRIZE = 1 [ (gogoproto.enumvalue_customname) = "NoParticipationPrize" ];
+  PARTICIPATION_PRIZE_GIVEN = 2 [ (gogoproto.enumvalue_customname) = "ParticipationPrizeGiven" ];
+}
+
+enum NonWinningConstraint {
+  GIVEN_FOR_FIXED_PRICE = 2 [ (gogoproto.enumvalue_customname) = "GivenForFixedPrice" ];
+  GIVEN_FOR_BID_PRICE = 3 [ (gogoproto.enumvalue_customname) = "GivenForBidPrice" ];
+}
+
+enum WinningConfigType {
+    /// You may be selling your one-of-a-kind NFT for the first time, but not it's accompanying Metadata,
+    /// of which you would like to retain ownership. You get 100% of the payment the first sale, then
+    /// royalties forever after.
+    ///
+    /// You may be re-selling something like a Limited/Open Edition print from another auction,
+    /// a master edition record token by itself (Without accompanying metadata/printing ownership), etc.
+    /// This means artists will get royalty fees according to the top level royalty % on the metadata
+    /// split according to their percentages of contribution.
+    ///
+    /// No metadata ownership is transferred in this instruction, which means while you may be transferring
+    /// the token for a limited/open edition away, you would still be (nominally) the owner of the limited edition
+    /// metadata, though it confers no rights or privileges of any kind.
+    TOKEN_ONLY_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "TokenOnlyTransfer" ];
+    /// Means you are auctioning off the master edition record and it's metadata ownership as well as the
+    /// token itself. The other person will be able to mint authorization tokens and make changes to the
+    /// artwork.
+    FULL_RIGHTS_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+}
+
+message WinningConfig {
+    // For now these are just array-of-array proxies but wanted to make them first class
+    // structs in case we want to attach other top level metadata someday.
+    repeated WinningConfigItem items = 1 [ (gogoproto.nullable) = false ];
+}
+
+message WinningConfigState {
+    repeated WinningConfigStateItem items = 1 [ (gogoproto.nullable) = false ];
+    /// Ticked to true when money is pushed to accept_payment account from auction bidding pot
+    bool money_pushed_to_accept_payment = 2;
+}
+
+message WinningConfigItem {
+    uint32 safety_deposit_box_index = 1;
+    uint32 amount = 2;
+    WinningConfigType winning_config_type = 3;
+}
+
+message WinningConfigStateItem {
+    /// Record of primary sale or not at time of auction creation, set during validation step
+    bool primary_sale_happened = 1;
+    /// Ticked to true when a prize is claimed by person who won it
+    bool claimed = 2;
+}
+
+enum AuctionManagerStatus {
+    INITIALIZED = 0 [ (gogoproto.enumvalue_customname) = "Initialized" ];
+    VALIDATED = 0 [ (gogoproto.enumvalue_customname) = "Validated" ];
+    RUNNING = 0 [ (gogoproto.enumvalue_customname) = "Running" ];
+    DISBURSING = 0 [ (gogoproto.enumvalue_customname) = "Disbursing" ];
+    FINISHED = 0 [ (gogoproto.enumvalue_customname) = "Finished" ];
+}
+
+message BidRedemptionTicket {
+    bool participation_redeemed = 1;
+    uint32 items_redeemed = 2;
+}
+
+message WhitelistedCreator {
+    string address = 1;
+    bool activated = 2;
+}
+
+// Params defines marketplace module's parameters
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin issue_price = 1 [
+    (gogoproto.moretags) = "yaml:\"issue_price\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventMetadataCreation {
+  string creator = 1;
+  uint64 metadata_id = 2;
+}

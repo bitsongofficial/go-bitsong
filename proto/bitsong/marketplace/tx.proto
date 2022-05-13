@@ -1,0 +1,21 @@
+syntax = "proto3";
+package bitsong.marketplace;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/marketplace/v1beta1/auction.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the Msg service
+service Msg {
+  rpc CreateAuction(MsgCreateAuction) returns (MsgCreateAuctionResponse);
+}
+
+message MsgCreateAuction {
+  string sender = 1;
+}
+message MsgCreateAuctionResponse {
+  uint64 id = 1;
+}
