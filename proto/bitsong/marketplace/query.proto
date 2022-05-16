@@ -5,15 +5,30 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "bitsong/marketplace/v1beta1/auction.proto";
+import "bitsong/marketplace/auction.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
 
 // Query creates service with marketplace as RPC
 service Query {
-  rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/bitsong/marketplace/v1beta1/auction/{id}";
+  rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/auctions/{state}";
   }
+  rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/auction/{id}";
+  }
+  rpc BidderInfo(QueryBidderInfoRequest) returns (QueryBidderInfoResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/bidder/{address}";
+  }
+}
+
+message QueryAuctionsRequest {
+  bitsong.marketplace.v1beta1.AuctionState state = 1;
+}
+
+message QueryAuctionsResponse {
+  repeated bitsong.marketplace.v1beta1.Auction auctions = 1
+      [ (gogoproto.nullable) = false ];
 }
 
 message QueryAuctionRequest { uint64 id = 1; }
@@ -21,4 +36,13 @@ message QueryAuctionRequest { uint64 id = 1; }
 message QueryAuctionResponse {
   bitsong.marketplace.v1beta1.Auction auction = 1
       [ (gogoproto.nullable) = false ];
+}
+
+message QueryBidderInfoRequest {
+  string address = 1;
+}
+
+message QueryBidderInfoResponse {
+  repeated uint64 auctions = 1;
+  repeated cosmos.base.v1beta1.Coin amounts = 2;
 }

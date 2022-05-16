@@ -8,7 +8,7 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
 
-message AuctionData {
+message Auction {
     // unique identifier of the auction
     uint64 id = 1;
     /// authority with permission to modify this auction.
@@ -39,15 +39,17 @@ message AuctionData {
 
 /// Define valid auction state transitions.
 enum AuctionState {
-  CREATED = 0 [ (gogoproto.enumvalue_customname) = "Created" ];
-  STARTED = 0 [ (gogoproto.enumvalue_customname) = "Started" ];
-  ENDED = 0 [ (gogoproto.enumvalue_customname) = "Ended" ];
+  EMPTY = 0 [ (gogoproto.enumvalue_customname) = "Empty" ];
+  CREATED = 1 [ (gogoproto.enumvalue_customname) = "Created" ];
+  STARTED = 2 [ (gogoproto.enumvalue_customname) = "Started" ];
+  ENDED = 3 [ (gogoproto.enumvalue_customname) = "Ended" ];
 }
 
 /// Bids associate a bidding key with an amount bid.
 message Bid {
     string address = 1;
-    uint64 amount = 2;
+    uint64 auction_id = 2;
+    uint64 amount = 3;
 }
 
 /// BidState tracks the running state of an auction, each variant represents a different kind of
@@ -74,24 +76,22 @@ message BidderMetadata {
 }
 
 message AuctionManager {
-    // pub key: Key,
-
     // pub store: Pubkey,
 
     // pub authority: Pubkey,
 
-    // pub auction: Pubkey,
+    uint64 auction_id = 1;
 
     // pub vault: Pubkey,
 
     // pub accept_payment: Pubkey,
 
-    AuctionManagerState state = 1;
+    AuctionManagerState state = 2;
 
-    AuctionManagerSettings settings = 2;
+    AuctionManagerSettings settings = 3;
 
     /// True if this is only winning configs of one item each, used for optimization in saving.
-    bool straight_shot_optimization = 3;
+    bool straight_shot_optimization = 4;
 }
 
 message AuctionManagerState {
@@ -150,13 +150,14 @@ message ParticipationConfig {
 }
 
 enum WinningConstraint {
-  NO_PARTICIPATION_PRIZE = 1 [ (gogoproto.enumvalue_customname) = "NoParticipationPrize" ];
-  PARTICIPATION_PRIZE_GIVEN = 2 [ (gogoproto.enumvalue_customname) = "ParticipationPrizeGiven" ];
+  NO_PARTICIPATION_PRIZE = 0 [ (gogoproto.enumvalue_customname) = "NoParticipationPrize" ];
+  PARTICIPATION_PRIZE_GIVEN = 1 [ (gogoproto.enumvalue_customname) = "ParticipationPrizeGiven" ];
 }
 
 enum NonWinningConstraint {
-  GIVEN_FOR_FIXED_PRICE = 2 [ (gogoproto.enumvalue_customname) = "GivenForFixedPrice" ];
-  GIVEN_FOR_BID_PRICE = 3 [ (gogoproto.enumvalue_customname) = "GivenForBidPrice" ];
+  NO_PARTICIPATION_PRIZE1 = 0 [ (gogoproto.enumvalue_customname) = "NoParticipationPrize1" ];
+  GIVEN_FOR_FIXED_PRICE = 1 [ (gogoproto.enumvalue_customname) = "GivenForFixedPrice" ];
+  GIVEN_FOR_BID_PRICE = 2 [ (gogoproto.enumvalue_customname) = "GivenForBidPrice" ];
 }
 
 enum WinningConfigType {
@@ -176,7 +177,7 @@ enum WinningConfigType {
     /// Means you are auctioning off the master edition record and it's metadata ownership as well as the
     /// token itself. The other person will be able to mint authorization tokens and make changes to the
     /// artwork.
-    FULL_RIGHTS_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+    FULL_RIGHTS_TRANSFER = 1 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
 }
 
 message WinningConfig {
@@ -206,10 +207,10 @@ message WinningConfigStateItem {
 
 enum AuctionManagerStatus {
     INITIALIZED = 0 [ (gogoproto.enumvalue_customname) = "Initialized" ];
-    VALIDATED = 0 [ (gogoproto.enumvalue_customname) = "Validated" ];
-    RUNNING = 0 [ (gogoproto.enumvalue_customname) = "Running" ];
-    DISBURSING = 0 [ (gogoproto.enumvalue_customname) = "Disbursing" ];
-    FINISHED = 0 [ (gogoproto.enumvalue_customname) = "Finished" ];
+    VALIDATED = 1 [ (gogoproto.enumvalue_customname) = "Validated" ];
+    RUNNING = 2 [ (gogoproto.enumvalue_customname) = "Running" ];
+    DISBURSING = 3 [ (gogoproto.enumvalue_customname) = "Disbursing" ];
+    FINISHED = 4 [ (gogoproto.enumvalue_customname) = "Finished" ];
 }
 
 message BidRedemptionTicket {
@@ -233,7 +234,35 @@ message Params {
   ];
 }
 
-message EventMetadataCreation {
+message EventCreateAuction {
   string creator = 1;
-  uint64 metadata_id = 2;
+  uint64 auction_id = 2;
+}
+
+message EventSetAuctionAuthority {
+    uint64 auction_id = 1;
+    string authority = 2;
+}
+
+message EventStartAuction {
+    uint64 auction_id = 1;
+}
+
+message EventEndAuction {
+    uint64 auction_id = 1;
+}
+
+message EventPlaceBid {
+    string bidder = 1;
+    uint64 auction_id = 2;
+}
+
+message EventCancelBid {
+    string bidder = 1;
+    uint64 auction_id = 2;
+}
+
+message EventClaimBid {
+    string bidder = 1;
+    uint64 auction_id = 2;
 }
