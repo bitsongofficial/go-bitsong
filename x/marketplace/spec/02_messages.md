@@ -46,6 +46,10 @@ Store auction record on-chain from provided Msg fields.
 7. Update bidder Metadata
 8. Update auction with remaining bids
 
+Note: Possibility to add cancel fee for the bid.
+The benefit of cancelling bid is that for long term auction, it might be pretty long to wait and he might be interested in another auction. In that case, previous bid is set as winner.
+We might add flag to be able to cancel in the middle or not. If able to cancel, will need to keep all the bids, if not, can keep only top.
+
 ## MsgClaimBid
 
 1. Load the auction and verify this bid is valid.
