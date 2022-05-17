@@ -16,7 +16,6 @@ func DefaultGenesisState() *types.GenesisState {
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	// initialize params
 	k.SetParamSet(ctx, data.Params)
-
 }
 
 // ExportGenesis outputs the genesis state

@@ -23,6 +23,8 @@ func (m msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	_ = ctx
+	// Store auction record on-chain from provided Msg fields.
+
 	// ctx.EventManager().EmitTypedEvent(&types.EventCreateAuction{
 	// 	Creator:   msg.Sender,
 	// 	AuctionId: metadata.Id,
