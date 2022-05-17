@@ -150,6 +150,10 @@ func (m msgServer) StartAuction(goCtx context.Context, msg *types.MsgStartAuctio
 
 	_ = ctx
 
+	// Check sender is auction authority
+	// Calculate auction end time from current time and auction duration
+	// Set the state of auction as started
+
 	// start auction codebase
 	// pub fn start_auction<'a, 'b: 'a>(
 	//     program_id: &Pubkey,
@@ -212,6 +216,10 @@ func (m msgServer) SetAuctionAuthority(goCtx context.Context, msg *types.MsgSetA
 
 	_ = ctx
 
+	// Check Msg sender is auction authority
+	// Ensure new authority is an accurate address
+	// Update auction authority with new authority
+
 	// ctx.EventManager().EmitTypedEvent(&types.EventSetAuctionAuthority{
 	// 	Creator:   msg.Sender,
 	// 	AuctionId: metadata.Id,
@@ -253,6 +261,11 @@ func (m msgServer) EndAuction(goCtx context.Context, msg *types.MsgEndAuction) (
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	_ = ctx
+
+	// Check executor is a correct authority of the auction
+	// Check auction is not already ended
+	// Set auction end time
+	// Set auction status as ended
 
 	// ctx.EventManager().EmitTypedEvent(&types.EventEndAuction{
 	// 	Creator:   msg.Sender,
@@ -309,6 +322,18 @@ func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*typ
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	_ = ctx
+
+	// Verify bid is valid for the auction
+	// Verify auction has not ended
+	// Verify auction has started
+	// Load bidder metadata or create one
+	// Add new bid for the auction
+	// Confirm payer does have enough token to pay the bid
+	// Transfer amount of token to bid account
+	// Serialize new auction state with new bid - update auction end time based on gap_tick_size if required
+	// Update bidder metadata
+
+	// TODO: research on the usecase of bidder metadata
 
 	// ctx.EventManager().EmitTypedEvent(&types.EventPlaceBid{
 	// 	Creator:   msg.Sender,
@@ -549,6 +574,15 @@ func (m msgServer) CancelBid(goCtx context.Context, msg *types.MsgCancelBid) (*t
 
 	_ = ctx
 
+	// Load the auction and verify this bid is valid.
+	// Check instant_sale_price and update cancelled bids if auction still active
+	// Check metadata exists for the bidder
+	// Transfer tokens back to the bidder
+	// Refuse to cancel if the auction ended and this person is a winning account.
+	// Refuse to cancel if bidder set price above or equal instant_sale_price
+	// Update bidder Metadata
+	// Update auction with remaining bids
+
 	// ctx.EventManager().EmitTypedEvent(&types.EventCancelBid{
 	// 	Creator:   msg.Sender,
 	// 	AuctionId: metadata.Id,
@@ -723,6 +757,12 @@ func (m msgServer) ClaimBid(goCtx context.Context, msg *types.MsgClaimBid) (*typ
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	_ = ctx
+
+	// Load the auction and verify this bid is valid.
+	// Ensure bidder is owner
+	// Ensure user paid instant sale price or auction is ended
+	// Send bid amount to auction creator (set primary_sale_happened as true, if it was previously true, process royalties)
+	// Transfer ownership of NFT to bidder
 
 	// ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{
 	// 	Creator:   msg.Sender,
