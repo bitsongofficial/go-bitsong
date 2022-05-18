@@ -13,6 +13,6 @@ option (gogoproto.goproto_getters_all) = false;
 message GenesisState {
   bitsong.marketplace.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
   repeated bitsong.marketplace.v1beta1.Auction auctions = 2 [ (gogoproto.nullable) = false ];
-  repeated bitsong.marketplace.v1beta1.AuctionManager auction_managers = 3 [ (gogoproto.nullable) = false ];
   repeated bitsong.marketplace.v1beta1.Bid bids = 4 [ (gogoproto.nullable) = false ];
+  repeated bitsong.marketplace.v1beta1.BidderMetadata bidder_metadata = 5 [ (gogoproto.nullable) = false ];
 }

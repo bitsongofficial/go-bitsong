@@ -31,7 +31,7 @@ func (k Keeper) Auction(c context.Context, req *types.QueryAuctionRequest) (*typ
 	return &types.QueryAuctionResponse{}, nil
 }
 
-func (k Keeper) BidderInfo(c context.Context, req *types.QueryBidderInfoRequest) (*types.QueryBidderInfoResponse, error) {
+func (k Keeper) BidsByAuction(c context.Context, req *types.QueryBidsByAuctionRequest) (*types.QueryBidsByAuctionResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -39,5 +39,27 @@ func (k Keeper) BidderInfo(c context.Context, req *types.QueryBidderInfoRequest)
 	ctx := sdk.UnwrapSDKContext(c)
 	_ = ctx
 
-	return &types.QueryBidderInfoResponse{}, nil
+	return &types.QueryBidsByAuctionResponse{}, nil
+}
+
+func (k Keeper) BidsByBidder(c context.Context, req *types.QueryBidsByBidderRequest) (*types.QueryBidsByBidderResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	_ = ctx
+
+	return &types.QueryBidsByBidderResponse{}, nil
+}
+
+func (k Keeper) BidderMetadata(c context.Context, req *types.QueryBidderMetadataRequest) (*types.QueryBidderMetadataResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	_ = ctx
+
+	return &types.QueryBidderMetadataResponse{}, nil
 }

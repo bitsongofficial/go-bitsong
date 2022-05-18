@@ -25,23 +25,18 @@ message MsgCreateAuction {
   string sender = 1;
   /// NFT being used to bid
   uint64 nft_id = 2;
-  /// End time is the cut-off point that the auction is forced to end by.
-  google.protobuf.Timestamp end_auction_at = 3 [ (gogoproto.stdtime) = true ];
-  /// Gap time is the amount of time in slots after the previous bid at which
-  /// the auction ends.
-  google.protobuf.Duration end_auction_gap = 4
-      [ (gogoproto.stdduration) = true ];
-  /// Minimum price for any bid to meet.
-  uint64 price_floor = 5;
-  /// Tick size
-  uint64 tick_size = 6;
-  /// gap_tick_size_percentage - two decimal points
-  uint32 gap_tick_size_percentage = 7;
-
-  // TODO: add when auction automatically starts or add a new message type for starting auction
-  // TODO: add configuration for metadata ownership transfer or nft itself transfer or both
-  // if owner of metadata and nft is different, only one can be made
-  // TODO: should have type of auction for instant sell on bid
+  // Describes transfering nft ownership only or metadata ownership as well
+  bitsong.marketplace.v1beta1.AuctionPrizeType prize_type = 3;
+  // Denom to be used on bids
+  string bid_denom = 4;
+  // Duration of the auction
+  google.protobuf.Duration duration = 5 [ (gogoproto.stdduration) = true ];
+  // Minimum price for any bid to meet.
+  uint64 price_floor = 6;
+  // Instant sale price
+  uint64 instant_sale_price = 7;
+  // Tick size - how much higher the next bid must be to beat out the previous bid.
+  uint64 tick_size = 8;
 }
 message MsgCreateAuctionResponse {
   uint64 id = 1;
@@ -49,6 +44,8 @@ message MsgCreateAuctionResponse {
 
 message MsgSetAuctionAuthority {
   string sender = 1;
+  uint64 auction_id = 2;
+  string new_authority = 3;
 }
 message MsgSetAuctionAuthorityResponse {}
 
