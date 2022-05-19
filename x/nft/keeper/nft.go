@@ -53,6 +53,11 @@ func (k Keeper) GetNFTById(ctx sdk.Context, id uint64) (types.NFT, error) {
 }
 
 func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
+	// check if previous NFT exists and delete
+	if oldNft, err := k.GetNFTById(ctx, nft.Id); err == nil {
+		k.DeleteNFT(ctx, oldNft)
+	}
+
 	idBz := sdk.Uint64ToBigEndian(nft.Id)
 	bz := k.cdc.MustMarshal(&nft)
 	store := ctx.KVStore(k.storeKey)
@@ -63,6 +68,18 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 		panic(err)
 	}
 	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), idBz)
+}
+
+func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
+	idBz := sdk.Uint64ToBigEndian(nft.Id)
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(append(types.PrefixNFT, idBz...))
+
+	owner, err := sdk.AccAddressFromBech32(nft.Owner)
+	if err != nil {
+		panic(err)
+	}
+	store.Delete(append(append(types.PrefixNFTByOwner, owner...), idBz...))
 }
 
 func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {

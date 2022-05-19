@@ -116,13 +116,14 @@ Steps:
 
 1. Verify auction is `Started` status
 2. Verify bid is valid for the auction (check `bid_denom`, `tick_size` and `last_bid_amount`)
-3. Add new bid for the auction on the storage
-4. Confirm payer does have enough token to pay the bid
-5. Transfer amount of token to bid account
-6. Serialize new auction state with new bid
-7. Update or create bidder metadata
-8. If the amount exceeds `instant_sale_price`, end the auction
-9. Emit event for placing bid
+3. Check if previous bid exists for this auction by the bidder and if exists reject
+4. Add new bid for the auction on the storage
+5. Confirm payer does have enough token to pay the bid
+6. Transfer amount of token to bid account
+7. Serialize new auction state with new bid
+8. Update or create bidder metadata
+9. If the amount exceeds `instant_sale_price`, end the auction
+10. Emit event for placing bid
 
 ## MsgCancelBid
 

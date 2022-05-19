@@ -65,7 +65,7 @@ message MsgEndAuctionResponse {}
 message MsgPlaceBid {
   string sender = 1;
   uint64 auction_id = 2;
-  cosmos.base.v1beta1.Coin amount = 3;
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
 }
 message MsgPlaceBidResponse {}
 

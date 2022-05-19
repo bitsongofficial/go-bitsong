@@ -56,6 +56,17 @@ func request_Query_Auctions_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 	protoReq.State = AuctionState(e)
 
+	val, ok = pathParams["authority"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "authority")
+	}
+
+	protoReq.Authority, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "authority", err)
+	}
+
 	msg, err := client.Auctions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -85,6 +96,17 @@ func local_request_Query_Auctions_0(ctx context.Context, marshaler runtime.Marsh
 	}
 
 	protoReq.State = AuctionState(e)
+
+	val, ok = pathParams["authority"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "authority")
+	}
+
+	protoReq.Authority, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "authority", err)
+	}
 
 	msg, err := server.Auctions(ctx, &protoReq)
 	return msg, metadata, err
@@ -558,7 +580,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Auctions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bitsong", "marketplace", "auctions", "state"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Auctions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "marketplace", "auctions", "state", "authority"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_Auction_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bitsong", "marketplace", "auction", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 

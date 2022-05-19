@@ -15,9 +15,22 @@ func (k Keeper) Auctions(c context.Context, req *types.QueryAuctionsRequest) (*t
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
 
-	return &types.QueryAuctionsResponse{}, nil
+	allAuctions := k.GetAllAuctions(ctx)
+	auctions := []types.Auction{}
+	for _, auction := range allAuctions {
+		if req.State != types.AuctionState_Empty && auction.State != req.State {
+			continue
+		}
+		if req.Authority != "" && auction.Authority != req.Authority {
+			continue
+		}
+		auctions = append(auctions, auction)
+	}
+
+	return &types.QueryAuctionsResponse{
+		Auctions: auctions,
+	}, nil
 }
 
 func (k Keeper) Auction(c context.Context, req *types.QueryAuctionRequest) (*types.QueryAuctionResponse, error) {

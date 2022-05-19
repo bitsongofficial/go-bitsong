@@ -62,23 +62,10 @@ func (m msgServer) EndAuction(goCtx context.Context, msg *types.MsgEndAuction) (
 func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*types.MsgPlaceBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1. Verify auction is `Started` status
-	// 2. Verify bid is valid for the auction (check `bid_denom`, `tick_size` and `last_bid_amount`)
-	// 3. Add new bid for the auction on the storage
-	// 4. Confirm payer does have enough token to pay the bid
-	// 5. Transfer amount of token to bid account
-	// 6. Serialize new auction state with new bid
-	// 7. Update or create bidder metadata
-	// 8. If the amount exceeds `instant_sale_price`, end the auction
-
-	// 9. Emit event for placing bid
-	// ctx.EventManager().EmitTypedEvent(&types.EventPlaceBid{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
+	err := m.Keeper.PlaceBid(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgPlaceBidResponse{}, nil
 }
 

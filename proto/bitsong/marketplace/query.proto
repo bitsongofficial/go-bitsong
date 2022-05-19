@@ -11,9 +11,8 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
 
 // Query creates service with marketplace as RPC
 service Query {
-  // Query auctions by auction state, Empty state is providing all the auctions
   rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/bitsong/marketplace/auctions/{state}";
+    option (google.api.http).get = "/bitsong/marketplace/auctions/{state}/{authority}";
   }
   rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
     option (google.api.http).get = "/bitsong/marketplace/auction/{id}";
@@ -31,6 +30,7 @@ service Query {
 
 message QueryAuctionsRequest {
   bitsong.marketplace.v1beta1.AuctionState state = 1;
+  string authority = 2;
 }
 
 message QueryAuctionsResponse {

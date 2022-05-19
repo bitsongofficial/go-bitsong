@@ -36,11 +36,53 @@ func (k Keeper) GetAuctionById(ctx sdk.Context, id uint64) (types.Auction, error
 	return auction, nil
 }
 
+func (k Keeper) GetAuctionsByAuthority(ctx sdk.Context, authority sdk.AccAddress) []types.Auction {
+	store := ctx.KVStore(k.storeKey)
+
+	auctions := []types.Auction{}
+	it := sdk.KVStorePrefixIterator(store, append(types.PrefixAuctionByAuthority, authority...))
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		id := sdk.BigEndianToUint64(it.Value())
+		auction, err := k.GetAuctionById(ctx, id)
+		if err != nil {
+			panic(err)
+		}
+
+		auctions = append(auctions, auction)
+	}
+	return auctions
+}
+
 func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
+	// if previous auction exists, delete it
+	if oldAuction, err := k.GetAuctionById(ctx, auction.Id); err == nil {
+		k.DeleteAuction(ctx, oldAuction)
+	}
+
 	idBz := sdk.Uint64ToBigEndian(auction.Id)
 	bz := k.cdc.MustMarshal(&auction)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(append(types.PrefixAuction, idBz...), bz)
+
+	owner, err := sdk.AccAddressFromBech32(auction.Authority)
+	if err != nil {
+		panic(err)
+	}
+	store.Set(append(append(types.PrefixAuctionByAuthority, owner...), idBz...), idBz)
+}
+
+func (k Keeper) DeleteAuction(ctx sdk.Context, auction types.Auction) {
+	idBz := sdk.Uint64ToBigEndian(auction.Id)
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(append(types.PrefixAuction, idBz...))
+
+	owner, err := sdk.AccAddressFromBech32(auction.Authority)
+	if err != nil {
+		panic(err)
+	}
+	store.Delete(append(append(types.PrefixAuctionByAuthority, owner...), idBz...))
 }
 
 func (k Keeper) GetAllAuctions(ctx sdk.Context) []types.Auction {
