@@ -54,3 +54,22 @@ func (k Keeper) GetAllMetadata(ctx sdk.Context) []types.Metadata {
 
 	return allMetadata
 }
+
+func (k Keeper) UpdateMetadataAuthority(ctx sdk.Context, msg *types.MsgUpdateMetadataAuthority) error {
+	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	if err != nil {
+		return err
+	}
+
+	if metadata.UpdateAuthority != msg.Sender {
+		return types.ErrNotEnoughPermission
+	}
+
+	metadata.UpdateAuthority = msg.NewAuthority
+	k.SetMetadata(ctx, metadata)
+	ctx.EventManager().EmitTypedEvent(&types.EventMetadataAuthorityUpdate{
+		MetadataId:   msg.Sender,
+		NewAuthority: msg.NewAuthority,
+	})
+	return nil
+}

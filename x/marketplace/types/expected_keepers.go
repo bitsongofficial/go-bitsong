@@ -1,6 +1,7 @@
 package types
 
 import (
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -29,4 +30,11 @@ type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+}
+
+type NftKeeper interface {
+	GetNFTById(ctx sdk.Context, id uint64) (nfttypes.NFT, error)
+	GetMetadataById(ctx sdk.Context, id uint64) (nfttypes.Metadata, error)
+	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
+	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error
 }

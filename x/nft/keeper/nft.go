@@ -80,3 +80,24 @@ func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {
 
 	return allNFTs
 }
+
+func (k Keeper) TransferNFT(ctx sdk.Context, msg *types.MsgTransferNFT) error {
+	nft, err := k.GetNFTById(ctx, msg.Id)
+	if err != nil {
+		return err
+	}
+
+	if nft.Owner != msg.Sender {
+		return types.ErrNotNFTOwner
+	}
+
+	nft.Owner = msg.NewOwner
+	k.SetNFT(ctx, nft)
+	ctx.EventManager().EmitTypedEvent(&types.EventNFTTransfer{
+		NftId:    msg.Id,
+		Sender:   msg.Sender,
+		Receiver: msg.NewOwner,
+	})
+
+	return nil
+}

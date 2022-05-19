@@ -30,7 +30,8 @@ message MsgCreateAuction {
   // Denom to be used on bids
   string bid_denom = 4;
   // Duration of the auction
-  google.protobuf.Duration duration = 5 [ (gogoproto.stdduration) = true ];
+  google.protobuf.Duration duration = 5
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
   // Minimum price for any bid to meet.
   uint64 price_floor = 6;
   // Instant sale price

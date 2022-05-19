@@ -18,7 +18,8 @@ message Auction {
     // Describes transfering nft ownership only or metadata ownership as well
     AuctionPrizeType prize_type = 4;
     // Duration of the auction
-    google.protobuf.Duration duration = 5 [ (gogoproto.stdduration) = true ];
+    google.protobuf.Duration duration = 5
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
     // Denom to be used on bids
     string bid_denom = 6;
     // Minimum price for any bid to meet.
@@ -32,11 +33,14 @@ message Auction {
     // The amount of bid put last time
     uint64 last_bid_amount = 11;
     // The time the last bid was placed, used to keep track of auction timing.
-    google.protobuf.Timestamp last_bid = 12 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp last_bid = 12
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Slot time the auction was officially ended by.
-    google.protobuf.Timestamp ended_at = 13 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp ended_at = 13
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // End time is the cut-off point that the auction is forced to end by.
-    google.protobuf.Timestamp end_auction_at = 14 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp end_auction_at = 14
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Ticked to true when a prize is claimed by person who won it
     bool claimed = 15;
 }

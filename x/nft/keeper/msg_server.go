@@ -76,22 +76,10 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 func (m msgServer) TransferNFT(goCtx context.Context, msg *types.MsgTransferNFT) (*types.MsgTransferNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	nft, err := m.Keeper.GetNFTById(ctx, msg.Id)
+	err := m.Keeper.TransferNFT(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
-
-	if nft.Owner != msg.Sender {
-		return nil, types.ErrNotNFTOwner
-	}
-
-	nft.Owner = msg.NewOwner
-	m.Keeper.SetNFT(ctx, nft)
-	ctx.EventManager().EmitTypedEvent(&types.EventNFTTransfer{
-		NftId:    msg.Id,
-		Sender:   msg.Sender,
-		Receiver: msg.NewOwner,
-	})
 
 	return &types.MsgTransferNFTResponse{}, nil
 }
@@ -158,22 +146,10 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 func (m msgServer) UpdateMetadataAuthority(goCtx context.Context, msg *types.MsgUpdateMetadataAuthority) (*types.MsgUpdateMetadataAuthorityResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	metadata, err := m.Keeper.GetMetadataById(ctx, msg.MetadataId)
+	err := m.Keeper.UpdateMetadataAuthority(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
-
-	if metadata.UpdateAuthority != msg.Sender {
-		return nil, types.ErrNotEnoughPermission
-	}
-
-	metadata.UpdateAuthority = msg.NewAuthority
-	m.Keeper.SetMetadata(ctx, metadata)
-	ctx.EventManager().EmitTypedEvent(&types.EventMetadataAuthorityUpdate{
-		MetadataId:   msg.Sender,
-		NewAuthority: msg.NewAuthority,
-	})
-
 	return &types.MsgUpdateMetadataAuthorityResponse{}, nil
 }
 

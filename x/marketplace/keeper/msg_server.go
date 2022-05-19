@@ -22,21 +22,11 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (m msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuction) (*types.MsgCreateAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-	// 1. Ensure nft is owned by the sender
-	// 2. Ensure nft metadata is owned by the sender if auction prize type is `FullRightsTransfer`
-	// 3. Send nft ownership to marketplace module
-	// 4. If auction is for transferring metadata ownership as well, metadata authority is transferred to marketplace module
-	// 5. Create auction object from provided params
-
-	// 6. Emit event for auction creation
-	// ctx.EventManager().EmitTypedEvent(&types.EventCreateAuction{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
-	// 7. Return auction id
-	return &types.MsgCreateAuctionResponse{}, nil
+	auctionId, err := m.Keeper.CreateAuction(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgCreateAuctionResponse{Id: auctionId}, nil
 }
 
 func (m msgServer) StartAuction(goCtx context.Context, msg *types.MsgStartAuction) (*types.MsgStartAuctionResponse, error) {
