@@ -126,3 +126,34 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 
 	return auctionId, nil
 }
+
+func (k Keeper) StartAuction(ctx sdk.Context, msg *types.MsgStartAuction) error {
+
+	// Check sender is auction authority
+	auction, err := k.GetAuctionById(ctx, msg.AuctionId)
+	if err != nil {
+		return err
+	}
+	if auction.Authority != msg.Sender {
+		return types.ErrNotAuctionAuthority
+	}
+
+	// Ensure auction status is `Created`
+	if auction.State != types.AuctionState_Created {
+		return types.ErrAuctionAlreadyStarted
+	}
+
+	// Calculate auction end time from current time and auction duration
+	auction.EndAuctionAt = ctx.BlockTime().Add(auction.Duration)
+	// Set the state of auction to `Started`
+	auction.State = types.AuctionState_Started
+	// Store updated auction into store
+	k.SetAuction(ctx, auction)
+
+	// Emit event for auction start
+	ctx.EventManager().EmitTypedEvent(&types.EventStartAuction{
+		AuctionId: msg.AuctionId,
+	})
+
+	return nil
+}

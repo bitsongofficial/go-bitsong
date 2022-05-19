@@ -32,19 +32,10 @@ func (m msgServer) CreateAuction(goCtx context.Context, msg *types.MsgCreateAuct
 func (m msgServer) StartAuction(goCtx context.Context, msg *types.MsgStartAuction) (*types.MsgStartAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1. Check sender is auction authority
-	// 2. Ensure auction status is `Created`
-	// 3. Calculate auction end time from current time and auction duration
-	// 4. Set the state of auction to `Started`
-
-	// 5. Emit event for auction start
-	// ctx.EventManager().EmitTypedEvent(&types.EventStartAuction{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
+	err := m.Keeper.StartAuction(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgStartAuctionResponse{}, nil
 }
 

@@ -76,7 +76,8 @@ Steps:
 2. Ensure auction status is `Created`
 3. Calculate auction end time from current time and auction duration
 4. Set the state of auction to `Started`
-5. Emit event for auction start
+5. Store updated auction into store
+6. Emit event for auction start
 
 ## MsgEndAuction
 
