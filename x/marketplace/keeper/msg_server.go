@@ -42,17 +42,10 @@ func (m msgServer) StartAuction(goCtx context.Context, msg *types.MsgStartAuctio
 func (m msgServer) SetAuctionAuthority(goCtx context.Context, msg *types.MsgSetAuctionAuthority) (*types.MsgSetAuctionAuthorityResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1. Check Msg sender is auction authority
-	// 2. Ensure new authority is an accurate address
-	// 3. Update auction authority with new authority
-
-	// 4. Emit event for authority update
-	// ctx.EventManager().EmitTypedEvent(&types.EventSetAuctionAuthority{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
+	err := m.Keeper.SetAuctionAuthority(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgSetAuctionAuthorityResponse{}, nil
 }
 

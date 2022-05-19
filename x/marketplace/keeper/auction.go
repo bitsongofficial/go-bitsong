@@ -157,3 +157,33 @@ func (k Keeper) StartAuction(ctx sdk.Context, msg *types.MsgStartAuction) error 
 
 	return nil
 }
+
+func (k Keeper) SetAuctionAuthority(ctx sdk.Context, msg *types.MsgSetAuctionAuthority) error {
+
+	// Check sender is auction authority
+	auction, err := k.GetAuctionById(ctx, msg.AuctionId)
+	if err != nil {
+		return err
+	}
+	if auction.Authority != msg.Sender {
+		return types.ErrNotAuctionAuthority
+	}
+
+	// Ensure new authority is an accurate address
+	_, err = sdk.AccAddressFromBech32(msg.NewAuthority)
+	if err != nil {
+		return err
+	}
+
+	// Update auction authority with new authority
+	auction.Authority = msg.NewAuthority
+	k.SetAuction(ctx, auction)
+
+	// Emit event for authority update
+	ctx.EventManager().EmitTypedEvent(&types.EventSetAuctionAuthority{
+		AuctionId: msg.AuctionId,
+		Authority: auction.Authority,
+	})
+
+	return nil
+}
