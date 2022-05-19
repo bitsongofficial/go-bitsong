@@ -52,21 +52,10 @@ func (m msgServer) SetAuctionAuthority(goCtx context.Context, msg *types.MsgSetA
 func (m msgServer) EndAuction(goCtx context.Context, msg *types.MsgEndAuction) (*types.MsgEndAuctionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1.  Check executor is a correct authority of the auction
-	// 2.  Check auction is not already ended
-	// 3.  Set auction end time
-	// 4.  Set auction status as ended
-	// 5.  Check auction has winning bid
-	// 6.  If winning bid does not exists, send nft and metadata ownership to auction authority
-
-	// 7.  Emit event for auction end
-	// ctx.EventManager().EmitTypedEvent(&types.EventEndAuction{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
+	err := m.Keeper.EndAuction(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgEndAuctionResponse{}, nil
 }
 

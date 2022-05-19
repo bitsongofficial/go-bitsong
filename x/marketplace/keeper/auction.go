@@ -158,6 +158,60 @@ func (k Keeper) StartAuction(ctx sdk.Context, msg *types.MsgStartAuction) error 
 	return nil
 }
 
+func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
+
+	// Check executor is a correct authority of the auction
+	auction, err := k.GetAuctionById(ctx, msg.AuctionId)
+	if err != nil {
+		return err
+	}
+	if auction.Authority != msg.Sender {
+		return types.ErrNotAuctionAuthority
+	}
+
+	// Check auction is not already ended
+	if auction.State == types.AuctionState_Ended {
+		return types.ErrAuctionAlreadyEnded
+	}
+
+	// Set auction end time
+	auction.EndedAt = ctx.BlockTime()
+	// Set auction status as ended
+	auction.State = types.AuctionState_Ended
+	// Set updated auction on the storage
+	k.SetAuction(ctx, auction)
+
+	// Check auction has winning bid and if winning bid does not exists,
+	// send nft and metadata ownership back to auction authority
+	if auction.LastBidAmount > 0 {
+		moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
+		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   moduleAddr.String(),
+			Id:       auction.NftId,
+			NewOwner: auction.Authority,
+		})
+		if auction.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
+			nft, err := k.nftKeeper.GetNFTById(ctx, auction.NftId)
+			if err != nil {
+				return err
+			}
+
+			k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+				Sender:       moduleAddr.String(),
+				MetadataId:   nft.MetadataId,
+				NewAuthority: auction.Authority,
+			})
+		}
+	}
+
+	// Emit event for auction end
+	ctx.EventManager().EmitTypedEvent(&types.EventEndAuction{
+		AuctionId: auction.Id,
+	})
+
+	return nil
+}
+
 func (k Keeper) SetAuctionAuthority(ctx sdk.Context, msg *types.MsgSetAuctionAuthority) error {
 
 	// Check sender is auction authority
