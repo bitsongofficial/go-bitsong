@@ -4,12 +4,26 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
+func (k Keeper) GetModuleAccountAddress(ctx sdk.Context) sdk.AccAddress {
+	return k.accountKeeper.GetModuleAddress(types.ModuleName)
+}
+
+func (k Keeper) GetModuleAccountBalance(ctx sdk.Context) sdk.Coins {
+	moduleAccAddr := k.GetModuleAccountAddress(ctx)
+	return k.bankKeeper.GetAllBalances(ctx, moduleAccAddr)
+}
+
+func (k Keeper) CreateModuleAccount(ctx sdk.Context) {
+	moduleAcc := authtypes.NewEmptyModuleAccount(types.ModuleName)
+	k.accountKeeper.SetModuleAccount(ctx, moduleAcc)
+}
+
 func (k Keeper) SetLastMerkleDropId(ctx sdk.Context, id uint64) {
-	idBz := sdk.Uint64ToBigEndian(id)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyLastMerkleDropId, idBz)
+	store.Set(types.KeyLastMerkleDropId, sdk.Uint64ToBigEndian(id))
 }
 
 func (k Keeper) GetLastMerkleDropId(ctx sdk.Context) uint64 {
@@ -32,6 +46,22 @@ func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) {
 		panic(err)
 	}
 	store.Set(append(append(types.PrefixMerkleDropByOwner, owner...), idBz...), idBz)
+}
+
+func (k Keeper) IsClaimed(ctx sdk.Context, mdId, index uint64) bool {
+	mdIdBz := sdk.Uint64ToBigEndian(mdId)
+	indexBz := sdk.Uint64ToBigEndian(index)
+
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(append(append(types.PrefixClaimedMerkleDrop, mdIdBz...), indexBz...))
+}
+
+func (k Keeper) SetClaimed(ctx sdk.Context, mdId, index uint64) {
+	mdIdBz := sdk.Uint64ToBigEndian(mdId)
+	indexBz := sdk.Uint64ToBigEndian(index)
+
+	store := ctx.KVStore(k.storeKey)
+	store.Set(append(append(types.PrefixClaimedMerkleDrop, mdIdBz...), indexBz...), sdk.Uint64ToBigEndian(1))
 }
 
 func (k Keeper) GetAllMerkleDrops(ctx sdk.Context) []types.Merkledrop {

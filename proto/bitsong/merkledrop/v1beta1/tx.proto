@@ -2,21 +2,42 @@ syntax = "proto3";
 package bitsong.merkledrop.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
 
 service Msg {
 	rpc CreateMerkledrop(MsgCreateMerkledrop) returns (MsgCreateMerkledropResponse);
+	rpc ClaimMerkledrop(MsgClaimMerkledrop) returns (MsgClaimMerkledropResponse);
 }
 
 message MsgCreateMerkledrop {
 	string owner = 1;
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
-	uint64 total_amount = 3 [ (gogoproto.moretags) = "yaml:\"total_amount\"" ];
+	cosmos.base.v1beta1.Coin total_amount = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.moretags) = "yaml:\"total_amount\"",
+		(gogoproto.nullable) = false
+	];
 }
 
 message MsgCreateMerkledropResponse {
 	string owner = 1;
 	uint64 id = 2;
+}
+
+message MsgClaimMerkledrop {
+	string sender = 1;
+	uint64 merkledrop_id = 2;
+	uint64 index = 3;
+	cosmos.base.v1beta1.Coin amount = 4 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
+	repeated string proofs = 5;
+}
+
+message MsgClaimMerkledropResponse {
+
 }

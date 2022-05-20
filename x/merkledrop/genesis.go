@@ -15,6 +15,10 @@ func DefaultGenesisState() *types.GenesisState {
 
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	// initialize merkledrops
+	if data.LastMerkledropId == 0 {
+		k.CreateModuleAccount(ctx)
+	}
+
 	for _, md := range data.Merkledrops {
 		k.SetMerkleDrop(ctx, md)
 	}
@@ -25,7 +29,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		LastMerkledropId: k.GetLastMerkleDropId(ctx),
-		Merkledrops:      k.GetAllMerkleDrops(ctx),
+		LastMerkledropId:     k.GetLastMerkleDropId(ctx),
+		Merkledrops:          k.GetAllMerkleDrops(ctx),
+		ModuleAccountBalance: k.GetModuleAccountBalance(ctx),
 	}
 }

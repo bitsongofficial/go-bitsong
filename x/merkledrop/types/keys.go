@@ -18,4 +18,6 @@ var (
 	PrefixMerkleDrop        = []byte{0x01}
 	PrefixMerkleDropByOwner = []byte{0x02}
 	KeyLastMerkleDropId     = []byte{0x03}
+
+	PrefixClaimedMerkleDrop = []byte{0x04}
 )

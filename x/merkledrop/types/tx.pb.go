@@ -6,6 +6,8 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-sdk/types"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -29,9 +31,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgCreateMerkledrop struct {
-	Owner       string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	MerkleRoot  string `protobuf:"bytes,2,opt,name=merkle_root,json=merkleRoot,proto3" json:"merkle_root,omitempty" yaml:"merkle_root"`
-	TotalAmount uint64 `protobuf:"varint,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty" yaml:"total_amount"`
+	Owner       string                                  `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	MerkleRoot  string                                  `protobuf:"bytes,2,opt,name=merkle_root,json=merkleRoot,proto3" json:"merkle_root,omitempty" yaml:"merkle_root"`
+	TotalAmount github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,3,opt,name=total_amount,json=totalAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"total_amount" yaml:"total_amount"`
 }
 
 func (m *MsgCreateMerkledrop) Reset()         { *m = MsgCreateMerkledrop{} }
@@ -105,9 +107,88 @@ func (m *MsgCreateMerkledropResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateMerkledropResponse proto.InternalMessageInfo
 
+type MsgClaimMerkledrop struct {
+	Sender       string                                  `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	MerkledropId uint64                                  `protobuf:"varint,2,opt,name=merkledrop_id,json=merkledropId,proto3" json:"merkledrop_id,omitempty"`
+	Index        uint64                                  `protobuf:"varint,3,opt,name=index,proto3" json:"index,omitempty"`
+	Amount       github_com_cosmos_cosmos_sdk_types.Coin `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Coin" json:"amount"`
+	Proofs       []string                                `protobuf:"bytes,5,rep,name=proofs,proto3" json:"proofs,omitempty"`
+}
+
+func (m *MsgClaimMerkledrop) Reset()         { *m = MsgClaimMerkledrop{} }
+func (m *MsgClaimMerkledrop) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimMerkledrop) ProtoMessage()    {}
+func (*MsgClaimMerkledrop) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1a7f318739b2d6d2, []int{2}
+}
+func (m *MsgClaimMerkledrop) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimMerkledrop) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimMerkledrop.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimMerkledrop) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimMerkledrop.Merge(m, src)
+}
+func (m *MsgClaimMerkledrop) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimMerkledrop) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimMerkledrop.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimMerkledrop proto.InternalMessageInfo
+
+type MsgClaimMerkledropResponse struct {
+}
+
+func (m *MsgClaimMerkledropResponse) Reset()         { *m = MsgClaimMerkledropResponse{} }
+func (m *MsgClaimMerkledropResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgClaimMerkledropResponse) ProtoMessage()    {}
+func (*MsgClaimMerkledropResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1a7f318739b2d6d2, []int{3}
+}
+func (m *MsgClaimMerkledropResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgClaimMerkledropResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgClaimMerkledropResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgClaimMerkledropResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgClaimMerkledropResponse.Merge(m, src)
+}
+func (m *MsgClaimMerkledropResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgClaimMerkledropResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgClaimMerkledropResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgClaimMerkledropResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateMerkledrop)(nil), "bitsong.merkledrop.v1beta1.MsgCreateMerkledrop")
 	proto.RegisterType((*MsgCreateMerkledropResponse)(nil), "bitsong.merkledrop.v1beta1.MsgCreateMerkledropResponse")
+	proto.RegisterType((*MsgClaimMerkledrop)(nil), "bitsong.merkledrop.v1beta1.MsgClaimMerkledrop")
+	proto.RegisterType((*MsgClaimMerkledropResponse)(nil), "bitsong.merkledrop.v1beta1.MsgClaimMerkledropResponse")
 }
 
 func init() {
@@ -115,28 +196,38 @@ func init() {
 }
 
 var fileDescriptor_1a7f318739b2d6d2 = []byte{
-	// 329 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4e, 0xca, 0x2c, 0x29,
-	0xce, 0xcf, 0x4b, 0xd7, 0xcf, 0x4d, 0x2d, 0xca, 0xce, 0x49, 0x4d, 0x29, 0xca, 0x2f, 0xd0, 0x2f,
-	0x33, 0x4c, 0x4a, 0x2d, 0x49, 0x34, 0xd4, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17,
-	0x92, 0x82, 0x2a, 0xd2, 0x43, 0x28, 0xd2, 0x83, 0x2a, 0x92, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07,
-	0x2b, 0xd3, 0x07, 0xb1, 0x20, 0x3a, 0x94, 0x16, 0x30, 0x72, 0x09, 0xfb, 0x16, 0xa7, 0x3b, 0x17,
-	0xa5, 0x26, 0x96, 0xa4, 0xfa, 0xc2, 0x75, 0x09, 0x89, 0x70, 0xb1, 0xe6, 0x97, 0xe7, 0xa5, 0x16,
-	0x49, 0x30, 0x2a, 0x30, 0x6a, 0x70, 0x06, 0x41, 0x38, 0x42, 0xe6, 0x5c, 0xdc, 0x10, 0x93, 0xe3,
-	0x8b, 0xf2, 0xf3, 0x4b, 0x24, 0x98, 0x40, 0x72, 0x4e, 0x62, 0x9f, 0xee, 0xc9, 0x0b, 0x55, 0x26,
-	0xe6, 0xe6, 0x58, 0x29, 0x21, 0x49, 0x2a, 0x05, 0x71, 0x41, 0x78, 0x41, 0xf9, 0xf9, 0x25, 0x42,
-	0x56, 0x5c, 0x3c, 0x25, 0xf9, 0x25, 0x89, 0x39, 0xf1, 0x89, 0xb9, 0xf9, 0xa5, 0x79, 0x25, 0x12,
-	0xcc, 0x0a, 0x8c, 0x1a, 0x2c, 0x4e, 0xe2, 0x9f, 0xee, 0xc9, 0x0b, 0x43, 0x74, 0x22, 0xcb, 0x2a,
-	0x05, 0x71, 0x83, 0xb9, 0x8e, 0x10, 0x9e, 0x33, 0x97, 0x34, 0x16, 0x17, 0x06, 0xa5, 0x16, 0x17,
-	0xe4, 0xe7, 0x15, 0xa7, 0xe2, 0x70, 0x29, 0x1f, 0x17, 0x53, 0x66, 0x0a, 0xd8, 0x81, 0x2c, 0x41,
-	0x4c, 0x99, 0x29, 0x46, 0xcd, 0x8c, 0x5c, 0xcc, 0xbe, 0xc5, 0xe9, 0x42, 0x35, 0x5c, 0x02, 0x18,
-	0x7e, 0xd5, 0xd7, 0xc3, 0x1d, 0x6c, 0x7a, 0x58, 0xac, 0x96, 0x32, 0x27, 0x51, 0x03, 0xcc, 0xad,
-	0x4e, 0x61, 0x27, 0x1e, 0xca, 0x31, 0x9c, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83,
-	0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43,
-	0x94, 0x45, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x3e, 0xd4, 0x82, 0xfc,
-	0xb4, 0xb4, 0xcc, 0xe4, 0xcc, 0xc4, 0x1c, 0xfd, 0xf4, 0x7c, 0x5d, 0x58, 0x02, 0xa8, 0x40, 0x4e,
-	0x02, 0x25, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0xc8, 0x34, 0x06, 0x04, 0x00, 0x00, 0xff,
-	0xff, 0x36, 0x5e, 0xe3, 0x5d, 0x25, 0x02, 0x00, 0x00,
+	// 488 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0xbf, 0x6f, 0xd3, 0x40,
+	0x14, 0xf6, 0x25, 0x69, 0x24, 0x2e, 0xe5, 0x87, 0xae, 0x55, 0x15, 0x0c, 0x72, 0x22, 0x77, 0xa0,
+	0x4b, 0xef, 0xd4, 0x22, 0x51, 0xc4, 0x46, 0x22, 0x21, 0x31, 0x64, 0xf1, 0xc0, 0xc0, 0x12, 0xd9,
+	0xf1, 0xc5, 0x9c, 0x6a, 0xfb, 0x59, 0xbe, 0x2b, 0x24, 0x12, 0x23, 0x7f, 0x00, 0x7f, 0x56, 0xc6,
+	0x8e, 0x88, 0x21, 0x82, 0x64, 0x64, 0xeb, 0x1f, 0x80, 0x90, 0x7d, 0xb6, 0x63, 0xfa, 0x43, 0x55,
+	0xa6, 0xe4, 0xf3, 0x7d, 0xef, 0x7b, 0xef, 0xfb, 0xde, 0x1d, 0x3e, 0xf4, 0x84, 0x92, 0x10, 0x07,
+	0x2c, 0xe2, 0xe9, 0x79, 0xc8, 0xfd, 0x14, 0x12, 0xf6, 0xf9, 0xc4, 0xe3, 0xca, 0x3d, 0x61, 0x6a,
+	0x46, 0x93, 0x14, 0x14, 0x10, 0xb3, 0x20, 0xd1, 0x0d, 0x89, 0x16, 0x24, 0x73, 0x3f, 0x80, 0x00,
+	0x72, 0x1a, 0xcb, 0xfe, 0xe9, 0x0a, 0xd3, 0x9a, 0x80, 0x8c, 0x40, 0x32, 0xcf, 0x95, 0xbc, 0xd2,
+	0x9b, 0x80, 0x88, 0xf5, 0xb9, 0xfd, 0x07, 0xe1, 0xbd, 0x91, 0x0c, 0x86, 0x29, 0x77, 0x15, 0x1f,
+	0x55, 0xaa, 0x64, 0x1f, 0xef, 0xc0, 0x97, 0x98, 0xa7, 0x5d, 0xd4, 0x47, 0x47, 0x0f, 0x1c, 0x0d,
+	0xc8, 0x19, 0xee, 0xe8, 0xce, 0xe3, 0x14, 0x40, 0x75, 0x1b, 0xd9, 0xd9, 0xe0, 0xe0, 0x6a, 0xd9,
+	0x23, 0x73, 0x37, 0x0a, 0xdf, 0xd8, 0xb5, 0x43, 0xdb, 0xc1, 0x1a, 0x39, 0x00, 0x8a, 0x7c, 0x43,
+	0x78, 0x57, 0x81, 0x72, 0xc3, 0xb1, 0x1b, 0xc1, 0x45, 0xac, 0xba, 0xcd, 0x3e, 0x3a, 0xea, 0x9c,
+	0x3e, 0xa5, 0x7a, 0x3c, 0x9a, 0x8d, 0x57, 0x3a, 0xa1, 0x43, 0x10, 0xf1, 0xe0, 0xdd, 0x62, 0xd9,
+	0x33, 0x7e, 0x2e, 0x7b, 0x2f, 0x02, 0xa1, 0x3e, 0x5d, 0x78, 0x74, 0x02, 0x11, 0x2b, 0xbc, 0xe8,
+	0x9f, 0x63, 0xe9, 0x9f, 0x33, 0x35, 0x4f, 0xb8, 0xcc, 0x0b, 0xae, 0x96, 0xbd, 0x3d, 0x3d, 0x44,
+	0xbd, 0x8f, 0xed, 0x74, 0x72, 0xf8, 0x56, 0xa3, 0x21, 0x7e, 0x76, 0x8b, 0x59, 0x87, 0xcb, 0x04,
+	0x62, 0xc9, 0xef, 0x30, 0xfd, 0x08, 0x37, 0x84, 0x9f, 0x7b, 0x6d, 0x39, 0x0d, 0xe1, 0xdb, 0x6b,
+	0x84, 0x49, 0xa6, 0x12, 0xba, 0x22, 0xaa, 0x25, 0x76, 0x80, 0xdb, 0x92, 0xc7, 0x7e, 0x55, 0x5d,
+	0x20, 0x72, 0x88, 0x1f, 0x6e, 0xb6, 0x35, 0xae, 0x94, 0x76, 0x37, 0x1f, 0xdf, 0xfb, 0x59, 0x67,
+	0x11, 0xfb, 0x7c, 0x96, 0xe7, 0xd2, 0x72, 0x34, 0x20, 0x1e, 0x6e, 0x17, 0x71, 0xb5, 0xee, 0x8b,
+	0x8b, 0x6d, 0x19, 0x97, 0x53, 0x28, 0x67, 0x63, 0x27, 0x29, 0xc0, 0x54, 0x76, 0x77, 0xfa, 0xcd,
+	0x6c, 0x6c, 0x8d, 0xec, 0xe7, 0xd8, 0xbc, 0x69, 0xb2, 0x4c, 0xea, 0xf4, 0x2f, 0xc2, 0xcd, 0x91,
+	0x0c, 0xc8, 0x57, 0xfc, 0xe4, 0xc6, 0xd5, 0x61, 0xf4, 0xee, 0x5b, 0x4a, 0x6f, 0x89, 0xdf, 0x3c,
+	0xdb, 0xb2, 0xa0, 0xda, 0xd7, 0x1c, 0x3f, 0xbe, 0xbe, 0x05, 0x7a, 0x9f, 0xd6, 0xff, 0x7c, 0xf3,
+	0xd5, 0x76, 0xfc, 0xb2, 0xf5, 0xe0, 0xc3, 0xe2, 0xb7, 0x65, 0x2c, 0x56, 0x16, 0xba, 0x5c, 0x59,
+	0xe8, 0xd7, 0xca, 0x42, 0xdf, 0xd7, 0x96, 0x71, 0xb9, 0xb6, 0x8c, 0x1f, 0x6b, 0xcb, 0xf8, 0xf8,
+	0xba, 0xb6, 0x85, 0x42, 0x1f, 0xa6, 0x53, 0x31, 0x11, 0x6e, 0xc8, 0x02, 0x38, 0x2e, 0x9f, 0xfa,
+	0xac, 0xfe, 0xd8, 0xf3, 0xdd, 0x78, 0xed, 0xfc, 0x59, 0xbe, 0xfc, 0x17, 0x00, 0x00, 0xff, 0xff,
+	0xbf, 0xcb, 0xa6, 0x08, 0x0f, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -152,6 +243,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	CreateMerkledrop(ctx context.Context, in *MsgCreateMerkledrop, opts ...grpc.CallOption) (*MsgCreateMerkledropResponse, error)
+	ClaimMerkledrop(ctx context.Context, in *MsgClaimMerkledrop, opts ...grpc.CallOption) (*MsgClaimMerkledropResponse, error)
 }
 
 type msgClient struct {
@@ -171,9 +263,19 @@ func (c *msgClient) CreateMerkledrop(ctx context.Context, in *MsgCreateMerkledro
 	return out, nil
 }
 
+func (c *msgClient) ClaimMerkledrop(ctx context.Context, in *MsgClaimMerkledrop, opts ...grpc.CallOption) (*MsgClaimMerkledropResponse, error) {
+	out := new(MsgClaimMerkledropResponse)
+	err := c.cc.Invoke(ctx, "/bitsong.merkledrop.v1beta1.Msg/ClaimMerkledrop", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateMerkledrop(context.Context, *MsgCreateMerkledrop) (*MsgCreateMerkledropResponse, error)
+	ClaimMerkledrop(context.Context, *MsgClaimMerkledrop) (*MsgClaimMerkledropResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -182,6 +284,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) CreateMerkledrop(ctx context.Context, req *MsgCreateMerkledrop) (*MsgCreateMerkledropResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMerkledrop not implemented")
+}
+func (*UnimplementedMsgServer) ClaimMerkledrop(ctx context.Context, req *MsgClaimMerkledrop) (*MsgClaimMerkledropResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClaimMerkledrop not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -206,6 +311,24 @@ func _Msg_CreateMerkledrop_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_ClaimMerkledrop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgClaimMerkledrop)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).ClaimMerkledrop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bitsong.merkledrop.v1beta1.Msg/ClaimMerkledrop",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).ClaimMerkledrop(ctx, req.(*MsgClaimMerkledrop))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "bitsong.merkledrop.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -213,6 +336,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMerkledrop",
 			Handler:    _Msg_CreateMerkledrop_Handler,
+		},
+		{
+			MethodName: "ClaimMerkledrop",
+			Handler:    _Msg_ClaimMerkledrop_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -239,11 +366,16 @@ func (m *MsgCreateMerkledrop) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.TotalAmount != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.TotalAmount))
-		i--
-		dAtA[i] = 0x18
+	{
+		size := m.TotalAmount.Size()
+		i -= size
+		if _, err := m.TotalAmount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x1a
 	if len(m.MerkleRoot) > 0 {
 		i -= len(m.MerkleRoot)
 		copy(dAtA[i:], m.MerkleRoot)
@@ -296,6 +428,88 @@ func (m *MsgCreateMerkledropResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgClaimMerkledrop) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimMerkledrop) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimMerkledrop) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Proofs) > 0 {
+		for iNdEx := len(m.Proofs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Proofs[iNdEx])
+			copy(dAtA[i:], m.Proofs[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Proofs[iNdEx])))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if m.Index != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Index))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.MerkledropId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.MerkledropId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgClaimMerkledropResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgClaimMerkledropResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgClaimMerkledropResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -321,9 +535,8 @@ func (m *MsgCreateMerkledrop) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.TotalAmount != 0 {
-		n += 1 + sovTx(uint64(m.TotalAmount))
-	}
+	l = m.TotalAmount.Size()
+	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
@@ -340,6 +553,42 @@ func (m *MsgCreateMerkledropResponse) Size() (n int) {
 	if m.Id != 0 {
 		n += 1 + sovTx(uint64(m.Id))
 	}
+	return n
+}
+
+func (m *MsgClaimMerkledrop) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.MerkledropId != 0 {
+		n += 1 + sovTx(uint64(m.MerkledropId))
+	}
+	if m.Index != 0 {
+		n += 1 + sovTx(uint64(m.Index))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if len(m.Proofs) > 0 {
+		for _, s := range m.Proofs {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MsgClaimMerkledropResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	return n
 }
 
@@ -443,10 +692,10 @@ func (m *MsgCreateMerkledrop) Unmarshal(dAtA []byte) error {
 			m.MerkleRoot = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalAmount", wireType)
 			}
-			m.TotalAmount = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -456,11 +705,25 @@ func (m *MsgCreateMerkledrop) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.TotalAmount |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalAmount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -562,6 +825,241 @@ func (m *MsgCreateMerkledropResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimMerkledrop) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimMerkledrop: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimMerkledrop: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MerkledropId", wireType)
+			}
+			m.MerkledropId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.MerkledropId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
+			}
+			m.Index = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Index |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proofs", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proofs = append(m.Proofs, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgClaimMerkledropResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgClaimMerkledropResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgClaimMerkledropResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/hex"
 	"github.com/gogo/protobuf/proto"
 	"gopkg.in/yaml.v2"
 )
@@ -10,7 +11,7 @@ var (
 )
 
 type MerkledropI interface {
-	GetMerkleRoot() string
+	GetMerkleRoot() []byte
 	GetAmount() string
 }
 
@@ -22,8 +23,9 @@ type MerkledropI interface {
 	}
 }*/
 
-func (m Merkledrop) GetMerkleRoot() string {
-	return m.MerkleRoot
+func (m Merkledrop) GetMerkleRoot() []byte {
+	bz, _ := hex.DecodeString(m.MerkleRoot)
+	return bz
 }
 
 func (m Merkledrop) GetAmount() string {

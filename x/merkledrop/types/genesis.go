@@ -1,11 +1,15 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 func NewGenesisState(lastMdId uint64, mds []Merkledrop) GenesisState {
 	return GenesisState{
-		LastMerkledropId: lastMdId,
-		Merkledrops:      mds,
+		LastMerkledropId:     lastMdId,
+		Merkledrops:          mds,
+		ModuleAccountBalance: sdk.Coins{},
 	}
 }
 

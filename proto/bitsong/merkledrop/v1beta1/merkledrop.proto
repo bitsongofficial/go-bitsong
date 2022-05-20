@@ -2,6 +2,7 @@ syntax = "proto3";
 package bitsong.merkledrop.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -14,8 +15,8 @@ message Merkledrop {
 
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	string total_amount = 3 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+	cosmos.base.v1beta1.Coin total_amount = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.moretags) = "yaml:\"total_amount\"",
 		(gogoproto.nullable) = false
 	];

@@ -24,6 +24,6 @@ func TestIsValidProof(t *testing.T) {
 		"b8fedba5a18186d4fb92ffcf9924b408d6048aaeb76b10cad97cf6be4071b710",
 	}
 
-	result := IsValidProof(address, amount, root, ConvertProofs(proofs))
+	result := IsValidProof(uint64(0), address, amount, root, ConvertProofs(proofs))
 	assert.True(t, result)
 }

@@ -372,7 +372,7 @@ func NewBitsongApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey])
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper)
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 

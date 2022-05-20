@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -18,9 +19,11 @@ func ConvertProofs(proofs []string) [][]byte {
 	return proofsBz
 }
 
-func IsValidProof(account sdk.AccAddress, amount sdk.Int, root []byte, proofs [][]byte) bool {
+func IsValidProof(index uint64, account sdk.AccAddress, amount sdk.Int, root []byte, proofs [][]byte) bool {
 	hasher := sha256.New()
-	hashBz := crypto.Sha256([]byte(account.String() + amount.String()))
+
+	//indexStr := strconv.FormatUint(index, 10)
+	hashBz := crypto.Sha256([]byte(fmt.Sprintf("%d%s%s", index, account.String(), amount.String())))
 
 	for _, p := range proofs {
 		hasher.Reset()
