@@ -29,7 +29,7 @@ func (m msgServer) CreateMerkledrop(goCtx context.Context, msg *types.MsgCreateM
 		Id:          mdId,
 		MerkleRoot:  msg.MerkleRoot,
 		TotalAmount: tAmt,
-		Owner:       "",
+		Owner:       msg.Owner,
 	}
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
