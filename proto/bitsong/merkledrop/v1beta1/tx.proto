@@ -1,0 +1,22 @@
+syntax = "proto3";
+package bitsong.merkledrop.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
+option (gogoproto.goproto_getters_all) = false;
+
+service Msg {
+	rpc CreateMerkledrop(MsgCreateMerkledrop) returns (MsgCreateMerkledropResponse);
+}
+
+message MsgCreateMerkledrop {
+	string owner = 1;
+	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+	uint64 total_amount = 3 [ (gogoproto.moretags) = "yaml:\"total_amount\"" ];
+}
+
+message MsgCreateMerkledropResponse {
+	string owner = 1;
+	uint64 id = 2;
+}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+package bitsong.merkledrop.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message Merkledrop {
+	option (gogoproto.goproto_stringer) = false;
+	option (gogoproto.goproto_getters) = false;
+
+	uint64 id = 1;
+
+	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+
+	string total_amount = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+		(gogoproto.moretags) = "yaml:\"total_amount\"",
+		(gogoproto.nullable) = false
+	];
+
+	string owner = 4;
+}
+
+message EventMerkledropCreate {
+	string owner = 1;
+	uint64 merkledrop_id = 2;
+}

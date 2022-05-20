@@ -1,0 +1,21 @@
+syntax = "proto3";
+package bitsong.merkledrop.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/merkledrop/v1beta1/merkledrop.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
+option (gogoproto.goproto_getters_all) = false;
+
+service Query {
+  rpc Merkledrop(QueryMerkledropRequest) returns (QueryMerkledropResponse) {
+    option (google.api.http).get = "/bitsong/merkledrop/v1beta1/detail/{id}";
+  }
+}
+
+message QueryMerkledropRequest { uint64 id = 1; }
+
+message QueryMerkledropResponse {
+  bitsong.merkledrop.v1beta1.Merkledrop merkledrop = 1 [ (gogoproto.nullable) = false ];
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package bitsong.merkledrop.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "bitsong/merkledrop/v1beta1/merkledrop.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message GenesisState {
+  uint64 last_merkledrop_id = 1;
+  repeated bitsong.merkledrop.v1beta1.Merkledrop merkledrops = 2 [ (gogoproto.nullable) = false ];
+}
