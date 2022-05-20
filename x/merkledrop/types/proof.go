@@ -18,9 +18,7 @@ func ConvertProofs(proofs []string) [][]byte {
 	return proofsBz
 }
 
-func IsValidProof(account sdk.AccAddress, amount sdk.Int, proofs [][]byte) bool {
-	root, _ := hex.DecodeString("98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b")
-
+func IsValidProof(account sdk.AccAddress, amount sdk.Int, root []byte, proofs [][]byte) bool {
 	hasher := sha256.New()
 	hashBz := crypto.Sha256([]byte(account.String() + amount.String()))
 
