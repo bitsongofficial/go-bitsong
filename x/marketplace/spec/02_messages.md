@@ -143,8 +143,7 @@ Steps:
 3. Remove bid from the storage
 4. Transfer tokens back to the bidder
 5. Update bidder Metadata
-6. Update auction with remaining bids
-7. Emit event for placing bid
+6. Emit event for cancelling bid
 
 Note: Possibility to add cancel fee for the bid.
 
@@ -168,4 +167,5 @@ Steps:
 5. Set `primary_sale_happened` as true if it was not set already
 6. Transfer ownership of NFT to bidder
 7. If auction type is for transferring metadata ownership as well, transfer metadata ownership as well
-8. Emit event for claiming bid
+8. Update auction with claimed status
+9. Emit event for claiming bid

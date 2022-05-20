@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
 	for _, tc := range tests {
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		_, err := msgServer.UpdateMetadata(sdk.WrapSDKContext(suite.ctx), types.NewMsgUpdateMetadata(
-			tc.sender, tc.metadataId, true, &types.Data{Name: "NewPUNK", Creators: []*types.Creator{
+			tc.sender, tc.metadataId, &types.Data{Name: "NewPUNK", Creators: []*types.Creator{
 				{Address: creator1.String(), Verified: true, Share: 100},
 			}},
 		))

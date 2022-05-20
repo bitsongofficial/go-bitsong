@@ -55,6 +55,21 @@ func (k Keeper) GetAllMetadata(ctx sdk.Context) []types.Metadata {
 	return allMetadata
 }
 
+func (k Keeper) SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error {
+	metadata, err := k.GetMetadataById(ctx, metadataId)
+	if err != nil {
+		return err
+	}
+
+	if metadata.PrimarySaleHappened == true {
+		return types.ErrPrimarySaleAlreadyHappened
+	}
+	metadata.PrimarySaleHappened = true
+	metadata.IsMutable = false
+	k.SetMetadata(ctx, metadata)
+	return nil
+}
+
 func (k Keeper) UpdateMetadataAuthority(ctx sdk.Context, msg *types.MsgUpdateMetadataAuthority) error {
 	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
 	if err != nil {

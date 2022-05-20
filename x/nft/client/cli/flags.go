@@ -17,8 +17,7 @@ const (
 	FlagNftId    = "nft-id"
 	FlagNewOwner = "new-owner"
 
-	FlagMetadataId      = "metadata-id"
-	FlagPresaleHappened = "presale-happened"
+	FlagMetadataId = "metadata-id"
 
 	FlagNewAuthority = "new-authority"
 
@@ -67,7 +66,6 @@ func FlagUpdateMetadata() *flag.FlagSet {
 	fs.Uint32(FlagSellerFeeBasisPoints, 0, "Seller fee basis points of the nft")
 	fs.String(FlagCreators, "", "Creators of nft")
 	fs.String(FlagCreatorShares, "", "Shares between creators for seller fee")
-	fs.Bool(FlagPresaleHappened, false, "Presale happened flag")
 
 	return fs
 }

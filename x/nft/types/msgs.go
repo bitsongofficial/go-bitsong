@@ -42,6 +42,10 @@ func (msg MsgCreateNFT) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
+	if msg.Metadata.Data.SellerFeeBasisPoints > 100 {
+		return ErrInvalidSellerFeeBasisPoints
+	}
+
 	return nil
 }
 
@@ -146,12 +150,11 @@ func (msg MsgSignMetadata) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMetadata{}
 
-func NewMsgUpdateMetadata(sender sdk.AccAddress, metadataId uint64, presaleHappened bool, data *Data) *MsgUpdateMetadata {
+func NewMsgUpdateMetadata(sender sdk.AccAddress, metadataId uint64, data *Data) *MsgUpdateMetadata {
 	return &MsgUpdateMetadata{
-		Sender:              sender.String(),
-		MetadataId:          metadataId,
-		PrimarySaleHappened: presaleHappened,
-		Data:                data,
+		Sender:     sender.String(),
+		MetadataId: metadataId,
+		Data:       data,
 	}
 }
 
@@ -163,6 +166,10 @@ func (msg MsgUpdateMetadata) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	if msg.Data.SellerFeeBasisPoints > 100 {
+		return ErrInvalidSellerFeeBasisPoints
 	}
 
 	return nil

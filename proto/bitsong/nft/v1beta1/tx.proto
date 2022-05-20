@@ -49,9 +49,6 @@ message MsgUpdateMetadata {
   string sender = 1;
   uint64 metadata_id = 2;
   bitsong.nft.v1beta1.Data data = 3;
-  // Immutable, once flipped, all sales of this metadata are considered
-  // secondary.
-  bool primary_sale_happened = 4;
 }
 message MsgUpdateMetadataResponse {}
 

@@ -195,17 +195,12 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
-			presaleHappened, err := cmd.Flags().GetBool(FlagPresaleHappened)
-			if err != nil {
-				return err
-			}
-
 			data, err := collectNftData(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, presaleHappened, &data)
+			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, &data)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

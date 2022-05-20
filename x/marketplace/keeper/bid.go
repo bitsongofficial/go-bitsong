@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -177,6 +178,144 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 
 	// Emit event for placing bid
 	ctx.EventManager().EmitTypedEvent(&types.EventPlaceBid{
+		Bidder:    msg.Sender,
+		AuctionId: msg.AuctionId,
+	})
+
+	return nil
+}
+
+func (k Keeper) CancelBid(ctx sdk.Context, msg *types.MsgCancelBid) error {
+
+	// Load the auction and verify this bid is valid.
+	auction, err := k.GetAuctionById(ctx, msg.AuctionId)
+	if err != nil {
+		return err
+	}
+
+	bidder, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return err
+	}
+
+	bid, err := k.GetBid(ctx, msg.AuctionId, bidder)
+	if err != nil {
+		return err
+	}
+
+	// Refuse to cancel if the auction ended and this person is a winning account.
+	if auction.LastBidAmount == bid.Amount {
+		return types.ErrCanNotCancelWinningBid
+	}
+
+	// Remove bid from the storage
+	k.DeleteBid(ctx, bid)
+
+	// Transfer tokens back to the bidder
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, bidder, sdk.Coins{sdk.NewInt64Coin(auction.BidDenom, int64(bid.Amount))})
+	if err != nil {
+		return err
+	}
+
+	// Update bidder Metadata
+	bidderdata, err := k.GetBidderMetadata(ctx, bidder)
+	if err != nil {
+		return err
+	}
+
+	if bid.AuctionId == bidderdata.LastAuctionId {
+		bidderdata.LastBidCancelled = true
+		k.SetBidderMetadata(ctx, bidderdata)
+	}
+
+	// Emit event for cancelling bid
+	ctx.EventManager().EmitTypedEvent(&types.EventCancelBid{
+		Bidder:    msg.Sender,
+		AuctionId: msg.AuctionId,
+	})
+
+	return nil
+}
+
+func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
+	// Load the auction and verify this bid is valid.
+	auction, err := k.GetAuctionById(ctx, msg.AuctionId)
+	if err != nil {
+		return err
+	}
+
+	bidder, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return err
+	}
+
+	bid, err := k.GetBid(ctx, msg.AuctionId, bidder)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the sender is winner bidder
+	if auction.LastBidAmount != bid.Amount {
+		return types.ErrNotWinningBid
+	}
+
+	// 3. Send bid amount to auction authority
+	authority, err := sdk.AccAddressFromBech32(auction.Authority)
+	if err != nil {
+		return err
+	}
+
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, authority, sdk.Coins{sdk.NewInt64Coin(auction.BidDenom, int64(bid.Amount))})
+	if err != nil {
+		return err
+	}
+
+	nft, err := k.nftKeeper.GetNFTById(ctx, auction.NftId)
+	if err != nil {
+		return err
+	}
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
+	if err != nil {
+		return err
+	}
+
+	if metadata.PrimarySaleHappened {
+		// If `primary_sale_happened` is true, process royalties from NFT's `seller_fee_basis_points` field to creators
+		err := k.ProcessRoyalties(ctx, metadata, authority, auction.BidDenom, bid.Amount)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Set `primary_sale_happened` as true if it was not set already
+		err := k.nftKeeper.SetPrimarySaleHappened(ctx, nft.MetadataId)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Transfer ownership of NFT to bidder
+	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
+	k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+		Sender:   moduleAddr.String(),
+		Id:       auction.NftId,
+		NewOwner: bidder.String(),
+	})
+
+	// If auction type is for transferring metadata ownership as well, transfer metadata ownership as well
+	if auction.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
+		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+	}
+
+	// Update auction with claimed status
+	auction.Claimed = true
+	k.SetAuction(ctx, auction)
+
+	// Emit event for claiming bid
+	ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{
 		Bidder:    msg.Sender,
 		AuctionId: msg.AuctionId,
 	})

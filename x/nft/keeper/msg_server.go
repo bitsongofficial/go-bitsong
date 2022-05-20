@@ -129,7 +129,6 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 		return nil, types.ErrNotEnoughPermission
 	}
 
-	metadata.PrimarySaleHappened = msg.PrimarySaleHappened
 	metadata.Data = msg.Data
 	for index := range metadata.Data.Creators {
 		metadata.Data.Creators[index].Verified = false

@@ -16,4 +16,6 @@ var (
 	ErrBidDoesNotExists            = sdkerrors.Register(ModuleName, 8, "bid does not exists")
 	ErrBidAlreadyExists            = sdkerrors.Register(ModuleName, 9, "bid already exists")
 	ErrBidderMetadataDoesNotExists = sdkerrors.Register(ModuleName, 10, "bidder metadata does not exists")
+	ErrCanNotCancelWinningBid      = sdkerrors.Register(ModuleName, 11, "cannot cancel winning bid")
+	ErrNotWinningBid               = sdkerrors.Register(ModuleName, 11, "not a winning winning bid")
 )

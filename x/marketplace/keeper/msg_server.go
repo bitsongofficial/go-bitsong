@@ -72,42 +72,19 @@ func (m msgServer) PlaceBid(goCtx context.Context, msg *types.MsgPlaceBid) (*typ
 func (m msgServer) CancelBid(goCtx context.Context, msg *types.MsgCancelBid) (*types.MsgCancelBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1. Load the auction and verify this bid is valid.
-	// 2. Refuse to cancel if the auction ended and this person is a winning account.
-	// 3. Remove bid from the storage
-	// 4. Transfer tokens back to the bidder
-	// 5. Update bidder Metadata
-	// 6. Update auction with remaining bids
-
-	// 7. Emit event for placing bid
-	// ctx.EventManager().EmitTypedEvent(&types.EventCancelBid{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
+	err := m.Keeper.CancelBid(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgCancelBidResponse{}, nil
 }
 
 func (m msgServer) ClaimBid(goCtx context.Context, msg *types.MsgClaimBid) (*types.MsgClaimBidResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	_ = ctx
-
-	// 1. Load the auction and verify this bid is valid.
-	// 2. Ensure the sender is winner bidder
-	// 3. Send bid amount to auction authority
-	// 4. If `primary_sale_happened` is true, process royalties from NFT's `seller_fee_basis_points` field to creators
-	// 5. Set `primary_sale_happened` as true if it was not set already
-	// 6. Transfer ownership of NFT to bidder
-	// 7. If auction type is for transferring metadata ownership as well, transfer metadata ownership as well
-
-	// 8. Emit event for claiming bid
-	// ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{
-	// 	Creator:   msg.Sender,
-	// 	AuctionId: metadata.Id,
-	// })
-
+	err := m.Keeper.ClaimBid(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgClaimBidResponse{}, nil
 }

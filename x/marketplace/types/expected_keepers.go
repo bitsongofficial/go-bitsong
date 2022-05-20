@@ -15,9 +15,9 @@ type BankKeeper interface {
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 
+	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 
@@ -37,4 +37,5 @@ type NftKeeper interface {
 	GetMetadataById(ctx sdk.Context, id uint64) (nfttypes.Metadata, error)
 	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
 	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error
+	SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
 }
