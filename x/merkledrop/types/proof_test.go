@@ -11,17 +11,17 @@ import (
 func TestIsValidProof(t *testing.T) {
 	params.SetAddressPrefixes()
 
-	address, err := sdk.AccAddressFromBech32("bitsong1qyc9ccfx7clj0kswgjz6cdf5f4n6v4nycc3dha")
+	address, err := sdk.AccAddressFromBech32("bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2")
 	if err != nil {
 		assert.NoError(t, err)
 	}
 
 	amount := sdk.NewInt(1000000)
 
-	root, _ := hex.DecodeString("98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b")
+	root, _ := hex.DecodeString("5eb39dbca442a25db0f5d9e63489451b7bfc173796aa221e7207839de3a59e79")
 	proofs := []string{
-		"20245fe3fcdbf17069bc0de04e319296766a7138be5e5a27c6f5bc05e0c23de9",
-		"b8fedba5a18186d4fb92ffcf9924b408d6048aaeb76b10cad97cf6be4071b710",
+		"7f0b92cc8318e4fb0db9052325b474e2eabb80d79e6e1abab92093d3a88fe029",
+		"a258c32bee9b0bbb7a2d1999ab4698294844e7440aa6dcd067e0d5142fa20522",
 	}
 
 	result := IsValidProof(uint64(0), address, amount, root, ConvertProofs(proofs))

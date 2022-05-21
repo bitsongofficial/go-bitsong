@@ -33,3 +33,13 @@ func FlagClaimMerkledrop() *flag.FlagSet {
 
 	return fs
 }
+
+type accountInput struct {
+	Address string `json:"address"`
+	Amount  string `json:"amount"`
+	Index   uint64 `json:"index"`
+}
+
+type accountsInput struct {
+	Accounts []accountInput `json:"accounts"`
+}
