@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -67,6 +68,7 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		Coin:       msg.Coin,
 		Claimed:    sdk.Coin{Amount: sdk.ZeroInt(), Denom: msg.Coin.Denom},
 		Owner:      msg.Owner,
+		Withdrawn:  false,
 	}
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
@@ -89,13 +91,13 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	// decode sender
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return &types.MsgClaimResponse{}, err
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrInvalidSender, "sender %s", sender.String())
 	}
 
 	// get merkledrop
 	merkledrop, err := m.Keeper.GetMerkleDropById(ctx, msg.MerkledropId)
 	if err != nil {
-		return &types.MsgClaimResponse{}, err
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.MerkledropId)
 	}
 
 	// merkledrop begun
@@ -106,6 +108,11 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	// merkledrop not expired
 	if merkledrop.EndTime.Before(ctx.BlockTime()) {
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-time %s", merkledrop.EndTime.String())
+	}
+
+	// remaining funds are withdrawn
+	if merkledrop.Withdrawn {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrAlreadyWithdrawn, "claim error")
 	}
 
 	// check if is claimed
@@ -147,5 +154,70 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		Coin:         msg.Coin,
 	})
 
-	return &types.MsgClaimResponse{}, nil
+	return &types.MsgClaimResponse{
+		Id:    0,
+		Index: 0,
+		Coin:  sdk.Coin{},
+	}, nil
+}
+
+func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
+	// unwrap context
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// decode owner
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "owner %s", owner.String())
+	}
+
+	// get merkledrop
+	merkledrop, err := m.Keeper.GetMerkleDropById(ctx, msg.Id)
+	if err != nil {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.Id)
+	}
+
+	// remaining funds are withdrawn
+	if merkledrop.Withdrawn {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrAlreadyWithdrawn, "withdraw error")
+	}
+
+	// check owner
+	if merkledrop.Owner != owner.String() {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "unauthorized: %s", msg.Owner)
+	}
+
+	// make sure is expired
+	if merkledrop.EndTime.After(ctx.BlockTime()) {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-time: %s", merkledrop.EndTime.String())
+	}
+
+	// check if total amount < claimed amount  (who knows?)
+	if merkledrop.Coin.IsLT(merkledrop.Claimed) {
+		panic(fmt.Errorf("merkledrop-id: %s, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Coin, merkledrop.Claimed))
+	}
+
+	// set withdrawn flag
+	merkledrop.Withdrawn = true
+	m.Keeper.SetMerkleDrop(ctx, merkledrop)
+
+	// get balance
+	balance := merkledrop.Coin.Sub(merkledrop.Claimed)
+
+	// send coins
+	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.Coins{balance})
+	if err != nil {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", balance)
+	}
+
+	// emit event
+	ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
+		MerkledropId: merkledrop.Id,
+		Coin:         balance,
+	})
+
+	return &types.MsgWithdrawResponse{
+		Id:   merkledrop.Id,
+		Coin: balance,
+	}, nil
 }

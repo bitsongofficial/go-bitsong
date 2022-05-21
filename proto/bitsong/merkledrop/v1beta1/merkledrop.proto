@@ -41,18 +41,7 @@ message Merkledrop {
 	];
 
 	string owner = 7;
-}
 
-message EventCreate {
-	string owner = 1;
-	uint64 merkledrop_id = 2;
-}
-
-message EventClaim {
-	uint64 merkledrop_id = 1;
-	uint64 index = 2;
-	cosmos.base.v1beta1.Coin coin = 4 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-		(gogoproto.nullable) = false
-	];
+	// if the remaining funds are withdrawn
+	bool withdrawn = 8;
 }

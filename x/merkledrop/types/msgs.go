@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	TypeMsgCreateMerkledrop = "create_merkledrop"
-	TypeMsgClaimMerkledrop  = "claim_merkledrop"
+	TypeMsgCreate   = "create"
+	TypeMsgClaim    = "claim"
+	TypeMsgWithdraw = "withdraw"
 )
 
 var _ sdk.Msg = &MsgCreate{}
@@ -30,7 +31,7 @@ func NewMsgCreate(owner sdk.AccAddress, merkleRoot string, startTime, endTime ti
 
 func (msg MsgCreate) Route() string { return RouterKey }
 
-func (msg MsgCreate) Type() string { return TypeMsgCreateMerkledrop }
+func (msg MsgCreate) Type() string { return TypeMsgCreate }
 
 func (msg MsgCreate) ValidateBasic() error {
 
@@ -91,7 +92,7 @@ func NewMsgClaim(index, mdId uint64, coin sdk.Coin, proofs []string, sender sdk.
 
 func (msg MsgClaim) Route() string { return RouterKey }
 
-func (msg MsgClaim) Type() string { return TypeMsgClaimMerkledrop }
+func (msg MsgClaim) Type() string { return TypeMsgClaim }
 
 func (msg MsgClaim) ValidateBasic() error {
 	for _, p := range msg.Proofs {
@@ -120,4 +121,45 @@ func (msg MsgClaim) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
+}
+
+var _ sdk.Msg = &MsgWithdraw{}
+
+func NewMsgWithdraw(owner sdk.AccAddress, merkledropID uint64) *MsgWithdraw {
+	return &MsgWithdraw{
+		Owner: owner.String(),
+		Id:    merkledropID,
+	}
+}
+
+func (msg MsgWithdraw) Route() string { return RouterKey }
+
+func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
+
+func (msg MsgWithdraw) ValidateBasic() error {
+
+	_, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgWithdraw) GetSignBytes() []byte {
+	b, err := ModuleCdc.MarshalJSON(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
+	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{owner}
 }

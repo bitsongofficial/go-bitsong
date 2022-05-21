@@ -11,6 +11,7 @@ option (gogoproto.goproto_getters_all) = false;
 service Msg {
 	rpc Create(MsgCreate) returns (MsgCreateResponse);
 	rpc Claim(MsgClaim) returns (MsgClaimResponse);
+	rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 }
 
 message MsgCreate {
@@ -61,6 +62,19 @@ message MsgClaim {
 message MsgClaimResponse {
 	uint64 id = 1;
 	uint64 index = 2;
+	cosmos.base.v1beta1.Coin coin = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
+}
+
+message MsgWithdraw {
+	uint64 id = 1;
+	string owner = 2;
+}
+
+message MsgWithdrawResponse {
+	uint64 id = 1;
 	cosmos.base.v1beta1.Coin coin = 3 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
