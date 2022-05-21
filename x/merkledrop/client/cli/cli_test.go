@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/stretchr/testify/assert"
+	"github.com/tendermint/tendermint/crypto"
 	"testing"
 )
 
@@ -17,6 +18,10 @@ func TestCreateProof2(t *testing.T) {
 	tree := NewTree(leafs...)
 	merkleRootStr := fmt.Sprintf("%x", tree.Root())
 	assert.Equal(t, "5eb39dbca442a25db0f5d9e63489451b7bfc173796aa221e7207839de3a59e79", merkleRootStr)
+
+	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[0]))))
+	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[1]))))
+	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[2]))))
 }
 
 func TestCreateProof(t *testing.T) {

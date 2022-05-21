@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -65,9 +66,9 @@ func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 
 func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, error) {
 	// sort lists by coin amount
-	/*sort.Slice(accounts, func(i, j int) bool {
+	sort.Slice(accounts, func(i, j int) bool {
 		return accounts[i].coin.Amount.LT(accounts[j].coin.Amount)
-	})*/
+	})
 
 	nodes := make([][]byte, len(accounts))
 	for i, acc := range accounts {
@@ -93,8 +94,11 @@ func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, er
 }
 
 func ProofBytesToString(proof [][]byte) []string {
-	str := make([]string, len(proof))
+	str := make([]string, len(proof)-1)
 	for i, p := range proof {
+		if i == len(proof)-1 {
+			continue
+		}
 		str[i] = fmt.Sprintf("%x", p)
 	}
 	return str
