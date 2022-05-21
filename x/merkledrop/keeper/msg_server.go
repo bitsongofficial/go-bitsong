@@ -42,9 +42,14 @@ func (m msgServer) CreateMerkledrop(goCtx context.Context, msg *types.MsgCreateM
 	mdId := m.Keeper.GetLastMerkleDropId(ctx) + 1
 	m.Keeper.SetLastMerkleDropId(ctx, mdId)
 
+	mRoot, err := hex.DecodeString(msg.MerkleRoot)
+	if err != nil {
+		return &types.MsgCreateMerkledropResponse{}, err
+	}
+
 	merkledrop := types.Merkledrop{
 		Id:          mdId,
-		MerkleRoot:  msg.MerkleRoot,
+		MerkleRoot:  mRoot,
 		TotalAmount: msg.TotalAmount,
 		Owner:       msg.Owner,
 	}
@@ -85,8 +90,6 @@ func (m msgServer) ClaimMerkledrop(goCtx context.Context, msg *types.MsgClaimMer
 	if !valid {
 		return &types.MsgClaimMerkledropResponse{}, fmt.Errorf("invalid proofs")
 	}
-
-	// TODO: check claimed
 
 	// send coins
 	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{msg.Amount})

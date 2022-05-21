@@ -13,7 +13,7 @@ message Merkledrop {
 
 	uint64 id = 1;
 
-	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+	bytes merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
 	cosmos.base.v1beta1.Coin total_amount = 3 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",

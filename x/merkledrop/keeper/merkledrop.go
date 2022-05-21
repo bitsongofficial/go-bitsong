@@ -23,12 +23,12 @@ func (k Keeper) CreateModuleAccount(ctx sdk.Context) {
 
 func (k Keeper) SetLastMerkleDropId(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyLastMerkleDropId, sdk.Uint64ToBigEndian(id))
+	store.Set(types.LastMerkledropIDKey(), sdk.Uint64ToBigEndian(id))
 }
 
 func (k Keeper) GetLastMerkleDropId(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyLastMerkleDropId)
+	bz := store.Get(types.LastMerkledropIDKey())
 	if bz == nil {
 		return 0
 	}
@@ -36,32 +36,25 @@ func (k Keeper) GetLastMerkleDropId(ctx sdk.Context) uint64 {
 }
 
 func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) {
-	idBz := sdk.Uint64ToBigEndian(merkledrop.Id)
 	bz := k.cdc.MustMarshal(&merkledrop)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixMerkleDrop, idBz...), bz)
+	store.Set(types.MerkledropKey(merkledrop.Id), bz)
 
 	owner, err := sdk.AccAddressFromBech32(merkledrop.Owner)
 	if err != nil {
 		panic(err)
 	}
-	store.Set(append(append(types.PrefixMerkleDropByOwner, owner...), idBz...), idBz)
+	store.Set(types.MerkledropOwnerKey(merkledrop.Id, owner), sdk.Uint64ToBigEndian(merkledrop.Id))
 }
 
 func (k Keeper) IsClaimed(ctx sdk.Context, mdId, index uint64) bool {
-	mdIdBz := sdk.Uint64ToBigEndian(mdId)
-	indexBz := sdk.Uint64ToBigEndian(index)
-
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(append(append(types.PrefixClaimedMerkleDrop, mdIdBz...), indexBz...))
+	return store.Has(types.ClaimedMerkledropKey(mdId, index))
 }
 
 func (k Keeper) SetClaimed(ctx sdk.Context, mdId, index uint64) {
-	mdIdBz := sdk.Uint64ToBigEndian(mdId)
-	indexBz := sdk.Uint64ToBigEndian(index)
-
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(append(types.PrefixClaimedMerkleDrop, mdIdBz...), indexBz...), sdk.Uint64ToBigEndian(1))
+	store.Set(types.ClaimedMerkledropKey(mdId, index), []byte{0x01})
 }
 
 func (k Keeper) GetAllMerkleDrops(ctx sdk.Context) []types.Merkledrop {
@@ -82,7 +75,7 @@ func (k Keeper) GetAllMerkleDrops(ctx sdk.Context) []types.Merkledrop {
 
 func (k Keeper) GetMerkleDropById(ctx sdk.Context, id uint64) (types.Merkledrop, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixMerkleDrop, sdk.Uint64ToBigEndian(id)...))
+	bz := store.Get(types.MerkledropKey(id))
 	if bz == nil {
 		return types.Merkledrop{}, sdkerrors.Wrapf(types.ErrMerkleDropNotExist, "merkledrop: %d does not exist", id)
 	}
