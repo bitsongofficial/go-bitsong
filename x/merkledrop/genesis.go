@@ -15,16 +15,14 @@ func DefaultGenesisState() *types.GenesisState {
 
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	// initialize merkledrops
-	if data.LastMerkledropId == 0 {
-		k.CreateModuleAccount(ctx)
-	}
-
 	for _, md := range data.Merkledrops {
 		k.SetMerkleDrop(ctx, md)
 	}
 
 	// set last merkledrop id
 	k.SetLastMerkleDropId(ctx, data.LastMerkledropId)
+
+	// TODO: set index claims
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {

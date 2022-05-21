@@ -49,6 +49,7 @@ func GetCmdQueryMerkledrop() *cobra.Command {
 			res, err := queryClient.Merkledrop(context.Background(), &types.QueryMerkledropRequest{
 				Id: uint64(id),
 			})
+			res.Merkledrop.String()
 
 			if err != nil {
 				return err

@@ -4,7 +4,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 func (k Keeper) GetModuleAccountAddress(ctx sdk.Context) sdk.AccAddress {
@@ -14,11 +13,6 @@ func (k Keeper) GetModuleAccountAddress(ctx sdk.Context) sdk.AccAddress {
 func (k Keeper) GetModuleAccountBalance(ctx sdk.Context) sdk.Coins {
 	moduleAccAddr := k.GetModuleAccountAddress(ctx)
 	return k.bankKeeper.GetAllBalances(ctx, moduleAccAddr)
-}
-
-func (k Keeper) CreateModuleAccount(ctx sdk.Context) {
-	moduleAcc := authtypes.NewEmptyModuleAccount(types.ModuleName)
-	k.accountKeeper.SetModuleAccount(ctx, moduleAcc)
 }
 
 func (k Keeper) SetLastMerkleDropId(ctx sdk.Context, id uint64) {

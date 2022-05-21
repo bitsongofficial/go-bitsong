@@ -13,15 +13,19 @@ message Merkledrop {
 
 	uint64 id = 1;
 
-	bytes merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	cosmos.base.v1beta1.Coin total_amount = 3 [
+	cosmos.base.v1beta1.Coin coin = 3 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-		(gogoproto.moretags) = "yaml:\"total_amount\"",
 		(gogoproto.nullable) = false
 	];
 
-	string owner = 4;
+	cosmos.base.v1beta1.Coin claimed = 4 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
+
+	string owner = 5;
 }
 
 message EventMerkledropCreate {

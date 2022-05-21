@@ -15,9 +15,8 @@ service Msg {
 message MsgCreateMerkledrop {
 	string owner = 1;
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
-	cosmos.base.v1beta1.Coin total_amount = 3 [
+	cosmos.base.v1beta1.Coin coin = 3 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
-		(gogoproto.moretags) = "yaml:\"total_amount\"",
 		(gogoproto.nullable) = false
 	];
 }
@@ -31,7 +30,7 @@ message MsgClaimMerkledrop {
 	string sender = 1;
 	uint64 merkledrop_id = 2;
 	uint64 index = 3;
-	cosmos.base.v1beta1.Coin amount = 4 [
+	cosmos.base.v1beta1.Coin coin = 4 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
 	];

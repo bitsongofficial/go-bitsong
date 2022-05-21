@@ -35,10 +35,11 @@ func GetCmdCreateMerkledrop() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "create",
 		Long: "Create a merkledrop from provided params",
-		Example: fmt.Sprintf(
-			`$ %s tx merkledrop create
-				--merkle-root="98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b"
-				--total-amount=100000000000ubtsg`,
+		Example: fmt.Sprintf(`
+$ %s tx merkledrop create \
+	--merkle-root="98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b" \
+	--total-amount=100000000000ubtsg
+`,
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -52,17 +53,17 @@ func GetCmdCreateMerkledrop() *cobra.Command {
 				return err
 			}
 
-			totAmtStr, err := cmd.Flags().GetString(FlagTotalAmount)
+			coinStr, err := cmd.Flags().GetString(FlagCoin)
 			if err != nil {
 				return err
 			}
 
-			totAmt, err := sdk.ParseCoinNormalized(totAmtStr)
+			coin, err := sdk.ParseCoinNormalized(coinStr)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateMerkledrop(clientCtx.GetFromAddress(), merkleRoot, totAmt)
+			msg := types.NewMsgCreateMerkledrop(clientCtx.GetFromAddress(), merkleRoot, coin)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -83,10 +84,11 @@ func GetCmdClaimMerkledrop() *cobra.Command {
 		Use:  "claim",
 		Long: "Claim a merkledrop from provided params",
 		Args: cobra.ExactArgs(1),
-		Example: fmt.Sprintf(
-			`$ %s tx merkledrop claim [id]
-				--proofs="20245fe3fcdbf17069bc0de04e319296766a7138be5e5a27c6f5bc05e0c23de9,b8fedba5a18186d4fb92ffcf9924b408d6048aaeb76b10cad97cf6be4071b710"
-				--amount=1000ubtsg`,
+		Example: fmt.Sprintf(`
+$ %s tx merkledrop claim [id] \
+	--proofs="20245fe3fcdbf17069bc0de04e319296766a7138be5e5a27c6f5bc05e0c23de9,b8fedba5a18186d4fb92ffcf9924b408d6048aaeb76b10cad97cf6be4071b710" \
+	--amount=1000ubtsg
+`,
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -95,7 +97,7 @@ func GetCmdClaimMerkledrop() *cobra.Command {
 				return err
 			}
 
-			mdId, err := strconv.ParseUint(args[0], 10, 64)
+			merkledropId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -109,12 +111,12 @@ func GetCmdClaimMerkledrop() *cobra.Command {
 				proofs = strings.Split(proofsStr, ",")
 			}
 
-			amtStr, err := cmd.Flags().GetString(FlagAmount)
+			coinStr, err := cmd.Flags().GetString(FlagCoin)
 			if err != nil {
 				return err
 			}
 
-			amt, err := sdk.ParseCoinNormalized(amtStr)
+			coin, err := sdk.ParseCoinNormalized(coinStr)
 			if err != nil {
 				return err
 			}
@@ -124,7 +126,7 @@ func GetCmdClaimMerkledrop() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgClaimMerkledrop(index, mdId, amt, proofs, clientCtx.GetFromAddress())
+			msg := types.NewMsgClaimMerkledrop(index, merkledropId, coin, proofs, clientCtx.GetFromAddress())
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

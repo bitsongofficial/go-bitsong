@@ -13,11 +13,11 @@ const (
 
 var _ sdk.Msg = &MsgCreateMerkledrop{}
 
-func NewMsgCreateMerkledrop(owner sdk.AccAddress, merkleRoot string, totalAmount sdk.Coin) *MsgCreateMerkledrop {
+func NewMsgCreateMerkledrop(owner sdk.AccAddress, merkleRoot string, coin sdk.Coin) *MsgCreateMerkledrop {
 	return &MsgCreateMerkledrop{
-		Owner:       owner.String(),
-		MerkleRoot:  merkleRoot,
-		TotalAmount: totalAmount,
+		Owner:      owner.String(),
+		MerkleRoot: merkleRoot,
+		Coin:       coin,
 	}
 }
 
@@ -26,6 +26,10 @@ func (msg MsgCreateMerkledrop) Route() string { return RouterKey }
 func (msg MsgCreateMerkledrop) Type() string { return TypeMsgCreateMerkledrop }
 
 func (msg MsgCreateMerkledrop) ValidateBasic() error {
+	if msg.Coin.Amount.LTE(sdk.ZeroInt()) {
+		return sdkerrors.Wrapf(ErrInvalidCoin, "invalid coin amount, less then zero")
+	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
@@ -59,11 +63,11 @@ func (msg MsgCreateMerkledrop) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgClaimMerkledrop{}
 
-func NewMsgClaimMerkledrop(index, mdId uint64, amount sdk.Coin, proofs []string, sender sdk.AccAddress) *MsgClaimMerkledrop {
+func NewMsgClaimMerkledrop(index, mdId uint64, coin sdk.Coin, proofs []string, sender sdk.AccAddress) *MsgClaimMerkledrop {
 	return &MsgClaimMerkledrop{
 		Index:        index,
 		MerkledropId: mdId,
-		Amount:       amount,
+		Coin:         coin,
 		Proofs:       proofs,
 		Sender:       sender.String(),
 	}
