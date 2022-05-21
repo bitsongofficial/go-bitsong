@@ -2,31 +2,52 @@ syntax = "proto3";
 package bitsong.merkledrop.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
 
 service Msg {
-	rpc CreateMerkledrop(MsgCreateMerkledrop) returns (MsgCreateMerkledropResponse);
-	rpc ClaimMerkledrop(MsgClaimMerkledrop) returns (MsgClaimMerkledropResponse);
+	rpc Create(MsgCreate) returns (MsgCreateResponse);
+	rpc Claim(MsgClaim) returns (MsgClaimResponse);
 }
 
-message MsgCreateMerkledrop {
+message MsgCreate {
+
+	// owner of the merkledrop
 	string owner = 1;
+
+	// merkle_root used to compute proofs
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
-	cosmos.base.v1beta1.Coin coin = 3 [
+
+	// merkledrop start time
+	google.protobuf.Timestamp start_time = 3 [
+		(gogoproto.stdtime) = true,
+		(gogoproto.nullable) = false,
+		(gogoproto.moretags) = "yaml:\"start_time\""
+	];
+
+	// merkledrop end time
+	google.protobuf.Timestamp end_time = 4 [
+		(gogoproto.stdtime) = true,
+		(gogoproto.nullable) = false,
+		(gogoproto.moretags) = "yaml:\"end_time\""
+	];
+
+	// coins to distribute
+	cosmos.base.v1beta1.Coin coin = 5 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
 	];
 }
 
-message MsgCreateMerkledropResponse {
+message MsgCreateResponse {
 	string owner = 1;
 	uint64 id = 2;
 }
 
-message MsgClaimMerkledrop {
+message MsgClaim {
 	string sender = 1;
 	uint64 merkledrop_id = 2;
 	uint64 index = 3;
@@ -37,6 +58,11 @@ message MsgClaimMerkledrop {
 	repeated string proofs = 5;
 }
 
-message MsgClaimMerkledropResponse {
-
+message MsgClaimResponse {
+	uint64 id = 1;
+	uint64 index = 2;
+	cosmos.base.v1beta1.Coin coin = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
 }

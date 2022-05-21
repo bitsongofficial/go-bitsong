@@ -23,12 +23,14 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterInterface((*MerkledropI)(nil), nil)
 	cdc.RegisterConcrete(&Merkledrop{}, "go-bitsong/merkledrop/Merkledrop", nil)
 
-	cdc.RegisterConcrete(&MsgCreateMerkledrop{}, "go-bitsong/merkledrop/MsgCreateMerkledrop", nil)
+	cdc.RegisterConcrete(&MsgCreate{}, "go-bitsong/merkledrop/MsgCreate", nil)
+	cdc.RegisterConcrete(&MsgClaim{}, "go-bitsong/merkledrop/MsgClaim", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCreateMerkledrop{},
+		&MsgCreate{},
+		&MsgClaim{},
 	)
 	registry.RegisterInterface(
 		"go-bitsong.merkledrop.MerkledropI",

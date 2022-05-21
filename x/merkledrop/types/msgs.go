@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"time"
 )
 
 const (
@@ -11,21 +12,36 @@ const (
 	TypeMsgClaimMerkledrop  = "claim_merkledrop"
 )
 
-var _ sdk.Msg = &MsgCreateMerkledrop{}
+var _ sdk.Msg = &MsgCreate{}
 
-func NewMsgCreateMerkledrop(owner sdk.AccAddress, merkleRoot string, coin sdk.Coin) *MsgCreateMerkledrop {
-	return &MsgCreateMerkledrop{
+func NewMsgCreate(owner sdk.AccAddress, merkleRoot string, startTime, endTime time.Time, coin sdk.Coin) *MsgCreate {
+	if startTime.Before(time.Now()) {
+		startTime = time.Now()
+	}
+
+	return &MsgCreate{
 		Owner:      owner.String(),
 		MerkleRoot: merkleRoot,
+		StartTime:  startTime,
+		EndTime:    endTime,
 		Coin:       coin,
 	}
 }
 
-func (msg MsgCreateMerkledrop) Route() string { return RouterKey }
+func (msg MsgCreate) Route() string { return RouterKey }
 
-func (msg MsgCreateMerkledrop) Type() string { return TypeMsgCreateMerkledrop }
+func (msg MsgCreate) Type() string { return TypeMsgCreateMerkledrop }
 
-func (msg MsgCreateMerkledrop) ValidateBasic() error {
+func (msg MsgCreate) ValidateBasic() error {
+
+	if msg.EndTime.Before(msg.StartTime) {
+		return sdkerrors.Wrapf(ErrInvalidEndTime, "end time must be after start time")
+	}
+
+	if msg.EndTime.Before(time.Now()) {
+		return sdkerrors.Wrapf(ErrInvalidEndTime, "end time must be in the future")
+	}
+
 	if msg.Coin.Amount.LTE(sdk.ZeroInt()) {
 		return sdkerrors.Wrapf(ErrInvalidCoin, "invalid coin amount, less then zero")
 	}
@@ -44,7 +60,7 @@ func (msg MsgCreateMerkledrop) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgCreateMerkledrop) GetSignBytes() []byte {
+func (msg MsgCreate) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -53,7 +69,7 @@ func (msg MsgCreateMerkledrop) GetSignBytes() []byte {
 }
 
 // GetSigners Implements Msg.
-func (msg MsgCreateMerkledrop) GetSigners() []sdk.AccAddress {
+func (msg MsgCreate) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -61,10 +77,10 @@ func (msg MsgCreateMerkledrop) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
-var _ sdk.Msg = &MsgClaimMerkledrop{}
+var _ sdk.Msg = &MsgClaim{}
 
-func NewMsgClaimMerkledrop(index, mdId uint64, coin sdk.Coin, proofs []string, sender sdk.AccAddress) *MsgClaimMerkledrop {
-	return &MsgClaimMerkledrop{
+func NewMsgClaim(index, mdId uint64, coin sdk.Coin, proofs []string, sender sdk.AccAddress) *MsgClaim {
+	return &MsgClaim{
 		Index:        index,
 		MerkledropId: mdId,
 		Coin:         coin,
@@ -73,11 +89,11 @@ func NewMsgClaimMerkledrop(index, mdId uint64, coin sdk.Coin, proofs []string, s
 	}
 }
 
-func (msg MsgClaimMerkledrop) Route() string { return RouterKey }
+func (msg MsgClaim) Route() string { return RouterKey }
 
-func (msg MsgClaimMerkledrop) Type() string { return TypeMsgClaimMerkledrop }
+func (msg MsgClaim) Type() string { return TypeMsgClaimMerkledrop }
 
-func (msg MsgClaimMerkledrop) ValidateBasic() error {
+func (msg MsgClaim) ValidateBasic() error {
 	for _, p := range msg.Proofs {
 		_, err := hex.DecodeString(p)
 		if err != nil {
@@ -89,7 +105,7 @@ func (msg MsgClaimMerkledrop) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgClaimMerkledrop) GetSignBytes() []byte {
+func (msg MsgClaim) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -98,7 +114,7 @@ func (msg MsgClaimMerkledrop) GetSignBytes() []byte {
 }
 
 // GetSigners Implements Msg.
-func (msg MsgClaimMerkledrop) GetSigners() []sdk.AccAddress {
+func (msg MsgClaim) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)

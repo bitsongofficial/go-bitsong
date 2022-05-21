@@ -15,8 +15,11 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case *types.MsgCreateMerkledrop:
-			res, err := msgServer.CreateMerkledrop(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreate:
+			res, err := msgServer.Create(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgClaim:
+			res, err := msgServer.Claim(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

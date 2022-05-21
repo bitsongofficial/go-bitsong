@@ -10,7 +10,7 @@ option (gogoproto.goproto_getters_all) = false;
 
 service Query {
   rpc Merkledrop(QueryMerkledropRequest) returns (QueryMerkledropResponse) {
-    option (google.api.http).get = "/bitsong/merkledrop/v1beta1/detail/{id}";
+    option (google.api.http).get = "/bitsong/merkledrop/v1beta1/markledrops/{id}";
   }
 }
 

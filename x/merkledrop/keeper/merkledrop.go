@@ -71,7 +71,7 @@ func (k Keeper) GetMerkleDropById(ctx sdk.Context, id uint64) (types.Merkledrop,
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.MerkledropKey(id))
 	if bz == nil {
-		return types.Merkledrop{}, sdkerrors.Wrapf(types.ErrMerkleDropNotExist, "merkledrop: %d does not exist", id)
+		return types.Merkledrop{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", id)
 	}
 	merkledrop := types.Merkledrop{}
 	k.cdc.MustUnmarshal(bz, &merkledrop)

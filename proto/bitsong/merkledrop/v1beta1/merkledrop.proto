@@ -2,6 +2,7 @@ syntax = "proto3";
 package bitsong.merkledrop.v1beta1;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
@@ -15,20 +16,43 @@ message Merkledrop {
 
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	cosmos.base.v1beta1.Coin coin = 3 [
+	// merkledrop start time
+	google.protobuf.Timestamp start_time = 3 [
+		(gogoproto.stdtime) = true,
+		(gogoproto.nullable) = false,
+		(gogoproto.moretags) = "yaml:\"start_time\""
+	];
+
+	// merkledrop end time
+	google.protobuf.Timestamp end_time = 4 [
+		(gogoproto.stdtime) = true,
+		(gogoproto.nullable) = false,
+		(gogoproto.moretags) = "yaml:\"end_time\""
+	];
+
+	cosmos.base.v1beta1.Coin coin = 5 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
 	];
 
-	cosmos.base.v1beta1.Coin claimed = 4 [
+	cosmos.base.v1beta1.Coin claimed = 6 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
 	];
 
-	string owner = 5;
+	string owner = 7;
 }
 
-message EventMerkledropCreate {
+message EventCreate {
 	string owner = 1;
 	uint64 merkledrop_id = 2;
+}
+
+message EventClaim {
+	uint64 merkledrop_id = 1;
+	uint64 index = 2;
+	cosmos.base.v1beta1.Coin coin = 4 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
 }

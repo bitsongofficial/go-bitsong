@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -19,31 +18,40 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{keeper}
 }
 
-func (m msgServer) CreateMerkledrop(goCtx context.Context, msg *types.MsgCreateMerkledrop) (*types.MsgCreateMerkledropResponse, error) {
+func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.MsgCreateResponse, error) {
 	// unwrap context
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	// check end time and start time
+	if msg.EndTime.Before(msg.StartTime) {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndTime, "end time must be after start time")
+	}
+
+	if msg.EndTime.Before(ctx.BlockTime()) {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndTime, "end time must be in the future")
+	}
+
 	// check coin amount > 0
 	if !msg.Coin.Amount.GT(sdk.ZeroInt()) {
-		return &types.MsgCreateMerkledropResponse{}, sdkerrors.Wrapf(types.ErrInvalidCoin, "invalid coin amount, must be greater then zero")
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidCoin, "invalid coin amount, must be greater then zero")
 	}
 
 	// decode owner
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return &types.MsgCreateMerkledropResponse{}, err
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "owner %s", owner.String())
 	}
 
 	// check and decode merkle root
 	_, err = hex.DecodeString(msg.MerkleRoot)
 	if err != nil {
-		return &types.MsgCreateMerkledropResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleRoot, "invalid merkle root (%s)", err)
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleRoot, "invalid merkle root (%s)", err)
 	}
 
 	// send coins
 	err = m.Keeper.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.Coins{msg.Coin})
 	if err != nil {
-		return &types.MsgCreateMerkledropResponse{}, err
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", msg.Coin)
 	}
 
 	// increment merkledrop id
@@ -54,6 +62,8 @@ func (m msgServer) CreateMerkledrop(goCtx context.Context, msg *types.MsgCreateM
 	merkledrop := types.Merkledrop{
 		Id:         mdId,
 		MerkleRoot: msg.MerkleRoot,
+		StartTime:  msg.StartTime,
+		EndTime:    msg.EndTime,
 		Coin:       msg.Coin,
 		Claimed:    sdk.Coin{Amount: sdk.ZeroInt(), Denom: msg.Coin.Denom},
 		Owner:      msg.Owner,
@@ -61,53 +71,60 @@ func (m msgServer) CreateMerkledrop(goCtx context.Context, msg *types.MsgCreateM
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
 	// emit event
-	ctx.EventManager().EmitTypedEvent(&types.EventMerkledropCreate{
+	ctx.EventManager().EmitTypedEvent(&types.EventCreate{
 		Owner:        msg.Owner,
 		MerkledropId: mdId,
 	})
 
-	return &types.MsgCreateMerkledropResponse{
+	return &types.MsgCreateResponse{
 		Owner: msg.Owner,
 		Id:    mdId,
 	}, nil
 }
 
-func (m msgServer) ClaimMerkledrop(goCtx context.Context, msg *types.MsgClaimMerkledrop) (*types.MsgClaimMerkledropResponse, error) {
+func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.MsgClaimResponse, error) {
 	// unwrap context
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// decode sender
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return &types.MsgClaimMerkledropResponse{}, err
-	}
-
-	// TODO: merkledrop begun
-	// TODO: merkledrop not expired
-
-	// check if is claimed
-	isClaimed := m.Keeper.IsClaimed(ctx, msg.MerkledropId, msg.Index)
-	if isClaimed {
-		return &types.MsgClaimMerkledropResponse{}, fmt.Errorf("merkledrop already claimed")
+		return &types.MsgClaimResponse{}, err
 	}
 
 	// get merkledrop
 	merkledrop, err := m.Keeper.GetMerkleDropById(ctx, msg.MerkledropId)
 	if err != nil {
-		return &types.MsgClaimMerkledropResponse{}, err
+		return &types.MsgClaimResponse{}, err
+	}
+
+	// merkledrop begun
+	if merkledrop.StartTime.After(ctx.BlockTime()) {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-time %s", merkledrop.StartTime.String())
+	}
+
+	// merkledrop not expired
+	if merkledrop.EndTime.Before(ctx.BlockTime()) {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-time %s", merkledrop.EndTime.String())
+	}
+
+	// check if is claimed
+	isClaimed := m.Keeper.IsClaimed(ctx, msg.MerkledropId, msg.Index)
+	if isClaimed {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrAlreadyClaimed, "merkledrop_id (%d)", msg.MerkledropId)
 	}
 
 	// check and decode merkle root
 	merkleRoot, err := hex.DecodeString(merkledrop.GetMerkleRoot())
 	if err != nil {
-		return &types.MsgClaimMerkledropResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleRoot, "invalid merkle root (%s)", err)
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleRoot, "invalid merkle root (%s)", err)
 	}
 
 	// verify proofs
 	proofs := types.ConvertProofs(msg.Proofs)
 	valid := types.IsValidProof(msg.Index, sender, msg.Coin.Amount, merkleRoot, proofs)
 	if !valid {
-		return &types.MsgClaimMerkledropResponse{}, fmt.Errorf("invalid proofs")
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleProofs, "invalid proofs")
 	}
 
 	// set claimed
@@ -120,8 +137,15 @@ func (m msgServer) ClaimMerkledrop(goCtx context.Context, msg *types.MsgClaimMer
 	// send coins
 	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{msg.Coin})
 	if err != nil {
-		return &types.MsgClaimMerkledropResponse{}, err
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", msg.Coin)
 	}
 
-	return &types.MsgClaimMerkledropResponse{}, nil
+	// emit event
+	ctx.EventManager().EmitTypedEvent(&types.EventClaim{
+		MerkledropId: merkledrop.Id,
+		Index:        msg.Index,
+		Coin:         msg.Coin,
+	})
+
+	return &types.MsgClaimResponse{}, nil
 }

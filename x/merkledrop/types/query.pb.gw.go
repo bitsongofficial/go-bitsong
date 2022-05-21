@@ -176,7 +176,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Merkledrop_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "merkledrop", "v1beta1", "detail", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Merkledrop_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "merkledrop", "v1beta1", "markledrops", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

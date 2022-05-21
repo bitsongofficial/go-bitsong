@@ -9,6 +9,8 @@ const (
 	FlagCoin       = "coin"
 	FlagProofs     = "proofs"
 	FlagIndex      = "index"
+	FlagStartTime  = "start-time"
+	FlagEndTime    = "end-time"
 )
 
 func FlagCreateMerkledrop() *flag.FlagSet {
@@ -16,6 +18,8 @@ func FlagCreateMerkledrop() *flag.FlagSet {
 
 	fs.String(FlagMerkleRoot, "", "Merkle root of the merkledrop")
 	fs.String(FlagCoin, "", "Coin of the merkledrop")
+	fs.String(FlagStartTime, "", "Start time of the merkledrop")
+	fs.String(FlagEndTime, "", "End time of the merkledrop")
 
 	return fs
 }

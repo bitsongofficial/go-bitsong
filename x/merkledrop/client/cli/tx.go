@@ -38,7 +38,9 @@ func GetCmdCreateMerkledrop() *cobra.Command {
 		Example: fmt.Sprintf(`
 $ %s tx merkledrop create \
 	--merkle-root="98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b" \
-	--total-amount=100000000000ubtsg
+	--total-amount=100000000000ubtsg \
+	--start-time="2022-05-21T00:00:00Z" \
+	--end-time="2022-06-21T17:00:00Z"
 `,
 			version.AppName,
 		),
@@ -53,6 +55,24 @@ $ %s tx merkledrop create \
 				return err
 			}
 
+			startTimeStr, err := cmd.Flags().GetString(FlagStartTime)
+			if err != nil {
+				return err
+			}
+			startTime, err := parseTime(startTimeStr)
+			if err != nil {
+				return err
+			}
+
+			endTimeStr, err := cmd.Flags().GetString(FlagEndTime)
+			if err != nil {
+				return err
+			}
+			endTime, err := parseTime(endTimeStr)
+			if err != nil {
+				return err
+			}
+
 			coinStr, err := cmd.Flags().GetString(FlagCoin)
 			if err != nil {
 				return err
@@ -63,7 +83,7 @@ $ %s tx merkledrop create \
 				return err
 			}
 
-			msg := types.NewMsgCreateMerkledrop(clientCtx.GetFromAddress(), merkleRoot, coin)
+			msg := types.NewMsgCreate(clientCtx.GetFromAddress(), merkleRoot, startTime, endTime, coin)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -126,7 +146,7 @@ $ %s tx merkledrop claim [id] \
 				return err
 			}
 
-			msg := types.NewMsgClaimMerkledrop(index, merkledropId, coin, proofs, clientCtx.GetFromAddress())
+			msg := types.NewMsgClaim(index, merkledropId, coin, proofs, clientCtx.GetFromAddress())
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
