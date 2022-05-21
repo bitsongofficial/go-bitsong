@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/stretchr/testify/assert"
-	"github.com/tendermint/tendermint/crypto"
 	"testing"
 )
 
 func TestCreateProof2(t *testing.T) {
 	leafs := [][]byte{
-		[]byte("2bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw3000000"),
 		[]byte("0bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj21000000"),
 		[]byte("1bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw2000000"),
+		[]byte("2bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw3000000"),
 	}
 
 	tree := NewTree(leafs...)
 	merkleRootStr := fmt.Sprintf("%x", tree.Root())
-	assert.Equal(t, "5eb39dbca442a25db0f5d9e63489451b7bfc173796aa221e7207839de3a59e79", merkleRootStr)
+	assert.Equal(t, "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463", merkleRootStr)
 
-	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[0]))))
+	/*fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[0]))))
 	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[1]))))
-	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[2]))))
+	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[2]))))*/
 }
 
 func TestCreateProof(t *testing.T) {
@@ -36,20 +35,9 @@ func TestCreateProof(t *testing.T) {
 	accMap, err := AccountsFromMap(accounts)
 	assert.NoError(t, err)
 
-	tree, claimInfo, err := CreateDistributionList(accMap)
+	tree, _, err := CreateDistributionList(accMap)
 	assert.NoError(t, err)
 
-	for _, l := range tree.Leafs() {
-		fmt.Println(fmt.Sprintf("%x", l))
-		fmt.Println(fmt.Sprintf("proof: %x", tree.Proof(l)))
-	}
-
 	merkleRoot := fmt.Sprintf("%x", tree.Root())
-	assert.Equal(t, "5eb39dbca442a25db0f5d9e63489451b7bfc173796aa221e7207839de3a59e79", merkleRoot)
-
-	fmt.Println(merkleRoot)
-
-	for i, c := range claimInfo {
-		fmt.Println(fmt.Sprintf("%s %s: ", i, c.Proof))
-	}
+	assert.Equal(t, "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463", merkleRoot)
 }
