@@ -29,8 +29,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	// TODO: export index claimed
 
 	return &types.GenesisState{
-		LastMerkledropId:     k.GetLastMerkleDropId(ctx),
-		Merkledrops:          k.GetAllMerkleDrops(ctx),
-		ModuleAccountBalance: k.GetModuleAccountBalance(ctx),
+		LastMerkledropId: k.GetLastMerkleDropId(ctx),
+		Merkledrops:      k.GetAllMerkleDrops(ctx),
 	}
 }

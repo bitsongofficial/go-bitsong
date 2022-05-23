@@ -11,8 +11,4 @@ option (gogoproto.goproto_getters_all) = false;
 message GenesisState {
   uint64 last_merkledrop_id = 1;
   repeated bitsong.merkledrop.v1beta1.Merkledrop merkledrops = 2 [ (gogoproto.nullable) = false ];
-  repeated cosmos.base.v1beta1.Coin module_account_balance = 3 [
-    (gogoproto.moretags) = "yaml:\"module_account_balance\"",
-    (gogoproto.nullable) = false
-  ];
 }
