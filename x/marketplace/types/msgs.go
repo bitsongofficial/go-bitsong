@@ -33,6 +33,26 @@ func (msg MsgCreateAuction) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
+	if msg.NftId == 0 {
+		return ErrInvalidNftId
+	}
+
+	if msg.InstantSalePrice == 0 {
+		return ErrInvalidInstantSalePrice
+	}
+
+	if msg.Duration == 0 {
+		return ErrInvalidDuration
+	}
+
+	if msg.BidDenom == "" {
+		return ErrInvalidBidDenom
+	}
+
+	if AuctionPrizeType_name[int32(msg.PrizeType)] == "" {
+		return ErrInvalidPrizeType
+	}
+
 	return nil
 }
 
@@ -70,6 +90,14 @@ func (msg MsgSetAuctionAuthority) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
+	}
+	_, err = sdk.AccAddressFromBech32(msg.NewAuthority)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid auction authority address (%s)", err)
 	}
 
 	return nil
@@ -111,6 +139,10 @@ func (msg MsgStartAuction) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
+	}
+
 	return nil
 }
 
@@ -148,6 +180,10 @@ func (msg MsgEndAuction) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
 	}
 
 	return nil
@@ -189,6 +225,18 @@ func (msg MsgPlaceBid) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
+	}
+
+	if msg.Amount.Denom == "" {
+		return ErrInvalidBidDenom
+	}
+
+	if msg.Amount.Amount.IsZero() {
+		return ErrInvalidBidAmount
+	}
+
 	return nil
 }
 
@@ -228,6 +276,10 @@ func (msg MsgCancelBid) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
+	}
+
 	return nil
 }
 
@@ -265,6 +317,10 @@ func (msg MsgClaimBid) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	if msg.AuctionId == 0 {
+		return ErrInvalidAuctionId
 	}
 
 	return nil

@@ -89,8 +89,8 @@ message Params {
   option (gogoproto.equal) = true;
   option (gogoproto.goproto_stringer) = false;
 
-  cosmos.base.v1beta1.Coin issue_price = 1 [
-    (gogoproto.moretags) = "yaml:\"issue_price\"",
+  cosmos.base.v1beta1.Coin auction_creation_price = 1 [
+    (gogoproto.moretags) = "yaml:\"auction_creation_price\"",
     (gogoproto.nullable) = false
   ];
 }

@@ -18,14 +18,14 @@ var (
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyIssuePrice, &p.IssuePrice, validateIssuePrice),
+		paramtypes.NewParamSetPair(KeyIssuePrice, &p.AuctionCreationPrice, validateIssuePrice),
 	}
 }
 
 // NewParams constructs a new Params instance
-func NewParams(issuePrice sdk.Coin) Params {
+func NewParams(AuctionCreationPrice sdk.Coin) Params {
 	return Params{
-		IssuePrice: issuePrice,
+		AuctionCreationPrice: AuctionCreationPrice,
 	}
 }
 
@@ -47,7 +47,7 @@ func (p Params) String() string {
 
 // ValidateParams validates the given params
 func ValidateParams(p Params) error {
-	if err := validateIssuePrice(p.IssuePrice); err != nil {
+	if err := validateIssuePrice(p.AuctionCreationPrice); err != nil {
 		return err
 	}
 

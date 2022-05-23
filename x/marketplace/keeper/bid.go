@@ -19,6 +19,22 @@ func (k Keeper) GetBid(ctx sdk.Context, auctionId uint64, bidder sdk.AccAddress)
 	return bid, nil
 }
 
+func (k Keeper) GetAllBids(ctx sdk.Context) []types.Bid {
+	store := ctx.KVStore(k.storeKey)
+
+	bids := []types.Bid{}
+	it := sdk.KVStorePrefixIterator(store, types.PrefixBid)
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		bid := types.Bid{}
+		k.cdc.MustUnmarshal(it.Value(), &bid)
+
+		bids = append(bids, bid)
+	}
+	return bids
+}
+
 func (k Keeper) GetBidsByAuction(ctx sdk.Context, auctionId uint64, bidder sdk.AccAddress) []types.Bid {
 	store := ctx.KVStore(k.storeKey)
 
@@ -101,6 +117,22 @@ func (k Keeper) GetBidderMetadata(ctx sdk.Context, bidder sdk.AccAddress) (types
 
 	k.cdc.MustUnmarshal(bz, &bidderdata)
 	return bidderdata, nil
+}
+
+func (k Keeper) GetAllBidderMetadata(ctx sdk.Context) []types.BidderMetadata {
+	store := ctx.KVStore(k.storeKey)
+
+	biddermetadata := []types.BidderMetadata{}
+	it := sdk.KVStorePrefixIterator(store, types.PrefixBidderMetadata)
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		bidderdata := types.BidderMetadata{}
+		k.cdc.MustUnmarshal(it.Value(), &bidderdata)
+
+		biddermetadata = append(biddermetadata, bidderdata)
+	}
+	return biddermetadata
 }
 
 func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {

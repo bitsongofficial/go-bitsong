@@ -16,11 +16,26 @@ func DefaultGenesisState() *types.GenesisState {
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	// initialize params
 	k.SetParamSet(ctx, data.Params)
+
+	for _, auction := range data.Auctions {
+		k.SetAuction(ctx, auction)
+	}
+
+	for _, bid := range data.Bids {
+		k.SetBid(ctx, bid)
+	}
+
+	for _, bidder := range data.BidderMetadata {
+		k.SetBidderMetadata(ctx, bidder)
+	}
 }
 
 // ExportGenesis outputs the genesis state
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		Params: k.GetParamSet(ctx),
+		Params:         k.GetParamSet(ctx),
+		Auctions:       k.GetAllAuctions(ctx),
+		Bids:           k.GetAllBids(ctx),
+		BidderMetadata: k.GetAllBidderMetadata(ctx),
 	}
 }

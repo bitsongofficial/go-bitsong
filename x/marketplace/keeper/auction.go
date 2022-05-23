@@ -103,6 +103,24 @@ func (k Keeper) GetAllAuctions(ctx sdk.Context) []types.Auction {
 
 func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uint64, error) {
 
+	// burn fees before minting an nft
+	fee := k.GetParamSet(ctx).AuctionCreationPrice
+	if fee.IsPositive() {
+		feeCoins := sdk.Coins{fee}
+		sender, err := sdk.AccAddressFromBech32(msg.Sender)
+		if err != nil {
+			return 0, err
+		}
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, feeCoins)
+		if err != nil {
+			return 0, err
+		}
+		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, feeCoins)
+		if err != nil {
+			return 0, err
+		}
+	}
+
 	// Ensure nft is owned by the sender
 	nft, err := k.nftKeeper.GetNFTById(ctx, msg.NftId)
 	if err != nil {
