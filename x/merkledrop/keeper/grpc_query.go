@@ -26,3 +26,15 @@ func (k Keeper) Merkledrop(c context.Context, req *types.QueryMerkledropRequest)
 		Merkledrop: merkledrop,
 	}, nil
 }
+
+func (k Keeper) IndexClaimed(c context.Context, req *types.QueryIndexClaimedRequest) (*types.QueryIndexClaimedResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	return &types.QueryIndexClaimedResponse{
+		IsClaimed: k.IsClaimed(ctx, req.Id, req.Index),
+	}, nil
+}
