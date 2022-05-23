@@ -9,8 +9,8 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
 
 message Indexes {
-  uint64 mid = 1;
-  repeated uint64 i = 2;
+  uint64 merkledrop_id = 1 [ (gogoproto.moretags) = "yaml:\"mdi\"" ];
+  repeated uint64 index = 2 [ (gogoproto.moretags) = "yaml:\"i\"" ];
 }
 
 message GenesisState {

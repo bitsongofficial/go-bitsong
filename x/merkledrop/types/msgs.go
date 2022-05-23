@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"time"
 )
 
 const (
@@ -15,17 +14,13 @@ const (
 
 var _ sdk.Msg = &MsgCreate{}
 
-func NewMsgCreate(owner sdk.AccAddress, merkleRoot string, startTime, endTime time.Time, coin sdk.Coin) *MsgCreate {
-	if startTime.Before(time.Now()) {
-		startTime = time.Now()
-	}
-
+func NewMsgCreate(owner sdk.AccAddress, merkleRoot string, startHeight, endHeight int64, coin sdk.Coin) *MsgCreate {
 	return &MsgCreate{
-		Owner:      owner.String(),
-		MerkleRoot: merkleRoot,
-		StartTime:  startTime,
-		EndTime:    endTime,
-		Coin:       coin,
+		Owner:       owner.String(),
+		MerkleRoot:  merkleRoot,
+		StartHeight: startHeight,
+		EndHeight:   endHeight,
+		Coin:        coin,
 	}
 }
 
@@ -35,12 +30,8 @@ func (msg MsgCreate) Type() string { return TypeMsgCreate }
 
 func (msg MsgCreate) ValidateBasic() error {
 
-	if msg.EndTime.Before(msg.StartTime) {
-		return sdkerrors.Wrapf(ErrInvalidEndTime, "end time must be after start time")
-	}
-
-	if msg.EndTime.Before(time.Now()) {
-		return sdkerrors.Wrapf(ErrInvalidEndTime, "end time must be in the future")
+	if msg.EndHeight <= msg.StartHeight {
+		return sdkerrors.Wrapf(ErrInvalidEndHeight, "end height must be > start height")
 	}
 
 	if msg.Coin.Amount.LTE(sdk.ZeroInt()) {
@@ -80,11 +71,11 @@ func (msg MsgCreate) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgClaim{}
 
-func NewMsgClaim(index, mdId uint64, coin sdk.Coin, proofs []string, sender sdk.AccAddress) *MsgClaim {
+func NewMsgClaim(index, mdId uint64, amount sdk.Int, proofs []string, sender sdk.AccAddress) *MsgClaim {
 	return &MsgClaim{
 		Index:        index,
 		MerkledropId: mdId,
-		Coin:         coin,
+		Amount:       amount,
 		Proofs:       proofs,
 		Sender:       sender.String(),
 	}

@@ -132,9 +132,10 @@ func GetCmdCreate() *cobra.Command {
 		Example: fmt.Sprintf(`
 $ %s tx merkledrop create \
 	--merkle-root="98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b" \
-	--coin=100000000000ubtsg \
-	--start-time="2022-05-21T00:00:00Z" \
-	--end-time="2022-06-21T17:00:00Z"
+	--amount=100000000000 \
+	--denom=ubtsg \
+	--start-height=1 \
+	--end-height=10
 `,
 			version.AppName,
 		),
@@ -149,35 +150,32 @@ $ %s tx merkledrop create \
 				return err
 			}
 
-			startTimeStr, err := cmd.Flags().GetString(FlagStartTime)
-			if err != nil {
-				return err
-			}
-			startTime, err := parseTime(startTimeStr)
+			startHeight, err := cmd.Flags().GetInt64(FlagStartHeight)
 			if err != nil {
 				return err
 			}
 
-			endTimeStr, err := cmd.Flags().GetString(FlagEndTime)
-			if err != nil {
-				return err
-			}
-			endTime, err := parseTime(endTimeStr)
+			endHeight, err := cmd.Flags().GetInt64(FlagEndHeight)
 			if err != nil {
 				return err
 			}
 
-			coinStr, err := cmd.Flags().GetString(FlagCoin)
+			amount, err := cmd.Flags().GetInt64(FlagAmount)
 			if err != nil {
 				return err
 			}
 
-			coin, err := sdk.ParseCoinNormalized(coinStr)
+			denom, err := cmd.Flags().GetString(FlagDenom)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreate(clientCtx.GetFromAddress(), merkleRoot, startTime, endTime, coin)
+			coin, err := sdk.ParseCoinNormalized(fmt.Sprintf("%d%s", amount, denom))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreate(clientCtx.GetFromAddress(), merkleRoot, startHeight, endHeight, coin)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -201,7 +199,7 @@ func GetCmdClaim() *cobra.Command {
 		Example: fmt.Sprintf(`
 $ %s tx merkledrop claim [id] \
 	--proofs="20245fe3fcdbf17069bc0de04e319296766a7138be5e5a27c6f5bc05e0c23de9,b8fedba5a18186d4fb92ffcf9924b408d6048aaeb76b10cad97cf6be4071b710" \
-	--amount=1000ubtsg
+	--amount=1000
 `,
 			version.AppName,
 		),
@@ -225,12 +223,7 @@ $ %s tx merkledrop claim [id] \
 				proofs = strings.Split(proofsStr, ",")
 			}
 
-			coinStr, err := cmd.Flags().GetString(FlagCoin)
-			if err != nil {
-				return err
-			}
-
-			coin, err := sdk.ParseCoinNormalized(coinStr)
+			amount, err := cmd.Flags().GetInt64(FlagAmount)
 			if err != nil {
 				return err
 			}
@@ -240,7 +233,7 @@ $ %s tx merkledrop claim [id] \
 				return err
 			}
 
-			msg := types.NewMsgClaim(index, merkledropId, coin, proofs, clientCtx.GetFromAddress())
+			msg := types.NewMsgClaim(index, merkledropId, sdk.NewInt(amount), proofs, clientCtx.GetFromAddress())
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

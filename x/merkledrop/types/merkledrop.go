@@ -11,7 +11,7 @@ var (
 
 type MerkledropI interface {
 	GetMerkleRoot() string
-	GetCoin() string
+	GetAmount() string
 }
 
 /*func NewMerkledrop(merkleRoot string, amount sdk.Int, owner sdk.AccAddress) *Merkledrop {
@@ -26,8 +26,8 @@ func (m Merkledrop) GetMerkleRoot() string {
 	return m.MerkleRoot
 }
 
-func (m Merkledrop) GetCoin() string {
-	return m.Coin.String()
+func (m Merkledrop) GetAmount() string {
+	return m.Amount.String()
 }
 
 func (m Merkledrop) String() string {

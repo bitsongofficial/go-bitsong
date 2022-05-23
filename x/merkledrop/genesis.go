@@ -25,8 +25,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 	// set indexes
 	for _, record := range data.Indexes {
-		for _, index := range record.I {
-			k.SetClaimed(ctx, record.Mid, index)
+		for _, index := range record.Index {
+			k.SetClaimed(ctx, record.MerkledropId, index)
 		}
 	}
 }

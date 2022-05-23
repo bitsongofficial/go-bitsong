@@ -12,36 +12,36 @@ message Merkledrop {
 	option (gogoproto.goproto_stringer) = false;
 	option (gogoproto.goproto_getters) = false;
 
+	// merkledrop id
 	uint64 id = 1;
 
+	// merkle_root of the merkledrop
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	// merkledrop start time
-	google.protobuf.Timestamp start_time = 3 [
-		(gogoproto.stdtime) = true,
-		(gogoproto.nullable) = false,
-		(gogoproto.moretags) = "yaml:\"start_time\""
-	];
+	// merkledrop start height
+	int64 start_height = 3;
 
-	// merkledrop end time
-	google.protobuf.Timestamp end_time = 4 [
-		(gogoproto.stdtime) = true,
-		(gogoproto.nullable) = false,
-		(gogoproto.moretags) = "yaml:\"end_time\""
-	];
+	// merkledrop end height
+	int64 end_height = 4;
 
-	cosmos.base.v1beta1.Coin coin = 5 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+	// denom to distribuite
+	string denom = 5;
+
+	// amount to distribuite
+	string amount = 6 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
 		(gogoproto.nullable) = false
 	];
 
-	cosmos.base.v1beta1.Coin claimed = 6 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+	// claimed amount
+	string claimed = 7 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
 		(gogoproto.nullable) = false
 	];
 
-	string owner = 7;
+	// merkledrop's owner
+	string owner = 8;
 
 	// if the remaining funds are withdrawn
-	bool withdrawn = 8;
+	bool withdrawn = 9;
 }

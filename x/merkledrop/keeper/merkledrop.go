@@ -98,7 +98,7 @@ func (k Keeper) GetMerkleDropsByOwner(ctx sdk.Context, owner sdk.AccAddress) []t
 	return merkledrops
 }
 
-func (k Keeper) IterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func(index uint64) bool) {
+func (k Keeper) iterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func(index uint64) bool) {
 	store := ctx.KVStore(k.storeKey)
 	prefix := types.ClaimedMerkledropKey(mdId)
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
@@ -115,7 +115,7 @@ func (k Keeper) IterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func
 
 func (k Keeper) GetAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64 {
 	var indexes []uint64
-	k.IterateIndexByMerkledropID(ctx, id, func(index uint64) (stop bool) {
+	k.iterateIndexByMerkledropID(ctx, id, func(index uint64) (stop bool) {
 		indexes = append(indexes, index)
 		return false
 	})
@@ -130,14 +130,14 @@ func (k Keeper) GetAllIndexes(ctx sdk.Context) []*types.Indexes {
 	for _, md := range merkledrops {
 		var indexes []uint64
 
-		k.IterateIndexByMerkledropID(ctx, md.Id, func(index uint64) (stop bool) {
+		k.iterateIndexByMerkledropID(ctx, md.Id, func(index uint64) (stop bool) {
 			indexes = append(indexes, index)
 			return false
 		})
 
 		mdIndexes = append(mdIndexes, &types.Indexes{
-			Mid: md.Id,
-			I:   indexes,
+			MerkledropId: md.Id,
+			Index:        indexes,
 		})
 	}
 	return mdIndexes

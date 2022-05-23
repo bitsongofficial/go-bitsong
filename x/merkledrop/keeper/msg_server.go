@@ -23,13 +23,18 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 	// unwrap context
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check end time and start time
-	if msg.EndTime.Before(msg.StartTime) {
-		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndTime, "end time must be after start time")
+	// check start height > 0
+	if msg.StartHeight == 0 {
+		msg.StartHeight = ctx.BlockHeight()
 	}
 
-	if msg.EndTime.Before(ctx.BlockTime()) {
-		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndTime, "end time must be in the future")
+	// check end time and start time
+	if msg.EndHeight <= msg.StartHeight {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height must be > start height")
+	}
+
+	if msg.EndHeight <= ctx.BlockHeight() {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height (%d) must be > current block height (%d)", msg.EndHeight, ctx.BlockHeight())
 	}
 
 	// check coin amount > 0
@@ -61,14 +66,15 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 
 	// set merkledrop
 	merkledrop := types.Merkledrop{
-		Id:         mdId,
-		MerkleRoot: msg.MerkleRoot,
-		StartTime:  msg.StartTime,
-		EndTime:    msg.EndTime,
-		Coin:       msg.Coin,
-		Claimed:    sdk.Coin{Amount: sdk.ZeroInt(), Denom: msg.Coin.Denom},
-		Owner:      msg.Owner,
-		Withdrawn:  false,
+		Id:          mdId,
+		MerkleRoot:  msg.MerkleRoot,
+		StartHeight: msg.StartHeight,
+		EndHeight:   msg.EndHeight,
+		Amount:      msg.Coin.Amount,
+		Denom:       msg.Coin.Denom,
+		Claimed:     sdk.ZeroInt(),
+		Owner:       msg.Owner,
+		Withdrawn:   false,
 	}
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
@@ -101,13 +107,13 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	}
 
 	// merkledrop begun
-	if merkledrop.StartTime.After(ctx.BlockTime()) {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-time %s", merkledrop.StartTime.String())
+	if merkledrop.StartHeight <= ctx.BlockHeight() {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-height %d", merkledrop.StartHeight)
 	}
 
 	// merkledrop not expired
-	if merkledrop.EndTime.Before(ctx.BlockTime()) {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-time %s", merkledrop.EndTime.String())
+	if merkledrop.EndHeight > ctx.BlockHeight() {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-height %d", merkledrop.EndHeight)
 	}
 
 	// remaining funds are withdrawn
@@ -129,7 +135,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 
 	// verify proofs
 	proofs := types.ConvertProofs(msg.Proofs)
-	valid := types.IsValidProof(msg.Index, sender, msg.Coin.Amount, merkleRoot, proofs)
+	valid := types.IsValidProof(msg.Index, sender, msg.Amount, merkleRoot, proofs)
 	if !valid {
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleProofs, "invalid proofs")
 	}
@@ -138,26 +144,29 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	m.Keeper.SetClaimed(ctx, msg.MerkledropId, msg.Index)
 
 	// add claimed amount
-	merkledrop.Claimed = merkledrop.Claimed.Add(msg.Coin)
+	merkledrop.Claimed = merkledrop.Claimed.Add(msg.Amount)
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
+	// TODO: if claimed amount == total amount, then prune the merkledrop from the state
+
 	// send coins
-	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{msg.Coin})
+	coin := sdk.NewCoin(merkledrop.Denom, msg.Amount)
+	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{coin})
 	if err != nil {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", msg.Coin)
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s%s", msg.Amount, merkledrop.Denom)
 	}
 
 	// emit event
 	ctx.EventManager().EmitTypedEvent(&types.EventClaim{
 		MerkledropId: merkledrop.Id,
 		Index:        msg.Index,
-		Coin:         msg.Coin,
+		Coin:         coin,
 	})
 
 	return &types.MsgClaimResponse{
-		Id:    0,
-		Index: 0,
-		Coin:  sdk.Coin{},
+		Id:     0,
+		Index:  0,
+		Amount: msg.Amount,
 	}, nil
 }
 
@@ -188,13 +197,13 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// make sure is expired
-	if merkledrop.EndTime.After(ctx.BlockTime()) {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-time: %s", merkledrop.EndTime.String())
+	if merkledrop.EndHeight >= ctx.BlockHeight() {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-height: %d", merkledrop.EndHeight)
 	}
 
 	// check if total amount < claimed amount  (who knows?)
-	if merkledrop.Coin.IsLT(merkledrop.Claimed) {
-		panic(fmt.Errorf("merkledrop-id: %d, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Coin, merkledrop.Claimed))
+	if merkledrop.Amount.LT(merkledrop.Claimed) {
+		panic(fmt.Errorf("merkledrop-id: %d, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Amount, merkledrop.Claimed))
 	}
 
 	// set withdrawn flag
@@ -202,22 +211,25 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
 	// get balance
-	balance := merkledrop.Coin.Sub(merkledrop.Claimed)
+	balance := merkledrop.Amount.Sub(merkledrop.Claimed)
 
 	// send coins
-	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.Coins{balance})
+	coin := sdk.NewCoin(merkledrop.Denom, balance)
+	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.Coins{coin})
 	if err != nil {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", balance)
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", coin)
 	}
+
+	// TODO: prune the merkledrop from the state
 
 	// emit event
 	ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
 		MerkledropId: merkledrop.Id,
-		Coin:         balance,
+		Coin:         coin,
 	})
 
 	return &types.MsgWithdrawResponse{
 		Id:   merkledrop.Id,
-		Coin: balance,
+		Coin: coin,
 	}, nil
 }

@@ -47,8 +47,8 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
 	clientCtx := val.ClientCtx
 
 	merkleRoot := "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463"
-	startTime := "2022-05-21T00:00:00Z"
-	endTime := "2022-06-21T00:00:00Z"
+	startHeight := 1
+	endHeight := 1000
 
 	coin, err := sdk.ParseCoinNormalized(fmt.Sprintf("1000%s", s.cfg.BondDenom))
 	s.Require().NoError(err)
@@ -57,9 +57,10 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
 	cmd := cli.GetCmdCreate()
 	args := []string{
 		fmt.Sprintf("--%s=%s", cli.FlagMerkleRoot, merkleRoot),
-		fmt.Sprintf("--%s=%s", cli.FlagCoin, coin.String()),
-		fmt.Sprintf("--%s=%s", cli.FlagStartTime, startTime),
-		fmt.Sprintf("--%s=%s", cli.FlagEndTime, endTime),
+		fmt.Sprintf("--%s=%s", cli.FlagAmount, coin.Amount.String()),
+		fmt.Sprintf("--%s=%s", cli.FlagDenom, coin.Denom),
+		fmt.Sprintf("--%s=%d", cli.FlagStartHeight, startHeight),
+		fmt.Sprintf("--%s=%d", cli.FlagEndHeight, endHeight),
 
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, val.Address.String()),
 		fmt.Sprintf("--%s=true", sdkflags.FlagSkipConfirmation),

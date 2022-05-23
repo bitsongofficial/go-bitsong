@@ -22,19 +22,11 @@ message MsgCreate {
 	// merkle_root used to compute proofs
 	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	// merkledrop start time
-	google.protobuf.Timestamp start_time = 3 [
-		(gogoproto.stdtime) = true,
-		(gogoproto.nullable) = false,
-		(gogoproto.moretags) = "yaml:\"start_time\""
-	];
+	// merkledrop start height
+	int64 start_height = 3;
 
-	// merkledrop end time
-	google.protobuf.Timestamp end_time = 4 [
-		(gogoproto.stdtime) = true,
-		(gogoproto.nullable) = false,
-		(gogoproto.moretags) = "yaml:\"end_time\""
-	];
+	// merkledrop end height
+	int64 end_height = 4;
 
 	// coins to distribute
 	cosmos.base.v1beta1.Coin coin = 5 [
@@ -52,8 +44,8 @@ message MsgClaim {
 	string sender = 1;
 	uint64 merkledrop_id = 2;
 	uint64 index = 3;
-	cosmos.base.v1beta1.Coin coin = 4 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+	string amount = 4 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
 		(gogoproto.nullable) = false
 	];
 	repeated string proofs = 5;
@@ -62,8 +54,8 @@ message MsgClaim {
 message MsgClaimResponse {
 	uint64 id = 1;
 	uint64 index = 2;
-	cosmos.base.v1beta1.Coin coin = 3 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+	string amount = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
 		(gogoproto.nullable) = false
 	];
 }
