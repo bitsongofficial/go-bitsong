@@ -23,7 +23,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	// set last merkledrop id
 	k.SetLastMerkleDropId(ctx, data.LastMerkledropId)
 
-	// TODO: set index claims
+	// set indexes
+	for _, record := range data.Indexes {
+		for _, index := range record.I {
+			k.SetClaimed(ctx, record.Mid, index)
+		}
+	}
 }
 
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
