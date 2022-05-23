@@ -3,29 +3,77 @@ package keeper_test
 import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
 	"time"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	suite.SetupTest()
+	ctx := suite.Ctx
+	mk := suite.App.MerkledropKeeper
 
 	// set merkledrop
+	merkledropID := uint64(1)
+	index := uint64(0)
+	denom := "ubtsg"
+	owner := suite.TestAccs[0]
+
 	merkledrop := types.Merkledrop{
-		Id:         1,
+		Id:         merkledropID,
 		MerkleRoot: "sdsd",
-		StartTime:  time.Now(),
-		EndTime:    time.Now(),
+		StartTime:  time.Time{},
+		EndTime:    time.Time{},
 		Coin: sdk.Coin{
-			Denom:  "ubtsg",
+			Denom:  denom,
 			Amount: sdk.NewInt(100),
 		},
-		Claimed:   sdk.Coin{Denom: "ubtsg", Amount: sdk.ZeroInt()},
-		Owner:     suite.TestAccs[0].String(),
+		Claimed:   sdk.Coin{Denom: denom, Amount: sdk.ZeroInt()},
+		Owner:     owner.String(),
 		Withdrawn: false,
 	}
-	suite.App.MerkledropKeeper.SetMerkleDrop(suite.Ctx, merkledrop)
+	mk.SetMerkleDrop(ctx, merkledrop)
+
+	merkledrop2 := types.Merkledrop{
+		Id:         merkledropID + 1,
+		MerkleRoot: "sdsd",
+		StartTime:  time.Time{},
+		EndTime:    time.Time{},
+		Coin: sdk.Coin{
+			Denom:  denom,
+			Amount: sdk.NewInt(100),
+		},
+		Claimed:   sdk.Coin{Denom: denom, Amount: sdk.ZeroInt()},
+		Owner:     owner.String(),
+		Withdrawn: false,
+	}
+	mk.SetMerkleDrop(ctx, merkledrop2)
+
+	// check isClaimed => should be false
+	isClaimed := mk.IsClaimed(ctx, merkledropID, index)
+	assert.False(suite.T(), isClaimed)
 
 	// set isClaimed
+	mk.SetClaimed(ctx, merkledropID, index)
 
-	// get all claimed
+	// check isClaimed => should be true
+	isClaimed = mk.IsClaimed(ctx, merkledropID, index)
+	assert.True(suite.T(), isClaimed)
+
+	// set fake claimed
+	mk.SetClaimed(ctx, merkledropID, 10)
+	mk.SetClaimed(ctx, merkledropID, 28)
+
+	// get all indexes by merkledrop id
+	indexes := mk.GetAllIndexesByMerkledropID(ctx, merkledropID)
+	assert.Equal(suite.T(), []uint64{0, 10, 28}, indexes)
+
+	// set fake claimed
+	mk.SetClaimed(ctx, merkledropID+1, 30)
+	mk.SetClaimed(ctx, merkledropID+1, 40)
+
+	// get all indexes
+	allindexes := mk.GetAllIndexes(ctx)
+	assert.Equal(suite.T(), 2, len(allindexes))
+	assert.Equal(suite.T(), 3, len(allindexes[0].Indexes))
+	assert.Equal(suite.T(), 2, len(allindexes[1].Indexes))
 }

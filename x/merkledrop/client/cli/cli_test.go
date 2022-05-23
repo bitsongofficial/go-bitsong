@@ -1,26 +1,101 @@
-package cli
+package cli_test
 
 import (
 	"fmt"
+	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop/client/cli"
+	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
+	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	"github.com/cosmos/cosmos-sdk/testutil/network"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"testing"
 )
 
-func TestCreateProof2(t *testing.T) {
+type IntegrationTestSuite struct {
+	suite.Suite
+
+	cfg     network.Config
+	network *network.Network
+}
+
+func (s *IntegrationTestSuite) SetupSuite() {
+	s.T().Log("setting up integration test suite")
+
+	s.cfg = app.DefaultConfig()
+
+	s.network = network.New(s.T(), s.cfg)
+
+	_, err := s.network.WaitForHeight(1)
+	s.Require().NoError(err)
+}
+
+func (s *IntegrationTestSuite) TearDownSuite() {
+	s.T().Log("tearing down integration test suite")
+	s.network.Cleanup()
+}
+
+func TestIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, new(IntegrationTestSuite))
+}
+
+func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	merkleRoot := "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463"
+	startTime := "2022-05-21T00:00:00Z"
+	endTime := "2022-06-21T00:00:00Z"
+
+	coin, err := sdk.ParseCoinNormalized(fmt.Sprintf("1000%s", s.cfg.BondDenom))
+	s.Require().NoError(err)
+
+	//------test GetCmdCreate()-------------
+	cmd := cli.GetCmdCreate()
+	args := []string{
+		fmt.Sprintf("--%s=%s", cli.FlagMerkleRoot, merkleRoot),
+		fmt.Sprintf("--%s=%s", cli.FlagCoin, coin.String()),
+		fmt.Sprintf("--%s=%s", cli.FlagStartTime, startTime),
+		fmt.Sprintf("--%s=%s", cli.FlagEndTime, endTime),
+
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, val.Address.String()),
+		fmt.Sprintf("--%s=true", sdkflags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagBroadcastMode, sdkflags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+	}
+
+	respType := proto.Message(&sdk.TxResponse{})
+	expectedCode := uint32(0)
+	out, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, args)
+
+	s.Require().NoError(err)
+	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), respType), out.String())
+	txResp := respType.(*sdk.TxResponse)
+	s.Require().Equal(expectedCode, txResp.Code)
+
+	//------test GetCmdQueryMerkledrop()-------------
+	cmd = cli.GetCmdQueryMerkledrop()
+	args = []string{
+		"1",
+	}
+
+	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args)
+	s.Require().NoError(err, out.String())
+}
+
+func TestSimpleProof(t *testing.T) {
 	leafs := [][]byte{
 		[]byte("0bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj21000000"),
 		[]byte("1bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw2000000"),
 		[]byte("2bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw3000000"),
 	}
 
-	tree := NewTree(leafs...)
+	tree := cli.NewTree(leafs...)
 	merkleRootStr := fmt.Sprintf("%x", tree.Root())
 	assert.Equal(t, "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463", merkleRootStr)
-
-	/*fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[0]))))
-	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[1]))))
-	fmt.Println(fmt.Sprintf("%x", tree.Proof(crypto.Sha256(leafs[2]))))*/
 }
 
 func TestCreateProof(t *testing.T) {
@@ -32,10 +107,10 @@ func TestCreateProof(t *testing.T) {
 		"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000ubtsg",
 	}
 
-	accMap, err := AccountsFromMap(accounts)
+	accMap, err := cli.AccountsFromMap(accounts)
 	assert.NoError(t, err)
 
-	tree, _, err := CreateDistributionList(accMap)
+	tree, _, err := cli.CreateDistributionList(accMap)
 	assert.NoError(t, err)
 
 	merkleRoot := fmt.Sprintf("%x", tree.Root())

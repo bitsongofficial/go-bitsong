@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	"bytes"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -98,29 +98,47 @@ func (k Keeper) GetMerkleDropsByOwner(ctx sdk.Context, owner sdk.AccAddress) []t
 	return merkledrops
 }
 
-func (k Keeper) IterateIndexById(ctx sdk.Context, mdId uint64, fn func(index int64, oindex uint64) (stop bool)) {
+func (k Keeper) IterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func(index uint64) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ClaimedMerkledropKey(mdId))
+	prefix := types.ClaimedMerkledropKey(mdId)
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
 	defer iterator.Close()
 
-	i := int64(0)
 	for ; iterator.Valid(); iterator.Next() {
-		ii := sdk.BigEndianToUint64(iterator.Value())
-		fmt.Println(ii)
-		stop := fn(i, ii)
-		if stop {
+		index := sdk.BigEndianToUint64(bytes.TrimPrefix(iterator.Key(), prefix))
+
+		if cb(index) {
 			break
 		}
-		i++
 	}
 }
 
-func (k Keeper) GetAllIndexById(ctx sdk.Context, id uint64) []uint64 {
-	var indexs []uint64
-	k.IterateIndexById(ctx, id, func(index int64, oindex uint64) (stop bool) {
-		indexs = append(indexs, oindex)
+func (k Keeper) GetAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64 {
+	var indexes []uint64
+	k.IterateIndexByMerkledropID(ctx, id, func(index uint64) (stop bool) {
+		indexes = append(indexes, index)
 		return false
 	})
 
-	return indexs
+	return indexes
+}
+
+func (k Keeper) GetAllIndexes(ctx sdk.Context) []*types.Indexes {
+	var mdIndexes []*types.Indexes
+	merkledrops := k.GetAllMerkleDrops(ctx)
+
+	for _, md := range merkledrops {
+		var indexes []uint64
+
+		k.IterateIndexByMerkledropID(ctx, md.Id, func(index uint64) (stop bool) {
+			indexes = append(indexes, index)
+			return false
+		})
+
+		mdIndexes = append(mdIndexes, &types.Indexes{
+			Mid: md.Id,
+			I:   indexes,
+		})
+	}
+	return mdIndexes
 }

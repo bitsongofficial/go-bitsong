@@ -132,7 +132,7 @@ func GetCmdCreate() *cobra.Command {
 		Example: fmt.Sprintf(`
 $ %s tx merkledrop create \
 	--merkle-root="98ac4ade3eae2e324922ee68c42976eeaecc39d558fcfc2206ec3ab0bad5a36b" \
-	--total-amount=100000000000ubtsg \
+	--coin=100000000000ubtsg \
 	--start-time="2022-05-21T00:00:00Z" \
 	--end-time="2022-06-21T17:00:00Z"
 `,

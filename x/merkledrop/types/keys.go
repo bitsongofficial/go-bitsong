@@ -52,7 +52,7 @@ func ClaimedMerkledropIndexKey(id, index uint64) []byte {
 }
 
 func ClaimedMerkledropKey(id uint64) []byte {
-	return genKey(PrefixClaimedMerkleDrop, sep, sdk.Uint64ToBigEndian(id))
+	return genKey(PrefixClaimedMerkleDrop, sep, sdk.Uint64ToBigEndian(id), sep)
 }
 
 func genKey(bytes ...[]byte) (r []byte) {

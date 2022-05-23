@@ -8,7 +8,15 @@ import "bitsong/merkledrop/v1beta1/merkledrop.proto";
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
 
+message Indexes {
+  uint64 mid = 1;
+  repeated uint64 i = 2;
+}
+
 message GenesisState {
   uint64 last_merkledrop_id = 1;
+
   repeated bitsong.merkledrop.v1beta1.Merkledrop merkledrops = 2 [ (gogoproto.nullable) = false ];
+
+  repeated Indexes indexes = 3;
 }
