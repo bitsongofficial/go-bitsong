@@ -7,7 +7,7 @@ import (
 
 func (k Keeper) ProcessRoyalties(ctx sdk.Context, metadata nfttypes.Metadata, authority sdk.AccAddress, denom string, amount uint64) error {
 	if metadata.Data.SellerFeeBasisPoints > 100 {
-		panic(nfttypes.ErrInvalidSellerFeeBasisPoints)
+		return nfttypes.ErrInvalidSellerFeeBasisPoints
 	}
 	totalRoyalties := amount * uint64(metadata.Data.SellerFeeBasisPoints) / 100
 
