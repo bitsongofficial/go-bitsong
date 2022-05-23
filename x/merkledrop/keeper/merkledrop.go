@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -43,12 +44,12 @@ func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) {
 
 func (k Keeper) IsClaimed(ctx sdk.Context, mdId, index uint64) bool {
 	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.ClaimedMerkledropKey(mdId, index))
+	return store.Has(types.ClaimedMerkledropIndexKey(mdId, index))
 }
 
 func (k Keeper) SetClaimed(ctx sdk.Context, mdId, index uint64) {
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.ClaimedMerkledropKey(mdId, index), []byte{0x01})
+	store.Set(types.ClaimedMerkledropIndexKey(mdId, index), []byte{0x01})
 }
 
 func (k Keeper) GetAllMerkleDrops(ctx sdk.Context) []types.Merkledrop {
@@ -95,4 +96,31 @@ func (k Keeper) GetMerkleDropsByOwner(ctx sdk.Context, owner sdk.AccAddress) []t
 		merkledrops = append(merkledrops, merkledrop)
 	}
 	return merkledrops
+}
+
+func (k Keeper) IterateIndexById(ctx sdk.Context, mdId uint64, fn func(index int64, oindex uint64) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ClaimedMerkledropKey(mdId))
+	defer iterator.Close()
+
+	i := int64(0)
+	for ; iterator.Valid(); iterator.Next() {
+		ii := sdk.BigEndianToUint64(iterator.Value())
+		fmt.Println(ii)
+		stop := fn(i, ii)
+		if stop {
+			break
+		}
+		i++
+	}
+}
+
+func (k Keeper) GetAllIndexById(ctx sdk.Context, id uint64) []uint64 {
+	var indexs []uint64
+	k.IterateIndexById(ctx, id, func(index int64, oindex uint64) (stop bool) {
+		indexs = append(indexs, oindex)
+		return false
+	})
+
+	return indexs
 }

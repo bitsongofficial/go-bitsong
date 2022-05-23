@@ -194,7 +194,7 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 
 	// check if total amount < claimed amount  (who knows?)
 	if merkledrop.Coin.IsLT(merkledrop.Claimed) {
-		panic(fmt.Errorf("merkledrop-id: %s, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Coin, merkledrop.Claimed))
+		panic(fmt.Errorf("merkledrop-id: %d, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Coin, merkledrop.Claimed))
 	}
 
 	// set withdrawn flag

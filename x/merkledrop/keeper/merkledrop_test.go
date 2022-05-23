@@ -1,41 +1,31 @@
-package keeper
+package keeper_test
 
 import (
-	"fmt"
-	"testing"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
-var (
-	claimedBitMap = make(map[uint64]uint64)
-)
+func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
+	suite.SetupTest()
 
-func isClaimed(index uint64) bool {
-	claimedWordIndex := index / 256
-	claimedBitIndex := index % 256
-	fmt.Println(claimedBitMap[claimedWordIndex])
-	claimedWord := claimedBitMap[claimedWordIndex]
-	mask := uint64(1 << claimedBitIndex)
+	// set merkledrop
+	merkledrop := types.Merkledrop{
+		Id:         1,
+		MerkleRoot: "sdsd",
+		StartTime:  time.Now(),
+		EndTime:    time.Now(),
+		Coin: sdk.Coin{
+			Denom:  "ubtsg",
+			Amount: sdk.NewInt(100),
+		},
+		Claimed:   sdk.Coin{Denom: "ubtsg", Amount: sdk.ZeroInt()},
+		Owner:     suite.TestAccs[0].String(),
+		Withdrawn: false,
+	}
+	suite.App.MerkledropKeeper.SetMerkleDrop(suite.Ctx, merkledrop)
 
-	fmt.Println(claimedWord & mask)
-	fmt.Println(claimedWord)
-	fmt.Println(mask)
+	// set isClaimed
 
-	return claimedWord&mask == mask
-}
-
-func setClaim(index uint64) {
-	claimedWordIndex := index / 256
-	claimedBitIndex := index % 256
-	claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex)
-}
-
-func TestKeeper_SetClaimed(t *testing.T) {
-	index := uint64(253265485458494684)
-
-	isClaim := isClaimed(index)
-	fmt.Println(fmt.Sprintf("is claim %v", isClaim))
-
-	setClaim(index)
-
-	fmt.Println(fmt.Sprintf("is claim %v", isClaimed(index)))
+	// get all claimed
 }

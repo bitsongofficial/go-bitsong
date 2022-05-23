@@ -47,8 +47,12 @@ func LastMerkledropIDKey() []byte {
 	return KeyLastMerkleDropId
 }
 
-func ClaimedMerkledropKey(id, index uint64) []byte {
-	return genKey(PrefixClaimedMerkleDrop, sep, sdk.Uint64ToBigEndian(id), sdk.Uint64ToBigEndian(index))
+func ClaimedMerkledropIndexKey(id, index uint64) []byte {
+	return genKey(PrefixClaimedMerkleDrop, sep, sdk.Uint64ToBigEndian(id), sep, sdk.Uint64ToBigEndian(index))
+}
+
+func ClaimedMerkledropKey(id uint64) []byte {
+	return genKey(PrefixClaimedMerkleDrop, sep, sdk.Uint64ToBigEndian(id))
 }
 
 func genKey(bytes ...[]byte) (r []byte) {
