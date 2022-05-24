@@ -15,7 +15,7 @@ const (
 	FlagDenom       = "denom"
 )
 
-func FlagCreateMerkledrop() *flag.FlagSet {
+/*func FlagCreateMerkledrop() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.String(FlagMerkleRoot, "", "Merkle root of the merkledrop")
@@ -24,6 +24,15 @@ func FlagCreateMerkledrop() *flag.FlagSet {
 	fs.String(FlagDenom, "", "Denom of the merkledrop")
 	fs.Int64(FlagStartHeight, 0, "Start height of the merkledrop")
 	fs.Int64(FlagEndHeight, 0, "End height of the merkledrop")
+
+	return fs
+}*/
+
+func FlagsCreate() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.Int64(FlagStartHeight, 0, "Start height of the merkledrop")
+	fs.Int64(FlagEndHeight, 0, "End height of the merkledrop")
+	fs.String(FlagDenom, "", "Denom of the merkledrop")
 
 	return fs
 }

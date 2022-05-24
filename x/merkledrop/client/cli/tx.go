@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -27,7 +27,7 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		GetCmdGenerate(),
+		//GetCmdGenerate(),
 		GetCmdCreate(),
 		GetCmdClaim(),
 		GetCmdWithdraw(),
@@ -36,17 +36,20 @@ func NewTxCmd() *cobra.Command {
 	return txCmd
 }
 
-func GetCmdGenerate() *cobra.Command {
+func GetCmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "generate [file-json] [out-list-json]",
-		Short: "Generate a merkledrop from json file",
-		Long: `Generate a merkledrop from json file
+		Use:   "create [file-json] [out-list-json]",
+		Short: "Create a merkledrop from json file",
+		Long: `Create a merkledrop from json file
 Parameters:
 	file-json: input file list
 	out-list-json: output list with proofs
 		`,
 		Example: fmt.Sprintf(`
-$ %s tx merkledrop create-from-file accounts.json out-list.json
+$ %s tx merkledrop create accounts.json out-list.json \
+	--denom=ubtsg \
+	--start-height=1 \
+	--end-height=10
 
 where accounts.json contains
 {
@@ -86,7 +89,7 @@ after the computation the out-list.json should be similar to this output
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := client.GetClientTxContext(cmd)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
@@ -98,34 +101,71 @@ after the computation the out-list.json should be similar to this output
 
 			var stringList map[string]string
 			if err := json.Unmarshal(listBytes, &stringList); err != nil {
-				log.Fatalf("Could not unmarshal json: %v", err)
+				return fmt.Errorf("Could not unmarshal json: %v", err)
 			}
 
 			accMap, err := AccountsFromMap(stringList)
 			if err != nil {
-				log.Fatalf("Could not get accounts from map")
+				return fmt.Errorf("Could not get accounts from map")
 			}
 
-			tree, claimInfo, err := CreateDistributionList(accMap)
+			tree, claimInfo, totalAmt, err := CreateDistributionList(accMap)
 			if err != nil {
-				log.Fatalf("Could not create distribution list: %v", err)
+				return fmt.Errorf("Could not create distribution list: %v", err)
 			}
 
 			if _, err := createFile(args[1], claimInfo); err != nil {
-				log.Fatalf("Could not create file: %v", err)
+				return fmt.Errorf("Could not create file: %v", err)
 			}
 
-			fmt.Println(fmt.Sprintf("Merkle Root: %x", tree.Root()))
-			return nil
+			startHeight, endHeight, denom, err := parseGenerateFlags(cmd.Flags())
+			merkleRoot := fmt.Sprintf("%x", tree.Root())
+
+			if denom == "" {
+				return fmt.Errorf("denom is required")
+			}
+
+			coin, err := sdk.ParseCoinNormalized(fmt.Sprintf("%s%s", totalAmt.String(), denom))
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreate(clientCtx.GetFromAddress(), merkleRoot, startHeight, endHeight, coin)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
+	cmd.Flags().AddFlagSet(FlagsCreate())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func GetCmdCreate() *cobra.Command {
+func parseGenerateFlags(flags *flag.FlagSet) (int64, int64, string, error) {
+	startHeight, err := flags.GetInt64(FlagStartHeight)
+	if err != nil {
+		return 0, 0, "", err
+	}
+
+	endHeight, err := flags.GetInt64(FlagEndHeight)
+	if err != nil {
+		return 0, 0, "", err
+	}
+
+	denom, err := flags.GetString(FlagDenom)
+	if err != nil {
+		return 0, 0, "", err
+	}
+
+	return startHeight, endHeight, denom, nil
+}
+
+/*func GetCmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "create",
 		Long: "Create a merkledrop from provided params",
@@ -189,7 +229,7 @@ $ %s tx merkledrop create \
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
+}*/
 
 func GetCmdClaim() *cobra.Command {
 	cmd := &cobra.Command{

@@ -64,16 +64,19 @@ func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 	return accsMap, nil
 }
 
-func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, error) {
+func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, sdk.Int, error) {
 	// sort lists by coin amount
 	sort.Slice(accounts, func(i, j int) bool {
 		return accounts[i].coin.Amount.LT(accounts[j].coin.Amount)
 	})
 
+	totalAmt := sdk.ZeroInt()
+
 	nodes := make([][]byte, len(accounts))
 	for i, acc := range accounts {
 		indexStr := strconv.FormatUint(uint64(i), 10)
 		nodes[i] = []byte(fmt.Sprintf("%s%s%s", indexStr, acc.address.String(), acc.coin.Amount.String()))
+		totalAmt = totalAmt.Add(acc.coin.Amount)
 	}
 
 	tree := NewTree(nodes...)
@@ -90,7 +93,7 @@ func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, er
 		}
 	}
 
-	return tree, addrToProof, nil
+	return tree, addrToProof, totalAmt, nil
 }
 
 func ProofBytesToString(proof [][]byte) []string {
