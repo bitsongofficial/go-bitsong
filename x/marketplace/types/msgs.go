@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -17,9 +19,19 @@ const (
 
 var _ sdk.Msg = &MsgCreateAuction{}
 
-func NewMsgCreateAuction(sender sdk.AccAddress) *MsgCreateAuction {
+func NewMsgCreateAuction(sender sdk.AccAddress, nftId uint64, prizeType AuctionPrizeType,
+	bidDenom string, duration time.Duration,
+	priceFloor, instantSalePrice, tickSize uint64,
+) *MsgCreateAuction {
 	return &MsgCreateAuction{
-		Sender: sender.String(),
+		Sender:           sender.String(),
+		NftId:            nftId,
+		PrizeType:        prizeType,
+		BidDenom:         bidDenom,
+		Duration:         duration,
+		PriceFloor:       priceFloor,
+		InstantSalePrice: instantSalePrice,
+		TickSize:         tickSize,
 	}
 }
 
@@ -76,9 +88,11 @@ func (msg MsgCreateAuction) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgSetAuctionAuthority{}
 
-func NewMsgSetAuctionAuthority(sender sdk.AccAddress) *MsgSetAuctionAuthority {
+func NewMsgSetAuctionAuthority(sender sdk.AccAddress, auctionId uint64, newAuthority string) *MsgSetAuctionAuthority {
 	return &MsgSetAuctionAuthority{
-		Sender: sender.String(),
+		Sender:       sender.String(),
+		AuctionId:    auctionId,
+		NewAuthority: newAuthority,
 	}
 }
 
@@ -123,9 +137,10 @@ func (msg MsgSetAuctionAuthority) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgStartAuction{}
 
-func NewMsgStartAuction(sender sdk.AccAddress) *MsgStartAuction {
+func NewMsgStartAuction(sender sdk.AccAddress, auctionId uint64) *MsgStartAuction {
 	return &MsgStartAuction{
-		Sender: sender.String(),
+		Sender:    sender.String(),
+		AuctionId: auctionId,
 	}
 }
 
@@ -166,9 +181,10 @@ func (msg MsgStartAuction) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgEndAuction{}
 
-func NewMsgEndAuction(sender sdk.AccAddress) *MsgEndAuction {
+func NewMsgEndAuction(sender sdk.AccAddress, auctionId uint64) *MsgEndAuction {
 	return &MsgEndAuction{
-		Sender: sender.String(),
+		Sender:    sender.String(),
+		AuctionId: auctionId,
 	}
 }
 
@@ -209,9 +225,11 @@ func (msg MsgEndAuction) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgPlaceBid{}
 
-func NewMsgPlaceBid(sender sdk.AccAddress) *MsgPlaceBid {
+func NewMsgPlaceBid(sender sdk.AccAddress, auctionId uint64, amount sdk.Coin) *MsgPlaceBid {
 	return &MsgPlaceBid{
-		Sender: sender.String(),
+		Sender:    sender.String(),
+		AuctionId: auctionId,
+		Amount:    amount,
 	}
 }
 
@@ -260,9 +278,10 @@ func (msg MsgPlaceBid) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgCancelBid{}
 
-func NewMsgCancelBid(sender sdk.AccAddress) *MsgCancelBid {
+func NewMsgCancelBid(sender sdk.AccAddress, auctionId uint64) *MsgCancelBid {
 	return &MsgCancelBid{
-		Sender: sender.String(),
+		Sender:    sender.String(),
+		AuctionId: auctionId,
 	}
 }
 
@@ -303,9 +322,10 @@ func (msg MsgCancelBid) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgClaimBid{}
 
-func NewMsgClaimBid(sender sdk.AccAddress) *MsgClaimBid {
+func NewMsgClaimBid(sender sdk.AccAddress, auctionId uint64) *MsgClaimBid {
 	return &MsgClaimBid{
-		Sender: sender.String(),
+		Sender:    sender.String(),
+		AuctionId: auctionId,
 	}
 }
 

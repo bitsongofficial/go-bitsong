@@ -11,6 +11,9 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/marketplace"
+	marketplacekeeper "github.com/bitsongofficial/go-bitsong/x/marketplace/keeper"
+	marketplacetypes "github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	"github.com/bitsongofficial/go-bitsong/x/nft"
 	nftkeeper "github.com/bitsongofficial/go-bitsong/x/nft/keeper"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
@@ -156,6 +159,7 @@ var (
 		router.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		marketplace.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -169,6 +173,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+		marketplacetypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -226,8 +231,9 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper fantokenkeeper.Keeper
-	NFTKeeper      nftkeeper.Keeper
+	FanTokenKeeper    fantokenkeeper.Keeper
+	NFTKeeper         nftkeeper.Keeper
+	MarketplaceKeeper marketplacekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -259,7 +265,8 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, nfttypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey,
+		nfttypes.StoreKey, marketplacetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -389,6 +396,7 @@ func New(
 	)
 
 	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.GetSubspace(nfttypes.ModuleName), app.BankKeeper)
+	app.MarketplaceKeeper = marketplacekeeper.NewKeeper(appCodec, keys[marketplacetypes.StoreKey], app.GetSubspace(marketplacetypes.ModuleName), app.BankKeeper, app.NFTKeeper, app.AccountKeeper)
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
@@ -416,6 +424,7 @@ func New(
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
+		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
@@ -456,6 +465,7 @@ func New(
 		evidencetypes.ModuleName,
 		fantokentypes.ModuleName,
 		nfttypes.ModuleName,
+		marketplacetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -487,6 +497,7 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
+		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
@@ -779,6 +790,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(nfttypes.ModuleName)
+	paramsKeeper.Subspace(marketplacetypes.ModuleName)
 
 	return paramsKeeper
 }
