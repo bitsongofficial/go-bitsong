@@ -4,6 +4,7 @@ package bitsong.merkledrop.v1beta1;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "bitsong/merkledrop/v1beta1/merkledrop.proto";
+import "bitsong/merkledrop/v1beta1/params.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -19,4 +20,6 @@ message GenesisState {
   repeated bitsong.merkledrop.v1beta1.Merkledrop merkledrops = 2 [ (gogoproto.nullable) = false ];
 
   repeated Indexes indexes = 3;
+
+  Params params = 4 [ (gogoproto.nullable) = false ];
 }

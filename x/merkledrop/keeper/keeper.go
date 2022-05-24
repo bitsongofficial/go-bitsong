@@ -5,6 +5,8 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -13,6 +15,9 @@ type Keeper struct {
 	cdc           codec.Codec
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
+	distrKeeper   distrkeeper.Keeper
+
+	paramSpace paramstypes.Subspace
 }
 
 func NewKeeper(
@@ -20,12 +25,21 @@ func NewKeeper(
 	key sdk.StoreKey,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
+	dk distrkeeper.Keeper,
+	paramSpace paramstypes.Subspace,
 ) Keeper {
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+
 	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		accountKeeper: ak,
 		bankKeeper:    bk,
+		distrKeeper:   dk,
+		paramSpace:    paramSpace,
 	}
 }
 

@@ -11,17 +11,21 @@ func DefaultGenesisState() *types.GenesisState {
 		LastMerkledropId: 0,
 		Merkledrops:      []types.Merkledrop{},
 		Indexes:          []*types.Indexes{},
+		Params:           types.DefaultParams(),
 	}
 }
 
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
+	// set merkledrop module params
+	k.SetParamSet(ctx, data.Params)
+
+	// set last merkledrop id
+	k.SetLastMerkleDropId(ctx, data.LastMerkledropId)
+
 	// initialize merkledrops
 	for _, md := range data.Merkledrops {
 		k.SetMerkleDrop(ctx, md)
 	}
-
-	// set last merkledrop id
-	k.SetLastMerkleDropId(ctx, data.LastMerkledropId)
 
 	// set indexes
 	for _, record := range data.Indexes {
@@ -36,5 +40,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		LastMerkledropId: k.GetLastMerkleDropId(ctx),
 		Merkledrops:      k.GetAllMerkleDrops(ctx),
 		Indexes:          k.GetAllIndexes(ctx),
+		Params:           k.GetParamSet(ctx),
 	}
 }

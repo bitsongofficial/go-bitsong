@@ -48,6 +48,12 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "owner %s", owner.String())
 	}
 
+	// deduct creation fee
+	fee, err := m.DeductCreationFee(ctx, owner)
+	if err != nil {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrCreationFee, "creation-fee %s", fee.String())
+	}
+
 	// check and decode merkle root
 	_, err = hex.DecodeString(msg.MerkleRoot)
 	if err != nil {

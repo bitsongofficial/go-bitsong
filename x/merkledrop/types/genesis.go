@@ -4,11 +4,12 @@ import (
 	"fmt"
 )
 
-func NewGenesisState(lastMdId uint64, mds []Merkledrop, indexes []*Indexes) GenesisState {
+func NewGenesisState(lastMdId uint64, mds []Merkledrop, indexes []*Indexes, params Params) GenesisState {
 	return GenesisState{
 		LastMerkledropId: lastMdId,
 		Merkledrops:      mds,
 		Indexes:          indexes,
+		Params:           params,
 	}
 }
 
@@ -23,6 +24,10 @@ func ValidateGenesis(data GenesisState) error {
 		if i.MerkledropId > data.LastMerkledropId {
 			return fmt.Errorf("invalid index merkledrop_id: %d", i.MerkledropId)
 		}
+	}
+
+	if err := data.Params.Validate(); err != nil {
+		return err
 	}
 
 	return nil

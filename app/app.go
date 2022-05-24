@@ -372,7 +372,7 @@ func NewBitsongApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
-	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper)
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GetSubspace(merkledroptypes.ModuleName))
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
@@ -701,6 +701,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
+
+	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
 }

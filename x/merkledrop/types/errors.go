@@ -17,4 +17,5 @@ var (
 	ErrMerkledropExpired    = sdkerrors.Register(ModuleName, 12, "merkledrop expired")
 	ErrMerkledropNotExpired = sdkerrors.Register(ModuleName, 13, "merkledrop not expired")
 	ErrAlreadyWithdrawn     = sdkerrors.Register(ModuleName, 14, "funds have been already withdrawn")
+	ErrCreationFee          = sdkerrors.Register(ModuleName, 15, "cannot deduct creation fee")
 )
