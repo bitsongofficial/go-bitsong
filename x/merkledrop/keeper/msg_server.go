@@ -113,13 +113,13 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	}
 
 	// merkledrop begun
-	if merkledrop.StartHeight <= ctx.BlockHeight() {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-height %d", merkledrop.StartHeight)
+	if merkledrop.StartHeight > ctx.BlockHeight() {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-height %d, current-height %d", merkledrop.StartHeight, ctx.BlockHeight())
 	}
 
 	// merkledrop not expired
-	if merkledrop.EndHeight > ctx.BlockHeight() {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-height %d", merkledrop.EndHeight)
+	if merkledrop.EndHeight < ctx.BlockHeight() {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-height %d, current-height %d", merkledrop.EndHeight, ctx.BlockHeight())
 	}
 
 	// remaining funds are withdrawn
@@ -203,8 +203,8 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// make sure is expired
-	if merkledrop.EndHeight >= ctx.BlockHeight() {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-height: %d", merkledrop.EndHeight)
+	if merkledrop.EndHeight > ctx.BlockHeight() {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-height: %d, current-height: %d", merkledrop.EndHeight, ctx.BlockHeight())
 	}
 
 	// check if total amount < claimed amount  (who knows?)
