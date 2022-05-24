@@ -29,13 +29,13 @@ func parseTime(timeStr string) (time.Time, error) {
 
 type Account struct {
 	address sdk.AccAddress
-	coin    sdk.Coin
+	amount  sdk.Int
 }
 
 type ClaimInfo struct {
-	Index uint64   `json:"index"`
-	Coin  string   `json:"coin"`
-	Proof []string `json:"proof"`
+	Index  uint64   `json:"index"`
+	Amount string   `json:"amount"`
+	Proof  []string `json:"proof"`
 }
 
 func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
@@ -43,10 +43,10 @@ func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 
 	accsMap := make([]*Account, len(accMap))
 
-	for strAddr, strCoin := range accMap {
-		coin, err := sdk.ParseCoinNormalized(strCoin)
-		if err != nil {
-			return nil, fmt.Errorf("could not cast %s to sdk.Coin", strCoin)
+	for strAddr, strAmt := range accMap {
+		amt, ok := sdk.NewIntFromString(strAmt)
+		if !ok {
+			return nil, fmt.Errorf("could not cast %s to sdk.Int", strAddr)
 		}
 
 		addr, err := sdk.AccAddressFromBech32(strAddr)
@@ -56,7 +56,7 @@ func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 
 		accsMap[i] = &Account{
 			address: addr,
-			coin:    coin,
+			amount:  amt,
 		}
 		i++
 	}
@@ -67,7 +67,7 @@ func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, sdk.Int, error) {
 	// sort lists by coin amount
 	sort.Slice(accounts, func(i, j int) bool {
-		return accounts[i].coin.Amount.LT(accounts[j].coin.Amount)
+		return accounts[i].amount.LT(accounts[j].amount)
 	})
 
 	totalAmt := sdk.ZeroInt()
@@ -75,8 +75,8 @@ func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, sd
 	nodes := make([][]byte, len(accounts))
 	for i, acc := range accounts {
 		indexStr := strconv.FormatUint(uint64(i), 10)
-		nodes[i] = []byte(fmt.Sprintf("%s%s%s", indexStr, acc.address.String(), acc.coin.Amount.String()))
-		totalAmt = totalAmt.Add(acc.coin.Amount)
+		nodes[i] = []byte(fmt.Sprintf("%s%s%s", indexStr, acc.address.String(), acc.amount.String()))
+		totalAmt = totalAmt.Add(acc.amount)
 	}
 
 	tree := NewTree(nodes...)
@@ -87,9 +87,9 @@ func CreateDistributionList(accounts []*Account) (Tree, map[string]ClaimInfo, sd
 		proof := ProofBytesToString(tree.Proof(crypto.Sha256(nodes[i])))
 
 		addrToProof[acc.address.String()] = ClaimInfo{
-			Index: uint64(i),
-			Coin:  acc.coin.String(),
-			Proof: proof,
+			Index:  uint64(i),
+			Amount: acc.amount.String(),
+			Proof:  proof,
 		}
 	}
 

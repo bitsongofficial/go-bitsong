@@ -53,23 +53,23 @@ $ %s tx merkledrop create accounts.json out-list.json \
 
 where accounts.json contains
 {
-	"bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "1000000ubtsg",
-	"bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "2000000ubtsg",
-	"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000ubtsg"
+	"bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "1000000",
+	"bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "2000000",
+	"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000"
 }
 
 after the computation the out-list.json should be similar to this output
 {
   "bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": {
     "index": 2,
-    "coin": "3000000ubtsg",
+    "amount": "3000000",
     "proof": [
       "3346fbddeb1d097311651f5615d3b2528a3893fb79b2ce40b740e6d470296d85"
     ]
   },
   "bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": {
     "index": 0,
-    "coin": "1000000ubtsg",
+    "amount": "1000000",
     "proof": [
       "a258c32bee9b0bbb7a2d1999ab4698294844e7440aa6dcd067e0d5142fa20522",
       "7f0b92cc8318e4fb0db9052325b474e2eabb80d79e6e1abab92093d3a88fe029"
@@ -77,7 +77,7 @@ after the computation the out-list.json should be similar to this output
   },
   "bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": {
     "index": 1,
-    "coin": "2000000ubtsg",
+    "amount": "2000000",
     "proof": [
       "7a807e653a5d63556f46fd66a2ac9af6bddaa6864611e6b8da2ccf8389a91345",
       "7f0b92cc8318e4fb0db9052325b474e2eabb80d79e6e1abab92093d3a88fe029"

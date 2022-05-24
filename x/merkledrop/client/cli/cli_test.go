@@ -6,6 +6,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/client/cli"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,11 +43,25 @@ func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
+func accountJson(t *testing.T) string {
+	jsonFile := testutil.WriteToNewTempFile(t,
+		fmt.Sprintf(`
+		{
+		  "bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "100000",
+		  "bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "200000",
+		  "bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "300000"
+		}
+		`),
+	)
+
+	return jsonFile.Name()
+}
+
 func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
 
-	merkleRoot := "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463"
+	//merkleRoot := "3452cae72dab475d017c1c46d289f9dc458a9fccf79add3e49347f2fc984e463"
 	startHeight := 1
 	endHeight := 1000
 
@@ -56,8 +71,8 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
 	//------test GetCmdCreate()-------------
 	cmd := cli.GetCmdCreate()
 	args := []string{
-		fmt.Sprintf("--%s=%s", cli.FlagMerkleRoot, merkleRoot),
-		fmt.Sprintf("--%s=%s", cli.FlagAmount, coin.Amount.String()),
+		accountJson(s.T()),
+		"out.json",
 		fmt.Sprintf("--%s=%s", cli.FlagDenom, coin.Denom),
 		fmt.Sprintf("--%s=%d", cli.FlagStartHeight, startHeight),
 		fmt.Sprintf("--%s=%d", cli.FlagEndHeight, endHeight),
@@ -111,7 +126,7 @@ func TestCreateProof(t *testing.T) {
 	accMap, err := cli.AccountsFromMap(accounts)
 	assert.NoError(t, err)
 
-	tree, _, err := cli.CreateDistributionList(accMap)
+	tree, _, _, err := cli.CreateDistributionList(accMap)
 	assert.NoError(t, err)
 
 	merkleRoot := fmt.Sprintf("%x", tree.Root())
