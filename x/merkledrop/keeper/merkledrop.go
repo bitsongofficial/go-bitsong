@@ -123,6 +123,40 @@ func (k Keeper) GetAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64
 	return indexes
 }
 
+func (k Keeper) deleteAllIndexesByMerkledropID(ctx sdk.Context, id uint64) {
+	store := ctx.KVStore(k.storeKey)
+	indexes := k.GetAllIndexesByMerkledropID(ctx, id)
+
+	for _, index := range indexes {
+		store.Delete(types.ClaimedMerkledropIndexKey(id, index))
+	}
+}
+
+func (k Keeper) deleteMerkledropByID(ctx sdk.Context, id uint64) error {
+	store := ctx.KVStore(k.storeKey)
+
+	merkledrop, err := k.GetMerkleDropById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// delete owner store
+	owner, err := sdk.AccAddressFromBech32(merkledrop.Owner)
+	if err != nil {
+		return err
+	}
+
+	store.Delete(types.MerkledropOwnerKey(merkledrop.Id, owner))
+
+	// delete all indexes
+	k.deleteAllIndexesByMerkledropID(ctx, id)
+
+	// delete merkledrop
+	store.Delete(types.MerkledropKey(id))
+
+	return nil
+}
+
 func (k Keeper) GetAllIndexes(ctx sdk.Context) []*types.Indexes {
 	var mdIndexes []*types.Indexes
 	merkledrops := k.GetAllMerkleDrops(ctx)

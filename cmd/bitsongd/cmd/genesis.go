@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
+	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -37,6 +39,8 @@ type GenesisParams struct {
 	SlashingParams     slashingtypes.Params
 
 	CrisisConstantFee sdk.Coin
+
+	MerkledropParams merkledroptypes.Params
 }
 
 func MainnetGenesisParams() GenesisParams {
@@ -106,6 +110,8 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.SlashingParams.SlashFractionDowntime = sdk.MustNewDecFromStr("0.01")   // 1% liveness slashing
 
 	genParams.CrisisConstantFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(133_333_000_000))
+
+	genParams.MerkledropParams.CreationFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(500_000_000))
 
 	return genParams
 }
@@ -184,6 +190,14 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
 	}
 	appState[slashingtypes.ModuleName] = slashingGenStateBz
+
+	merkledropGenState := merkledrop.DefaultGenesisState()
+	merkledropGenState.Params = genesisParams.MerkledropParams
+	merkledropGenStateBz, err := cdc.MarshalJSON(merkledropGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
+	}
+	appState[merkledroptypes.ModuleName] = merkledropGenStateBz
 
 	return appState, genDoc, nil
 }

@@ -153,7 +153,13 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	merkledrop.Claimed = merkledrop.Claimed.Add(msg.Amount)
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
-	// TODO: if claimed amount == total amount, then prune the merkledrop from the state
+	// if claimed amount == total amount, then prune the merkledrop from the state
+	if merkledrop.Claimed == merkledrop.Amount {
+		err := m.Keeper.deleteMerkledropByID(ctx, merkledrop.Id)
+		if err != nil {
+			return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
+		}
+	}
 
 	// send coins
 	coin := sdk.NewCoin(merkledrop.Denom, msg.Amount)
@@ -219,14 +225,18 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	// get balance
 	balance := merkledrop.Amount.Sub(merkledrop.Claimed)
 
+	// prune merkledrop from the state
+	err = m.Keeper.deleteMerkledropByID(ctx, merkledrop.Id)
+	if err != nil {
+		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
+	}
+
 	// send coins
 	coin := sdk.NewCoin(merkledrop.Denom, balance)
 	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.Coins{coin})
 	if err != nil {
 		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", coin)
 	}
-
-	// TODO: prune the merkledrop from the state
 
 	// emit event
 	ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{

@@ -38,7 +38,7 @@ func NewTxCmd() *cobra.Command {
 
 func GetCmdCreate() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [file-json] [out-list-json] --denom=xxx --start-height=xxx --end-height=xxx",
+		Use:   "create [file-json] [out-list-json]",
 		Short: "Create a merkledrop from json file",
 		Long: `Create a merkledrop from json file
 Parameters:
@@ -54,38 +54,39 @@ Flags:
 $ %s tx merkledrop create accounts.json out-list.json \
 	--denom=ubtsg \
 	--start-height=1 \
-	--end-height=10
+	--end-height=10 \
+	--from=<key-name>
 
 where accounts.json contains
 {
-	"bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "1000000",
+	"bitsong10clahhd4g878vzyl69hcnue9uufp5dle4867md": "1000000",
 	"bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "2000000",
 	"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000"
 }
 
 after the computation the out-list.json should be similar to this output
 {
-  "bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": {
-    "index": 2,
-    "amount": "3000000",
+  "bitsong10clahhd4g878vzyl69hcnue9uufp5dle4867md": {
+    "index": 0,
+    "amount": "100000",
     "proof": [
-      "3346fbddeb1d097311651f5615d3b2528a3893fb79b2ce40b740e6d470296d85"
+      "342cb422e73af25dbb535ea27799d228b9f89a634481cb44325f1b2375ebedc4",
+      "b6b9c249fbe8ef1425edd44ae0e1e7f7b4ee26828dfdd00f1b375755eb51550b"
     ]
   },
-  "bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": {
-    "index": 0,
-    "amount": "1000000",
+  "bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": {
+    "index": 2,
+    "amount": "300000",
     "proof": [
-      "a258c32bee9b0bbb7a2d1999ab4698294844e7440aa6dcd067e0d5142fa20522",
-      "7f0b92cc8318e4fb0db9052325b474e2eabb80d79e6e1abab92093d3a88fe029"
+      "c6b063c83b4c971a78466f019e68b90fb97b93f43ecb9d9b29060f54d754c10e"
     ]
   },
   "bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": {
     "index": 1,
-    "amount": "2000000",
+    "amount": "200000",
     "proof": [
-      "7a807e653a5d63556f46fd66a2ac9af6bddaa6864611e6b8da2ccf8389a91345",
-      "7f0b92cc8318e4fb0db9052325b474e2eabb80d79e6e1abab92093d3a88fe029"
+      "8c086a5802a9978d1e9fc13259566e3594928703b06c0e845cf45b25936c1fe7",
+      "b6b9c249fbe8ef1425edd44ae0e1e7f7b4ee26828dfdd00f1b375755eb51550b"
     ]
   }
 }
@@ -172,7 +173,7 @@ func parseGenerateFlags(flags *flag.FlagSet) (int64, int64, string, error) {
 
 func GetCmdClaim() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "claim [id] --proofs=\"...\" --amount=xxx --index=xxx",
+		Use:   "claim [id]",
 		Short: "Claim a merkledrop from provided params",
 		Long: `Claim a merkledrop from provided params
 Parameters:
@@ -241,13 +242,16 @@ $ %s tx merkledrop claim 1 \
 
 func GetCmdWithdraw() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "withdraw",
-		Long: "Withdraw funds from an expired merkledrop",
-		Args: cobra.ExactArgs(1),
-		Example: fmt.Sprintf(`
-$ %s tx merkledrop withdraw [id]
+		Use:   "withdraw [id]",
+		Short: "Withdraw remaining funds from an expired merkledrop",
+		Long: `Withdraw remaining funds from an expired merkledrop
+Parameters:
+	id: merkledrop id
+		`,
+		Example: strings.TrimSpace(fmt.Sprintf(`
+$ %s tx merkledrop withdraw 1 --from=<key-name>
 `,
-			version.AppName,
+			version.AppName),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
