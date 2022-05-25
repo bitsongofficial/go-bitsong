@@ -45,7 +45,7 @@ func GetCmdCreateAuction() *cobra.Command {
 				--nft-id=1
 				--prize-type="NFT_ONLY_TRANSFER"
 				--bid-denom="ubtsg"
-				--duration="864000"
+				--duration="864000s"
 				--price-floor=1000000
 				--instant-sale-price=100000000
 				--tick-size=100000`,

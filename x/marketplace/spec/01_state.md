@@ -54,7 +54,8 @@ enum AuctionPrizeType {
 
 - Auction: `0x01 | format(id) -> Auction`
 - Auction by Authority: `0x02 | owner | format(id) -> auction_id`
-- LastAuctionId `0x03 -> id`
+- Auction by EndTime: `0x03 | format(endTime) | format(id) -> auction_id`
+- LastAuctionId `0x04 -> id`
 
 ## Bid
 
@@ -67,8 +68,8 @@ message Bid {
 }
 ```
 
-- Bid: `0x04 | format(auction_id) | bidder -> Bid`
-- Bid by bidder: `0x05 | bidder | format(auction_id) -> Bid`
+- Bid: `0x05 | format(auction_id) | bidder -> Bid`
+- Bid by bidder: `0x06 | bidder | format(auction_id) -> Bid`
 
 ## BidderMetadata
 
@@ -90,4 +91,4 @@ message BidderMetadata {
 }
 ```
 
-- BidderMetadata: `0x06 | bidder -> BidderMetadata`
+- BidderMetadata: `0x07 | bidder -> BidderMetadata`

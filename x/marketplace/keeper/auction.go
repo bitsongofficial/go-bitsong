@@ -8,6 +8,7 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 func (k Keeper) GetLastAuctionId(ctx sdk.Context) uint64 {
@@ -55,6 +56,24 @@ func (k Keeper) GetAuctionsByAuthority(ctx sdk.Context, authority sdk.AccAddress
 	return auctions
 }
 
+func getTimeKey(timestamp time.Time) []byte {
+	timeBz := sdk.FormatTimeBytes(timestamp)
+	timeBzL := len(timeBz)
+	prefixL := len(types.PrefixAuctionByEndTime)
+
+	bz := make([]byte, prefixL+8+timeBzL)
+
+	// copy the prefix
+	copy(bz[:prefixL], types.PrefixAuctionByEndTime)
+
+	// copy the encoded time bytes length
+	copy(bz[prefixL:prefixL+8], sdk.Uint64ToBigEndian(uint64(timeBzL)))
+
+	// copy the encoded time bytes
+	copy(bz[prefixL+8:prefixL+8+timeBzL], timeBz)
+	return bz
+}
+
 func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 	// if previous auction exists, delete it
 	if oldAuction, err := k.GetAuctionById(ctx, auction.Id); err == nil {
@@ -71,6 +90,10 @@ func (k Keeper) SetAuction(ctx sdk.Context, auction types.Auction) {
 		panic(err)
 	}
 	store.Set(append(append(types.PrefixAuctionByAuthority, owner...), idBz...), idBz)
+
+	if auction.IsActive() {
+		store.Set(append(getTimeKey(auction.EndAuctionAt), idBz...), idBz)
+	}
 }
 
 func (k Keeper) DeleteAuction(ctx sdk.Context, auction types.Auction) {
@@ -83,6 +106,29 @@ func (k Keeper) DeleteAuction(ctx sdk.Context, auction types.Auction) {
 		panic(err)
 	}
 	store.Delete(append(append(types.PrefixAuctionByAuthority, owner...), idBz...))
+
+	if auction.IsActive() {
+		store.Set(append(getTimeKey(auction.EndAuctionAt), idBz...), idBz)
+	}
+}
+
+func (k Keeper) GetAuctionsToEnd(ctx sdk.Context) []types.Auction {
+	store := ctx.KVStore(k.storeKey)
+	timeKey := getTimeKey(ctx.BlockTime())
+	it := store.Iterator(types.PrefixAuctionByEndTime, storetypes.InclusiveEndBytes(timeKey))
+	defer it.Close()
+
+	auctions := []types.Auction{}
+	for ; it.Valid(); it.Next() {
+		id := sdk.BigEndianToUint64(it.Value())
+		auction, err := k.GetAuctionById(ctx, id)
+		if err != nil {
+			panic(err)
+		}
+
+		auctions = append(auctions, auction)
+	}
+	return auctions
 }
 
 func (k Keeper) GetAllAuctions(ctx sdk.Context) []types.Auction {

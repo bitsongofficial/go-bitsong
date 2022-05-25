@@ -17,8 +17,9 @@ const (
 var (
 	PrefixAuction            = []byte{0x01}
 	PrefixAuctionByAuthority = []byte{0x02}
-	KeyLastAuctionId         = []byte{0x03}
-	PrefixBid                = []byte{0x04}
-	PrefixBidByBidder        = []byte{0x05}
-	PrefixBidderMetadata     = []byte{0x06}
+	PrefixAuctionByEndTime   = []byte{0x03}
+	KeyLastAuctionId         = []byte{0x04}
+	PrefixBid                = []byte{0x05}
+	PrefixBidByBidder        = []byte{0x06}
+	PrefixBidderMetadata     = []byte{0x07}
 )
