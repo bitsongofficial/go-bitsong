@@ -35,7 +35,7 @@ func (k Keeper) GetAllBids(ctx sdk.Context) []types.Bid {
 	return bids
 }
 
-func (k Keeper) GetBidsByAuction(ctx sdk.Context, auctionId uint64, bidder sdk.AccAddress) []types.Bid {
+func (k Keeper) GetBidsByAuction(ctx sdk.Context, auctionId uint64) []types.Bid {
 	store := ctx.KVStore(k.storeKey)
 
 	bids := []types.Bid{}

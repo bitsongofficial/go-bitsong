@@ -438,11 +438,12 @@ func New(
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
-		routertypes.ModuleName,
+		routertypes.ModuleName, marketplacetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, feegrant.ModuleName, authz.ModuleName,
+		marketplacetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are

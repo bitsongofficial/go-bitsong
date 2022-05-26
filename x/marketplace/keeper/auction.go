@@ -108,7 +108,7 @@ func (k Keeper) DeleteAuction(ctx sdk.Context, auction types.Auction) {
 	store.Delete(append(append(types.PrefixAuctionByAuthority, owner...), idBz...))
 
 	if auction.IsActive() {
-		store.Set(append(getTimeKey(auction.EndAuctionAt), idBz...), idBz)
+		store.Delete(append(getTimeKey(auction.EndAuctionAt), idBz...))
 	}
 }
 

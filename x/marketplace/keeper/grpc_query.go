@@ -39,9 +39,14 @@ func (k Keeper) Auction(c context.Context, req *types.QueryAuctionRequest) (*typ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
+	auction, err := k.GetAuctionById(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
 
-	return &types.QueryAuctionResponse{}, nil
+	return &types.QueryAuctionResponse{
+		Auction: auction,
+	}, nil
 }
 
 func (k Keeper) BidsByAuction(c context.Context, req *types.QueryBidsByAuctionRequest) (*types.QueryBidsByAuctionResponse, error) {
@@ -50,9 +55,10 @@ func (k Keeper) BidsByAuction(c context.Context, req *types.QueryBidsByAuctionRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
-
-	return &types.QueryBidsByAuctionResponse{}, nil
+	bids := k.GetBidsByAuction(ctx, req.Id)
+	return &types.QueryBidsByAuctionResponse{
+		Bids: bids,
+	}, nil
 }
 
 func (k Keeper) BidsByBidder(c context.Context, req *types.QueryBidsByBidderRequest) (*types.QueryBidsByBidderResponse, error) {
@@ -61,9 +67,14 @@ func (k Keeper) BidsByBidder(c context.Context, req *types.QueryBidsByBidderRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
-
-	return &types.QueryBidsByBidderResponse{}, nil
+	bidder, err := sdk.AccAddressFromBech32(req.Bidder)
+	if err != nil {
+		return nil, err
+	}
+	bids := k.GetBidsByBidder(ctx, bidder)
+	return &types.QueryBidsByBidderResponse{
+		Bids: bids,
+	}, nil
 }
 
 func (k Keeper) BidderMetadata(c context.Context, req *types.QueryBidderMetadataRequest) (*types.QueryBidderMetadataResponse, error) {
@@ -72,7 +83,15 @@ func (k Keeper) BidderMetadata(c context.Context, req *types.QueryBidderMetadata
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	_ = ctx
-
-	return &types.QueryBidderMetadataResponse{}, nil
+	bidder, err := sdk.AccAddressFromBech32(req.Bidder)
+	if err != nil {
+		return nil, err
+	}
+	bidderdata, err := k.GetBidderMetadata(ctx, bidder)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryBidderMetadataResponse{
+		BidderMetadata: bidderdata,
+	}, nil
 }
