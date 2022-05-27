@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	mk.SetClaimed(ctx, merkledropID, 28)
 
 	// get all indexes by merkledrop id
-	indexes := mk.GetAllIndexesByMerkledropID(ctx, merkledropID)
+	indexes := mk.getAllIndexesByMerkledropID(ctx, merkledropID)
 	assert.Equal(suite.T(), []uint64{0, 10, 28}, indexes)
 
 	// set fake claimed

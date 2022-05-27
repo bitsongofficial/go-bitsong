@@ -17,7 +17,7 @@ func (k Keeper) Merkledrop(c context.Context, req *types.QueryMerkledropRequest)
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	merkledrop, err := k.GetMerkleDropById(ctx, req.Id)
+	merkledrop, err := k.getMerkleDropById(ctx, req.Id)
 	if err != nil {
 		return nil, err
 	}

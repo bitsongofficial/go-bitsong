@@ -107,7 +107,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	}
 
 	// get merkledrop
-	merkledrop, err := m.Keeper.GetMerkleDropById(ctx, msg.MerkledropId)
+	merkledrop, err := m.Keeper.getMerkleDropById(ctx, msg.MerkledropId)
 	if err != nil {
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.MerkledropId)
 	}
@@ -193,7 +193,7 @@ func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	// get merkledrop
-	merkledrop, err := m.Keeper.GetMerkleDropById(ctx, msg.Id)
+	merkledrop, err := m.Keeper.getMerkleDropById(ctx, msg.Id)
 	if err != nil {
 		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.Id)
 	}
