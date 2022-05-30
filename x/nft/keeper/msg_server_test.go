@@ -340,7 +340,6 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
 
 			suite.Require().Equal(len(metadata.Data.Creators), 1)
 			suite.Require().Equal(metadata.Data.Creators[0].Verified, false)
-			suite.Require().Equal(metadata.PrimarySaleHappened, true)
 		} else {
 			suite.Require().Error(err)
 		}
