@@ -326,6 +326,78 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 	}
 }
 
-// TODO: test for StartAuction
+func (suite *KeeperTestSuite) TestStartAuction() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	user2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase     string
+		auctionOwner sdk.AccAddress
+		auctionState types.AuctionState
+		auctionId    uint64
+		expectPass   bool
+	}{
+		{
+			"Not existing auction id",
+			owner,
+			types.AuctionState_Created,
+			0,
+			false,
+		},
+		{
+			"not auction authority",
+			user2,
+			types.AuctionState_Created,
+			1,
+			false,
+		},
+		{
+			"auction already started",
+			owner,
+			types.AuctionState_Started,
+			1,
+			false,
+		},
+		{
+			"Successful auction start",
+			owner,
+			types.AuctionState_Created,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+
+		// set auction with ownership
+		auction := types.Auction{
+			Id:        1,
+			Authority: tc.auctionOwner.String(),
+			NftId:     1,
+			Duration:  time.Second,
+			State:     tc.auctionState,
+		}
+		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		// execute StartAuction
+		msg := types.NewMsgStartAuction(owner, tc.auctionId)
+		err := suite.app.MarketplaceKeeper.StartAuction(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check auction object updated
+			auction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(auction.EndAuctionAt, suite.ctx.BlockTime().Add(auction.Duration))
+			suite.Require().Equal(auction.State, types.AuctionState_Started)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 // TODO: test for EndAuction
 // TODO: test for SetAuctionAuthority
