@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
@@ -155,7 +157,175 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 	suite.Require().Len(toEndAuctions, 2)
 }
 
-// TODO: test for CreateAuction
+func (suite *KeeperTestSuite) TestCreateAuction() {
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	user2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase      string
+		fee           sdk.Coin
+		balance       sdk.Coin
+		nftOwner      sdk.AccAddress
+		metadataOwner sdk.AccAddress
+		auctionType   types.AuctionPrizeType
+		nftId         uint64
+		expectPass    bool
+	}{
+		{
+			"Not existing nft auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			0,
+			false,
+		},
+		{
+			"Not owned nft auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			user2,
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			1,
+			false,
+		},
+		{
+			"Not owned metadata auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			user2,
+			types.AuctionPrizeType_FullRightsTransfer,
+			1,
+			false,
+		},
+		{
+			"Not enough balance for auction creation",
+			sdk.NewInt64Coin("ubtsg", 2000),
+			sdk.NewInt64Coin("ubtsg", 1000),
+			owner,
+			user2,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			1,
+			false,
+		},
+		{
+			"Successful full rights transfer auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			owner,
+			types.AuctionPrizeType_FullRightsTransfer,
+			1,
+			true,
+		},
+		{
+			"Successful nft only transfer auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			user2,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			1,
+			true,
+		},
+		{
+			"Successful fee payment auction",
+			sdk.NewInt64Coin("ubtsg", 2000),
+			sdk.NewInt64Coin("ubtsg", 2000),
+			owner,
+			user2,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+
+		// set nft with ownership
+		nft := nfttypes.NFT{
+			Id:         1,
+			Owner:      tc.nftOwner.String(),
+			MetadataId: 1,
+		}
+		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+		// set metadata with ownership
+		metadata := nfttypes.Metadata{
+			Id:              1,
+			UpdateAuthority: tc.metadataOwner.String(),
+		}
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+		// mint coins if balance should set
+		if tc.balance.IsPositive() {
+			suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{tc.balance})
+			suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, owner, sdk.Coins{tc.balance})
+		}
+		// set params
+		suite.app.MarketplaceKeeper.SetParamSet(suite.ctx, types.Params{
+			AuctionCreationPrice: tc.fee,
+		})
+
+		// get old balance for future check
+		oldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, owner, "ubtsg")
+
+		msg := types.NewMsgCreateAuction(owner, tc.nftId, tc.auctionType, "ubtsg", time.Hour, 1, 1000, 1)
+		// execute CreateAuction
+		auctionId, err := suite.app.MarketplaceKeeper.CreateAuction(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check balance change
+			newBalance := suite.app.BankKeeper.GetBalance(suite.ctx, owner, "ubtsg")
+			suite.Require().Equal(newBalance.Amount.Int64()+tc.fee.Amount.Int64(), oldBalance.Amount.Int64())
+
+			// module account
+			moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+			// check nft ownership transfer
+			updatedNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, msg.NftId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(updatedNft.Owner, moduleAddr.String())
+
+			// check metadata ownership transfer if full rights transfer auction
+			if tc.auctionType == types.AuctionPrizeType_FullRightsTransfer {
+				updatedMetadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(updatedMetadata.UpdateAuthority, moduleAddr.String())
+			}
+
+			// check auction object created
+			auction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, auctionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(auction, types.Auction{
+				Id:               auctionId,
+				Authority:        msg.Sender,
+				NftId:            msg.NftId,
+				PrizeType:        msg.PrizeType,
+				Duration:         msg.Duration,
+				BidDenom:         msg.BidDenom,
+				PriceFloor:       msg.PriceFloor,
+				InstantSalePrice: msg.InstantSalePrice,
+				TickSize:         msg.TickSize,
+				State:            types.AuctionState_Created,
+				LastBidAmount:    0,
+				LastBid:          time.Time{},
+				EndedAt:          time.Time{},
+				EndAuctionAt:     time.Time{},
+				Claimed:          false,
+			})
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 // TODO: test for StartAuction
 // TODO: test for EndAuction
 // TODO: test for SetAuctionAuthority

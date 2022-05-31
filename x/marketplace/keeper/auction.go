@@ -178,11 +178,14 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 
 	// Send nft ownership to marketplace module
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-	k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+	err = k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
 		Sender:   msg.Sender,
 		Id:       msg.NftId,
 		NewOwner: moduleAddr.String(),
 	})
+	if err != nil {
+		return 0, err
+	}
 
 	// If auction is for transferring metadata ownership as well, metadata authority is transferred to marketplace module
 	if msg.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
