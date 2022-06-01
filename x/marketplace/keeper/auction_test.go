@@ -458,7 +458,142 @@ func (suite *KeeperTestSuite) TestSetAuctionAuthority() {
 			suite.Require().Error(err)
 		}
 	}
-
 }
 
-// TODO: test for EndAuction
+func (suite *KeeperTestSuite) TestEndAuction() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	owner2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase      string
+		auctionOwner  sdk.AccAddress
+		auctionType   types.AuctionPrizeType
+		state         types.AuctionState
+		lastBidAmount uint64
+		auctionId     uint64
+		expectPass    bool
+	}{
+		{
+			"Not existing auction id",
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			types.AuctionState_Started,
+			0,
+			0,
+			false,
+		},
+		{
+			"not auction authority",
+			owner2,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			types.AuctionState_Started,
+			0,
+			1,
+			false,
+		},
+		{
+			"already ended auction",
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			types.AuctionState_Ended,
+			0,
+			1,
+			false,
+		},
+		{
+			"successful end with winning bid",
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			types.AuctionState_Started,
+			100,
+			1,
+			true,
+		},
+		{
+			"return nft back if no bid when nft only transfer",
+			owner,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
+		{
+			"return nft back if no bid when full rights transfer",
+			owner,
+			types.AuctionPrizeType_FullRightsTransfer,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		// module account
+		moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+		// set nft with ownership
+		nft := nfttypes.NFT{
+			Id:         1,
+			Owner:      moduleAddr.String(),
+			MetadataId: 1,
+		}
+		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+		// set metadata with ownership
+		metadata := nfttypes.Metadata{
+			Id:              1,
+			UpdateAuthority: moduleAddr.String(),
+		}
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+		// set auction with ownership
+		auction := types.Auction{
+			Id:            1,
+			Authority:     tc.auctionOwner.String(),
+			NftId:         1,
+			Duration:      time.Second,
+			PrizeType:     tc.auctionType,
+			State:         tc.state,
+			LastBidAmount: tc.lastBidAmount,
+		}
+		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		// execute SetAuctionAuthority
+		msg := types.NewMsgEndAuction(owner, tc.auctionId)
+		err := suite.app.MarketplaceKeeper.EndAuction(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check auction authority updated
+			auction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(auction.EndedAt, suite.ctx.BlockTime())
+			suite.Require().Equal(auction.State, types.AuctionState_Ended)
+
+			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id)
+			suite.Require().NoError(err)
+			if tc.lastBidAmount == 0 {
+				suite.Require().Equal(nft.Owner, auction.Authority)
+			} else {
+				suite.Require().Equal(nft.Owner, moduleAddr.String())
+			}
+
+			if tc.auctionType == types.AuctionPrizeType_FullRightsTransfer {
+				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
+				suite.Require().NoError(err)
+				if tc.lastBidAmount == 0 {
+					suite.Require().Equal(metadata.UpdateAuthority, auction.Authority)
+				} else {
+					suite.Require().Equal(metadata.UpdateAuthority, moduleAddr.String())
+				}
+			}
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}

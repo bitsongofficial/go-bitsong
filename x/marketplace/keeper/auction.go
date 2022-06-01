@@ -290,9 +290,8 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 	// Set updated auction on the storage
 	k.SetAuction(ctx, auction)
 
-	// Check auction has winning bid and if winning bid does not exists,
-	// send nft and metadata ownership back to auction authority
-	if auction.LastBidAmount > 0 {
+	// If winning bid does not exists, send nft and metadata ownership back to auction authority
+	if auction.LastBidAmount == 0 {
 		moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
 		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
 			Sender:   moduleAddr.String(),
