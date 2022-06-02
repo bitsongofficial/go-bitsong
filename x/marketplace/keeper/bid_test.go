@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
@@ -121,6 +123,203 @@ func (suite *KeeperTestSuite) TestBidderMetadataGetSet() {
 	suite.Require().Len(allBidderData, 2)
 }
 
-// TODO: add test for PlaceBid
+func (suite *KeeperTestSuite) TestPlaceBid() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
+	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
+	suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, bidder, coins)
+
+	tests := []struct {
+		testCase         string
+		state            types.AuctionState
+		isLastBidder     bool
+		lastBidAmount    uint64
+		bidToken         string
+		newBidAmount     uint64
+		instantSalePrice uint64
+		auctionId        uint64
+		expectPass       bool
+	}{
+		{
+			"Not existing auction id",
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1500,
+			10000,
+			0,
+			false,
+		},
+		{
+			"bid on not active auction",
+			types.AuctionState_Created,
+			false,
+			1000,
+			"ubtsg",
+			1500,
+			10000,
+			1,
+			false,
+		},
+		{
+			"invalid bid token",
+			types.AuctionState_Ended,
+			false,
+			1000,
+			"randtoken",
+			1500,
+			10000,
+			1,
+			false,
+		},
+		{
+			"bid with low amount check",
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			100,
+			10000,
+			1,
+			false,
+		},
+		{
+			"bid by winner bidder check",
+			types.AuctionState_Started,
+			true,
+			1000,
+			"ubtsg",
+			0,
+			10000,
+			1,
+			false,
+		},
+		{
+			"successful bid lower than instant sale price",
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1500,
+			10000,
+			1,
+			true,
+		},
+		{
+			"successful bid higher than instant sale price",
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			11000,
+			10000,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		// module account
+		moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+		// set nft with ownership
+		nft := nfttypes.NFT{
+			Id:         1,
+			Owner:      moduleAddr.String(),
+			MetadataId: 1,
+		}
+		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+		// set metadata with ownership
+		metadata := nfttypes.Metadata{
+			Id:              1,
+			UpdateAuthority: moduleAddr.String(),
+		}
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+		// set auction with ownership
+		auction := types.Auction{
+			Id:            1,
+			Authority:     owner.String(),
+			NftId:         1,
+			Duration:      time.Second,
+			PrizeType:     types.AuctionPrizeType_NftOnlyTransfer,
+			State:         tc.state,
+			LastBidAmount: tc.lastBidAmount,
+			BidDenom:      "ubtsg",
+		}
+		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		if tc.isLastBidder {
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.lastBidAmount,
+			})
+		} else {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.lastBidAmount,
+			})
+		}
+
+		oldBidderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, bidder, "ubtsg")
+		oldModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+
+		// execute SetAuctionAuthority
+		msg := types.NewMsgPlaceBid(bidder, tc.auctionId, sdk.NewInt64Coin(tc.bidToken, int64(tc.newBidAmount)))
+		err := suite.app.MarketplaceKeeper.PlaceBid(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check bid object is added
+			bid, err := suite.app.MarketplaceKeeper.GetBid(suite.ctx, tc.auctionId, bidder)
+			suite.Require().NoError(err)
+			suite.Require().Equal(bid.AuctionId, uint64(1))
+			suite.Require().Equal(bid.Amount, tc.newBidAmount)
+
+			newBidderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, bidder, "ubtsg")
+			newModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+
+			// check balance has been reduced from end user
+			suite.Require().Equal(oldBidderBalance.Amount, newBidderBalance.Amount.Add(sdk.NewInt(int64(tc.newBidAmount))))
+
+			// check balance has been increased on module account
+			suite.Require().Equal(newModuleBalance.Amount, oldModuleBalance.Amount.Add(sdk.NewInt(int64(tc.newBidAmount))))
+
+			// check updated auction object with lastBid and lastBidAmount
+			auction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(auction.LastBid, suite.ctx.BlockTime())
+			suite.Require().Equal(auction.LastBidAmount, tc.newBidAmount)
+
+			// check bidder metadata has been set correctly
+			biddermeta, err := suite.app.MarketplaceKeeper.GetBidderMetadata(suite.ctx, bidder)
+			suite.Require().NoError(err)
+			suite.Require().Equal(biddermeta, types.BidderMetadata{
+				Bidder:           msg.Sender,
+				LastAuctionId:    msg.AuctionId,
+				LastBid:          msg.Amount.Amount.Uint64(),
+				LastBidTimestamp: suite.ctx.BlockTime(),
+				LastBidCancelled: false,
+			})
+
+			// check auction end when it's bigger than instant sale price
+			if auction.InstantSalePrice <= tc.newBidAmount {
+				suite.Require().Equal(auction.State, types.AuctionState_Ended)
+			}
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 // TODO: add test for CancelBid
 // TODO: add test for ClaimBid
