@@ -321,5 +321,143 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestCancelBid() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
+	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
+	suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, minttypes.ModuleName, types.ModuleName, coins)
+
+	tests := []struct {
+		testCase      string
+		state         types.AuctionState
+		lastBidAmount uint64
+		bidAmount     uint64
+		auctionId     uint64
+		expectPass    bool
+	}{
+		{
+			"Not existing auction id",
+			types.AuctionState_Started,
+			1500,
+			1000,
+			0,
+			false,
+		},
+		{
+			"cancelling not existing bid",
+			types.AuctionState_Created,
+			1500,
+			0,
+			1,
+			false,
+		},
+		{
+			"try to cancel winner bid",
+			types.AuctionState_Ended,
+			1000,
+			1000,
+			1,
+			false,
+		},
+		{
+			"successful bid cancel",
+			types.AuctionState_Started,
+			1000,
+			100,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		// module account
+		moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+		// set nft with ownership
+		nft := nfttypes.NFT{
+			Id:         1,
+			Owner:      moduleAddr.String(),
+			MetadataId: 1,
+		}
+		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+		// set metadata with ownership
+		metadata := nfttypes.Metadata{
+			Id:              1,
+			UpdateAuthority: moduleAddr.String(),
+		}
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+		// set auction with ownership
+		auction := types.Auction{
+			Id:            1,
+			Authority:     owner.String(),
+			NftId:         1,
+			Duration:      time.Second,
+			PrizeType:     types.AuctionPrizeType_NftOnlyTransfer,
+			State:         tc.state,
+			LastBidAmount: tc.lastBidAmount,
+			BidDenom:      "ubtsg",
+		}
+		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		if tc.bidAmount > 0 {
+			suite.app.MarketplaceKeeper.SetBidderMetadata(suite.ctx, types.BidderMetadata{
+				Bidder:           bidder.String(),
+				LastAuctionId:    tc.auctionId,
+				LastBid:          tc.bidAmount,
+				LastBidTimestamp: suite.ctx.BlockTime(),
+				LastBidCancelled: false,
+			})
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.bidAmount,
+			})
+		} else {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.bidAmount,
+			})
+		}
+
+		oldBidderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, bidder, "ubtsg")
+		oldModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+
+		// execute SetAuctionAuthority
+		msg := types.NewMsgCancelBid(bidder, tc.auctionId)
+		err := suite.app.MarketplaceKeeper.CancelBid(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check bid object is deleted
+			_, err := suite.app.MarketplaceKeeper.GetBid(suite.ctx, tc.auctionId, bidder)
+			suite.Require().Error(err)
+
+			newBidderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, bidder, "ubtsg")
+			newModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+
+			// check balance has been reduced from end user
+			suite.Require().Equal(newBidderBalance.Amount, oldBidderBalance.Amount.Add(sdk.NewInt(int64(tc.bidAmount))))
+
+			// check balance has been increased on module account
+			suite.Require().Equal(oldModuleBalance.Amount, newModuleBalance.Amount.Add(sdk.NewInt(int64(tc.bidAmount))))
+
+			// check bidder metadata is updated for LastBidCancelled true
+			biddermeta, err := suite.app.MarketplaceKeeper.GetBidderMetadata(suite.ctx, bidder)
+			suite.Require().NoError(err)
+			suite.Require().Equal(biddermeta.LastBidCancelled, true)
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 // TODO: add test for CancelBid
 // TODO: add test for ClaimBid
