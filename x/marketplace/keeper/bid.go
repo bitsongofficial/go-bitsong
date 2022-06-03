@@ -276,6 +276,10 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		return err
 	}
 
+	if auction.State != types.AuctionState_Ended {
+		return types.ErrAuctionNotEnded
+	}
+
 	bidder, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return err

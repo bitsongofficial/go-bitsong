@@ -23,4 +23,5 @@ var (
 	ErrInvalidDuration             = sdkerrors.Register(ModuleName, 16, "invalid duration")
 	ErrInvalidPrizeType            = sdkerrors.Register(ModuleName, 17, "invalid prize type")
 	ErrInvalidAuctionId            = sdkerrors.Register(ModuleName, 18, "invalid auction id")
+	ErrAuctionNotEnded             = sdkerrors.Register(ModuleName, 19, "auction not ended")
 )

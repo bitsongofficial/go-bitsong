@@ -459,5 +459,208 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 	}
 }
 
-// TODO: add test for CancelBid
-// TODO: add test for ClaimBid
+func (suite *KeeperTestSuite) TestClaimBid() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
+	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
+	suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, minttypes.ModuleName, types.ModuleName, coins)
+
+	tests := []struct {
+		testCase       string
+		state          types.AuctionState
+		prizeType      types.AuctionPrizeType
+		presaleHappend bool
+		lastBidAmount  uint64
+		bidAmount      uint64
+		auctionId      uint64
+		expectPass     bool
+	}{
+		{
+			"Not existing auction id",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			false,
+			1500,
+			1000,
+			0,
+			false,
+		},
+		{
+			"claiming not existing bid",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			false,
+			1500,
+			0,
+			1,
+			false,
+		},
+		{
+			"try to claim not winner bid",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			false,
+			1500,
+			1000,
+			1,
+			false,
+		},
+		{
+			"try to claim not ended auction",
+			types.AuctionState_Started,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			false,
+			1000,
+			1000,
+			1,
+			false,
+		},
+		{
+			"successful bid claim - with presale happened nft",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			true,
+			1000,
+			1000,
+			1,
+			true,
+		},
+		{
+			"successful bid claim - with full rights transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_FullRightsTransfer,
+			false,
+			1000,
+			1000,
+			1,
+			true,
+		},
+		{
+			"successful bid claim - with nft only transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_NftOnlyTransfer,
+			false,
+			1000,
+			1000,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		// module account
+		moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+		// set nft with ownership
+		nft := nfttypes.NFT{
+			Id:         1,
+			Owner:      moduleAddr.String(),
+			MetadataId: 1,
+		}
+		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+		// set metadata with ownership
+		metadata := nfttypes.Metadata{
+			Id:                  1,
+			UpdateAuthority:     moduleAddr.String(),
+			PrimarySaleHappened: tc.presaleHappend,
+			Data: &nfttypes.Data{
+				Name: "NewPUNK1",
+				Creators: []*nfttypes.Creator{
+					{Address: creator.String(), Verified: true, Share: 100},
+				},
+				SellerFeeBasisPoints: 10,
+			},
+		}
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+		// set auction with ownership
+		auction := types.Auction{
+			Id:            1,
+			Authority:     owner.String(),
+			NftId:         1,
+			Duration:      time.Second,
+			PrizeType:     tc.prizeType,
+			State:         tc.state,
+			LastBidAmount: tc.lastBidAmount,
+			BidDenom:      "ubtsg",
+		}
+		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		if tc.bidAmount > 0 {
+			suite.app.MarketplaceKeeper.SetBidderMetadata(suite.ctx, types.BidderMetadata{
+				Bidder:           bidder.String(),
+				LastAuctionId:    tc.auctionId,
+				LastBid:          tc.bidAmount,
+				LastBidTimestamp: suite.ctx.BlockTime(),
+				LastBidCancelled: false,
+			})
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.bidAmount,
+			})
+		} else {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
+				Bidder:    bidder.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.bidAmount,
+			})
+		}
+
+		oldAuctionAuthorityBalance := suite.app.BankKeeper.GetBalance(suite.ctx, owner, "ubtsg")
+		oldModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+		oldCreatorBalance := suite.app.BankKeeper.GetBalance(suite.ctx, creator, "ubtsg")
+
+		// execute SetAuctionAuthority
+		msg := types.NewMsgClaimBid(bidder, tc.auctionId)
+		err := suite.app.MarketplaceKeeper.ClaimBid(suite.ctx, msg)
+
+		// check error exists on the execution
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check tokens are sent to auction authority from module account
+			newAuctionAuthorityBalance := suite.app.BankKeeper.GetBalance(suite.ctx, owner, "ubtsg")
+			newModuleBalance := suite.app.BankKeeper.GetBalance(suite.ctx, moduleAddr, "ubtsg")
+			newCreatorBalance := suite.app.BankKeeper.GetBalance(suite.ctx, creator, "ubtsg")
+
+			suite.Require().True(newAuctionAuthorityBalance.Amount.GT(oldAuctionAuthorityBalance.Amount))
+			suite.Require().True(oldModuleBalance.Amount.GT(newModuleBalance.Amount))
+
+			if tc.presaleHappend {
+				// check royalties are paid if presale happened
+				suite.Require().True(oldCreatorBalance.Amount.LT(newCreatorBalance.Amount))
+			} else {
+				// check royalties are not paid if presale not happened
+				suite.Require().Equal(oldCreatorBalance, newCreatorBalance)
+			}
+
+			// check presale happened true flag is set
+			newmeta, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, metadata.Id)
+			suite.Require().NoError(err)
+			suite.Require().True(newmeta.PrimarySaleHappened)
+
+			// check auction Claimed = true
+			newAuction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
+			suite.Require().NoError(err)
+			suite.Require().True(newAuction.Claimed)
+
+			// check nft ownership is transfered to the bidder
+			newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(newNft.Owner, bidder.String())
+
+			// check metadata ownership is also transfered to bidder if full rights transfer auction
+			if tc.prizeType == types.AuctionPrizeType_FullRightsTransfer {
+				suite.Require().Equal(newmeta.UpdateAuthority, bidder.String())
+			}
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
