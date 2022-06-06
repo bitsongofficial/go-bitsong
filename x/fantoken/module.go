@@ -11,7 +11,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/rest"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -56,7 +55,7 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 
 // RegisterRESTRoutes registers the REST routes for the fantoken module.
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(clientCtx, rtr)
+	// only grpc
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the fantoken module.
