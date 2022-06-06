@@ -159,7 +159,7 @@ func GetCmdQueryBidsByBidder() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "bids-by-bidder [bidder]",
 		Long:    "Query bids by bidder.",
-		Example: fmt.Sprintf(`$ %s query marketplace bids-by-bidder 1`, version.AppName),
+		Example: fmt.Sprintf(`$ %s query marketplace bids-by-bidder bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -191,7 +191,7 @@ func GetCmdQueryBidderMetadata() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "bidder-metadata [bidder]",
 		Long:    "Query bidder metadata by bidder.",
-		Example: fmt.Sprintf(`$ %s query marketplace bidder-metadata 1`, version.AppName),
+		Example: fmt.Sprintf(`$ %s query marketplace bidder-metadata bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
