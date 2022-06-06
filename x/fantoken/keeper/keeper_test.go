@@ -31,6 +31,7 @@ var (
 
 	maxSupply = sdk.NewInt(200000000)
 	mintable  = true
+	height    = int64(1)
 )
 
 type KeeperTestSuite struct {
@@ -76,36 +77,27 @@ func (suite *KeeperTestSuite) issueFanToken(token tokentypes.FanToken) {
 }
 
 func (suite *KeeperTestSuite) TestIssueFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
-
-	_, err := suite.keeper.IssueFanToken(
-		suite.ctx, fantokenObj.GetName(), fantokenObj.GetSymbol(), fantokenObj.GetUri(),
-		fantokenObj.GetMaxSupply(), fantokenObj.GetOwner(),
-	)
+	denom, err := suite.keeper.IssueFanToken(suite.ctx, name, symbol, uri, maxSupply, owner)
 	suite.NoError(err)
 
-	suite.True(suite.keeper.HasFanToken(suite.ctx, fantokenObj.GetDenom()))
+	suite.True(suite.keeper.HasFanToken(suite.ctx, denom))
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, fantokenObj.GetDenom())
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
 	suite.NoError(err)
 
-	suite.Equal(fantokenObj.Owner, issuedToken.GetOwner().String())
-	suite.Equal(fantokenObj.MetaData.URI, issuedToken.GetUri())
-
-	suite.EqualValues(&fantokenObj, issuedToken.(*tokentypes.FanToken))
+	suite.Equal(owner, issuedToken.GetOwner())
+	suite.Equal(uri, issuedToken.GetUri())
+	// TODO: add more fields
 }
 
 func (suite *KeeperTestSuite) TestEditFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.setFanToken(fantokenObj)
 
-	denom := "ft12CB2084F93F8B7F5A168425981150066D437A56"
-	mintable := false
-
-	err := suite.keeper.EditFanToken(suite.ctx, denom, mintable, owner)
+	err := suite.keeper.EditFanToken(suite.ctx, fantokenObj.GetDenom(), false, owner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, fantokenObj.GetDenom())
 	suite.NoError(err)
 
 	fantokenObj.Mintable = false
@@ -114,11 +106,11 @@ func (suite *KeeperTestSuite) TestEditFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestMintFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	amt := suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("0ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("0ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
@@ -127,7 +119,7 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("1000ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("1000ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	// mint token without owner
 
@@ -136,11 +128,11 @@ func (suite *KeeperTestSuite) TestMintFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestBurnFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	amt := suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("0ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("0ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
@@ -154,11 +146,11 @@ func (suite *KeeperTestSuite) TestBurnFanToken() {
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("800ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("800ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 }
 
 func (suite *KeeperTestSuite) TestTransferFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.setFanToken(fantokenObj)
 
 	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))

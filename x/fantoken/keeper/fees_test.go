@@ -10,7 +10,8 @@ func (suite *KeeperTestSuite) TestDeductIssueFanTokenFee() {
 	beginBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom)
 	suite.Equal("100000000000000stake", beginBondDenomAmt.String())
 
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	height := int64(1)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	issueFeeAmt := sdk.NewInt(1000000)

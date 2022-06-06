@@ -368,5 +368,7 @@ func randFanToken(r *rand.Rand, accs []simtypes.Account) tokentypes.FanToken {
 	uri := randStringBetween(r, 0, tokentypes.MaximumUriLen)
 	simAccount, _ := simtypes.RandomAcc(r, accs)
 
-	return tokentypes.NewFanToken(name, symbol, uri, maxSupply, simAccount.Address)
+	randHeight := simtypes.RandIntBetween(r, 1, 10000000)
+
+	return tokentypes.NewFanToken(name, symbol, uri, maxSupply, simAccount.Address, int64(randHeight))
 }

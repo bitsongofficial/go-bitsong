@@ -63,14 +63,12 @@ func (s *IntegrationTestSuite) TestFanToken() {
 	baseURL := val.APIAddress
 	// ---------------------------------------------------------------------------
 
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, from)
-
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
-		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, fantokenObj.GetSymbol()),
-		fmt.Sprintf("--%s=%s", tokencli.FlagName, fantokenObj.GetName()),
-		fmt.Sprintf("--%s=%d", tokencli.FlagMaxSupply, fantokenObj.GetMaxSupply().Int64()),
-		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, fantokenObj.GetMintable()),
+		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, symbol),
+		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
+		fmt.Sprintf("--%s=%d", tokencli.FlagMaxSupply, maxSupply.Int64()),
+		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -84,6 +82,7 @@ func (s *IntegrationTestSuite) TestFanToken() {
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp := respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
+	denom := string(txResp.Events[12].Attributes[0].Value)
 
 	//------test GetCmdQueryFanTokens()-------------
 	url := fmt.Sprintf("%s/bitsong/fantoken/v1beta1/fantokens", baseURL)
@@ -95,7 +94,7 @@ func (s *IntegrationTestSuite) TestFanToken() {
 	s.Require().Equal(1, len(fantokensResp.Fantokens))
 
 	//------test GetCmdQueryFanToken()-------------
-	url = fmt.Sprintf("%s/bitsong/fantoken/v1beta1/denom/%s", baseURL, fantokenObj.GetDenom())
+	url = fmt.Sprintf("%s/bitsong/fantoken/v1beta1/denom/%s", baseURL, denom)
 	resp, err = rest.GetRequest(url)
 	respType = proto.Message(&tokentypes.QueryFanTokenResponse{})
 	var fantoken tokentypes.FanTokenI
@@ -104,8 +103,8 @@ func (s *IntegrationTestSuite) TestFanToken() {
 	fantokenResp := respType.(*tokentypes.QueryFanTokenResponse)
 	fantoken = fantokenResp.Fantoken
 	s.Require().NoError(err)
-	s.Require().Equal(fantokenObj.GetName(), fantoken.GetName())
-	s.Require().Equal(fantokenObj.GetSymbol(), fantoken.GetSymbol())
+	s.Require().Equal(name, fantoken.GetName())
+	s.Require().Equal(symbol, fantoken.GetSymbol())
 
 	//------test GetCmdQueryParams()-------------
 	url = fmt.Sprintf("%s/bitsong/fantoken/v1beta1/params", baseURL)

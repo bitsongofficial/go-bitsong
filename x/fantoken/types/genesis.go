@@ -17,7 +17,7 @@ func ValidateGenesis(data GenesisState) error {
 
 	// validate fantoken
 	for _, token := range data.FanTokens {
-		if err := ValidateFanToken(token); err != nil {
+		if err := ValidateFanTokenWithDenom(&token); err != nil {
 			return err
 		}
 	}

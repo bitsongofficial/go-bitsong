@@ -51,7 +51,16 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
-	fantoken := NewFanToken(msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, owner)
+	fantoken := &FanToken{
+		MaxSupply: msg.MaxSupply,
+		Mintable:  true,
+		Owner:     owner.String(),
+		MetaData: Metadata{
+			Name:   msg.Name,
+			Symbol: msg.Symbol,
+			URI:    msg.URI,
+		},
+	}
 
 	return ValidateFanToken(fantoken)
 }

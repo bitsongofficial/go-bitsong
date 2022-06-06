@@ -74,14 +74,14 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 	h := tokenmodule.NewHandler(suite.keeper)
 
 	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom).Amount
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
 
-	msg := tokentypes.NewMsgIssueFanToken(fantokenObj.GetName(), fantokenObj.GetSymbol(), fantokenObj.GetUri(), fantokenObj.GetMaxSupply(), owner.String())
+	msg := tokentypes.NewMsgIssueFanToken(name, symbol, uri, maxSupply, owner.String())
 
-	_, err := h(suite.ctx, msg)
+	res, err := h(suite.ctx, msg)
 	suite.NoError(err)
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, fantokenObj.GetDenom())
+	denom := string(res.Events[4].Attributes[0].Value)
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
 	suite.NoError(err)
 	suite.Equal(uri, issuedToken.GetUri())
 
@@ -89,12 +89,12 @@ func (suite *HandlerSuite) TestIssueFanToken() {
 
 	suite.Equal(nativeTokenAmt1.Sub(issueFee.Amount), nativeTokenAmt2)
 
-	nativeTokenAmt3 := suite.bk.GetBalance(suite.ctx, owner, fantokenObj.GetDenom()).Amount
+	nativeTokenAmt3 := suite.bk.GetBalance(suite.ctx, owner, denom).Amount
 	suite.Equal(nativeTokenAmt3, sdk.ZeroInt())
 }
 
 func (suite *HandlerSuite) TestMintFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	beginBtcAmt := suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom()).Amount
@@ -112,7 +112,7 @@ func (suite *HandlerSuite) TestMintFanToken() {
 }
 
 func (suite *HandlerSuite) TestBurnFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	h := tokenmodule.NewHandler(suite.keeper)

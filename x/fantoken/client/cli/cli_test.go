@@ -25,6 +25,7 @@ var (
 	uri       = "ipfs://"
 	maxSupply = sdk.NewInt(200000000)
 	mintable  = true
+	height    = int64(1)
 )
 
 type IntegrationTestSuite struct {
@@ -61,15 +62,15 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 	clientCtx := val.ClientCtx
 	from := val.Address
 
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, from)
+	// fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, from, height)
 
 	//------test GetCmdIssueFanToken()-------------
 	args := []string{
-		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, fantokenObj.GetSymbol()),
-		fmt.Sprintf("--%s=%s", tokencli.FlagName, fantokenObj.GetName()),
-		fmt.Sprintf("--%s=%s", tokencli.FlagMaxSupply, fantokenObj.GetMaxSupply()),
-		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, fantokenObj.GetMintable()),
-		fmt.Sprintf("--%s=%s", tokencli.FlagURI, fantokenObj.GetUri()),
+		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, symbol),
+		fmt.Sprintf("--%s=%s", tokencli.FlagName, name),
+		fmt.Sprintf("--%s=%s", tokencli.FlagMaxSupply, maxSupply),
+		fmt.Sprintf("--%s=%t", tokencli.FlagMintable, mintable),
+		fmt.Sprintf("--%s=%s", tokencli.FlagURI, uri),
 
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -85,6 +86,8 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 	txResp := respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
+	denom := string(txResp.Events[12].Attributes[0].Value)
+
 	//------test GetCmdQueryFanTokens()-------------
 	fantokens := &[]tokentypes.FanToken{}
 	bz, err = tokentestutil.QueryFanTokensExec(clientCtx, from.String())
@@ -95,7 +98,7 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 	//------test GetCmdQueryFanToken()-------------
 	var fantoken *tokentypes.FanToken
 	respType = proto.Message(&tokentypes.FanToken{})
-	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, fantokenObj.GetDenom())
+	bz, err = tokentestutil.QueryFanTokenExec(clientCtx, denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType))
 
@@ -118,7 +121,7 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 
 	//------test GetCmdMintFanToken()-------------
 	coinType := proto.Message(&sdk.Coin{})
-	out, err := simapp.QueryBalanceExec(clientCtx, from.String(), fantokenObj.GetDenom())
+	out, err := simapp.QueryBalanceExec(clientCtx, from.String(), denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), coinType))
 	initAmount := sdk.ZeroInt()
@@ -133,14 +136,14 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), fantokenObj.GetDenom(), args...)
+	bz, err = tokentestutil.MintFanTokenExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), fantokenObj.GetDenom())
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), coinType))
 	balance := coinType.(*sdk.Coin)
@@ -158,14 +161,14 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), fantokenObj.GetDenom(), args...)
+	bz, err = tokentestutil.BurnFanTokenExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
 
-	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), fantokenObj.GetDenom())
+	out, err = simapp.QueryBalanceExec(clientCtx, from.String(), denom)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), coinType))
 	balance = coinType.(*sdk.Coin)
@@ -184,7 +187,7 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 	}
 
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.EditFanTokenExec(clientCtx, from.String(), fantokenObj.GetDenom(), args...)
+	bz, err = tokentestutil.EditFanTokenExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())
@@ -210,7 +213,7 @@ func (s *IntegrationTestSuite) TestFanTokenCli() {
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 	}
 	respType = proto.Message(&sdk.TxResponse{})
-	bz, err = tokentestutil.TransferFanTokenOwnerExec(clientCtx, from.String(), fantokenObj.GetDenom(), args...)
+	bz, err = tokentestutil.TransferFanTokenOwnerExec(clientCtx, from.String(), denom, args...)
 
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())

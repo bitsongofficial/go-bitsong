@@ -7,7 +7,7 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgIssueFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 
 	beginBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom)
 	suite.Equal("100000000000000stake", beginBondDenomAmt.String())
@@ -19,31 +19,30 @@ func (suite *KeeperTestSuite) TestMsgIssueFanToken() {
 	))
 	suite.NoError(err)
 
-	suite.True(suite.keeper.HasFanToken(suite.ctx, fantokenObj.GetDenom()))
+	fts := suite.keeper.GetFanTokens(suite.ctx, owner)
+	ft := fts[0]
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, fantokenObj.GetDenom())
+	suite.True(suite.keeper.HasFanToken(suite.ctx, ft.GetDenom()))
+
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, ft.GetDenom())
 	suite.NoError(err)
 
 	suite.Equal(fantokenObj.Owner, issuedToken.GetOwner().String())
 	suite.Equal(fantokenObj.MetaData.URI, issuedToken.GetUri())
-	suite.EqualValues(&fantokenObj, issuedToken.(*tokentypes.FanToken))
 
 	endBondDenomAmt := suite.bk.GetBalance(suite.ctx, owner, sdk.DefaultBondDenom)
 	suite.Equal(beginBondDenomAmt.Sub(endBondDenomAmt).Amount, sdk.NewInt(1000000))
 }
 
 func (suite *KeeperTestSuite) TestMsgEditFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.setFanToken(fantokenObj)
 
-	denom := "ft12CB2084F93F8B7F5A168425981150066D437A56"
-	mintable := false
-
 	msgServer := keeper.NewMsgServerImpl(suite.keeper)
-	_, err := msgServer.EditFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgEditFanToken(denom, mintable, owner.String()))
+	_, err := msgServer.EditFanToken(sdk.WrapSDKContext(suite.ctx), tokentypes.NewMsgEditFanToken(fantokenObj.GetDenom(), false, owner.String()))
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	newToken, err := suite.keeper.GetFanToken(suite.ctx, fantokenObj.GetDenom())
 	suite.NoError(err)
 
 	fantokenObj.Mintable = false
@@ -52,11 +51,11 @@ func (suite *KeeperTestSuite) TestMsgEditFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestMsgMintFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	amt := suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("0ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("0ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
@@ -66,7 +65,7 @@ func (suite *KeeperTestSuite) TestMsgMintFanToken() {
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("1000ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("1000ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	// mint token without owner
 
@@ -75,11 +74,11 @@ func (suite *KeeperTestSuite) TestMsgMintFanToken() {
 }
 
 func (suite *KeeperTestSuite) TestMsgBurnFanToken() {
-	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantokenObj := tokentypes.NewFanToken(name, symbol, uri, maxSupply, owner, height)
 	suite.issueFanToken(fantokenObj)
 
 	amt := suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("0ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("0ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 
 	mintAmount := sdk.NewInt(1000)
 	recipient := sdk.AccAddress{}
@@ -94,5 +93,5 @@ func (suite *KeeperTestSuite) TestMsgBurnFanToken() {
 	suite.NoError(err)
 
 	amt = suite.bk.GetBalance(suite.ctx, fantokenObj.GetOwner(), fantokenObj.GetDenom())
-	suite.Equal("800ft12CB2084F93F8B7F5A168425981150066D437A56", amt.String())
+	suite.Equal("800ft67188403047108DE19A31BEF25C8DABC1B6DC39B", amt.String())
 }

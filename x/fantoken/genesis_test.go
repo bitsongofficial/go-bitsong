@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	height    = int64(1)
 	owner     = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	name      = "Bitcoin"
 	symbol    = "btc"
@@ -44,7 +45,8 @@ func TestInitGenesis(t *testing.T) {
 
 	// add token
 	addr := sdk.AccAddress(tmhash.SumTruncated([]byte("addr1")))
-	fantokenObj := types.NewFanToken(name, symbol, uri, maxSupply, addr)
+	height := int64(1)
+	fantokenObj := types.NewFanToken(name, symbol, uri, maxSupply, addr, height)
 
 	burnCoins := []sdk.Coin{
 		{Denom: fantokenObj.GetDenom(), Amount: sdk.NewInt(1000)},

@@ -30,7 +30,7 @@ var (
 )
 
 // ValidateFanToken checks if the given token is valid
-func ValidateFanToken(fantoken FanToken) error {
+func ValidateFanToken(fantoken *FanToken) error {
 	if len(fantoken.Owner) > 0 {
 		if _, err := sdk.AccAddressFromBech32(fantoken.Owner); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
@@ -42,10 +42,18 @@ func ValidateFanToken(fantoken FanToken) error {
 	if err := ValidateSymbol(fantoken.GetSymbol()); err != nil {
 		return err
 	}
-	if err := ValidateDenom(fantoken.GetDenom()); err != nil {
+	if err := ValidateUri(fantoken.GetUri()); err != nil {
 		return err
 	}
-	if err := ValidateUri(fantoken.GetUri()); err != nil {
+	return nil
+}
+
+func ValidateFanTokenWithDenom(fantoken *FanToken) error {
+	if err := ValidateFanToken(fantoken); err != nil {
+		return err
+	}
+
+	if err := ValidateDenom(fantoken.GetDenom()); err != nil {
 		return err
 	}
 	return nil

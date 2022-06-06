@@ -26,9 +26,9 @@ type FanTokenI interface {
 }
 
 // NewFanToken constructs a new FanToken instance
-func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress) FanToken {
+func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress, height int64) FanToken {
 	return FanToken{
-		Denom:     GetFantokenDenom(owner, symbol, name),
+		Denom:     GetFantokenDenom(height, owner, symbol, name),
 		MaxSupply: maxSupply,
 		Mintable:  true,
 		Owner:     owner.String(),

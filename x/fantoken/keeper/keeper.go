@@ -62,7 +62,7 @@ func (k Keeper) IssueFanToken(ctx sdk.Context, name, symbol, uri string, maxSupp
 		return denom, err
 	}
 
-	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, owner)
+	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, owner, ctx.BlockHeight())
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
 	}
