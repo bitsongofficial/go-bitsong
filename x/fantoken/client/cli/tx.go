@@ -20,25 +20,25 @@ import (
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        tokentypes.ModuleName,
-		Short:                      "FanToken transaction subcommands",
+		Short:                      "Fan Token transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	txCmd.AddCommand(
-		GetCmdIssueFanToken(),
-		GetCmdEditFanToken(),
-		GetCmdMintFanToken(),
-		GetCmdBurnFanToken(),
-		GetCmdTransferFanTokenOwner(),
+		GetCmdIssue(),
+		GetCmdEdit(),
+		GetCmdMint(),
+		GetCmdBurn(),
+		GetCmdTransferOwnership(),
 	)
 
 	return txCmd
 }
 
-// GetCmdIssueFanToken implements the issue fantoken command
-func GetCmdIssueFanToken() *cobra.Command {
+// GetCmdIssue implements the issue fantoken command
+func GetCmdIssue() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "issue",
 		Long: "Issue a new fantoken.",
@@ -81,7 +81,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				return fmt.Errorf("the uri field is invalid")
 			}
 
-			msg := &tokentypes.MsgIssueFanToken{
+			msg := &tokentypes.MsgIssue{
 				Symbol:    symbol,
 				Name:      name,
 				MaxSupply: maxSupply,
@@ -106,8 +106,8 @@ func GetCmdIssueFanToken() *cobra.Command {
 	return cmd
 }
 
-// GetCmdEditFanToken implements the edit fan token mintable command
-func GetCmdEditFanToken() *cobra.Command {
+// GetCmdEdit implements the edit fan token mintable command
+func GetCmdEdit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "edit [denom]",
 		Long: "Edit an existing fantoken.",
@@ -137,7 +137,7 @@ func GetCmdEditFanToken() *cobra.Command {
 				return err
 			}
 
-			msg := tokentypes.NewMsgEditFanToken(args[0], mintable, owner)
+			msg := tokentypes.NewMsgEdit(args[0], mintable, owner)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -152,10 +152,10 @@ func GetCmdEditFanToken() *cobra.Command {
 	return cmd
 }
 
-func GetCmdMintFanToken() *cobra.Command {
+func GetCmdMint() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "mint [denom]",
-		Long: "Mint fantokens to a specified address.",
+		Long: "Mint fan tokens to a specified address.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken mint <denom> "+
 				"--recipient=<recipient>"+
@@ -194,7 +194,7 @@ func GetCmdMintFanToken() *cobra.Command {
 				}
 			}
 
-			msg := tokentypes.NewMsgMintFanToken(
+			msg := tokentypes.NewMsgMint(
 				addr, strings.TrimSpace(args[0]), owner, amount,
 			)
 
@@ -213,7 +213,7 @@ func GetCmdMintFanToken() *cobra.Command {
 	return cmd
 }
 
-func GetCmdBurnFanToken() *cobra.Command {
+func GetCmdBurn() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "burn [denom]",
 		Long: "Burn fantoken.",
@@ -256,7 +256,7 @@ func GetCmdBurnFanToken() *cobra.Command {
 
 			denom := strings.TrimSpace(args[0])
 
-			msg := tokentypes.NewMsgBurnFanToken(denom, owner, amount)
+			msg := tokentypes.NewMsgBurn(denom, owner, amount)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -273,11 +273,11 @@ func GetCmdBurnFanToken() *cobra.Command {
 	return cmd
 }
 
-// GetCmdTransferFanTokenOwner implements the transfer fan token owner command
-func GetCmdTransferFanTokenOwner() *cobra.Command {
+// GetCmdTransferOwnership implements the transfer fan token owner command
+func GetCmdTransferOwnership() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "transfer [denom]",
-		Long: "Transfer the owner of a fantoken to a new owner.",
+		Long: "Transfer the owner of a fan token to a new owner.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken transfer <denom> "+
 				"--recipient=<recipient> "+
@@ -303,7 +303,7 @@ func GetCmdTransferFanTokenOwner() *cobra.Command {
 				return err
 			}
 
-			msg := tokentypes.NewMsgTransferFanTokenOwner(strings.TrimSpace(args[0]), owner, toAddr)
+			msg := tokentypes.NewMsgTransferOwnership(strings.TrimSpace(args[0]), owner, toAddr)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

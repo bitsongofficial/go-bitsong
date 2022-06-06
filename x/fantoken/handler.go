@@ -16,24 +16,24 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case *types.MsgIssueFanToken:
-			res, err := msgServer.IssueFanToken(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgIssue:
+			res, err := msgServer.Issue(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgEditFanToken:
-			res, err := msgServer.EditFanToken(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgEdit:
+			res, err := msgServer.Edit(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgMintFanToken:
-			res, err := msgServer.MintFanToken(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgMint:
+			res, err := msgServer.Mint(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgBurnFanToken:
-			res, err := msgServer.BurnFanToken(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgBurn:
+			res, err := msgServer.Burn(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgTransferFanTokenOwner:
-			res, err := msgServer.TransferFanTokenOwner(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgTransferOwnership:
+			res, err := msgServer.TransferOwnership(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

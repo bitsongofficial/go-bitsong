@@ -20,29 +20,20 @@ func init() {
 }
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterInterface((*FanTokenI)(nil), nil)
-
-	cdc.RegisterConcrete(&FanToken{}, "go-bitsong/fantoken/FanToken", nil)
-
-	cdc.RegisterConcrete(&MsgIssueFanToken{}, "go-bitsong/fantoken/MsgIssueFanToken", nil)
-	cdc.RegisterConcrete(&MsgEditFanToken{}, "go-bitsong/fantoken/MsgEditFanToken", nil)
-	cdc.RegisterConcrete(&MsgMintFanToken{}, "go-bitsong/fantoken/MsgMintFanToken", nil)
-	cdc.RegisterConcrete(&MsgBurnFanToken{}, "go-bitsong/fantoken/MsgBurnFanToken", nil)
-	cdc.RegisterConcrete(&MsgTransferFanTokenOwner{}, "go-bitsong/fantoken/MsgTransferFanTokenOwner", nil)
+	cdc.RegisterConcrete(&MsgIssue{}, "go-bitsong/fantoken/MsgIssue", nil)
+	cdc.RegisterConcrete(&MsgEdit{}, "go-bitsong/fantoken/MsgEdit", nil)
+	cdc.RegisterConcrete(&MsgMint{}, "go-bitsong/fantoken/MsgMint", nil)
+	cdc.RegisterConcrete(&MsgBurn{}, "go-bitsong/fantoken/MsgBurn", nil)
+	cdc.RegisterConcrete(&MsgTransferOwnership{}, "go-bitsong/fantoken/MsgTransferOwnership", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgIssueFanToken{},
-		&MsgEditFanToken{},
-		&MsgMintFanToken{},
-		&MsgBurnFanToken{},
-		&MsgTransferFanTokenOwner{},
-	)
-	registry.RegisterInterface(
-		"go-bitsong.fantoken.FanTokenI",
-		(*FanTokenI)(nil),
-		&FanToken{},
+		&MsgIssue{},
+		&MsgEdit{},
+		&MsgMint{},
+		&MsgBurn{},
+		&MsgTransferOwnership{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

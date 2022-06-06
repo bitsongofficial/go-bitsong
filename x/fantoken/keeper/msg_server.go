@@ -21,7 +21,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 	return &msgServer{Keeper: keeper}
 }
 
-func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanToken) (*types.MsgIssueFanTokenResponse, error) {
+func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.MsgIssueResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -50,10 +50,10 @@ func (m msgServer) IssueFanToken(goCtx context.Context, msg *types.MsgIssueFanTo
 		),
 	})
 
-	return &types.MsgIssueFanTokenResponse{}, nil
+	return &types.MsgIssueResponse{}, nil
 }
 
-func (m msgServer) EditFanToken(goCtx context.Context, msg *types.MsgEditFanToken) (*types.MsgEditFanTokenResponse, error) {
+func (m msgServer) Edit(goCtx context.Context, msg *types.MsgEdit) (*types.MsgEditResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -77,10 +77,10 @@ func (m msgServer) EditFanToken(goCtx context.Context, msg *types.MsgEditFanToke
 		),
 	})
 
-	return &types.MsgEditFanTokenResponse{}, nil
+	return &types.MsgEditResponse{}, nil
 }
 
-func (m msgServer) MintFanToken(goCtx context.Context, msg *types.MsgMintFanToken) (*types.MsgMintFanTokenResponse, error) {
+func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMintResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return nil, err
@@ -121,10 +121,10 @@ func (m msgServer) MintFanToken(goCtx context.Context, msg *types.MsgMintFanToke
 		),
 	})
 
-	return &types.MsgMintFanTokenResponse{}, nil
+	return &types.MsgMintResponse{}, nil
 }
 
-func (m msgServer) BurnFanToken(goCtx context.Context, msg *types.MsgBurnFanToken) (*types.MsgBurnFanTokenResponse, error) {
+func (m msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBurnResponse, error) {
 	owner, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		return nil, err
@@ -148,10 +148,10 @@ func (m msgServer) BurnFanToken(goCtx context.Context, msg *types.MsgBurnFanToke
 		),
 	})
 
-	return &types.MsgBurnFanTokenResponse{}, nil
+	return &types.MsgBurnResponse{}, nil
 }
 
-func (m msgServer) TransferFanTokenOwner(goCtx context.Context, msg *types.MsgTransferFanTokenOwner) (*types.MsgTransferFanTokenOwnerResponse, error) {
+func (m msgServer) TransferOwnership(goCtx context.Context, msg *types.MsgTransferOwnership) (*types.MsgTransferOwnershipResponse, error) {
 	srcOwner, err := sdk.AccAddressFromBech32(msg.SrcOwner)
 	if err != nil {
 		return nil, err
@@ -186,5 +186,5 @@ func (m msgServer) TransferFanTokenOwner(goCtx context.Context, msg *types.MsgTr
 		),
 	})
 
-	return &types.MsgTransferFanTokenOwnerResponse{}, nil
+	return &types.MsgTransferOwnershipResponse{}, nil
 }

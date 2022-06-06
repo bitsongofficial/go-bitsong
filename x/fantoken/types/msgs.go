@@ -9,27 +9,24 @@ const (
 	// MsgRoute identifies transaction types
 	MsgRoute = "fantoken"
 
-	TypeMsgIssueFanToken         = "issue_fan_token"
-	TypeMsgEditFanToken          = "edit_fan_token_mintable"
-	TypeMsgMintFanToken          = "mint_fan_token"
-	TypeMsgBurnFanToken          = "burn_fan_token"
-	TypeMsgTransferFanTokenOwner = "transfer_fan_token_owner"
-
-	// DoNotModify used to indicate that some field should not be updated
-	DoNotModify = "[do-not-modify]"
+	TypeMsgIssue             = "issue"
+	TypeMsgEdit              = "edit"
+	TypeMsgMint              = "mint"
+	TypeMsgBurn              = "burn"
+	TypeMsgTransferOwnership = "transfer_ownership"
 )
 
 var (
-	_ sdk.Msg = &MsgIssueFanToken{}
-	_ sdk.Msg = &MsgEditFanToken{}
-	_ sdk.Msg = &MsgMintFanToken{}
-	_ sdk.Msg = &MsgBurnFanToken{}
-	_ sdk.Msg = &MsgTransferFanTokenOwner{}
+	_ sdk.Msg = &MsgIssue{}
+	_ sdk.Msg = &MsgEdit{}
+	_ sdk.Msg = &MsgMint{}
+	_ sdk.Msg = &MsgBurn{}
+	_ sdk.Msg = &MsgTransferOwnership{}
 )
 
-// NewMsgIssueFanToken - construct token issue msg.
-func NewMsgIssueFanToken(name, symbol, uri string, maxSupply sdk.Int, owner string) *MsgIssueFanToken {
-	return &MsgIssueFanToken{
+// NewMsgIssue - construct token issue msg.
+func NewMsgIssue(name, symbol, uri string, maxSupply sdk.Int, owner string) *MsgIssue {
+	return &MsgIssue{
 		Name:      name,
 		Symbol:    symbol,
 		URI:       uri,
@@ -39,13 +36,13 @@ func NewMsgIssueFanToken(name, symbol, uri string, maxSupply sdk.Int, owner stri
 }
 
 // Route Implements Msg.
-func (msg MsgIssueFanToken) Route() string { return MsgRoute }
+func (msg MsgIssue) Route() string { return MsgRoute }
 
 // Type Implements Msg.
-func (msg MsgIssueFanToken) Type() string { return TypeMsgIssueFanToken }
+func (msg MsgIssue) Type() string { return TypeMsgIssue }
 
 // ValidateBasic Implements Msg.
-func (msg MsgIssueFanToken) ValidateBasic() error {
+func (msg MsgIssue) ValidateBasic() error {
 	owner, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
@@ -66,7 +63,7 @@ func (msg MsgIssueFanToken) ValidateBasic() error {
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgIssueFanToken) GetSignBytes() []byte {
+func (msg MsgIssue) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -75,7 +72,7 @@ func (msg MsgIssueFanToken) GetSignBytes() []byte {
 }
 
 // GetSigners Implements Msg.
-func (msg MsgIssueFanToken) GetSigners() []sdk.AccAddress {
+func (msg MsgIssue) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -83,9 +80,9 @@ func (msg MsgIssueFanToken) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{from}
 }
 
-// NewMsgTransferFanTokenOwner return a instance of MsgTransferFanTokenOwner
-func NewMsgTransferFanTokenOwner(denom, srcOwner, dstOwner string) *MsgTransferFanTokenOwner {
-	return &MsgTransferFanTokenOwner{
+// NewMsgTransferOwnership return a instance of MsgTransferOwnership
+func NewMsgTransferOwnership(denom, srcOwner, dstOwner string) *MsgTransferOwnership {
+	return &MsgTransferOwnership{
 		Denom:    denom,
 		SrcOwner: srcOwner,
 		DstOwner: dstOwner,
@@ -93,7 +90,7 @@ func NewMsgTransferFanTokenOwner(denom, srcOwner, dstOwner string) *MsgTransferF
 }
 
 // GetSignBytes implements Msg
-func (msg MsgTransferFanTokenOwner) GetSignBytes() []byte {
+func (msg MsgTransferOwnership) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -103,7 +100,7 @@ func (msg MsgTransferFanTokenOwner) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgTransferFanTokenOwner) GetSigners() []sdk.AccAddress {
+func (msg MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.SrcOwner)
 	if err != nil {
 		panic(err)
@@ -112,7 +109,7 @@ func (msg MsgTransferFanTokenOwner) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgTransferFanTokenOwner) ValidateBasic() error {
+func (msg MsgTransferOwnership) ValidateBasic() error {
 	srcOwner, err := sdk.AccAddressFromBech32(msg.SrcOwner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid source owner address (%s)", err)
@@ -137,14 +134,14 @@ func (msg MsgTransferFanTokenOwner) ValidateBasic() error {
 }
 
 // Route implements Msg
-func (msg MsgTransferFanTokenOwner) Route() string { return MsgRoute }
+func (msg MsgTransferOwnership) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgTransferFanTokenOwner) Type() string { return TypeMsgTransferFanTokenOwner }
+func (msg MsgTransferOwnership) Type() string { return TypeMsgTransferOwnership }
 
-// NewMsgEditFanToken creates a MsgEditFanToken
-func NewMsgEditFanToken(denom string, mintable bool, owner string) *MsgEditFanToken {
-	return &MsgEditFanToken{
+// NewMsgEdit creates a MsgEdit
+func NewMsgEdit(denom string, mintable bool, owner string) *MsgEdit {
+	return &MsgEdit{
 		Denom:    denom,
 		Mintable: mintable,
 		Owner:    owner,
@@ -152,13 +149,13 @@ func NewMsgEditFanToken(denom string, mintable bool, owner string) *MsgEditFanTo
 }
 
 // Route implements Msg
-func (msg MsgEditFanToken) Route() string { return MsgRoute }
+func (msg MsgEdit) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgEditFanToken) Type() string { return TypeMsgEditFanToken }
+func (msg MsgEdit) Type() string { return TypeMsgEdit }
 
 // GetSignBytes implements Msg
-func (msg MsgEditFanToken) GetSignBytes() []byte {
+func (msg MsgEdit) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -168,7 +165,7 @@ func (msg MsgEditFanToken) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgEditFanToken) GetSigners() []sdk.AccAddress {
+func (msg MsgEdit) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -177,7 +174,7 @@ func (msg MsgEditFanToken) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgEditFanToken) ValidateBasic() error {
+func (msg MsgEdit) ValidateBasic() error {
 	// check owner
 	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
@@ -186,9 +183,9 @@ func (msg MsgEditFanToken) ValidateBasic() error {
 	return ValidateDenom(msg.Denom)
 }
 
-// NewMsgMintFanToken creates a MsgMintFanToken
-func NewMsgMintFanToken(recipient, denom, owner string, amount sdk.Int) *MsgMintFanToken {
-	return &MsgMintFanToken{
+// NewMsgMint creates a MsgMint
+func NewMsgMint(recipient, denom, owner string, amount sdk.Int) *MsgMint {
+	return &MsgMint{
 		Recipient: recipient,
 		Denom:     denom,
 		Owner:     owner,
@@ -197,13 +194,13 @@ func NewMsgMintFanToken(recipient, denom, owner string, amount sdk.Int) *MsgMint
 }
 
 // Route implements Msg
-func (msg MsgMintFanToken) Route() string { return MsgRoute }
+func (msg MsgMint) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgMintFanToken) Type() string { return TypeMsgMintFanToken }
+func (msg MsgMint) Type() string { return TypeMsgMint }
 
 // GetSignBytes implements Msg
-func (msg MsgMintFanToken) GetSignBytes() []byte {
+func (msg MsgMint) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -212,7 +209,7 @@ func (msg MsgMintFanToken) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgMintFanToken) GetSigners() []sdk.AccAddress {
+func (msg MsgMint) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
@@ -221,7 +218,7 @@ func (msg MsgMintFanToken) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgMintFanToken) ValidateBasic() error {
+func (msg MsgMint) ValidateBasic() error {
 	// check the owner
 	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
@@ -241,9 +238,9 @@ func (msg MsgMintFanToken) ValidateBasic() error {
 	return ValidateDenom(msg.Denom)
 }
 
-// NewMsgBurnFanToken creates a MsgBurnFanToken
-func NewMsgBurnFanToken(denom, owner string, amount sdk.Int) *MsgBurnFanToken {
-	return &MsgBurnFanToken{
+// NewMsgBurn creates a MsgBurn
+func NewMsgBurn(denom, owner string, amount sdk.Int) *MsgBurn {
+	return &MsgBurn{
 		Denom:  denom,
 		Amount: amount,
 		Sender: owner,
@@ -251,13 +248,13 @@ func NewMsgBurnFanToken(denom, owner string, amount sdk.Int) *MsgBurnFanToken {
 }
 
 // Route implements Msg
-func (msg MsgBurnFanToken) Route() string { return MsgRoute }
+func (msg MsgBurn) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgBurnFanToken) Type() string { return TypeMsgBurnFanToken }
+func (msg MsgBurn) Type() string { return TypeMsgBurn }
 
 // GetSignBytes implements Msg
-func (msg MsgBurnFanToken) GetSignBytes() []byte {
+func (msg MsgBurn) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -266,7 +263,7 @@ func (msg MsgBurnFanToken) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgBurnFanToken) GetSigners() []sdk.AccAddress {
+func (msg MsgBurn) GetSigners() []sdk.AccAddress {
 	from, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)
@@ -275,7 +272,7 @@ func (msg MsgBurnFanToken) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgBurnFanToken) ValidateBasic() error {
+func (msg MsgBurn) ValidateBasic() error {
 	// check the owner
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
