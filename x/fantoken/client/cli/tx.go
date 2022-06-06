@@ -188,7 +188,7 @@ func GetCmdMint() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(addr) > 0 {
+			if addr != "" {
 				if _, err = sdk.AccAddressFromBech32(addr); err != nil {
 					return err
 				}

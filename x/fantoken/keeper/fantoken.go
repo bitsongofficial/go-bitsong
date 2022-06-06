@@ -12,7 +12,7 @@ import (
 )
 
 // GetFanTokens returns all existing fantokens
-func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens []types.FanTokenI) {
+func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens []*types.FanToken) {
 	store := ctx.KVStore(k.storeKey)
 
 	var it sdk.Iterator
@@ -46,17 +46,17 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 }
 
 // GetFanToken returns the fantoken of the specified denom
-func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (types.FanTokenI, error) {
+func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (*types.FanToken, error) {
 	// query fantoken by denom
 	if fantoken, err := k.getFanTokenByDenom(ctx, denom); err == nil {
-		return &fantoken, nil
+		return fantoken, nil
 	}
 
 	return nil, sdkerrors.Wrapf(types.ErrFanTokenNotExists, "denom %s does not exist", denom)
 }
 
 // AddFanToken saves a new token
-func (k Keeper) AddFanToken(ctx sdk.Context, token types.FanToken) error {
+func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 	if k.HasFanToken(ctx, token.GetDenom()) {
 		return sdkerrors.Wrapf(types.ErrDenomAlreadyExists, "denom already exists: %s", token.GetDenom())
 	}
@@ -151,13 +151,13 @@ func (k Keeper) setWithOwner(ctx sdk.Context, owner sdk.AccAddress, denom string
 	store.Set(types.KeyFanTokens(owner, denom), bz)
 }
 
-func (k Keeper) setFanToken(ctx sdk.Context, token types.FanToken) {
+func (k Keeper) setFanToken(ctx sdk.Context, token *types.FanToken) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&token)
+	bz := k.cdc.MustMarshal(token)
 	store.Set(types.KeyDenom(token.GetDenom()), bz)
 }
 
-func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken types.FanToken, err error) {
+func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken *types.FanToken, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.KeyDenom(denom))
@@ -165,7 +165,7 @@ func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken type
 		return fantoken, sdkerrors.Wrap(types.ErrFanTokenNotExists, fmt.Sprintf("fantoken denom %s does not exist", denom))
 	}
 
-	k.cdc.MustUnmarshal(bz, &fantoken)
+	k.cdc.MustUnmarshal(bz, fantoken)
 	return fantoken, nil
 }
 

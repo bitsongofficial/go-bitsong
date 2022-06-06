@@ -167,11 +167,7 @@ func (k Keeper) MintFanToken(ctx sdk.Context, recipient sdk.AccAddress, denom st
 func (k Keeper) BurnFanToken(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.AccAddress) error {
 	found := k.HasFanToken(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(
-			types.ErrFanTokenNotExists,
-			"fantoken not found: %s",
-			denom,
-		)
+		return sdkerrors.Wrapf(types.ErrFanTokenNotExists, "fantoken not found: %s", denom)
 	}
 
 	burnCoin := sdk.NewCoin(denom, amount)

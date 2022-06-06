@@ -15,9 +15,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 
 	k.SetParamSet(ctx, data.Params)
 
-	// init tokens
-	for _, token := range data.FanTokens {
-		if err := k.AddFanToken(ctx, token); err != nil {
+	// init fan tokens
+	for _, fantoken := range data.FanTokens {
+		if err := k.AddFanToken(ctx, &fantoken); err != nil {
 			panic(err.Error())
 		}
 	}
@@ -30,10 +30,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 // ExportGenesis outputs the genesis state
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	var fantokens []types.FanToken
+
 	for _, fantoken := range k.GetFanTokens(ctx, nil) {
-		t := fantoken.(*types.FanToken)
-		fantokens = append(fantokens, *t)
+		fantokens = append(fantokens, *fantoken)
 	}
+
 	return &types.GenesisState{
 		Params:      k.GetParamSet(ctx),
 		FanTokens:   fantokens,

@@ -13,21 +13,9 @@ var (
 	_ proto.Message = &FanToken{}
 )
 
-// FanTokenI defines an interface for FanToken
-type FanTokenI interface {
-	GetName() string
-	GetSymbol() string
-	GetDenom() string
-	GetUri() string
-	GetMaxSupply() sdk.Int
-	GetMintable() bool
-	GetOwner() sdk.AccAddress
-	GetMetaData() Metadata
-}
-
 // NewFanToken constructs a new FanToken instance
-func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress, height int64) FanToken {
-	return FanToken{
+func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress, height int64) *FanToken {
+	return &FanToken{
 		Denom:     GetFantokenDenom(height, owner, symbol, name),
 		MaxSupply: maxSupply,
 		Mintable:  true,
