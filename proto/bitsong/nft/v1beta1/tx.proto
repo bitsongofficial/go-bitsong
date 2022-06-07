@@ -11,6 +11,7 @@ option (gogoproto.goproto_getters_all) = false;
 // Msg defines the Msg service
 service Msg {
   rpc CreateNFT(MsgCreateNFT) returns (MsgCreateNFTResponse);
+  rpc PrintEdition(MsgPrintEdition) returns (MsgPrintEditionResponse);
   rpc TransferNFT(MsgTransferNFT) returns (MsgTransferNFTResponse);
 
   rpc SignMetadata(MsgSignMetadata) returns (MsgSignMetadataResponse);
@@ -31,6 +32,12 @@ message MsgCreateNFTResponse {
   uint64 id = 1;
   uint64 metadata_id = 2;
 }
+
+message MsgPrintEdition {
+  string sender = 1;
+  uint64 metadata_id = 2;
+}
+message MsgPrintEditionResponse {}
 
 message MsgTransferNFT {
   string sender = 1;

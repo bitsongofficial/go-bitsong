@@ -19,6 +19,11 @@ message Data {
   repeated Creator creators = 5;
 }
 
+message MasterEdition {
+  uint64 supply = 1;
+  uint64 max_supply = 2;
+}
+
 message Metadata {
   uint64 id = 1;
   string update_authority = 2;
@@ -29,6 +34,7 @@ message Metadata {
   bool primary_sale_happened = 5;
   // Whether or not the data struct is mutable, default is not
   bool is_mutable = 6;
+  MasterEdition master_edition = 7;
 }
 
 message Collection {
@@ -54,6 +60,7 @@ message NFT {
   uint64 id = 1;
   string owner = 2;
   uint64 metadata_id = 3;
+  uint64 edition = 4;
 }
 
 // message MasterEdition {

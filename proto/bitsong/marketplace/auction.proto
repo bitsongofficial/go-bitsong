@@ -82,6 +82,10 @@ enum AuctionPrizeType {
     NFT_ONLY_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "NftOnlyTransfer" ];
     // Transfer ownership of both nft and metadata
     FULL_RIGHTS_TRANSFER = 1 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+    // Printing a new child edition from limited supply
+    LIMITED_EDITION_PRINTS = 2 [ (gogoproto.enumvalue_customname) = "LimitedEditionPrints" ];
+    // Printing a new child edition from unlimited supply
+    OPEN_EDITION_PRINTS = 3 [ (gogoproto.enumvalue_customname) = "OpenEditionPrints" ];
 }
 
 // Params defines marketplace module's parameters
