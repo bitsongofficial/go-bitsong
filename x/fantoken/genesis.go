@@ -9,7 +9,7 @@ import (
 
 // InitGenesis stores the genesis state
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
-	if err := types.ValidateGenesis(data); err != nil {
+	if err := data.Validate(); err != nil {
 		panic(err.Error())
 	}
 
@@ -33,13 +33,5 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 		Params:      k.GetParamSet(ctx),
 		FanTokens:   k.GetFanTokens(ctx, nil),
 		BurnedCoins: k.GetAllBurnedCoins(ctx),
-	}
-}
-
-// DefaultGenesisState returns the default genesis state for testing
-func DefaultGenesisState() *types.GenesisState {
-	return &types.GenesisState{
-		Params:    types.DefaultParams(),
-		FanTokens: []types.FanToken{},
 	}
 }

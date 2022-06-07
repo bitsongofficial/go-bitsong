@@ -46,8 +46,8 @@ func (p Params) String() string {
 	return string(out)
 }
 
-// ValidateParams validates the given params
-func ValidateParams(p Params) error {
+// Validate validates the given params
+func (p Params) Validate() error {
 	if err := validateIssueFee(p.IssueFee); err != nil {
 		return err
 	}
