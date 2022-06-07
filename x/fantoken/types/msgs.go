@@ -18,20 +18,20 @@ const (
 
 var (
 	_ sdk.Msg = &MsgIssue{}
-	_ sdk.Msg = &MsgEdit{}
+	_ sdk.Msg = &MsgDisableMint{}
 	_ sdk.Msg = &MsgMint{}
 	_ sdk.Msg = &MsgBurn{}
-	_ sdk.Msg = &MsgTransferOwnership{}
+	_ sdk.Msg = &MsgTransferAuthority{}
 )
 
 // NewMsgIssue - construct token issue msg.
-func NewMsgIssue(name, symbol, uri string, maxSupply sdk.Int, owner string) *MsgIssue {
+func NewMsgIssue(name, symbol, uri string, maxSupply sdk.Int, authority string) *MsgIssue {
 	return &MsgIssue{
 		Name:      name,
 		Symbol:    symbol,
 		URI:       uri,
 		MaxSupply: maxSupply,
-		Owner:     owner,
+		Authority: authority,
 	}
 }
 
@@ -43,15 +43,15 @@ func (msg MsgIssue) Type() string { return TypeMsgIssue }
 
 // ValidateBasic Implements Msg.
 func (msg MsgIssue) ValidateBasic() error {
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	authority, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
 
 	fantoken := &FanToken{
 		MaxSupply: msg.MaxSupply,
 		Mintable:  true,
-		Owner:     owner.String(),
+		Authority: authority.String(),
 		MetaData: Metadata{
 			Name:   msg.Name,
 			Symbol: msg.Symbol,
@@ -73,24 +73,24 @@ func (msg MsgIssue) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgIssue) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.Owner)
+	from, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{from}
 }
 
-// NewMsgTransferOwnership return a instance of MsgTransferOwnership
-func NewMsgTransferOwnership(denom, srcOwner, dstOwner string) *MsgTransferOwnership {
-	return &MsgTransferOwnership{
-		Denom:    denom,
-		SrcOwner: srcOwner,
-		DstOwner: dstOwner,
+// NewMsgTransferAuthority return a instance of MsgTransferAuthority
+func NewMsgTransferAuthority(denom, srcAuthority, dstAuthority string) *MsgTransferAuthority {
+	return &MsgTransferAuthority{
+		Denom:        denom,
+		SrcAuthority: srcAuthority,
+		DstAuthority: dstAuthority,
 	}
 }
 
 // GetSignBytes implements Msg
-func (msg MsgTransferOwnership) GetSignBytes() []byte {
+func (msg MsgTransferAuthority) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -100,8 +100,8 @@ func (msg MsgTransferOwnership) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgTransferOwnership) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.SrcOwner)
+func (msg MsgTransferAuthority) GetSigners() []sdk.AccAddress {
+	from, err := sdk.AccAddressFromBech32(msg.SrcAuthority)
 	if err != nil {
 		panic(err)
 	}
@@ -109,19 +109,19 @@ func (msg MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgTransferOwnership) ValidateBasic() error {
-	srcOwner, err := sdk.AccAddressFromBech32(msg.SrcOwner)
+func (msg MsgTransferAuthority) ValidateBasic() error {
+	srcAuthority, err := sdk.AccAddressFromBech32(msg.SrcAuthority)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid source owner address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid source authority address (%s)", err)
 	}
 
-	dstOwner, err := sdk.AccAddressFromBech32(msg.DstOwner)
+	dstAuthority, err := sdk.AccAddressFromBech32(msg.DstAuthority)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid destination owner address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid destination authority address (%s)", err)
 	}
 
 	// check if the `DstOwner` is same as the original owner
-	if srcOwner.Equals(dstOwner) {
+	if srcAuthority.Equals(dstAuthority) {
 		return ErrInvalidToAddress
 	}
 
@@ -134,28 +134,27 @@ func (msg MsgTransferOwnership) ValidateBasic() error {
 }
 
 // Route implements Msg
-func (msg MsgTransferOwnership) Route() string { return MsgRoute }
+func (msg MsgTransferAuthority) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgTransferOwnership) Type() string { return TypeMsgTransferOwnership }
+func (msg MsgTransferAuthority) Type() string { return TypeMsgTransferOwnership }
 
-// NewMsgEdit creates a MsgEdit
-func NewMsgEdit(denom string, mintable bool, owner string) *MsgEdit {
-	return &MsgEdit{
-		Denom:    denom,
-		Mintable: mintable,
-		Owner:    owner,
+// NewMsgDisableMint creates a MsgDisableMint
+func NewMsgDisableMint(denom string, authority string) *MsgDisableMint {
+	return &MsgDisableMint{
+		Denom:     denom,
+		Authority: authority,
 	}
 }
 
 // Route implements Msg
-func (msg MsgEdit) Route() string { return MsgRoute }
+func (msg MsgDisableMint) Route() string { return MsgRoute }
 
 // Type implements Msg
-func (msg MsgEdit) Type() string { return TypeMsgEdit }
+func (msg MsgDisableMint) Type() string { return TypeMsgEdit }
 
 // GetSignBytes implements Msg
-func (msg MsgEdit) GetSignBytes() []byte {
+func (msg MsgDisableMint) GetSignBytes() []byte {
 	b, err := ModuleCdc.MarshalJSON(&msg)
 	if err != nil {
 		panic(err)
@@ -165,8 +164,8 @@ func (msg MsgEdit) GetSignBytes() []byte {
 }
 
 // GetSigners implements Msg
-func (msg MsgEdit) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.Owner)
+func (msg MsgDisableMint) GetSigners() []sdk.AccAddress {
+	from, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}
@@ -174,21 +173,21 @@ func (msg MsgEdit) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements Msg
-func (msg MsgEdit) ValidateBasic() error {
+func (msg MsgDisableMint) ValidateBasic() error {
 	// check owner
-	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
 
 	return ValidateDenom(msg.Denom)
 }
 
 // NewMsgMint creates a MsgMint
-func NewMsgMint(recipient, denom, owner string, amount sdk.Int) *MsgMint {
+func NewMsgMint(recipient, denom, authority string, amount sdk.Int) *MsgMint {
 	return &MsgMint{
 		Recipient: recipient,
 		Denom:     denom,
-		Owner:     owner,
+		Authority: authority,
 		Amount:    amount,
 	}
 }
@@ -210,7 +209,7 @@ func (msg MsgMint) GetSignBytes() []byte {
 
 // GetSigners implements Msg
 func (msg MsgMint) GetSigners() []sdk.AccAddress {
-	from, err := sdk.AccAddressFromBech32(msg.Owner)
+	from, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}
@@ -219,9 +218,9 @@ func (msg MsgMint) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic implements Msg
 func (msg MsgMint) ValidateBasic() error {
-	// check the owner
-	if _, err := sdk.AccAddressFromBech32(msg.Owner); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+	// check the authority
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
 
 	// check the reception

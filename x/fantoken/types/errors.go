@@ -14,7 +14,7 @@ var (
 	ErrDenomAlreadyExists = sdkerrors.Register(ModuleName, 5, "denom already exists")
 	ErrFanTokenNotExists  = sdkerrors.Register(ModuleName, 6, "fantoken does not exist")
 	ErrInvalidToAddress   = sdkerrors.Register(ModuleName, 7, "the new owner must not be same as the original owner")
-	ErrInvalidOwner       = sdkerrors.Register(ModuleName, 8, "invalid fantoken owner")
+	ErrInvalidAuthority   = sdkerrors.Register(ModuleName, 8, "invalid fantoken authority")
 	ErrNotMintable        = sdkerrors.Register(ModuleName, 9, "fantoken is not mintable")
 	ErrNotFoundTokenAmt   = sdkerrors.Register(ModuleName, 10, "burned fantoken amount not found")
 	ErrInvalidAmount      = sdkerrors.Register(ModuleName, 11, "invalid amount")

@@ -21,19 +21,19 @@ func init() {
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgIssue{}, "go-bitsong/fantoken/MsgIssue", nil)
-	cdc.RegisterConcrete(&MsgEdit{}, "go-bitsong/fantoken/MsgEdit", nil)
 	cdc.RegisterConcrete(&MsgMint{}, "go-bitsong/fantoken/MsgMint", nil)
 	cdc.RegisterConcrete(&MsgBurn{}, "go-bitsong/fantoken/MsgBurn", nil)
-	cdc.RegisterConcrete(&MsgTransferOwnership{}, "go-bitsong/fantoken/MsgTransferOwnership", nil)
+	cdc.RegisterConcrete(&MsgDisableMint{}, "go-bitsong/fantoken/MsgDisableMint", nil)
+	cdc.RegisterConcrete(&MsgTransferAuthority{}, "go-bitsong/fantoken/MsgTransferAuthority", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgIssue{},
-		&MsgEdit{},
 		&MsgMint{},
 		&MsgBurn{},
-		&MsgTransferOwnership{},
+		&MsgDisableMint{},
+		&MsgTransferAuthority{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

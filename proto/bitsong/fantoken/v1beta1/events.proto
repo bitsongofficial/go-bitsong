@@ -1,0 +1,32 @@
+syntax = "proto3";
+package bitsong.fantoken.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message EventIssue {
+  string denom = 1;
+}
+
+message EventDisableMint {
+  string denom = 1;
+}
+
+message EventMint {
+  string denom = 1;
+  string amount = 2;
+  string recipient = 3;
+}
+
+message EventBurn {
+  string denom = 1;
+  string amount = 2;
+}
+
+message EventTransferAuthority {
+  string denom = 1;
+  string src_authority = 2 [ (gogoproto.moretags) = "yaml:\"src_authority\"" ];
+  string dst_authority = 3 [ (gogoproto.moretags) = "yaml:\"dst_authority\"" ];
+}

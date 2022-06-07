@@ -12,17 +12,17 @@ service Msg {
   // Issue defines a method for issuing a new fan token
   rpc Issue(MsgIssue) returns (MsgIssueResponse);
 
-  // Edit defines a method for editing a fan token
-  rpc Edit(MsgEdit) returns (MsgEditResponse);
-
   // Mint defines a method for minting some fan tokens
   rpc Mint(MsgMint) returns (MsgMintResponse);
 
   // Burn defines a method for burning some fan tokens
   rpc Burn(MsgBurn) returns (MsgBurnResponse);
 
-  // TransferOwnership defines a method for transfer the fan token ownership
-  rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse);
+  // DisableMint defines a method for disable the mint function
+  rpc DisableMint(MsgDisableMint) returns (MsgDisableMintResponse);
+
+  // TransferAuthority defines a method for transfer the fan token authority
+  rpc TransferAuthority(MsgTransferAuthority) returns (MsgTransferAuthorityResponse);
 }
 
 // MsgIssue defines a message for issuing a new fan token
@@ -41,8 +41,8 @@ message MsgIssue {
     (gogoproto.nullable) = false
   ];
 
-  // owner which is the current owner of the fan token. It is an address and can change during the fan token lifecycle thanks to the MsgTransferOwnership
-  string owner = 4;
+  // authority which is the current owner of the fan token. It is an address and can change during the fan token lifecycle thanks to the MsgTransferAuthority
+  string authority = 4;
 
   // TODO: should be editable?
   // URI which is the current uri of the fan token. It is a string can change during the fan token lifecycle thanks to the MsgEdit
@@ -52,31 +52,30 @@ message MsgIssue {
 // MsgIssueResponse defines the MsgIssue response type
 message MsgIssueResponse {}
 
-// MsgTransferOwnership defines a message for transferring the fan token ownership
-message MsgTransferOwnership {
+// MsgTransferAuthority defines a message for transferring the fan token authority
+message MsgTransferAuthority {
 
   // denom the fan token denom
   string denom = 1;
 
-  // src_owner, the actual owner
-  string src_owner = 2 [ (gogoproto.moretags) = "yaml:\"src_owner\"" ];
+  // src_authority, the actual owner
+  string src_authority = 2 [ (gogoproto.moretags) = "yaml:\"src_authority\"" ];
 
-  // dst_owner, the new fan token owner
-  string dst_owner = 3 [ (gogoproto.moretags) = "yaml:\"dst_owner\"" ];
+  // dst_authority, the new fan token owner
+  string dst_authority = 3 [ (gogoproto.moretags) = "yaml:\"dst_authority\"" ];
 }
 
-// MsgTransferOwnershipResponse defines the MsgTransferOwnership response type
-message MsgTransferOwnershipResponse {}
+// MsgTransferAuthorityResponse defines the MsgTransferAuthority response type
+message MsgTransferAuthorityResponse {}
 
-// MsgEdit defines a message for editing a fan token
-message MsgEdit {
+// MsgDisableMint defines a message for disable the mint function
+message MsgDisableMint {
   string denom = 1;
-  bool mintable = 2;
-  string owner = 3;
+  string authority = 3;
 }
 
-// MsgEditResponse defines the MsgEdit response type
-message MsgEditResponse {}
+// MsgDisableMintResponse defines the MsgDisableMint response type
+message MsgDisableMintResponse {}
 
 // MsgMint defines a message for minting a new fan token
 message MsgMint {
@@ -87,7 +86,7 @@ message MsgMint {
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false
   ];
-  string owner = 4;
+  string authority = 4;
 }
 
 // MsgMintResponse defines the MsgMint response type

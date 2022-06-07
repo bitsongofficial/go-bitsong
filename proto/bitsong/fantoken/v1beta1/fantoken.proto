@@ -36,21 +36,10 @@ message FanToken {
 
   bool mintable = 3;
 
-  string owner = 4;
+  string authority = 4;
 
   Metadata meta_data = 5 [
     (gogoproto.moretags) = "yaml:\"meta_data\"",
-    (gogoproto.nullable) = false
-  ];
-}
-
-// Params defines fantoken module's parameters
-message Params {
-  option (gogoproto.equal) = true;
-  option (gogoproto.goproto_stringer) = false;
-
-  cosmos.base.v1beta1.Coin issue_fee = 1 [
-    (gogoproto.moretags) = "yaml:\"issue_fee\"",
     (gogoproto.nullable) = false
   ];
 }

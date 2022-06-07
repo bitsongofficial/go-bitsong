@@ -24,56 +24,50 @@ func NewMsgServerImpl(keeper *Keeper) types.MsgServer {
 func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.MsgIssueResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	owner, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		return nil, err
 	}
 
-	if m.Keeper.blockedAddrs[msg.Owner] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Owner)
+	if m.Keeper.blockedAddrs[msg.Authority] {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Authority)
 	}
 
-	denom, err := m.Keeper.IssueFanToken(ctx, msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, owner)
+	denom, err := m.Keeper.Issue(ctx, msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, owner)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeIssueFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, denom),
-		),
+	ctx.EventManager().EmitTypedEvent(&types.EventIssue{
+		Denom: denom,
 	})
 
 	return &types.MsgIssueResponse{}, nil
 }
 
-func (m msgServer) Edit(goCtx context.Context, msg *types.MsgEdit) (*types.MsgEditResponse, error) {
+func (m msgServer) DisableMint(goCtx context.Context, msg *types.MsgDisableMint) (*types.MsgDisableMintResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	authority, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.Keeper.EditFanToken(ctx, msg.Denom, msg.Mintable, owner); err != nil {
+	if err := m.Keeper.DisableMint(ctx, msg.Denom, authority); err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeEditFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-		),
+	ctx.EventManager().EmitTypedEvent(&types.EventDisableMint{
+		Denom: msg.Denom,
 	})
 
-	return &types.MsgEditResponse{}, nil
+	return &types.MsgDisableMintResponse{}, nil
 }
 
 func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMintResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	authority, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		return nil, err
 	}
@@ -86,24 +80,21 @@ func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMi
 			return nil, err
 		}
 	} else {
-		recipient = owner
+		recipient = authority
 	}
 
 	if m.Keeper.blockedAddrs[recipient.String()] {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
 	}
 
-	if err := m.Keeper.MintFanToken(ctx, recipient, msg.Denom, msg.Amount, owner); err != nil {
+	if err := m.Keeper.Mint(ctx, recipient, msg.Denom, msg.Amount, authority); err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeMintFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyRecipient, recipient.String()),
-		),
+	ctx.EventManager().EmitTypedEvent(&types.EventMint{
+		Denom:     msg.Denom,
+		Amount:    msg.Amount.String(),
+		Recipient: recipient.String(),
 	})
 
 	return &types.MsgMintResponse{}, nil
@@ -121,60 +112,48 @@ func (m msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBu
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Sender)
 	}
 
-	if err := m.Keeper.BurnFanToken(ctx, msg.Denom, msg.Amount, owner); err != nil {
+	if err := m.Keeper.Burn(ctx, msg.Denom, msg.Amount, owner); err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeBurnFanToken,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-		),
+	ctx.EventManager().EmitTypedEvent(&types.EventBurn{
+		Denom:  msg.Denom,
+		Amount: msg.Amount.String(),
 	})
 
 	return &types.MsgBurnResponse{}, nil
 }
 
-func (m msgServer) TransferOwnership(goCtx context.Context, msg *types.MsgTransferOwnership) (*types.MsgTransferOwnershipResponse, error) {
+func (m msgServer) TransferAuthority(goCtx context.Context, msg *types.MsgTransferAuthority) (*types.MsgTransferAuthorityResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	srcOwner, err := sdk.AccAddressFromBech32(msg.SrcOwner)
+	srcAuthority, err := sdk.AccAddressFromBech32(msg.SrcAuthority)
 	if err != nil {
 		return nil, err
 	}
 
-	dstOwner, err := sdk.AccAddressFromBech32(msg.DstOwner)
+	dstAuthority, err := sdk.AccAddressFromBech32(msg.DstAuthority)
 	if err != nil {
 		return nil, err
 	}
 
-	if m.Keeper.blockedAddrs[msg.SrcOwner] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.SrcOwner)
+	if m.Keeper.blockedAddrs[msg.SrcAuthority] {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.SrcAuthority)
 	}
 
-	if m.Keeper.blockedAddrs[msg.DstOwner] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.DstOwner)
+	if m.Keeper.blockedAddrs[msg.DstAuthority] {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.DstAuthority)
 	}
 
-	if err := m.Keeper.TransferFanTokenOwner(ctx, msg.Denom, srcOwner, dstOwner); err != nil {
+	if err := m.Keeper.TransferAuthority(ctx, msg.Denom, srcAuthority, dstAuthority); err != nil {
 		return nil, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeTransferFanTokenOwner,
-			sdk.NewAttribute(types.AttributeKeyDenom, msg.Denom),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.SrcOwner),
-			sdk.NewAttribute(types.AttributeKeyDstOwner, msg.DstOwner),
-		),
-		// TODO: do we need this event?
-		/*sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.SrcOwner),
-		),*/
+	ctx.EventManager().EmitTypedEvent(&types.EventTransferAuthority{
+		Denom:        msg.Denom,
+		SrcAuthority: msg.SrcAuthority,
+		DstAuthority: msg.DstAuthority,
 	})
 
-	return &types.MsgTransferOwnershipResponse{}, nil
+	return &types.MsgTransferAuthorityResponse{}, nil
 }

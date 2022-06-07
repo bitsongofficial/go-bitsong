@@ -55,14 +55,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("go-bitsong/%s", types.ModuleName))
 }
 
-// IssueFanToken issues a new fantoken
-func (k Keeper) IssueFanToken(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress) (denom string, err error) {
+// Issue issues a new fantoken
+func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, authority sdk.AccAddress) (denom string, err error) {
 	// handle fee for token
-	if err := k.DeductIssueFanTokenFee(ctx, owner); err != nil {
+	if err := k.deductIssueFee(ctx, authority); err != nil {
 		return denom, err
 	}
 
-	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, owner, ctx.BlockHeight())
+	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, authority, ctx.BlockHeight())
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
 	}
@@ -70,66 +70,64 @@ func (k Keeper) IssueFanToken(ctx sdk.Context, name, symbol, uri string, maxSupp
 	return fantoken.GetDenom(), nil
 }
 
-// EditFanToken edits the specified fantoken
-func (k Keeper) EditFanToken(ctx sdk.Context, denom string, mintable bool, owner sdk.AccAddress) error {
+// DisableMint disable the mint of a specific fantoken
+func (k Keeper) DisableMint(ctx sdk.Context, denom string, authority sdk.AccAddress) error {
 	// get the fantoken
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if owner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", owner, denom)
+	if authority.String() != fantoken.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
 	}
 
 	if !fantoken.Mintable {
 		return sdkerrors.Wrapf(types.ErrNotMintable, "the fantoken %s is not mintable", denom)
 	}
 
-	fantoken.Mintable = mintable
+	fantoken.Mintable = false
+	fantoken.Authority = ""
 
-	if !mintable {
-		supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
-		precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
-		fantoken.MaxSupply = supply.Quo(precision)
-	}
+	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
+	fantoken.MaxSupply = supply
 
 	k.setFanToken(ctx, fantoken)
 
 	return nil
 }
 
-// TransferFanTokenOwner transfers the owner of the specified fantoken to a new one
-func (k Keeper) TransferFanTokenOwner(ctx sdk.Context, denom string, srcOwner, dstOwner sdk.AccAddress) error {
+// TransferAuthority transfers the owner of the specified fantoken to a new one
+func (k Keeper) TransferAuthority(ctx sdk.Context, denom string, srcAuthority, dstAuthority sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if srcOwner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", srcOwner, denom)
+	if srcAuthority.String() != fantoken.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", srcAuthority, denom)
 	}
 
-	fantoken.Owner = dstOwner.String()
+	fantoken.Authority = dstAuthority.String()
 
 	// update fantoken
 	k.setFanToken(ctx, fantoken)
 
 	// reset all indices
-	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), srcOwner, dstOwner)
+	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), srcAuthority, dstAuthority)
 
 	return nil
 }
 
-// MintFanToken mints the specified amount of fantoken to the specified recipient
-func (k Keeper) MintFanToken(ctx sdk.Context, recipient sdk.AccAddress, denom string, amount sdk.Int, owner sdk.AccAddress) error {
+// Mint mints the specified amount of fantoken to the specified recipient
+func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, amount sdk.Int, authority sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if owner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", owner, denom)
+	if authority.String() != fantoken.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
 	}
 
 	if !fantoken.Mintable {
@@ -137,7 +135,8 @@ func (k Keeper) MintFanToken(ctx sdk.Context, recipient sdk.AccAddress, denom st
 	}
 
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
-	mintableAmt := fantoken.MaxSupply.Sub(supply)
+	burnedCoins := k.getBurnedCoins(ctx, fantoken.GetDenom())
+	mintableAmt := fantoken.MaxSupply.Sub(supply).Sub(burnedCoins.Amount)
 
 	if amount.GT(mintableAmt) {
 		return sdkerrors.Wrapf(
@@ -156,16 +155,16 @@ func (k Keeper) MintFanToken(ctx sdk.Context, recipient sdk.AccAddress, denom st
 	}
 
 	if recipient.Empty() {
-		recipient = owner
+		recipient = authority
 	}
 
 	// sent coins to the recipient account
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, mintCoins)
 }
 
-// BurnFanToken burns the specified amount of fantoken
-func (k Keeper) BurnFanToken(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.AccAddress) error {
-	found := k.HasFanToken(ctx, denom)
+// Burn burns the specified amount of fantoken
+func (k Keeper) Burn(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.AccAddress) error {
+	found := k.hasFanToken(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrFanTokenNotExists, "fantoken not found: %s", denom)
 	}

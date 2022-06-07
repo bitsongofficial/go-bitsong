@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	gogotypes "github.com/gogo/protobuf/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +10,7 @@ import (
 )
 
 // GetFanTokens returns all existing fantokens
-func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens []*types.FanToken) {
+func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens []types.FanToken) {
 	store := ctx.KVStore(k.storeKey)
 
 	var it sdk.Iterator
@@ -24,7 +22,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 			var fantoken types.FanToken
 			k.cdc.MustUnmarshal(it.Value(), &fantoken)
 
-			fantokens = append(fantokens, &fantoken)
+			fantokens = append(fantokens, fantoken)
 		}
 		return
 	}
@@ -40,7 +38,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 		if err != nil {
 			continue
 		}
-		fantokens = append(fantokens, fantoken)
+		fantokens = append(fantokens, *fantoken)
 	}
 	return
 }
@@ -57,127 +55,29 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (*types.FanToken, err
 
 // AddFanToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
-	if k.HasFanToken(ctx, token.GetDenom()) {
+	if k.hasFanToken(ctx, token.GetDenom()) {
 		return sdkerrors.Wrapf(types.ErrDenomAlreadyExists, "denom already exists: %s", token.GetDenom())
 	}
 
 	// set token
 	k.setFanToken(ctx, token)
 
-	if len(token.Owner) != 0 {
+	if len(token.Authority) != 0 {
 		// set token to be prefixed with owner
-		k.setWithOwner(ctx, token.GetOwner(), token.GetDenom())
+		k.setWithOwner(ctx, token.GetAuthority(), token.GetDenom())
 	}
 
 	return nil
 }
 
-// HasFanToken asserts a fantoken exists
-func (k Keeper) HasFanToken(ctx sdk.Context, denom string) bool {
-	store := ctx.KVStore(k.storeKey)
-	return store.Has(types.KeyDenom(denom))
-}
-
-// GetOwner returns the owner of the specified fantoken
-func (k Keeper) GetOwner(ctx sdk.Context, denom string) (sdk.AccAddress, error) {
-	fantoken, err := k.GetFanToken(ctx, denom)
-	if err != nil {
-		return nil, err
-	}
-
-	return fantoken.GetOwner(), nil
-}
-
 // AddBurnCoin saves the total amount of the burned fantokens
 func (k Keeper) AddBurnCoin(ctx sdk.Context, coin sdk.Coin) {
 	var total = coin
-	if hasCoin, err := k.GetBurnCoin(ctx, coin.Denom); err == nil {
-		total = total.Add(hasCoin)
-	}
 
-	bz := k.cdc.MustMarshal(&total)
-	key := types.KeyBurnFanTokenAmt(coin.Denom)
+	burnedCoins := k.getBurnedCoins(ctx, coin.Denom)
+	total = total.Add(burnedCoins)
 
-	store := ctx.KVStore(k.storeKey)
-	store.Set(key, bz)
-}
-
-// GetBurnCoin returns the total amount of the burned fantokens
-func (k Keeper) GetBurnCoin(ctx sdk.Context, denom string) (sdk.Coin, error) {
-	key := types.KeyBurnFanTokenAmt(denom)
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(key)
-
-	if len(bz) == 0 {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrNotFoundTokenAmt, "not found denom: %s", denom)
-	}
-
-	var coin sdk.Coin
-	k.cdc.MustUnmarshal(bz, &coin)
-
-	return coin, nil
-}
-
-// GetAllBurnCoin returns the total amount of all the burned fantokens
-func (k Keeper) GetAllBurnCoin(ctx sdk.Context) []sdk.Coin {
-	store := ctx.KVStore(k.storeKey)
-
-	var coins []sdk.Coin
-	it := sdk.KVStorePrefixIterator(store, types.PefixBurnFanTokenAmt)
-	for ; it.Valid(); it.Next() {
-		var coin sdk.Coin
-		k.cdc.MustUnmarshal(it.Value(), &coin)
-		coins = append(coins, coin)
-	}
-
-	return coins
-}
-
-// GetParamSet returns fantoken params from the global param store
-func (k Keeper) GetParamSet(ctx sdk.Context) types.Params {
-	var p types.Params
-	k.paramSpace.GetParamSet(ctx, &p)
-	return p
-}
-
-// SetParamSet sets fantoken params to the global param store
-func (k Keeper) SetParamSet(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
-}
-
-func (k Keeper) setWithOwner(ctx sdk.Context, owner sdk.AccAddress, denom string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&gogotypes.StringValue{Value: denom})
-	store.Set(types.KeyFanTokens(owner, denom), bz)
-}
-
-func (k Keeper) setFanToken(ctx sdk.Context, token *types.FanToken) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(token)
-	store.Set(types.KeyDenom(token.GetDenom()), bz)
-}
-
-func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken *types.FanToken, err error) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := store.Get(types.KeyDenom(denom))
-	if bz == nil {
-		return fantoken, sdkerrors.Wrap(types.ErrFanTokenNotExists, fmt.Sprintf("fantoken denom %s does not exist", denom))
-	}
-
-	k.cdc.MustUnmarshal(bz, fantoken)
-	return fantoken, nil
-}
-
-// reset all indices by the new owner for fantoken query
-func (k Keeper) resetStoreKeyForQueryToken(ctx sdk.Context, denom string, srcOwner, dstOwner sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-
-	// delete the old key
-	store.Delete(types.KeyFanTokens(srcOwner, denom))
-
-	// add the new key
-	k.setWithOwner(ctx, dstOwner, denom)
+	k.SetBurnCoin(ctx, total)
 }
 
 // getFanTokenSupply queries the fantoken supply from the total supply

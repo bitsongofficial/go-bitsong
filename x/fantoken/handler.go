@@ -20,8 +20,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Issue(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgEdit:
-			res, err := msgServer.Edit(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgDisableMint:
+			res, err := msgServer.DisableMint(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgMint:
@@ -32,8 +32,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Burn(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgTransferOwnership:
-			res, err := msgServer.TransferOwnership(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgTransferAuthority:
+			res, err := msgServer.TransferAuthority(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:

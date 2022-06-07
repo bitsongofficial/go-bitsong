@@ -48,10 +48,10 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	var owner sdk.AccAddress
 	var err error
 
-	if len(req.Owner) > 0 {
-		owner, err = sdk.AccAddressFromBech32(req.Owner)
+	if len(req.Authority) > 0 {
+		owner, err = sdk.AccAddressFromBech32(req.Authority)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("invalid owner address (%s)", err))
+			return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("invalid authority address (%s)", err))
 		}
 	}
 
@@ -112,5 +112,5 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 func (k Keeper) TotalBurn(c context.Context, req *types.QueryTotalBurnRequest) (*types.QueryTotalBurnResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	return &types.QueryTotalBurnResponse{BurnedCoins: k.GetAllBurnCoin(ctx)}, nil
+	return &types.QueryTotalBurnResponse{BurnedCoins: k.GetAllBurnedCoins(ctx)}, nil
 }

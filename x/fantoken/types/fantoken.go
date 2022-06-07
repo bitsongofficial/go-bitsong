@@ -14,12 +14,12 @@ var (
 )
 
 // NewFanToken constructs a new FanToken instance
-func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, owner sdk.AccAddress, height int64) *FanToken {
+func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, authority sdk.AccAddress, height int64) *FanToken {
 	return &FanToken{
-		Denom:     GetFantokenDenom(height, owner, symbol, name),
+		Denom:     GetFantokenDenom(height, authority, symbol, name),
 		MaxSupply: maxSupply,
 		Mintable:  true,
-		Owner:     owner.String(),
+		Authority: authority.String(),
 		MetaData:  NewMetadata(name, symbol, uri),
 	}
 }
@@ -58,9 +58,9 @@ func (ft FanToken) GetMintable() bool {
 	return ft.Mintable
 }
 
-// GetOwner implements exported.FanTokenI
-func (ft FanToken) GetOwner() sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(ft.Owner)
+// GetAuthority implements exported.FanTokenI
+func (ft FanToken) GetAuthority() sdk.AccAddress {
+	owner, _ := sdk.AccAddressFromBech32(ft.Authority)
 	return owner
 }
 

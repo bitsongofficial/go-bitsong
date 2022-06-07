@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -28,10 +27,10 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		GetCmdIssue(),
-		GetCmdEdit(),
+		GetCmdDisableMint(),
 		GetCmdMint(),
 		GetCmdBurn(),
-		GetCmdTransferOwnership(),
+		GetCmdTransferAuthority(),
 	)
 
 	return txCmd
@@ -59,7 +58,7 @@ func GetCmdIssue() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress()
+			authority := clientCtx.GetFromAddress()
 			symbol, err := cmd.Flags().GetString(FlagSymbol)
 			if err != nil {
 				return err
@@ -85,7 +84,7 @@ func GetCmdIssue() *cobra.Command {
 				Symbol:    symbol,
 				Name:      name,
 				MaxSupply: maxSupply,
-				Owner:     owner.String(),
+				Authority: authority.String(),
 				URI:       uri,
 			}
 
@@ -97,7 +96,7 @@ func GetCmdIssue() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsIssueFanToken)
+	cmd.Flags().AddFlagSet(FsIssue)
 	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
 	_ = cmd.MarkFlagRequired(FlagMaxSupply)
@@ -106,14 +105,13 @@ func GetCmdIssue() *cobra.Command {
 	return cmd
 }
 
-// GetCmdEdit implements the edit fan token mintable command
-func GetCmdEdit() *cobra.Command {
+// GetCmdDisableMint implements the edit fan token mintable command
+func GetCmdDisableMint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "edit [denom]",
-		Long: "Edit an existing fantoken.",
+		Use:  "disable-mint [denom]",
+		Long: "Disable Mint of an existing fantoken.",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken edit <denom> "+
-				"--mintable=true "+
+			"$ %s tx fantoken disable-mint <denom> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -126,18 +124,9 @@ func GetCmdEdit() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			authority := clientCtx.GetFromAddress().String()
 
-			rawMintable, err := cmd.Flags().GetString(FlagMintable)
-			if err != nil {
-				return err
-			}
-			mintable, err := strconv.ParseBool(rawMintable)
-			if err != nil {
-				return err
-			}
-
-			msg := tokentypes.NewMsgEdit(args[0], mintable, owner)
+			msg := tokentypes.NewMsgDisableMint(args[0], authority)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -146,7 +135,7 @@ func GetCmdEdit() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsEditFanToken)
+	cmd.Flags().AddFlagSet(FsDisableMint)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -172,7 +161,7 @@ func GetCmdMint() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			authority := clientCtx.GetFromAddress().String()
 
 			amountStr, err := cmd.Flags().GetString(FlagAmount)
 			if err != nil {
@@ -195,7 +184,7 @@ func GetCmdMint() *cobra.Command {
 			}
 
 			msg := tokentypes.NewMsgMint(
-				addr, strings.TrimSpace(args[0]), owner, amount,
+				addr, strings.TrimSpace(args[0]), authority, amount,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -206,7 +195,7 @@ func GetCmdMint() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsMintFanToken)
+	cmd.Flags().AddFlagSet(FsMint)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -266,18 +255,18 @@ func GetCmdBurn() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsMintFanToken)
+	cmd.Flags().AddFlagSet(FsMint)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-// GetCmdTransferOwnership implements the transfer fan token owner command
-func GetCmdTransferOwnership() *cobra.Command {
+// GetCmdTransferAuthority implements the transfer fan token authority command
+func GetCmdTransferAuthority() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "transfer [denom]",
-		Long: "Transfer the owner of a fan token to a new owner.",
+		Long: "Transfer the authority of a fan token to a new authority.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken transfer <denom> "+
 				"--recipient=<recipient> "+
@@ -293,17 +282,17 @@ func GetCmdTransferOwnership() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			srcAuthority := clientCtx.GetFromAddress().String()
 
-			toAddr, err := cmd.Flags().GetString(FlagRecipient)
+			dstAuthority, err := cmd.Flags().GetString(FlagDstAuthority)
 			if err != nil {
 				return err
 			}
-			if _, err := sdk.AccAddressFromBech32(toAddr); err != nil {
+			if _, err := sdk.AccAddressFromBech32(dstAuthority); err != nil {
 				return err
 			}
 
-			msg := tokentypes.NewMsgTransferOwnership(strings.TrimSpace(args[0]), owner, toAddr)
+			msg := tokentypes.NewMsgTransferAuthority(strings.TrimSpace(args[0]), srcAuthority, dstAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -313,7 +302,7 @@ func GetCmdTransferOwnership() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsTransferFanTokenOwner)
+	cmd.Flags().AddFlagSet(FsTransferAuthority)
 	_ = cmd.MarkFlagRequired(FlagRecipient)
 	flags.AddTxFlagsToCmd(cmd)
 

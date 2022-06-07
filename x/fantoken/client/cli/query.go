@@ -81,8 +81,7 @@ func GetCmdQueryFanTokens() *cobra.Command {
 				return err
 			}
 
-			var owner sdk.AccAddress
-			owner, err = sdk.AccAddressFromBech32(args[0])
+			authority, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
@@ -93,7 +92,7 @@ func GetCmdQueryFanTokens() *cobra.Command {
 				return err
 			}
 			res, err := queryClient.FanTokens(context.Background(), &types.QueryFanTokensRequest{
-				Owner:      owner.String(),
+				Authority:  authority.String(),
 				Pagination: pageReq,
 			})
 			if err != nil {
