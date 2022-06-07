@@ -303,7 +303,7 @@ func GetCmdTransferAuthority() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FsTransferAuthority)
-	_ = cmd.MarkFlagRequired(FlagRecipient)
+	_ = cmd.MarkFlagRequired(FlagDstAuthority)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
