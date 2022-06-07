@@ -269,7 +269,7 @@ func GetCmdTransferAuthority() *cobra.Command {
 		Long: "Transfer the authority of a fan token to a new authority.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken transfer <denom> "+
-				"--recipient=<recipient> "+
+				"--dst-authority=<dst-authority> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
