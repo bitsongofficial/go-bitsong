@@ -34,6 +34,8 @@ message Auction {
     google.protobuf.Timestamp end_auction_at = 14 [ (gogoproto.stdtime) = true ];
     // Ticked to true when a prize is claimed by person who won it
     bool claimed = 15;
+    // Only valid for LimitedEditionPrints auction
+    uint64 printable_editions = 16;
 }
 
 /// Define valid auction state transitions.
@@ -44,13 +46,32 @@ enum AuctionState {
   ENDED = 3 [ (gogoproto.enumvalue_customname) = "Ended" ];
 }
 
+```
+
+### Auction type
+
+```protobuf
 enum AuctionPrizeType {
     // Transfer ownership of only nft without metadata
     NFT_ONLY_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "NftOnlyTransfer" ];
     // Transfer ownership of both nft and metadata
     FULL_RIGHTS_TRANSFER = 1 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+    // Printing a new child edition from limited supply
+    LIMITED_EDITION_PRINTS = 2 [ (gogoproto.enumvalue_customname) = "LimitedEditionPrints" ];
+    // Printing a new child edition from unlimited supply
+    OPEN_EDITION_PRINTS = 3 [ (gogoproto.enumvalue_customname) = "OpenEditionPrints" ];
 }
 ```
+
+1. `NftOnlyTransfer` is the auction for sending nft to winner bidder.
+2. `FullRightsTransfer` is the auction to transfer both nft and metadata ownership.
+3. `LimitedEditionPrints` is the auction to provide limited number of editions printed to auction winners. Editions can be printed after auction ends.
+4. `OpenEditionPrints` is the auction to provide all auction participants to get printed versions. Editions can be instantly printed after bid even before auction ends.
+
+Note: `Metadata` ownership is temporarily transfered to marketplace module during the auction phase for `FullRightsTransfer`, `LimitedEditionPrints` and `OpenEditionPrints`.
+After auction ends, metadata ownership is returned back to owner for `LimitedEditionPrints` and `OpenEditionPrints` case.
+
+### Storage
 
 - Auction: `0x01 | format(id) -> Auction`
 - Auction by Authority: `0x02 | owner | format(id) -> auction_id`

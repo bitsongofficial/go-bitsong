@@ -9,6 +9,7 @@ message NFT {
   uint64 id = 1;
   string owner = 2;
   uint64 metadata_id = 3;
+  uint64 edition = 4;
 }
 ```
 
@@ -21,6 +22,11 @@ message NFT {
 A `Metadata` is a metadata that is attached to an nft.
 
 ```protobuf
+message MasterEdition {
+  uint64 supply = 1;
+  uint64 max_supply = 2;
+}
+
 message Data {
   /// The name of the asset
   string name = 1;
@@ -44,6 +50,7 @@ message Metadata {
   bool primary_sale_happened = 5;
   // Whether or not the data struct is mutable, default is not
   bool is_mutable = 6;
+  MasterEdition master_edition = 7;
 }
 
 message Creator {
@@ -56,6 +63,13 @@ message Creator {
 
 - Metadata: `0x03 | format(id) -> Metadata`
 - LastMetadataId `0x07 -> id`
+
+### Edition
+
+Metadata has `MasterEdition` object integrated for print ability.
+It involves `supply` and `max_supply` fields.
+When new print is created, supply is increased and new `NFT` object with unique `edition` is created.
+Print cannot exceed `max_supply`.
 
 ## Collection
 

@@ -103,6 +103,11 @@ message EventNFTCreation {
   uint64 nft_id = 2;
 }
 
+message EventPrintEdition {
+  string metadata_id = 1;
+  uint64 edition = 2;
+}
+
 message EventNFTTransfer {
   uint64 nft_id = 1;
   string sender = 2;

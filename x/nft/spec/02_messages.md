@@ -32,9 +32,32 @@ Steps:
 10. Emit event for nft creation
 11. Return `nftId` and `metadataId`
 
+## MsgPrintEdition
+
+`MsgPrintEdition` is a message to print new edition for a metadata.
+Editions can be printed for metadata with `MasterEdition` field by metadata owner.
+
+```protobuf
+message MsgPrintEdition {
+  string sender = 1;
+  uint64 metadata_id = 2;
+}
+```
+
+Steps:
+
+1. Check metadata exists with id `msg.MetadataId`
+2. Check nft owner is equal to `metadata.UpdateAuthority`
+3. Ensure total supply is of MasterEdition is lower than max supply
+4. Generate new edition number for metadata
+5. Pay nft issue fee if it is set to positive value on params store
+6. Create a new NFT with shared metadata with edition number and store
+7. Store the updated edition number on the storage
+8. Emit `EventPrintEdition` event for print edition
+
 ## MsgTransferNFT
 
-`MsgCreateNFT` is a message to update the owner of nft with new one.
+`MsgTransferNFT` is a message to update the owner of nft with new one.
 
 ```protobuf
 message MsgTransferNFT {

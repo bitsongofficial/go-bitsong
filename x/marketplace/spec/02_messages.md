@@ -125,6 +125,13 @@ Steps:
 9. If the amount exceeds `instant_sale_price`, end the auction
 10. Emit event for placing bid
 
+TODO: process should be different per auction type
+
+- `NftOnlyTransfer`: Single winner
+- `FullRightsTransfer`: Single winner
+- `LimitedEditionPrints`: Multiple winners
+- `OpenEditionPrints`: Multiple winners
+
 ## MsgCancelBid
 
 `MsgPlaceBid` is a message to cancel bid on an auction.
@@ -146,6 +153,13 @@ Steps:
 6. Emit event for cancelling bid
 
 Note: Possibility to add cancel fee for the bid.
+
+TODO: process should be different per auction type
+
+- `NftOnlyTransfer`: Single winner
+- `FullRightsTransfer`: Single winner
+- `LimitedEditionPrints`: Multiple winners
+- `OpenEditionPrints`: Multiple winners
 
 ## MsgClaimBid
 
@@ -169,3 +183,10 @@ Steps:
 7. If auction type is for transferring metadata ownership as well, transfer metadata ownership as well
 8. Update auction with claimed status
 9. Emit event for claiming bid
+
+TODO: process should be different per auction type
+
+- `NftOnlyTransfer`: Single winner
+- `FullRightsTransfer`: Single winner
+- `LimitedEditionPrints`: Multiple winners
+- `OpenEditionPrints`: Multiple winners
