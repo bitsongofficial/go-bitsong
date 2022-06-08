@@ -39,6 +39,8 @@ Steps:
 6. Emit event for auction creation
 7. Return auction id
 
+Notes: Send only metadata ownership to auction when it's `LimitedEditionPrints` and `OpenEditionPrints`
+
 ## MsgSetAuctionAuthority
 
 `MsgSetAuctionAuthority` is a message to send authority of the auction to a new address.
@@ -100,6 +102,8 @@ Steps:
 6.  If winning bid does not exists, send nft and metadata ownership to auction authority
 7.  Emit event for auction end
 
+Notes: Metadata ownership should be returned back to owner regardless winner bidder exists or not when it's `LimitedEditionPrints` or `OpenEditionPrints`
+
 ## MsgPlaceBid
 
 `MsgPlaceBid` is a message to place bid on an auction.
@@ -132,6 +136,9 @@ TODO: process should be different per auction type
 - `LimitedEditionPrints`: Multiple winners
 - `OpenEditionPrints`: Multiple winners
 
+Notes: `LimitedEditionPrints` will be checking if the bid will be on top `n` - number of editions to print - not top bid.
+`OpenEditionPrints` will be checking only floor price.
+
 ## MsgCancelBid
 
 `MsgPlaceBid` is a message to cancel bid on an auction.
@@ -160,6 +167,9 @@ TODO: process should be different per auction type
 - `FullRightsTransfer`: Single winner
 - `LimitedEditionPrints`: Multiple winners
 - `OpenEditionPrints`: Multiple winners
+
+Notes: `LimitedEditionPrints` will be checking if the bid is not on top `n` - to be able to cancel.
+`OpenEditionPrints` won't be able to cancel.
 
 ## MsgClaimBid
 
@@ -190,3 +200,6 @@ TODO: process should be different per auction type
 - `FullRightsTransfer`: Single winner
 - `LimitedEditionPrints`: Multiple winners
 - `OpenEditionPrints`: Multiple winners
+
+Notes: `OpenEditionPrints` will be able to claim even auction not ends.
+`LimitedEditionPrints` will be able to claim only after auction ends.
