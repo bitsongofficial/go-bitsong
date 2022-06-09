@@ -5,14 +5,15 @@ import (
 )
 
 const (
-	FlagName                 = "name"
-	FlagSymbol               = "symbol"
-	FlagUri                  = "uri"
-	FlagSellerFeeBasisPoints = "seller-fee-basis-points"
-	FlagCreators             = "creators"
-	FlagCreatorShares        = "creator-shares"
-	FlagMutable              = "mutable"
-	FlagUpdateAuthority      = "update-authority"
+	FlagName                   = "name"
+	FlagSymbol                 = "symbol"
+	FlagUri                    = "uri"
+	FlagSellerFeeBasisPoints   = "seller-fee-basis-points"
+	FlagCreators               = "creators"
+	FlagCreatorShares          = "creator-shares"
+	FlagMutable                = "mutable"
+	FlagUpdateAuthority        = "update-authority"
+	FlagMasterEditionMaxSupply = "master-edition-max-supply"
 
 	FlagNftId    = "nft-id"
 	FlagNewOwner = "new-owner"
@@ -35,6 +36,7 @@ func FlagCreateNFT() *flag.FlagSet {
 	fs.String(FlagCreatorShares, "", "Shares between creators for seller fee")
 	fs.Bool(FlagMutable, false, "mutability of the nft")
 	fs.String(FlagUpdateAuthority, "", "update authority of the nft")
+	fs.Uint64(FlagMasterEditionMaxSupply, 0, "master edition max supply")
 
 	return fs
 }

@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) CreateNFT(creator sdk.AccAddress) *types.MsgCreate
 			Uri:                  "punk.com",
 			SellerFeeBasisPoints: 0,
 			Creators:             []*types.Creator{},
-		}, false, false,
+		}, false, false, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) CreateMutableNFT(creator sdk.AccAddress) *types.Ms
 			Uri:                  "punk.com",
 			SellerFeeBasisPoints: 0,
 			Creators:             []*types.Creator{},
-		}, false, true,
+		}, false, true, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, crea
 			Uri:                  "punk.com",
 			SellerFeeBasisPoints: 0,
 			Creators:             creators,
-		}, false, false,
+		}, false, false, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 						Share:    1,
 					},
 				},
-			}, false, false,
+			}, false, false, 1,
 		))
 		if tc.expectPass {
 			suite.Require().NoError(err)

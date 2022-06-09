@@ -20,7 +20,7 @@ const (
 
 var _ sdk.Msg = &MsgCreateNFT{}
 
-func NewMsgCreateNFT(sender sdk.AccAddress, updateAuthority string, data Data, presaleHappened, isMutable bool) *MsgCreateNFT {
+func NewMsgCreateNFT(sender sdk.AccAddress, updateAuthority string, data Data, presaleHappened, isMutable bool, masterEditionMaxSupply uint64) *MsgCreateNFT {
 	return &MsgCreateNFT{
 		Sender: sender.String(),
 		Metadata: Metadata{
@@ -29,6 +29,9 @@ func NewMsgCreateNFT(sender sdk.AccAddress, updateAuthority string, data Data, p
 			Data:                &data,
 			PrimarySaleHappened: presaleHappened,
 			IsMutable:           isMutable,
+			MasterEdition: &MasterEdition{
+				MaxSupply: masterEditionMaxSupply,
+			},
 		},
 	}
 }

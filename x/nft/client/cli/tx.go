@@ -73,12 +73,17 @@ func GetCmdCreateNFT() *cobra.Command {
 				return err
 			}
 
+			masterEditionMaxSupply, err := cmd.Flags().GetUint64(FlagMasterEditionMaxSupply)
+			if err != nil {
+				return err
+			}
+
 			data, err := collectNftData(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), updateAuthority, data, false, isMutable)
+			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), updateAuthority, data, false, isMutable, masterEditionMaxSupply)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
