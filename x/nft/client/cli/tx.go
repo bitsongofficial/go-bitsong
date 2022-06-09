@@ -27,6 +27,7 @@ func NewTxCmd() *cobra.Command {
 
 	txCmd.AddCommand(
 		GetCmdCreateNFT(),
+		GetCmdPrintEdition(),
 		GetCmdTransferNFT(),
 		GetCmdSignMetadata(),
 		GetCmdUpdateMetadata(),
@@ -88,6 +89,42 @@ func GetCmdCreateNFT() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FlagCreateNFT())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdPrintEdition() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "print-edition",
+		Long: "Print a new edition from master edition metadata",
+		Example: fmt.Sprintf(
+			`$ %s tx nft print-edition
+				--metadata-id=1`,
+			version.AppName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), metadataId)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagPrintEdition())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

@@ -29,6 +29,12 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	for index := range msg.Metadata.Data.Creators {
 		msg.Metadata.Data.Creators[index].Verified = false
 	}
+	if msg.Metadata.MasterEdition != nil {
+		msg.Metadata.MasterEdition.Supply = 1
+		if msg.Metadata.MasterEdition.MaxSupply < 1 {
+			msg.Metadata.MasterEdition.MaxSupply = 1
+		}
+	}
 	m.Keeper.SetMetadata(ctx, msg.Metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataCreation{
 		Creator:    msg.Sender,
@@ -36,21 +42,13 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	})
 
 	// burn fees before minting an nft
-	fee := m.GetParamSet(ctx).IssuePrice
-	if fee.IsPositive() {
-		feeCoins := sdk.Coins{fee}
-		sender, err := sdk.AccAddressFromBech32(msg.Sender)
-		if err != nil {
-			return nil, err
-		}
-		err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, feeCoins)
-		if err != nil {
-			return nil, err
-		}
-		err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, feeCoins)
-		if err != nil {
-			return nil, err
-		}
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	err = m.Keeper.PayNftIssueFee(ctx, sender)
+	if err != nil {
+		return nil, err
 	}
 
 	// create nft
@@ -60,6 +58,7 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 		Id:         nftId,
 		Owner:      msg.Sender,
 		MetadataId: metadataId,
+		Edition:    0,
 	}
 	m.Keeper.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
@@ -70,6 +69,20 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	return &types.MsgCreateNFTResponse{
 		Id:         nftId,
 		MetadataId: metadataId,
+	}, nil
+}
+
+func (m msgServer) PrintEdition(goCtx context.Context, msg *types.MsgPrintEdition) (*types.MsgPrintEditionResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	nftId, err := m.Keeper.PrintEdition(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgPrintEditionResponse{
+		Id:         nftId,
+		MetadataId: msg.MetadataId,
 	}, nil
 }
 

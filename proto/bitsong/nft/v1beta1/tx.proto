@@ -37,7 +37,10 @@ message MsgPrintEdition {
   string sender = 1;
   uint64 metadata_id = 2;
 }
-message MsgPrintEditionResponse {}
+message MsgPrintEditionResponse {
+  uint64 id = 1;
+  uint64 metadata_id = 2;
+}
 
 message MsgTransferNFT {
   string sender = 1;

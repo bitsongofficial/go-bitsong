@@ -98,6 +98,72 @@ func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {
 	return allNFTs
 }
 
+func (k Keeper) PayNftIssueFee(ctx sdk.Context, sender sdk.AccAddress) error {
+	fee := k.GetParamSet(ctx).IssuePrice
+	if fee.IsPositive() {
+		feeCoins := sdk.Coins{fee}
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, feeCoins)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, feeCoins)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint64, error) {
+	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	if err != nil {
+		return 0, err
+	}
+
+	if metadata.UpdateAuthority != msg.Sender {
+		return 0, types.ErrNotEnoughPermission
+	}
+
+	if metadata.MasterEdition == nil {
+		return 0, types.ErrNotMasterEditionNft
+	}
+
+	if metadata.MasterEdition.MaxSupply <= metadata.MasterEdition.Supply {
+		return 0, types.ErrAlreadyReachedEditionMaxSupply
+	}
+
+	edition := metadata.MasterEdition.Supply
+	metadata.MasterEdition.Supply += 1
+	k.SetMetadata(ctx, metadata)
+
+	// burn fees before minting an nft
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return 0, err
+	}
+
+	err = k.PayNftIssueFee(ctx, sender)
+	if err != nil {
+		return 0, err
+	}
+
+	// create nft
+	nftId := k.GetLastNftId(ctx) + 1
+	k.SetLastNftId(ctx, nftId)
+	nft := types.NFT{
+		Id:         nftId,
+		Owner:      msg.Sender,
+		MetadataId: msg.MetadataId,
+		Edition:    edition,
+	}
+	k.SetNFT(ctx, nft)
+	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
+		Creator: msg.Sender,
+		NftId:   nftId,
+	})
+
+	return nftId, nil
+}
 func (k Keeper) TransferNFT(ctx sdk.Context, msg *types.MsgTransferNFT) error {
 	nft, err := k.GetNFTById(ctx, msg.Id)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 
 const (
 	TypeMsgCreateNFT                 = "create_nft"
+	TypeMsgPrintEdition              = "print_edition"
 	TypeMsgTransferNFT               = "transfer_nft"
 	TypeMsgSignMetadata              = "sign_metadata"
 	TypeMsgUpdateMetadata            = "update_metadata"
@@ -60,6 +61,46 @@ func (msg MsgCreateNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgCreateNFT) GetSigners() []sdk.AccAddress {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
+}
+
+var _ sdk.Msg = &MsgPrintEdition{}
+
+func NewMsgPrintEdition(sender sdk.AccAddress, metadataId uint64) *MsgPrintEdition {
+	return &MsgPrintEdition{
+		Sender:     sender.String(),
+		MetadataId: metadataId,
+	}
+}
+
+func (msg MsgPrintEdition) Route() string { return RouterKey }
+
+func (msg MsgPrintEdition) Type() string { return TypeMsgPrintEdition }
+
+func (msg MsgPrintEdition) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgPrintEdition) GetSignBytes() []byte {
+	b, err := ModuleCdc.MarshalJSON(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgPrintEdition) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)

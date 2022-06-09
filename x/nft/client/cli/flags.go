@@ -39,6 +39,14 @@ func FlagCreateNFT() *flag.FlagSet {
 	return fs
 }
 
+func FlagPrintEdition() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to print")
+
+	return fs
+}
+
 func FlagTransferNFT() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
