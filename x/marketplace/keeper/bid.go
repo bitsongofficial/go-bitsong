@@ -183,6 +183,16 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 		return err
 	}
 
+	// TODO: process should be different per auction type
+
+	// - `NftOnlyTransfer`: Single winner
+	// - `FullRightsTransfer`: Single winner
+	// - `LimitedEditionPrints`: Multiple winners
+	// - `OpenEditionPrints`: Multiple winners
+
+	// Notes: `LimitedEditionPrints` will be checking if the bid will be on top `n` - number of editions to print - not top bid.
+	// `OpenEditionPrints` will be checking only floor price.
+
 	// Serialize new auction state with new bid
 	auction.LastBid = ctx.BlockTime()
 	auction.LastBidAmount = msg.Amount.Amount.Uint64()
@@ -249,6 +259,16 @@ func (k Keeper) CancelBid(ctx sdk.Context, msg *types.MsgCancelBid) error {
 		return err
 	}
 
+	// TODO: process should be different per auction type
+
+	// - `NftOnlyTransfer`: Single winner
+	// - `FullRightsTransfer`: Single winner
+	// - `LimitedEditionPrints`: Multiple winners
+	// - `OpenEditionPrints`: Multiple winners
+
+	// Notes: `LimitedEditionPrints` will be checking if the bid is not on top `n` - to be able to cancel.
+	// `OpenEditionPrints` won't be able to cancel.
+
 	// Update bidder Metadata
 	bidderdata, err := k.GetBidderMetadata(ctx, bidder)
 	if err != nil {
@@ -305,6 +325,16 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO: process should be different per auction type
+
+	// - `NftOnlyTransfer`: Single winner
+	// - `FullRightsTransfer`: Single winner
+	// - `LimitedEditionPrints`: Multiple winners
+	// - `OpenEditionPrints`: Multiple winners
+
+	// Notes: `OpenEditionPrints` will be able to claim even auction not ends.
+	// `LimitedEditionPrints` will be able to claim only after auction ends.
 
 	nft, err := k.nftKeeper.GetNFTById(ctx, auction.NftId)
 	if err != nil {

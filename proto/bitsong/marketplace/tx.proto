@@ -23,7 +23,7 @@ service Msg {
 
 message MsgCreateAuction {
   string sender = 1;
-  /// NFT being used to bid
+  // NFT being used to bid
   uint64 nft_id = 2;
   // Describes transfering nft ownership only or metadata ownership as well
   bitsong.marketplace.v1beta1.AuctionPrizeType prize_type = 3;

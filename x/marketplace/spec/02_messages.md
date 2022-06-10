@@ -141,7 +141,7 @@ Notes: `LimitedEditionPrints` will be checking if the bid will be on top `n` - n
 
 ## MsgCancelBid
 
-`MsgPlaceBid` is a message to cancel bid on an auction.
+`MsgCancelBid` is a message to cancel bid on an auction.
 
 ```protobuf
 message MsgCancelBid {
