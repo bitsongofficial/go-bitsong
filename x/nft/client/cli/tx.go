@@ -119,7 +119,12 @@ func GetCmdPrintEdition() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), metadataId)
+			owner, err := cmd.Flags().GetString(FlagOwner)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), metadataId, owner)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

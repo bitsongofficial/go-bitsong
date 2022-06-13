@@ -73,10 +73,11 @@ func (msg MsgCreateNFT) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgPrintEdition{}
 
-func NewMsgPrintEdition(sender sdk.AccAddress, metadataId uint64) *MsgPrintEdition {
+func NewMsgPrintEdition(sender sdk.AccAddress, metadataId uint64, owner string) *MsgPrintEdition {
 	return &MsgPrintEdition{
 		Sender:     sender.String(),
 		MetadataId: metadataId,
+		Owner:      owner,
 	}
 }
 

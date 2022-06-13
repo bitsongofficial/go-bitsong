@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 			LastBid:          time.Time{},
 			EndedAt:          time.Time{},
 			EndAuctionAt:     time.Time{},
-			Claimed:          false,
+			Claimed:          0,
 		},
 		{ // started auction
 			Id:               2,
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 			LastBid:          time.Time{},
 			EndedAt:          time.Time{},
 			EndAuctionAt:     now.Add(time.Second),
-			Claimed:          false,
+			Claimed:          0,
 		},
 		{ // bid auction
 			Id:               3,
@@ -89,7 +89,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 			LastBid:          now,
 			EndedAt:          time.Time{},
 			EndAuctionAt:     now.Add(time.Second),
-			Claimed:          false,
+			Claimed:          0,
 		},
 		{ // ended auction
 			Id:               4,
@@ -106,7 +106,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 			LastBid:          now,
 			EndedAt:          now.Add(time.Second * 2),
 			EndAuctionAt:     now.Add(time.Second),
-			Claimed:          false,
+			Claimed:          0,
 		},
 		{ // claimed auction
 			Id:               5,
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 			LastBid:          now,
 			EndedAt:          now.Add(time.Second * 2),
 			EndAuctionAt:     now.Add(time.Second),
-			Claimed:          true,
+			Claimed:          1,
 		},
 	}
 
@@ -318,7 +318,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				LastBid:          time.Time{},
 				EndedAt:          time.Time{},
 				EndAuctionAt:     time.Time{},
-				Claimed:          false,
+				Claimed:          0,
 			})
 		} else {
 			suite.Require().Error(err)

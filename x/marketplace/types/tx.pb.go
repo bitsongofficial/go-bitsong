@@ -36,7 +36,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgCreateAuction struct {
 	Sender string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	/// NFT being used to bid
+	// NFT being used to bid
 	NftId uint64 `protobuf:"varint,2,opt,name=nft_id,json=nftId,proto3" json:"nft_id,omitempty"`
 	// Describes transfering nft ownership only or metadata ownership as well
 	PrizeType AuctionPrizeType `protobuf:"varint,3,opt,name=prize_type,json=prizeType,proto3,enum=bitsong.marketplace.v1beta1.AuctionPrizeType" json:"prize_type,omitempty"`

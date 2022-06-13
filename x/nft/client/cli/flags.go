@@ -14,15 +14,12 @@ const (
 	FlagMutable                = "mutable"
 	FlagUpdateAuthority        = "update-authority"
 	FlagMasterEditionMaxSupply = "master-edition-max-supply"
-
-	FlagNftId    = "nft-id"
-	FlagNewOwner = "new-owner"
-
-	FlagMetadataId = "metadata-id"
-
-	FlagNewAuthority = "new-authority"
-
-	FlagCollectionId = "collection-id"
+	FlagNftId                  = "nft-id"
+	FlagNewOwner               = "new-owner"
+	FlagMetadataId             = "metadata-id"
+	FlagNewAuthority           = "new-authority"
+	FlagCollectionId           = "collection-id"
+	FlagOwner                  = "owner"
 )
 
 func FlagCreateNFT() *flag.FlagSet {
@@ -45,6 +42,7 @@ func FlagPrintEdition() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to print")
+	fs.String(FlagOwner, "", "Owner of printed edition")
 
 	return fs
 }

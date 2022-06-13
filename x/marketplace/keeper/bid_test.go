@@ -648,7 +648,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			// check auction Claimed = true
 			newAuction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
 			suite.Require().NoError(err)
-			suite.Require().True(newAuction.Claimed)
+			suite.Require().Equal(newAuction.Claimed, uint64(1))
 
 			// check nft ownership is transfered to the bidder
 			newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)

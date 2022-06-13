@@ -38,4 +38,5 @@ type NftKeeper interface {
 	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
 	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error
 	SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
+	PrintEdition(ctx sdk.Context, msg *nfttypes.MsgPrintEdition) (uint64, error)
 }

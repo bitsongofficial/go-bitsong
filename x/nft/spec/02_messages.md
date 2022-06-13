@@ -41,6 +41,7 @@ Editions can be printed for metadata with `MasterEdition` field by metadata owne
 message MsgPrintEdition {
   string sender = 1;
   uint64 metadata_id = 2;
+  string owner = 3;
 }
 ```
 

@@ -42,7 +42,9 @@ message Auction {
     google.protobuf.Timestamp end_auction_at = 14
         [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Ticked to true when a prize is claimed by person who won it
-    bool claimed = 15;
+    uint64 claimed = 15;
+    // Edition limitation for limited edition auction
+    uint64 edition_limit = 16;
 }
 
 /// Define valid auction state transitions.

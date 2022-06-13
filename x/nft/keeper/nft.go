@@ -152,7 +152,7 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint6
 	k.SetLastNftId(ctx, nftId)
 	nft := types.NFT{
 		Id:         nftId,
-		Owner:      msg.Sender,
+		Owner:      msg.Owner,
 		MetadataId: msg.MetadataId,
 		Edition:    edition,
 	}

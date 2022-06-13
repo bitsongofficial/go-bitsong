@@ -229,7 +229,7 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		LastBid:          time.Time{},
 		EndedAt:          time.Time{},
 		EndAuctionAt:     time.Time{},
-		Claimed:          false,
+		Claimed:          0,
 	}
 	k.SetAuction(ctx, auction)
 
