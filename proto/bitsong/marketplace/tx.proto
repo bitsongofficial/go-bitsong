@@ -38,6 +38,8 @@ message MsgCreateAuction {
   uint64 instant_sale_price = 7;
   // Tick size - how much higher the next bid must be to beat out the previous bid.
   uint64 tick_size = 8;
+  // Edition limitation for limited edition auction
+  uint64 edition_limit = 9;
 }
 message MsgCreateAuctionResponse {
   uint64 id = 1;

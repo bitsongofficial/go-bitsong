@@ -21,7 +21,7 @@ var _ sdk.Msg = &MsgCreateAuction{}
 
 func NewMsgCreateAuction(sender sdk.AccAddress, nftId uint64, prizeType AuctionPrizeType,
 	bidDenom string, duration time.Duration,
-	priceFloor, instantSalePrice, tickSize uint64,
+	priceFloor, instantSalePrice, tickSize, editionLimit uint64,
 ) *MsgCreateAuction {
 	return &MsgCreateAuction{
 		Sender:           sender.String(),
@@ -32,6 +32,7 @@ func NewMsgCreateAuction(sender sdk.AccAddress, nftId uint64, prizeType AuctionP
 		PriceFloor:       priceFloor,
 		InstantSalePrice: instantSalePrice,
 		TickSize:         tickSize,
+		EditionLimit:     editionLimit,
 	}
 }
 

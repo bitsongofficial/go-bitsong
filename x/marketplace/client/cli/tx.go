@@ -86,9 +86,14 @@ func GetCmdCreateAuction() *cobra.Command {
 				return err
 			}
 
+			editionLimit, err := cmd.Flags().GetUint64(FlagEditionLimit)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgCreateAuction(
 				clientCtx.GetFromAddress(), nftId, types.AuctionPrizeType(types.AuctionPrizeType_value[prizeTypeStr]),
-				bidDenom, duration, priceFloor, instantSalePrice, tickSize,
+				bidDenom, duration, priceFloor, instantSalePrice, tickSize, editionLimit,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {

@@ -237,13 +237,18 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	})
 
 	// If the amount exceeds `instant_sale_price`, end the auction
-	if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
-		err := k.EndAuction(ctx, &types.MsgEndAuction{
-			Sender:    auction.Authority,
-			AuctionId: auction.Id,
-		})
-		if err != nil {
-			return err
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
+			err := k.EndAuction(ctx, &types.MsgEndAuction{
+				Sender:    auction.Authority,
+				AuctionId: auction.Id,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
