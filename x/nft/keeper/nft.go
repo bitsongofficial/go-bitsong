@@ -164,6 +164,7 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint6
 
 	return nftId, nil
 }
+
 func (k Keeper) TransferNFT(ctx sdk.Context, msg *types.MsgTransferNFT) error {
 	nft, err := k.GetNFTById(ctx, msg.Id)
 	if err != nil {

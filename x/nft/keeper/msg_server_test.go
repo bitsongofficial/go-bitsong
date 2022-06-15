@@ -159,6 +159,139 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
+	metadataAuthority := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	editionOwner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase      string
+		metadataId    uint64
+		sender        sdk.AccAddress
+		editionOwner  string
+		masterEdition *types.MasterEdition
+		expectPass    bool
+	}{
+		{
+			"metadata does not exist",
+			0,
+			metadataAuthority,
+			editionOwner.String(),
+			&types.MasterEdition{
+				Supply:    1,
+				MaxSupply: 2,
+			},
+			false,
+		},
+		{
+			"not metadata authority",
+			1,
+			editionOwner,
+			editionOwner.String(),
+			&types.MasterEdition{
+				Supply:    1,
+				MaxSupply: 2,
+			},
+			false,
+		},
+		{
+			"empty master edition",
+			1,
+			metadataAuthority,
+			editionOwner.String(),
+			nil,
+			false,
+		},
+		{
+			"exceed max supply",
+			1,
+			metadataAuthority,
+			editionOwner.String(),
+			&types.MasterEdition{
+				Supply:    2,
+				MaxSupply: 2,
+			},
+			false,
+		},
+		{
+			"successful printing",
+			1,
+			metadataAuthority,
+			editionOwner.String(),
+			&types.MasterEdition{
+				Supply:    1,
+				MaxSupply: 2,
+			},
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		suite.app.NFTKeeper.SetMetadata(suite.ctx, types.Metadata{
+			Id:              1,
+			UpdateAuthority: metadataAuthority.String(),
+			Mint:            metadataAuthority.String(),
+			Data: &types.Data{
+				Name:                 "meta1",
+				Symbol:               "META1",
+				Uri:                  "uri1",
+				SellerFeeBasisPoints: 10,
+				Creators: []*types.Creator{
+					{
+						Address:  metadataAuthority.String(),
+						Verified: false,
+						Share:    1,
+					},
+				},
+			},
+			PrimarySaleHappened: false,
+			IsMutable:           true,
+			MasterEdition:       tc.masterEdition,
+		})
+
+		// set params for issue fee
+		issuePrice := sdk.NewInt64Coin("stake", 1000000)
+		suite.app.NFTKeeper.SetParamSet(suite.ctx, types.Params{
+			IssuePrice: issuePrice,
+		})
+
+		// mint coins for issue fee
+		suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{issuePrice})
+		suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, tc.sender, sdk.Coins{issuePrice})
+
+		// get old balance for future check
+		oldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "stake")
+
+		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
+		resp, err := msgServer.PrintEdition(sdk.WrapSDKContext(suite.ctx), types.NewMsgPrintEdition(
+			tc.sender, tc.metadataId, tc.editionOwner,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// metadata supply change check
+			meta, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, tc.metadataId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(meta.MasterEdition.Supply, tc.masterEdition.Supply+1)
+
+			// nft data check (edition, id)
+			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, resp.Id)
+			suite.Require().NoError(err)
+			suite.Require().Equal(nft.Id, uint64(1))
+			suite.Require().Equal(nft.Edition, tc.masterEdition.Supply)
+
+			// last nft id change check
+			lastNftId := suite.app.NFTKeeper.GetLastNftId(suite.ctx)
+			suite.Require().Equal(lastNftId, uint64(1))
+
+			// nft issue fee check
+			newBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "stake")
+			suite.Require().Equal(newBalance.Amount.Int64()+1000000, oldBalance.Amount.Int64())
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
