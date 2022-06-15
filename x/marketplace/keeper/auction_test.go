@@ -241,6 +241,26 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			1,
 			true,
 		},
+		{
+			"Open edition auction without ownership of metadata",
+			sdk.NewInt64Coin("ubtsg", 2000),
+			sdk.NewInt64Coin("ubtsg", 2000),
+			owner,
+			user2,
+			types.AuctionPrizeType_OpenEditionPrints,
+			1,
+			false,
+		},
+		{
+			"Limited edition auction with ownership of metadata",
+			sdk.NewInt64Coin("ubtsg", 2000),
+			sdk.NewInt64Coin("ubtsg", 2000),
+			owner,
+			owner,
+			types.AuctionPrizeType_LimitedEditionPrints,
+			1,
+			true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -289,12 +309,22 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 
 			// check nft ownership transfer
-			updatedNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, msg.NftId)
-			suite.Require().NoError(err)
-			suite.Require().Equal(updatedNft.Owner, moduleAddr.String())
+			switch tc.auctionType {
+			case types.AuctionPrizeType_NftOnlyTransfer:
+				fallthrough
+			case types.AuctionPrizeType_FullRightsTransfer:
+				updatedNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, msg.NftId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(updatedNft.Owner, moduleAddr.String())
+			}
 
-			// check metadata ownership transfer if full rights transfer auction
-			if tc.auctionType == types.AuctionPrizeType_FullRightsTransfer {
+			// check metadata ownership transfer
+			switch tc.auctionType {
+			case types.AuctionPrizeType_FullRightsTransfer:
+				fallthrough
+			case types.AuctionPrizeType_OpenEditionPrints:
+				fallthrough
+			case types.AuctionPrizeType_LimitedEditionPrints:
 				updatedMetadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
 				suite.Require().Equal(updatedMetadata.UpdateAuthority, moduleAddr.String())
@@ -529,6 +559,24 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 			1,
 			true,
 		},
+		{
+			"metadata return when auction ends on limited edition",
+			owner,
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
+		{
+			"metadata return when auction ends on open edition",
+			owner,
+			types.AuctionPrizeType_OpenEditionPrints,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -570,21 +618,28 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 		if tc.expectPass {
 			suite.Require().NoError(err)
 
-			// check auction authority updated
+			// check auction state updated
 			auction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
 			suite.Require().NoError(err)
 			suite.Require().Equal(auction.EndedAt, suite.ctx.BlockTime())
 			suite.Require().Equal(auction.State, types.AuctionState_Ended)
 
-			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id)
-			suite.Require().NoError(err)
-			if tc.lastBidAmount == 0 {
-				suite.Require().Equal(nft.Owner, auction.Authority)
-			} else {
-				suite.Require().Equal(nft.Owner, moduleAddr.String())
+			switch tc.auctionType {
+			case types.AuctionPrizeType_NftOnlyTransfer:
+				fallthrough
+			case types.AuctionPrizeType_FullRightsTransfer:
+				nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id)
+				suite.Require().NoError(err)
+				if tc.lastBidAmount == 0 {
+					suite.Require().Equal(nft.Owner, auction.Authority)
+				} else {
+					suite.Require().Equal(nft.Owner, moduleAddr.String())
+				}
 			}
 
-			if tc.auctionType == types.AuctionPrizeType_FullRightsTransfer {
+			// check metadata ownership transfer
+			switch tc.auctionType {
+			case types.AuctionPrizeType_FullRightsTransfer:
 				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
 				if tc.lastBidAmount == 0 {
@@ -592,6 +647,12 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 				} else {
 					suite.Require().Equal(metadata.UpdateAuthority, moduleAddr.String())
 				}
+			case types.AuctionPrizeType_OpenEditionPrints:
+				fallthrough
+			case types.AuctionPrizeType_LimitedEditionPrints:
+				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(metadata.UpdateAuthority, auction.Authority)
 			}
 		} else {
 			suite.Require().Error(err)
