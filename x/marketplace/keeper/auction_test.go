@@ -273,7 +273,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 		// get old balance for future check
 		oldBalance := suite.app.BankKeeper.GetBalance(suite.ctx, owner, "ubtsg")
 
-		msg := types.NewMsgCreateAuction(owner, tc.nftId, tc.auctionType, "ubtsg", time.Hour, 1, 1000, 1)
+		msg := types.NewMsgCreateAuction(owner, tc.nftId, tc.auctionType, "ubtsg", time.Hour, 1, 1000, 1, 1)
 		// execute CreateAuction
 		auctionId, err := suite.app.MarketplaceKeeper.CreateAuction(suite.ctx, msg)
 
@@ -319,6 +319,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				EndedAt:          time.Time{},
 				EndAuctionAt:     time.Time{},
 				Claimed:          0,
+				EditionLimit:     1,
 			})
 		} else {
 			suite.Require().Error(err)
