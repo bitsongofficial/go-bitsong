@@ -637,6 +637,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
 	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 
 	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
@@ -649,7 +650,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 		prizeType      types.AuctionPrizeType
 		presaleHappend bool
 		lastBidAmount  uint64
+		anotherBid     uint64
 		bidAmount      uint64
+		editionLimit   uint64
 		auctionId      uint64
 		expectPass     bool
 	}{
@@ -659,7 +662,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			false,
 			1500,
+			0,
 			1000,
+			0,
 			0,
 			false,
 		},
@@ -670,6 +675,8 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			false,
 			1500,
 			0,
+			0,
+			0,
 			1,
 			false,
 		},
@@ -679,7 +686,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			false,
 			1500,
+			0,
 			1000,
+			0,
 			1,
 			false,
 		},
@@ -689,7 +698,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			false,
 			1000,
+			0,
 			1000,
+			0,
 			1,
 			false,
 		},
@@ -699,7 +710,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			true,
 			1000,
+			0,
 			1000,
+			0,
 			1,
 			true,
 		},
@@ -709,7 +722,9 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_FullRightsTransfer,
 			false,
 			1000,
+			0,
 			1000,
+			0,
 			1,
 			true,
 		},
@@ -719,11 +734,48 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			false,
 			1000,
+			0,
 			1000,
+			0,
 			1,
 			true,
 		},
-		// TODO: add more cases for editions
+		{
+			"not successful bid claim - limited edition",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_LimitedEditionPrints,
+			false,
+			1000,
+			1100,
+			1000,
+			1,
+			1,
+			false,
+		},
+		{
+			"successful bid claim - limited edition",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_LimitedEditionPrints,
+			false,
+			1000,
+			1100,
+			1000,
+			2,
+			1,
+			true,
+		},
+		{
+			"successful bid claim - open edition",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_OpenEditionPrints,
+			false,
+			1000,
+			1100,
+			1000,
+			0,
+			1,
+			true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -750,6 +802,10 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 				},
 				SellerFeeBasisPoints: 10,
 			},
+			MasterEdition: &nfttypes.MasterEdition{
+				Supply:    1,
+				MaxSupply: 1000,
+			},
 		}
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
 
@@ -763,8 +819,22 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			State:         tc.state,
 			LastBidAmount: tc.lastBidAmount,
 			BidDenom:      "ubtsg",
+			EditionLimit:  tc.editionLimit,
 		}
 		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+		bids := suite.app.MarketplaceKeeper.GetAllBids(suite.ctx)
+		for _, bid := range bids {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, bid)
+		}
+
+		if tc.anotherBid > 0 {
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder2.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.anotherBid,
+			})
+		}
 
 		if tc.bidAmount > 0 {
 			suite.app.MarketplaceKeeper.SetBidderMetadata(suite.ctx, types.BidderMetadata{
@@ -775,12 +845,6 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 				LastBidCancelled: false,
 			})
 			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
-				Bidder:    bidder.String(),
-				AuctionId: tc.auctionId,
-				Amount:    tc.bidAmount,
-			})
-		} else {
-			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
 				Bidder:    bidder.String(),
 				AuctionId: tc.auctionId,
 				Amount:    tc.bidAmount,
@@ -820,19 +884,27 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			suite.Require().NoError(err)
 			suite.Require().True(newmeta.PrimarySaleHappened)
 
-			// check auction Claimed = true
+			// check auction Claimed value increase
 			newAuction, err := suite.app.MarketplaceKeeper.GetAuctionById(suite.ctx, tc.auctionId)
 			suite.Require().NoError(err)
 			suite.Require().Equal(newAuction.Claimed, uint64(1))
 
-			// check nft ownership is transfered to the bidder
-			newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
-			suite.Require().NoError(err)
-			suite.Require().Equal(newNft.Owner, bidder.String())
-
-			// check metadata ownership is also transfered to bidder if full rights transfer auction
-			if tc.prizeType == types.AuctionPrizeType_FullRightsTransfer {
+			// check nft ownership is transfered to the bidder if nft transfer
+			switch tc.prizeType {
+			case types.AuctionPrizeType_FullRightsTransfer:
+				// check metadata ownership is also transfered to bidder if full rights transfer auction
 				suite.Require().Equal(newmeta.UpdateAuthority, bidder.String())
+				fallthrough
+			case types.AuctionPrizeType_NftOnlyTransfer:
+				newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(newNft.Owner, bidder.String())
+			case types.AuctionPrizeType_LimitedEditionPrints:
+				fallthrough
+			case types.AuctionPrizeType_OpenEditionPrints:
+				nfts := suite.app.NFTKeeper.GetNFTsByOwner(suite.ctx, bidder)
+				suite.Require().Greater(len(nfts), 0)
+				suite.Require().Greater(nfts[len(nfts)-1].Edition, uint64(0))
 			}
 		} else {
 			suite.Require().Error(err)
