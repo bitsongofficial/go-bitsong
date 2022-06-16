@@ -139,7 +139,7 @@ func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount ui
 	auctionBids := k.GetBidsByAuction(ctx, auctionId)
 	higherBidsCount := uint64(0)
 	for _, bid := range auctionBids {
-		if bid.Amount > amount {
+		if bid.Amount >= amount {
 			higherBidsCount++
 		}
 	}
@@ -157,7 +157,7 @@ func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bi
 	case types.AuctionPrizeType_OpenEditionPrints:
 		return true
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount) < auction.EditionLimit {
+		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount) <= auction.EditionLimit {
 			return true
 		}
 	}
@@ -196,6 +196,11 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	case types.AuctionPrizeType_LimitedEditionPrints:
 		if k.CalculateHigherBids(ctx, msg.AuctionId, msg.Amount.Amount.Uint64()) >= auction.EditionLimit {
 			return types.ErrHigherBidsExceedsEditionLimit
+		}
+		fallthrough
+	case types.AuctionPrizeType_OpenEditionPrints:
+		if msg.Amount.Amount.LT(sdk.NewInt(int64(auction.PriceFloor))) {
+			return types.ErrInvalidBidAmount
 		}
 	}
 

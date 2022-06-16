@@ -127,6 +127,7 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
 	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 
 	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
 	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
@@ -134,17 +135,20 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 
 	tests := []struct {
 		testCase         string
+		auctionType      types.AuctionPrizeType
 		state            types.AuctionState
 		isLastBidder     bool
 		lastBidAmount    uint64
 		bidToken         string
 		newBidAmount     uint64
 		instantSalePrice uint64
+		editionLimit     uint64
 		auctionId        uint64
 		expectPass       bool
 	}{
 		{
 			"Not existing auction id",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			false,
 			1000,
@@ -152,71 +156,162 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 			1500,
 			10000,
 			0,
+			0,
 			false,
 		},
 		{
 			"bid on not active auction",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Created,
 			false,
 			1000,
 			"ubtsg",
 			1500,
 			10000,
+			0,
 			1,
 			false,
 		},
 		{
 			"invalid bid token",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Ended,
 			false,
 			1000,
 			"randtoken",
 			1500,
 			10000,
+			0,
 			1,
 			false,
 		},
 		{
 			"bid with low amount check",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			false,
 			1000,
 			"ubtsg",
 			100,
 			10000,
+			0,
 			1,
 			false,
 		},
 		{
 			"bid by winner bidder check",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			true,
 			1000,
 			"ubtsg",
 			0,
 			10000,
+			0,
 			1,
 			false,
 		},
 		{
 			"successful bid lower than instant sale price",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			false,
 			1000,
 			"ubtsg",
 			1500,
 			10000,
+			0,
 			1,
 			true,
 		},
 		{
 			"successful bid higher than instant sale price",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			false,
 			1000,
 			"ubtsg",
 			11000,
 			10000,
+			0,
+			1,
+			true,
+		},
+		{
+			"not successful bid for exceeding edition limit",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1000,
+			10000,
+			1,
+			1,
+			false,
+		},
+		{
+			"successful bid on limited edition",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1000,
+			10000,
+			2,
+			1,
+			true,
+		},
+		{
+			"successful bid on limited edition",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1000,
+			10000,
+			2,
+			1,
+			true,
+		},
+		{
+			"not successful bid on open edition for floor price",
+			types.AuctionPrizeType_OpenEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			100,
+			10000,
+			0,
+			1,
+			false,
+		},
+		{
+			"not successful bid on limited edition for floor price",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			100,
+			10000,
+			0,
+			1,
+			false,
+		},
+		{
+			"successful bid on open edition",
+			types.AuctionPrizeType_OpenEditionPrints,
+			types.AuctionState_Started,
+			false,
+			1000,
+			"ubtsg",
+			1000,
+			10000,
+			0,
 			1,
 			true,
 		},
@@ -247,13 +342,19 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 			Authority:     owner.String(),
 			NftId:         1,
 			Duration:      time.Second,
-			PrizeType:     types.AuctionPrizeType_NftOnlyTransfer,
+			PrizeType:     tc.auctionType,
 			State:         tc.state,
 			LastBidAmount: tc.lastBidAmount,
 			BidDenom:      "ubtsg",
+			PriceFloor:    500,
+			EditionLimit:  tc.editionLimit,
 		}
 		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
 
+		bids := suite.app.MarketplaceKeeper.GetAllBids(suite.ctx)
+		for _, bid := range bids {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, bid)
+		}
 		if tc.isLastBidder {
 			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
 				Bidder:    bidder.String(),
@@ -261,8 +362,8 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 				Amount:    tc.lastBidAmount,
 			})
 		} else {
-			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
-				Bidder:    bidder.String(),
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder2.String(),
 				AuctionId: tc.auctionId,
 				Amount:    tc.lastBidAmount,
 			})
@@ -312,8 +413,13 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 			})
 
 			// check auction end when it's bigger than instant sale price
-			if auction.InstantSalePrice <= tc.newBidAmount {
-				suite.Require().Equal(auction.State, types.AuctionState_Ended)
+			switch tc.auctionType {
+			case types.AuctionPrizeType_NftOnlyTransfer:
+				fallthrough
+			case types.AuctionPrizeType_FullRightsTransfer:
+				if auction.InstantSalePrice <= tc.newBidAmount {
+					suite.Require().Equal(auction.State, types.AuctionState_Ended)
+				}
 			}
 		} else {
 			suite.Require().Error(err)
@@ -325,6 +431,7 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
 	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 
 	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
 	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
@@ -332,41 +439,100 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 
 	tests := []struct {
 		testCase      string
+		auctionType   types.AuctionPrizeType
 		state         types.AuctionState
 		lastBidAmount uint64
+		anotherBid    uint64
 		bidAmount     uint64
+		editionLimit  uint64
 		auctionId     uint64
 		expectPass    bool
 	}{
 		{
 			"Not existing auction id",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			1500,
+			0,
 			1000,
+			0,
 			0,
 			false,
 		},
 		{
 			"cancelling not existing bid",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Created,
 			1500,
+			0,
+			0,
 			0,
 			1,
 			false,
 		},
 		{
 			"try to cancel winner bid",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Ended,
 			1000,
+			0,
 			1000,
+			0,
 			1,
 			false,
 		},
 		{
 			"successful bid cancel",
+			types.AuctionPrizeType_NftOnlyTransfer,
 			types.AuctionState_Started,
 			1000,
+			0,
 			100,
+			0,
+			1,
+			true,
+		},
+		{
+			"not successful cancel for open edition",
+			types.AuctionPrizeType_OpenEditionPrints,
+			types.AuctionState_Started,
+			1000,
+			0,
+			1000,
+			0,
+			1,
+			false,
+		},
+		{
+			"not successful cancel for limited edition",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			1000,
+			0,
+			1000,
+			1,
+			1,
+			false,
+		},
+		{
+			"not successful cancel for limited edition",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			1000,
+			0,
+			1000,
+			1,
+			1,
+			false,
+		},
+		{
+			"successful cancel of limited edition",
+			types.AuctionPrizeType_LimitedEditionPrints,
+			types.AuctionState_Started,
+			1000,
+			1100,
+			1000,
+			1,
 			1,
 			true,
 		},
@@ -397,13 +563,27 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 			Authority:     owner.String(),
 			NftId:         1,
 			Duration:      time.Second,
-			PrizeType:     types.AuctionPrizeType_NftOnlyTransfer,
+			PrizeType:     tc.auctionType,
 			State:         tc.state,
 			LastBidAmount: tc.lastBidAmount,
 			BidDenom:      "ubtsg",
+			PriceFloor:    500,
+			EditionLimit:  tc.editionLimit,
 		}
 		suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
 
+		bids := suite.app.MarketplaceKeeper.GetAllBids(suite.ctx)
+		for _, bid := range bids {
+			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, bid)
+		}
+
+		if tc.anotherBid > 0 {
+			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+				Bidder:    bidder2.String(),
+				AuctionId: tc.auctionId,
+				Amount:    tc.anotherBid,
+			})
+		}
 		if tc.bidAmount > 0 {
 			suite.app.MarketplaceKeeper.SetBidderMetadata(suite.ctx, types.BidderMetadata{
 				Bidder:           bidder.String(),
@@ -413,12 +593,6 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 				LastBidCancelled: false,
 			})
 			suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
-				Bidder:    bidder.String(),
-				AuctionId: tc.auctionId,
-				Amount:    tc.bidAmount,
-			})
-		} else {
-			suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, types.Bid{
 				Bidder:    bidder.String(),
 				AuctionId: tc.auctionId,
 				Amount:    tc.bidAmount,
@@ -549,6 +723,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			1,
 			true,
 		},
+		// TODO: add more cases for editions
 	}
 
 	for _, tc := range tests {
