@@ -25,4 +25,5 @@ var (
 	ErrInvalidAuctionId              = sdkerrors.Register(ModuleName, 18, "invalid auction id")
 	ErrAuctionNotEnded               = sdkerrors.Register(ModuleName, 19, "auction not ended")
 	ErrHigherBidsExceedsEditionLimit = sdkerrors.Register(ModuleName, 20, "high bids exceeds edition limitation")
+	ErrNotEnoughEditionsRemaining    = sdkerrors.Register(ModuleName, 21, "not enough editions remaining")
 )

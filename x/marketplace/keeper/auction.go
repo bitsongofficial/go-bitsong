@@ -191,14 +191,28 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		}
 	}
 
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
+	if err != nil {
+		return 0, err
+	}
+
+	if msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints ||
+		msg.PrizeType == types.AuctionPrizeType_OpenEditionPrints {
+		if metadata.MasterEdition == nil || metadata.MasterEdition.MaxSupply == 1 {
+			return 0, nfttypes.ErrNotMasterEditionNft
+		}
+	}
+
+	if msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints {
+		if metadata.MasterEdition.MaxSupply < metadata.MasterEdition.Supply+msg.EditionLimit {
+			return 0, types.ErrNotEnoughEditionsRemaining
+		}
+	}
+
 	// If auction needs metadata ownership as well, metadata authority is transferred to marketplace module
 	if msg.PrizeType == types.AuctionPrizeType_FullRightsTransfer ||
 		msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints ||
 		msg.PrizeType == types.AuctionPrizeType_OpenEditionPrints {
-		metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
-		if err != nil {
-			return 0, err
-		}
 
 		// Ensure nft metadata is owned by the sender if auction prize type is `FullRightsTransfer`
 		if metadata.UpdateAuthority != msg.Sender {
