@@ -70,7 +70,7 @@ func ValidateDenom(denom string) error {
 
 // ValidateName verifies whether the given name is valid
 func ValidateName(name string) error {
-	if len(name) > MaximumNameLen {
+	if len(strings.TrimSpace(name)) > MaximumNameLen {
 		return sdkerrors.Wrapf(ErrInvalidName, "invalid fantoken name %s, only accepts length (%d, %d]", name, MinimumNameLen, MaximumNameLen)
 	}
 	return nil
@@ -94,7 +94,7 @@ func ValidateAmount(amount sdk.Int) error {
 
 // ValidateUri checks if the given uri is valid
 func ValidateUri(uri string) error {
-	if len(uri) > MaximumUriLen {
+	if len(strings.TrimSpace(uri)) > MaximumUriLen {
 		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length (%d, %d]", uri, MinimumUriLen, MaximumUriLen)
 	}
 	return nil
