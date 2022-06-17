@@ -57,7 +57,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // Issue issues a new fantoken
 func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, authority sdk.AccAddress) (denom string, err error) {
-	// handle fee for token
+	// handle issue fee
 	if err := k.deductIssueFee(ctx, authority); err != nil {
 		return denom, err
 	}
@@ -108,6 +108,11 @@ func (k Keeper) TransferAuthority(ctx sdk.Context, denom string, srcAuthority, d
 		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", srcAuthority, denom)
 	}
 
+	// handle transfer fee
+	if err := k.deductTransferFee(ctx, srcAuthority); err != nil {
+		return err
+	}
+
 	fantoken.Authority = dstAuthority.String()
 
 	// update fantoken
@@ -128,6 +133,11 @@ func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, am
 
 	if authority.String() != fantoken.Authority {
 		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
+	}
+
+	// handle mint fee
+	if err := k.deductMintFee(ctx, authority); err != nil {
+		return err
 	}
 
 	if !fantoken.Mintable {
@@ -167,6 +177,11 @@ func (k Keeper) Burn(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.Ac
 	found := k.hasFanToken(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrFanTokenNotExists, "fantoken not found: %s", denom)
+	}
+
+	// handle burn fee
+	if err := k.deductBurnFee(ctx, owner); err != nil {
+		return err
 	}
 
 	burnCoin := sdk.NewCoin(denom, amount)
