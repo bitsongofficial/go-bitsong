@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
+	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -667,9 +668,20 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
+	// v10 Upgrade
 	if upgradeInfo.Name == v010.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// v11 Upgrade
+	if upgradeInfo.Name == v011.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{fantokentypes.ModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
@@ -681,6 +693,11 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v010.UpgradeName,
 		v010.CreateUpgradeHandler(app.mm, app.configurator, app.BankKeeper, app.IBCKeeper, &app.StakingKeeper),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v011.UpgradeName,
+		v011.CreateUpgradeHandler(app.mm, app.configurator),
 	)
 }
 
