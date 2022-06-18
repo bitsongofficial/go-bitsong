@@ -8,8 +8,8 @@ import (
 	gogotypes "github.com/gogo/protobuf/types"
 )
 
-// hasFanToken asserts a fantoken exists
-func (k Keeper) hasFanToken(ctx sdk.Context, denom string) bool {
+// HasFanToken asserts a fantoken exists
+func (k Keeper) HasFanToken(ctx sdk.Context, denom string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.KeyDenom(denom))
 }
@@ -65,7 +65,7 @@ func (k Keeper) setFanToken(ctx sdk.Context, token *types.FanToken) {
 	store.Set(types.KeyDenom(token.GetDenom()), bz)
 }
 
-func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken *types.FanToken, err error) {
+func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken types.FanToken, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.KeyDenom(denom))
@@ -73,7 +73,7 @@ func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken *typ
 		return fantoken, sdkerrors.Wrap(types.ErrFanTokenNotExists, fmt.Sprintf("fantoken denom %s does not exist", denom))
 	}
 
-	k.cdc.MustUnmarshal(bz, fantoken)
+	k.cdc.MustUnmarshal(bz, &fantoken)
 	return fantoken, nil
 }
 

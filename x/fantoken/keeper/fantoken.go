@@ -38,7 +38,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 		if err != nil {
 			continue
 		}
-		fantokens = append(fantokens, *fantoken)
+		fantokens = append(fantokens, fantoken)
 	}
 	return
 }
@@ -47,7 +47,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (*types.FanToken, error) {
 	// query fantoken by denom
 	if fantoken, err := k.getFanTokenByDenom(ctx, denom); err == nil {
-		return fantoken, nil
+		return &fantoken, nil
 	}
 
 	return nil, sdkerrors.Wrapf(types.ErrFanTokenNotExists, "denom %s does not exist", denom)
@@ -55,7 +55,7 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (*types.FanToken, err
 
 // AddFanToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
-	if k.hasFanToken(ctx, token.GetDenom()) {
+	if k.HasFanToken(ctx, token.GetDenom()) {
 		return sdkerrors.Wrapf(types.ErrDenomAlreadyExists, "denom already exists: %s", token.GetDenom())
 	}
 

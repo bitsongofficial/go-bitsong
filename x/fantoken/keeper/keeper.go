@@ -92,7 +92,7 @@ func (k Keeper) DisableMint(ctx sdk.Context, denom string, authority sdk.AccAddr
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
 	fantoken.MaxSupply = supply
 
-	k.setFanToken(ctx, fantoken)
+	k.setFanToken(ctx, &fantoken)
 
 	return nil
 }
@@ -116,7 +116,7 @@ func (k Keeper) TransferAuthority(ctx sdk.Context, denom string, srcAuthority, d
 	fantoken.Authority = dstAuthority.String()
 
 	// update fantoken
-	k.setFanToken(ctx, fantoken)
+	k.setFanToken(ctx, &fantoken)
 
 	// reset all indices
 	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), srcAuthority, dstAuthority)
@@ -174,7 +174,7 @@ func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, am
 
 // Burn burns the specified amount of fantoken
 func (k Keeper) Burn(ctx sdk.Context, denom string, amount sdk.Int, owner sdk.AccAddress) error {
-	found := k.hasFanToken(ctx, denom)
+	found := k.HasFanToken(ctx, denom)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrFanTokenNotExists, "fantoken not found: %s", denom)
 	}
