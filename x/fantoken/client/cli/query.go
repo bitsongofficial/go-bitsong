@@ -60,7 +60,7 @@ func GetCmdQueryFanToken() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(res.Fantoken)
+			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
