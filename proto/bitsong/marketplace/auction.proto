@@ -60,6 +60,7 @@ message Bid {
   string bidder = 1;
   uint64 auction_id = 2;
   uint64 amount = 3;
+  uint64 index = 4;
 }
 
 /// Models a set of metadata for a bidder, meant to be stored in a PDA. This allows looking up

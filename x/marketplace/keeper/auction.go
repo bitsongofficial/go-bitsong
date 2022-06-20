@@ -318,6 +318,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 		return err
 	}
 
+	bids := k.GetBidsByAuction(ctx, msg.AuctionId)
 	// process module owned items
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
@@ -342,12 +343,20 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 			})
 		}
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
-			Sender:       moduleAddr.String(),
-			MetadataId:   nft.MetadataId,
-			NewAuthority: auction.Authority,
-		})
+		fallthrough
 	case types.AuctionPrizeType_OpenEditionPrints:
+		for _, bid := range bids {
+			cacheCtx, write := ctx.CacheContext()
+			err := k.ClaimBid(cacheCtx, &types.MsgClaimBid{
+				Sender:    bid.Bidder,
+				AuctionId: bid.AuctionId,
+			})
+			if err == nil {
+				write()
+			} else {
+				return err
+			}
+		}
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
 			MetadataId:   nft.MetadataId,

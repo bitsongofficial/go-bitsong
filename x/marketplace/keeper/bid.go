@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -135,11 +137,14 @@ func (k Keeper) GetAllBidderMetadata(ctx sdk.Context) []types.BidderMetadata {
 	return biddermetadata
 }
 
-func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount uint64) uint64 {
+func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount uint64, bidIndex uint64) uint64 {
 	auctionBids := k.GetBidsByAuction(ctx, auctionId)
 	higherBidsCount := uint64(0)
+	fmt.Println("CalculateHigherBids", auctionBids, amount, bidIndex)
 	for _, bid := range auctionBids {
-		if bid.Amount >= amount {
+		if bid.Amount > amount {
+			higherBidsCount++
+		} else if bid.Amount == amount && bid.Index < bidIndex {
 			higherBidsCount++
 		}
 	}
@@ -157,7 +162,7 @@ func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bi
 	case types.AuctionPrizeType_OpenEditionPrints:
 		return true
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount) <= auction.EditionLimit {
+		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index) < auction.EditionLimit {
 			return true
 		}
 	}
@@ -185,6 +190,8 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 		tickSize = 1
 	}
 
+	bids := k.GetBidsByAuction(ctx, msg.AuctionId)
+
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		fallthrough
@@ -194,7 +201,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 			return types.ErrInvalidBidAmount
 		}
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		if k.CalculateHigherBids(ctx, msg.AuctionId, msg.Amount.Amount.Uint64()) >= auction.EditionLimit {
+		if k.CalculateHigherBids(ctx, msg.AuctionId, msg.Amount.Amount.Uint64(), uint64(len(bids))) >= auction.EditionLimit {
 			return types.ErrHigherBidsExceedsEditionLimit
 		}
 		fallthrough
@@ -219,6 +226,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 		AuctionId: msg.AuctionId,
 		Bidder:    msg.Sender,
 		Amount:    msg.Amount.Amount.Uint64(),
+		Index:     uint64(len(bids)),
 	})
 
 	// Transfer amount of token to bid account
