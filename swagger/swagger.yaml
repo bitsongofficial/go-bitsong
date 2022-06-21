@@ -1,0 +1,795 @@
+swagger: '2.0'
+info:
+  title: BitSong - gRPC Gateway docs
+  description: A REST interface for state queries, legacy transactions
+  version: 0.11.0
+paths:
+  /bitsong/fantoken/v1beta1/denom/{denom}:
+    get:
+      summary: FanToken returns fantoken with fantoken name
+      operationId: FanToken
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              fantoken:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                    description: >-
+                      denom represents the string name of the given denom unit
+                      (e.g ft<hash>).
+                  max_supply:
+                    type: string
+                  mintable:
+                    type: boolean
+                  authority:
+                    type: string
+                  meta_data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        title: 'name defines the name of the fantoken (eg: Kitty Punk)'
+                      symbol:
+                        type: string
+                        title: >-
+                          symbol is the token symbol usually shown on exchanges
+                          (eg: KITTY)
+                      uri:
+                        type: string
+                        description: >-
+                          URI to a document (on or off-chain) that contains
+                          additional
+
+                          information.Optional.
+                title: FanToken defines a standard for the fungible token
+            title: >-
+              QueryFanTokenResponse is response type for the Query/FanToken RPC
+              method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: denom
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /bitsong/fantoken/v1beta1/fantokens:
+    get:
+      summary: FanTokens returns the fantoken list
+      operationId: FanTokens
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              fantokens:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                      description: >-
+                        denom represents the string name of the given denom unit
+                        (e.g ft<hash>).
+                    max_supply:
+                      type: string
+                    mintable:
+                      type: boolean
+                    authority:
+                      type: string
+                    meta_data:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          title: >-
+                            name defines the name of the fantoken (eg: Kitty
+                            Punk)
+                        symbol:
+                          type: string
+                          title: >-
+                            symbol is the token symbol usually shown on
+                            exchanges (eg: KITTY)
+                        uri:
+                          type: string
+                          description: >-
+                            URI to a document (on or off-chain) that contains
+                            additional
+
+                            information.Optional.
+                  title: FanToken defines a standard for the fungible token
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            title: >-
+              QueryFanTokensResponse is response type for the Query/FanTokens
+              RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: authority
+          in: query
+          required: false
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /bitsong/fantoken/v1beta1/params:
+    get:
+      summary: Params queries the fantoken parameters
+      operationId: FantokenParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  issue_fee:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  mint_fee:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  burn_fee:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                  transfer_fee:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                title: Params defines fantoken module's parameters
+            title: >-
+              QueryParametersResponse is response type for the Query/Parameters
+              RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /bitsong/fantoken/v1beta1/total_burn:
+    get:
+      summary: TotalBurn queries all the burnt coins
+      operationId: TotalBurn
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              burned_coins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+            title: >-
+              QueryTotalBurnResponse is response type for the Query/TotalBurn
+              RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+definitions:
+  bitsong.fantoken.v1beta1.FanToken:
+    type: object
+    properties:
+      denom:
+        type: string
+        description: >-
+          denom represents the string name of the given denom unit (e.g
+          ft<hash>).
+      max_supply:
+        type: string
+      mintable:
+        type: boolean
+      authority:
+        type: string
+      meta_data:
+        type: object
+        properties:
+          name:
+            type: string
+            title: 'name defines the name of the fantoken (eg: Kitty Punk)'
+          symbol:
+            type: string
+            title: 'symbol is the token symbol usually shown on exchanges (eg: KITTY)'
+          uri:
+            type: string
+            description: |-
+              URI to a document (on or off-chain) that contains additional
+              information.Optional.
+    title: FanToken defines a standard for the fungible token
+  bitsong.fantoken.v1beta1.Metadata:
+    type: object
+    properties:
+      name:
+        type: string
+        title: 'name defines the name of the fantoken (eg: Kitty Punk)'
+      symbol:
+        type: string
+        title: 'symbol is the token symbol usually shown on exchanges (eg: KITTY)'
+      uri:
+        type: string
+        description: |-
+          URI to a document (on or off-chain) that contains additional
+          information.Optional.
+  bitsong.fantoken.v1beta1.Params:
+    type: object
+    properties:
+      issue_fee:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      mint_fee:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      burn_fee:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+      transfer_fee:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    title: Params defines fantoken module's parameters
+  bitsong.fantoken.v1beta1.QueryFanTokenResponse:
+    type: object
+    properties:
+      fantoken:
+        type: object
+        properties:
+          denom:
+            type: string
+            description: >-
+              denom represents the string name of the given denom unit (e.g
+              ft<hash>).
+          max_supply:
+            type: string
+          mintable:
+            type: boolean
+          authority:
+            type: string
+          meta_data:
+            type: object
+            properties:
+              name:
+                type: string
+                title: 'name defines the name of the fantoken (eg: Kitty Punk)'
+              symbol:
+                type: string
+                title: >-
+                  symbol is the token symbol usually shown on exchanges (eg:
+                  KITTY)
+              uri:
+                type: string
+                description: |-
+                  URI to a document (on or off-chain) that contains additional
+                  information.Optional.
+        title: FanToken defines a standard for the fungible token
+    title: QueryFanTokenResponse is response type for the Query/FanToken RPC method
+  bitsong.fantoken.v1beta1.QueryFanTokensResponse:
+    type: object
+    properties:
+      fantokens:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+              description: >-
+                denom represents the string name of the given denom unit (e.g
+                ft<hash>).
+            max_supply:
+              type: string
+            mintable:
+              type: boolean
+            authority:
+              type: string
+            meta_data:
+              type: object
+              properties:
+                name:
+                  type: string
+                  title: 'name defines the name of the fantoken (eg: Kitty Punk)'
+                symbol:
+                  type: string
+                  title: >-
+                    symbol is the token symbol usually shown on exchanges (eg:
+                    KITTY)
+                uri:
+                  type: string
+                  description: |-
+                    URI to a document (on or off-chain) that contains additional
+                    information.Optional.
+          title: FanToken defines a standard for the fungible token
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    title: QueryFanTokensResponse is response type for the Query/FanTokens RPC method
+  bitsong.fantoken.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          issue_fee:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          mint_fee:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          burn_fee:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+          transfer_fee:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+        title: Params defines fantoken module's parameters
+    title: >-
+      QueryParametersResponse is response type for the Query/Parameters RPC
+      method
+  bitsong.fantoken.v1beta1.QueryTotalBurnResponse:
+    type: object
+    properties:
+      burned_coins:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+    title: QueryTotalBurnResponse is response type for the Query/TotalBurn RPC method
+  cosmos.base.query.v1beta1.PageRequest:
+    type: object
+    properties:
+      key:
+        type: string
+        format: byte
+        description: |-
+          key is a value returned in PageResponse.next_key to begin
+          querying the next page most efficiently. Only one of offset or key
+          should be set.
+      offset:
+        type: string
+        format: uint64
+        description: |-
+          offset is a numeric offset that can be used when key is unavailable.
+          It is less efficient than using key. Only one of offset or key should
+          be set.
+      limit:
+        type: string
+        format: uint64
+        description: >-
+          limit is the total number of results to be returned in the result
+          page.
+
+          If left empty it will default to a value to be set by each app.
+      count_total:
+        type: boolean
+        description: >-
+          count_total is set to true  to indicate that the result set should
+          include
+
+          a count of the total number of items available for pagination in UIs.
+
+          count_total is only respected when offset is used. It is ignored when
+          key
+
+          is set.
+      reverse:
+        type: boolean
+        description: >-
+          reverse is set to true if results are to be returned in the descending
+          order.
+
+
+          Since: cosmos-sdk 0.43
+    description: |-
+      message SomeRequest {
+               Foo some_parameter = 1;
+               PageRequest pagination = 2;
+       }
+    title: |-
+      PageRequest is to be embedded in gRPC request messages for efficient
+      pagination. Ex:
+  cosmos.base.query.v1beta1.PageResponse:
+    type: object
+    properties:
+      next_key:
+        type: string
+        format: byte
+        title: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently
+      total:
+        type: string
+        format: uint64
+        title: |-
+          total is total number of results available if PageRequest.count_total
+          was set, its value is undefined otherwise
+    description: |-
+      PageResponse is to be embedded in gRPC response messages where the
+      corresponding request message has used PageRequest.
+
+       message SomeResponse {
+               repeated Bar results = 1;
+               PageResponse page = 2;
+       }
+  cosmos.base.v1beta1.Coin:
+    type: object
+    properties:
+      denom:
+        type: string
+      amount:
+        type: string
+    description: |-
+      Coin defines a token with a denomination and an amount.
+
+      NOTE: The amount field is an Int which implements the custom method
+      signatures required by gogoproto.
+  google.protobuf.Any:
+    type: object
+    properties:
+      type_url:
+        type: string
+      value:
+        type: string
+        format: byte
+  grpc.gateway.runtime.Error:
+    type: object
+    properties:
+      error:
+        type: string
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          properties:
+            type_url:
+              type: string
+            value:
+              type: string
+              format: byte
