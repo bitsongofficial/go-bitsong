@@ -99,3 +99,23 @@ func ValidateUri(uri string) error {
 	}
 	return nil
 }
+
+func ValidateFees(issueFee, mintFee, burnFee, transferFee sdk.Coin) error {
+	if err := issueFee.Validate(); err != nil {
+		return err
+	}
+
+	if err := mintFee.Validate(); err != nil {
+		return err
+	}
+
+	if err := burnFee.Validate(); err != nil {
+		return err
+	}
+
+	if err := transferFee.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}

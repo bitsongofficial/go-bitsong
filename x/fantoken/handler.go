@@ -3,6 +3,7 @@ package fantoken
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -40,4 +41,33 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 		}
 	}
+}
+
+func NewProposalHandler(k keeper.Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case *types.UpdateFeesProposal:
+			return handleUpdateFeesProposal(ctx, k, c)
+
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized fantoken proposal content type: %T", c)
+		}
+	}
+}
+
+func handleUpdateFeesProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateFeesProposal) error {
+	ctx.Logger().Info("Updating fantoken fees from proposal")
+
+	if err := types.ValidateFees(p.IssueFee, p.MintFee, p.BurnFee, p.TransferFee); err != nil {
+		return err
+	}
+
+	params := k.GetParamSet(ctx)
+	params.IssueFee = p.IssueFee
+	params.MintFee = p.MintFee
+	params.BurnFee = p.BurnFee
+	params.TransferFee = p.TransferFee
+	k.SetParamSet(ctx, params)
+
+	return nil
 }

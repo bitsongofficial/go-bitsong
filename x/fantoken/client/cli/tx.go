@@ -2,6 +2,9 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -12,13 +15,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // NewTxCmd returns the transaction commands for the fantoken module.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        tokentypes.ModuleName,
+		Use:                        fantokentypes.ModuleName,
 		Short:                      "Fan Token transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
@@ -31,6 +34,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdMint(),
 		GetCmdBurn(),
 		GetCmdTransferAuthority(),
+		GetCmdUpdateFeesProposal(),
 	)
 
 	return txCmd
@@ -80,7 +84,7 @@ func GetCmdIssue() *cobra.Command {
 				return fmt.Errorf("the uri field is invalid")
 			}
 
-			msg := &tokentypes.MsgIssue{
+			msg := &fantokentypes.MsgIssue{
 				Symbol:    symbol,
 				Name:      name,
 				MaxSupply: maxSupply,
@@ -126,7 +130,7 @@ func GetCmdDisableMint() *cobra.Command {
 
 			authority := clientCtx.GetFromAddress().String()
 
-			msg := tokentypes.NewMsgDisableMint(args[0], authority)
+			msg := fantokentypes.NewMsgDisableMint(args[0], authority)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -183,7 +187,7 @@ func GetCmdMint() *cobra.Command {
 				}
 			}
 
-			msg := tokentypes.NewMsgMint(
+			msg := fantokentypes.NewMsgMint(
 				addr, strings.TrimSpace(args[0]), authority, amount,
 			)
 
@@ -245,7 +249,7 @@ func GetCmdBurn() *cobra.Command {
 
 			denom := strings.TrimSpace(args[0])
 
-			msg := tokentypes.NewMsgBurn(denom, owner, amount)
+			msg := fantokentypes.NewMsgBurn(denom, owner, amount)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -292,7 +296,7 @@ func GetCmdTransferAuthority() *cobra.Command {
 				return err
 			}
 
-			msg := tokentypes.NewMsgTransferAuthority(strings.TrimSpace(args[0]), srcAuthority, dstAuthority)
+			msg := fantokentypes.NewMsgTransferAuthority(strings.TrimSpace(args[0]), srcAuthority, dstAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -307,4 +311,105 @@ func GetCmdTransferAuthority() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func GetCmdUpdateFeesProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-fees-proposal [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit an update fees proposal.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit an update fees proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+Example:
+$ %s tx gov submit-proposal update-fees-proposal <path/to/proposal.json> --from=<key_or_address>
+Where proposal.json contains:
+{
+  "title": "Update Fantoken Fees Proposal",
+  "description": "update the current fees",
+  "issue_fee": "1000000ubtsg",
+  "mint_fee": "1000000ubtsg",
+  "burn_fee": "1000000ubtsg",
+  "transfer_fee": "1000000ubtsg",
+  "deposit": "500000000ubtsg"
+}
+`, version.AppName,
+			),
+		),
+		Example: fmt.Sprintf(
+			"$ %s tx fantoken update-fees-proposal [proposal-file] "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := parseUpdateFeesProposal(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			issueFee, err := sdk.ParseCoinNormalized(proposal.IssueFee)
+			if err != nil {
+				return err
+			}
+
+			mintFee, err := sdk.ParseCoinNormalized(proposal.MintFee)
+			if err != nil {
+				return err
+			}
+
+			burnFee, err := sdk.ParseCoinNormalized(proposal.BurnFee)
+			if err != nil {
+				return err
+			}
+
+			transferFee, err := sdk.ParseCoinNormalized(proposal.TransferFee)
+			if err != nil {
+				return err
+			}
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			content := fantokentypes.NewUpdateFeesProposal(proposal.Title, proposal.Description, issueFee, mintFee, burnFee, transferFee)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func parseUpdateFeesProposal(cdc codec.JSONCodec, proposalFile string) (fantokentypes.UpdateFeesProposalWithDeposit, error) {
+	proposal := fantokentypes.UpdateFeesProposalWithDeposit{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err = cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
 }

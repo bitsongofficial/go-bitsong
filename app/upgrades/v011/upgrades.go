@@ -17,7 +17,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 			return newVM, err
 		}
 
-		ctx.Logger().Info("Updating fantoken fee denom")
+		ctx.Logger().Info("Updating fantoken fees")
 		params := ftk.GetParamSet(ctx)
 		params.IssueFee.Denom = appparams.DefaultBondDenom
 		params.MintFee.Denom = appparams.DefaultBondDenom

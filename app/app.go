@@ -328,6 +328,17 @@ func NewBitsongApp(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
+	// Create Fantoken Keeper
+	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		app.GetSubspace(fantokentypes.ModuleName),
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.ModuleAccountAddrs(),
+		authtypes.FeeCollectorName,
+	)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -335,7 +346,8 @@ func NewBitsongApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(app.FanTokenKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -372,16 +384,6 @@ func NewBitsongApp(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
-
-	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
-		appCodec,
-		keys[fantokentypes.StoreKey],
-		app.GetSubspace(fantokentypes.ModuleName),
-		app.BankKeeper,
-		app.DistrKeeper,
-		app.ModuleAccountAddrs(),
-		authtypes.FeeCollectorName,
-	)
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
@@ -718,7 +720,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	paramsKeeper.Subspace(authtypes.ModuleName)
 	paramsKeeper.Subspace(banktypes.ModuleName)
-	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
 	paramsKeeper.Subspace(minttypes.ModuleName)
 	paramsKeeper.Subspace(distrtypes.ModuleName)
@@ -728,6 +729,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
+	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
 	return paramsKeeper
 }

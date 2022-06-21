@@ -6,6 +6,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 var (
@@ -25,6 +26,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgBurn{}, "go-bitsong/fantoken/MsgBurn", nil)
 	cdc.RegisterConcrete(&MsgDisableMint{}, "go-bitsong/fantoken/MsgDisableMint", nil)
 	cdc.RegisterConcrete(&MsgTransferAuthority{}, "go-bitsong/fantoken/MsgTransferAuthority", nil)
+	cdc.RegisterConcrete(&UpdateFeesProposal{}, "go-bitsong/fantoken/UpdateFeesProposal", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -34,6 +36,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgBurn{},
 		&MsgDisableMint{},
 		&MsgTransferAuthority{},
+	)
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&UpdateFeesProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
