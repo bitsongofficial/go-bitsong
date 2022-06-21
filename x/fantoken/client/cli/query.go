@@ -36,7 +36,7 @@ func GetQueryCmd() *cobra.Command {
 func GetCmdQueryFanToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom [denom]",
-		Long:    "Query a fantoken by denom.",
+		Short:   "Query a fantoken by denom.",
 		Example: fmt.Sprintf("$ %s query fantoken denom <denom>", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -71,9 +71,9 @@ func GetCmdQueryFanToken() *cobra.Command {
 // GetCmdQueryFanTokens implements the query fantokens command.
 func GetCmdQueryFanTokens() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "owner [owner]",
-		Long:    "Query fantokens by the owner.",
-		Example: fmt.Sprintf("$ %s query fantoken owner <owner>", version.AppName),
+		Use:     "authority [authority]",
+		Short:   "Query fantokens by the authority.",
+		Example: fmt.Sprintf("$ %s query fantoken authority <authority>", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -112,7 +112,7 @@ func GetCmdQueryFanTokens() *cobra.Command {
 func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "params",
-		Long:    "Query values set as fantoken parameters.",
+		Short:   "Query values set as fantoken parameters.",
 		Example: fmt.Sprintf("$ %s query fantoken params", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -138,7 +138,7 @@ func GetCmdQueryParams() *cobra.Command {
 func GetCmdQueryTotalBurn() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "total-burn",
-		Long:    "Query the total amount of all burned fantokens.",
+		Short:   "Query the total amount of all burned fantokens.",
 		Example: fmt.Sprintf("$ %s query fantoken total-burn", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)

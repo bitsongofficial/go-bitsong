@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -36,7 +37,7 @@ func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.Msg
 	if err != nil {
 		return nil, err
 	}
-
+	m.Logger(ctx).Info(fmt.Sprintf("minted a new fantoken denom: %s", denom))
 	ctx.EventManager().EmitTypedEvent(&types.EventIssue{
 		Denom: denom,
 	})

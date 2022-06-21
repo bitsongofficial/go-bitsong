@@ -39,8 +39,8 @@ func NewTxCmd() *cobra.Command {
 // GetCmdIssue implements the issue fantoken command
 func GetCmdIssue() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "issue",
-		Long: "Issue a new fantoken.",
+		Use:   "issue",
+		Short: "Issue a new fantoken.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken issue "+
 				"--name=\"Kitty Token\" "+
@@ -108,8 +108,8 @@ func GetCmdIssue() *cobra.Command {
 // GetCmdDisableMint implements the edit fan token mintable command
 func GetCmdDisableMint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "disable-mint [denom]",
-		Long: "Disable Mint of an existing fantoken.",
+		Use:   "disable-mint [denom]",
+		Short: "Disable Mint of an existing fantoken.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken disable-mint <denom> "+
 				"--from=<key-name> "+
@@ -143,8 +143,8 @@ func GetCmdDisableMint() *cobra.Command {
 
 func GetCmdMint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "mint [denom]",
-		Long: "Mint fan tokens to a specified address.",
+		Use:   "mint [denom]",
+		Short: "Mint fan tokens to a specified address.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken mint <denom> "+
 				"--recipient=<recipient>"+
@@ -204,8 +204,8 @@ func GetCmdMint() *cobra.Command {
 
 func GetCmdBurn() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "burn [denom]",
-		Long: "Burn fantoken.",
+		Use:   "burn [denom]",
+		Short: "Burn fantoken.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken burn <denom> "+
 				"--amount=<amount> "+
@@ -265,10 +265,10 @@ func GetCmdBurn() *cobra.Command {
 // GetCmdTransferAuthority implements the transfer fan token authority command
 func GetCmdTransferAuthority() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "transfer [denom]",
-		Long: "Transfer the authority of a fan token to a new authority.",
+		Use:   "transfer-authority [denom]",
+		Short: "Transfer the authority of a fan token to a new authority",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken transfer <denom> "+
+			"$ %s tx fantoken transfer-authority <denom> "+
 				"--dst-authority=<dst-authority> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
