@@ -16,6 +16,28 @@
             "Params": "FantokenParams"
           }
         }
+      },
+      {
+        "url": "./swagger/swagger-sdk.yaml",
+        "dereference": {
+          "circular": "ignore"
+        },
+        "tags": {
+          "rename": {
+            "Gaia REST": "Tendermint RPC"
+          }
+        },
+        "operationIds": {
+          "rename": {
+            "UpgradedConsensusState": "sdk/UpgradedConsensusState"
+          }
+        }
+      },
+      {
+        "url": "./swagger/swagger-ibc.yaml",
+        "dereference": {
+          "circular": "ignore"
+        }
       }
     ]
 }

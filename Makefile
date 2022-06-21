@@ -90,14 +90,14 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-    	echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
+#update-swagger-docs: statik
+#	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
+#	@if [ -n "$(git status --porcelain)" ]; then \
+#        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
+#        exit 1;\
+#    else \
+#    	echo "\033[92mSwagger docs are in sync\033[0m";\
+#    fi
 
 ###############################################################################
 ###                                Localnet                                 ###
@@ -174,9 +174,9 @@ proto-gen-any:
 	@echo "Generating Protobuf Any"
 	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protocgen-any.sh
 
-proto-swagger-gen:
-	@echo "Generating Protobuf Swagger"
-	$(DOCKER) run --rm --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protoc-swagger-gen.sh
+#proto-swagger-gen:
+#	@echo "Generating Protobuf Swagger"
+#	$(DOCKER) run --rm --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@echo "Formatting Protobuf files"

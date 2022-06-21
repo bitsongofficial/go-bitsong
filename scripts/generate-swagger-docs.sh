@@ -15,6 +15,24 @@ SWAGGER_UI_VERSION=4.11.0
 SWAGGER_UI_DOWNLOAD_URL=https://github.com/swagger-api/swagger-ui/archive/refs/tags/v${SWAGGER_UI_VERSION}.zip
 SWAGGER_UI_PACKAGE_NAME=${SWAGGER_DIR}/swagger-ui-${SWAGGER_UI_VERSION}
 
+mkdir -p ./tmp-swagger-gen
+
+proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+for dir in $proto_dirs; do
+  # generate swagger files (filter query files)
+    query_file=$(find "${dir}" -maxdepth 2 \( -name 'query.proto' -o -name 'service.proto' \))
+    if [[ ! -z "$query_file" ]]; then
+      protoc  \
+      -I "proto" \
+      -I "third_party/proto" \
+      "$query_file" \
+      --swagger_out ./tmp-swagger-gen \
+      --swagger_opt logtostderr=true \
+      --swagger_opt fqn_for_swagger_name=true \
+      --swagger_opt simple_operation_ids=true
+    fi
+done
+
 # download Cosmos SDK swagger yaml file
 echo "SDK version ${SDK_VERSION}"
 wget "${SDK_RAW_URL}" -O ${SWAGGER_DIR}/swagger-sdk.yaml
@@ -52,6 +70,8 @@ sed -i.bak "s|https://petstore.swagger.io/v2/swagger.json|swagger.yaml|" ${SWAGG
 
 # generate statik golang code using updated swagger-ui directory
 statik -src=${SWAGGER_DIR}/swagger-ui -dest=${SWAGGER_DIR} -f -m
+
+rm -rf tmp-swagger-gen
 
 # log whether or not the swagger directory was updated
 if [ -n "$(git status ${SWAGGER_DIR} --porcelain)" ]; then
