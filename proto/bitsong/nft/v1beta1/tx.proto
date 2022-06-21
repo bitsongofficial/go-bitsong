@@ -19,8 +19,6 @@ service Msg {
   rpc UpdateMetadataAuthority(MsgUpdateMetadataAuthority) returns (MsgUpdateMetadataAuthorityResponse);
 
   rpc CreateCollection(MsgCreateCollection) returns (MsgCreateCollectionResponse);
-  rpc VerifyCollection(MsgVerifyCollection) returns (MsgVerifyCollectionResponse);
-  rpc UnverifyCollection(MsgUnverifyCollection) returns (MsgUnverifyCollectionResponse);
   rpc UpdateCollectionAuthority(MsgUpdateCollectionAuthority) returns (MsgUpdateCollectionAuthorityResponse);
 }
 
@@ -59,7 +57,14 @@ message MsgSignMetadataResponse {}
 message MsgUpdateMetadata {
   string sender = 1;
   uint64 metadata_id = 2;
-  bitsong.nft.v1beta1.Data data = 3;
+  // The name of the asset
+  string name = 3;
+  // URI pointing to JSON representing the asset
+  string uri = 4;
+  // Royalty basis points that goes to creators in secondary sales (0-10000)
+  uint32 seller_fee_basis_points = 5;
+  // Array of creators, optional
+  repeated bitsong.nft.v1beta1.Creator creators = 6;
 }
 message MsgUpdateMetadataResponse {}
 
@@ -79,20 +84,6 @@ message MsgCreateCollection {
 message MsgCreateCollectionResponse {
     uint64 id = 1;
 }
-
-message MsgVerifyCollection {
-  string sender = 1;
-  uint64 collection_id = 2;
-  uint64 nft_id = 3;
-}
-message MsgVerifyCollectionResponse {}
-
-message MsgUnverifyCollection {
-  string sender = 1;
-  uint64 collection_id = 2;
-  uint64 nft_id = 3;
-}
-message MsgUnverifyCollectionResponse {}
 
 message MsgUpdateCollectionAuthority {
   string sender = 1;

@@ -334,7 +334,14 @@ var xxx_messageInfo_MsgSignMetadataResponse proto.InternalMessageInfo
 type MsgUpdateMetadata struct {
 	Sender     string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	MetadataId uint64 `protobuf:"varint,2,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
-	Data       *Data  `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	// The name of the asset
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// URI pointing to JSON representing the asset
+	Uri string `protobuf:"bytes,4,opt,name=uri,proto3" json:"uri,omitempty"`
+	// Royalty basis points that goes to creators in secondary sales (0-10000)
+	SellerFeeBasisPoints uint32 `protobuf:"varint,5,opt,name=seller_fee_basis_points,json=sellerFeeBasisPoints,proto3" json:"seller_fee_basis_points,omitempty"`
+	// Array of creators, optional
+	Creators []*Creator `protobuf:"bytes,6,rep,name=creators,proto3" json:"creators,omitempty"`
 }
 
 func (m *MsgUpdateMetadata) Reset()         { *m = MsgUpdateMetadata{} }
@@ -558,156 +565,6 @@ func (m *MsgCreateCollectionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateCollectionResponse proto.InternalMessageInfo
 
-type MsgVerifyCollection struct {
-	Sender       string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	CollectionId uint64 `protobuf:"varint,2,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
-	NftId        uint64 `protobuf:"varint,3,opt,name=nft_id,json=nftId,proto3" json:"nft_id,omitempty"`
-}
-
-func (m *MsgVerifyCollection) Reset()         { *m = MsgVerifyCollection{} }
-func (m *MsgVerifyCollection) String() string { return proto.CompactTextString(m) }
-func (*MsgVerifyCollection) ProtoMessage()    {}
-func (*MsgVerifyCollection) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{14}
-}
-func (m *MsgVerifyCollection) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgVerifyCollection) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgVerifyCollection.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgVerifyCollection) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgVerifyCollection.Merge(m, src)
-}
-func (m *MsgVerifyCollection) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgVerifyCollection) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgVerifyCollection.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgVerifyCollection proto.InternalMessageInfo
-
-type MsgVerifyCollectionResponse struct {
-}
-
-func (m *MsgVerifyCollectionResponse) Reset()         { *m = MsgVerifyCollectionResponse{} }
-func (m *MsgVerifyCollectionResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgVerifyCollectionResponse) ProtoMessage()    {}
-func (*MsgVerifyCollectionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{15}
-}
-func (m *MsgVerifyCollectionResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgVerifyCollectionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgVerifyCollectionResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgVerifyCollectionResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgVerifyCollectionResponse.Merge(m, src)
-}
-func (m *MsgVerifyCollectionResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgVerifyCollectionResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgVerifyCollectionResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgVerifyCollectionResponse proto.InternalMessageInfo
-
-type MsgUnverifyCollection struct {
-	Sender       string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	CollectionId uint64 `protobuf:"varint,2,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
-	NftId        uint64 `protobuf:"varint,3,opt,name=nft_id,json=nftId,proto3" json:"nft_id,omitempty"`
-}
-
-func (m *MsgUnverifyCollection) Reset()         { *m = MsgUnverifyCollection{} }
-func (m *MsgUnverifyCollection) String() string { return proto.CompactTextString(m) }
-func (*MsgUnverifyCollection) ProtoMessage()    {}
-func (*MsgUnverifyCollection) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{16}
-}
-func (m *MsgUnverifyCollection) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgUnverifyCollection) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgUnverifyCollection.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgUnverifyCollection) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUnverifyCollection.Merge(m, src)
-}
-func (m *MsgUnverifyCollection) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgUnverifyCollection) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUnverifyCollection.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgUnverifyCollection proto.InternalMessageInfo
-
-type MsgUnverifyCollectionResponse struct {
-}
-
-func (m *MsgUnverifyCollectionResponse) Reset()         { *m = MsgUnverifyCollectionResponse{} }
-func (m *MsgUnverifyCollectionResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUnverifyCollectionResponse) ProtoMessage()    {}
-func (*MsgUnverifyCollectionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{17}
-}
-func (m *MsgUnverifyCollectionResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgUnverifyCollectionResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgUnverifyCollectionResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgUnverifyCollectionResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUnverifyCollectionResponse.Merge(m, src)
-}
-func (m *MsgUnverifyCollectionResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgUnverifyCollectionResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUnverifyCollectionResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgUnverifyCollectionResponse proto.InternalMessageInfo
-
 type MsgUpdateCollectionAuthority struct {
 	Sender       string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	CollectionId uint64 `protobuf:"varint,2,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
@@ -718,7 +575,7 @@ func (m *MsgUpdateCollectionAuthority) Reset()         { *m = MsgUpdateCollectio
 func (m *MsgUpdateCollectionAuthority) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateCollectionAuthority) ProtoMessage()    {}
 func (*MsgUpdateCollectionAuthority) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{18}
+	return fileDescriptor_d3dab637c9b79d73, []int{14}
 }
 func (m *MsgUpdateCollectionAuthority) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -754,7 +611,7 @@ func (m *MsgUpdateCollectionAuthorityResponse) Reset()         { *m = MsgUpdateC
 func (m *MsgUpdateCollectionAuthorityResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUpdateCollectionAuthorityResponse) ProtoMessage()    {}
 func (*MsgUpdateCollectionAuthorityResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d3dab637c9b79d73, []int{19}
+	return fileDescriptor_d3dab637c9b79d73, []int{15}
 }
 func (m *MsgUpdateCollectionAuthorityResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -798,10 +655,6 @@ func init() {
 	proto.RegisterType((*MsgUpdateMetadataAuthorityResponse)(nil), "bitsong.nft.MsgUpdateMetadataAuthorityResponse")
 	proto.RegisterType((*MsgCreateCollection)(nil), "bitsong.nft.MsgCreateCollection")
 	proto.RegisterType((*MsgCreateCollectionResponse)(nil), "bitsong.nft.MsgCreateCollectionResponse")
-	proto.RegisterType((*MsgVerifyCollection)(nil), "bitsong.nft.MsgVerifyCollection")
-	proto.RegisterType((*MsgVerifyCollectionResponse)(nil), "bitsong.nft.MsgVerifyCollectionResponse")
-	proto.RegisterType((*MsgUnverifyCollection)(nil), "bitsong.nft.MsgUnverifyCollection")
-	proto.RegisterType((*MsgUnverifyCollectionResponse)(nil), "bitsong.nft.MsgUnverifyCollectionResponse")
 	proto.RegisterType((*MsgUpdateCollectionAuthority)(nil), "bitsong.nft.MsgUpdateCollectionAuthority")
 	proto.RegisterType((*MsgUpdateCollectionAuthorityResponse)(nil), "bitsong.nft.MsgUpdateCollectionAuthorityResponse")
 }
@@ -809,56 +662,55 @@ func init() {
 func init() { proto.RegisterFile("bitsong/nft/v1beta1/tx.proto", fileDescriptor_d3dab637c9b79d73) }
 
 var fileDescriptor_d3dab637c9b79d73 = []byte{
-	// 781 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x56, 0xdb, 0x4e, 0xdb, 0x4a,
-	0x14, 0xcd, 0x0d, 0x0e, 0xd9, 0x09, 0x97, 0xe3, 0x72, 0x49, 0x1c, 0x62, 0xa8, 0x41, 0x14, 0x2a,
-	0x11, 0x2b, 0xf4, 0x03, 0xaa, 0x42, 0x2f, 0x0a, 0x52, 0x4a, 0x95, 0x42, 0x55, 0xf5, 0xa1, 0xd4,
-	0x89, 0xc7, 0x66, 0x54, 0x32, 0x13, 0xd9, 0x13, 0x42, 0x5a, 0xa9, 0xea, 0x27, 0xf4, 0x77, 0xfa,
-	0x07, 0x3c, 0xf2, 0xd8, 0xa7, 0xaa, 0x85, 0x1f, 0xa9, 0x32, 0xb1, 0x27, 0x4e, 0xec, 0x5c, 0x44,
-	0xa5, 0xbe, 0x8d, 0x67, 0xad, 0x59, 0x6b, 0x69, 0xcf, 0xf6, 0xd6, 0xc0, 0x6a, 0x15, 0x33, 0x87,
-	0x12, 0x4b, 0x23, 0x26, 0xd3, 0x2e, 0x8a, 0x55, 0xc4, 0xf4, 0xa2, 0xc6, 0x2e, 0x0b, 0x0d, 0x9b,
-	0x32, 0x2a, 0xa5, 0x5c, 0xb4, 0x40, 0x4c, 0x26, 0x2b, 0x35, 0xea, 0xd4, 0xa9, 0xa3, 0x55, 0x75,
-	0x07, 0x09, 0x6a, 0x8d, 0x62, 0xd2, 0x25, 0xcb, 0x8b, 0x16, 0xb5, 0x28, 0x5f, 0x6a, 0x9d, 0x95,
-	0xbb, 0x9b, 0x0f, 0x33, 0x20, 0x26, 0xeb, 0xc2, 0xaa, 0x05, 0xe9, 0xb2, 0x63, 0x1d, 0xd8, 0x48,
-	0x67, 0xe8, 0xe5, 0xf3, 0x63, 0x69, 0x19, 0xa6, 0x1d, 0x44, 0x0c, 0x64, 0x67, 0xa2, 0xeb, 0xd1,
-	0xed, 0x64, 0xc5, 0xfd, 0x92, 0x1e, 0xc3, 0x4c, 0x1d, 0x31, 0xdd, 0xd0, 0x99, 0x9e, 0x89, 0xad,
-	0x47, 0xb7, 0x53, 0x7b, 0xf9, 0x82, 0x2f, 0x5c, 0xc1, 0x55, 0x2e, 0x94, 0x5d, 0xd2, 0x7e, 0xe2,
-	0xea, 0xe7, 0x5a, 0xa4, 0x22, 0x0e, 0xa9, 0x2f, 0x60, 0xd1, 0x6f, 0x54, 0x41, 0x4e, 0x83, 0x12,
-	0x07, 0x49, 0x73, 0x10, 0xc3, 0x06, 0x37, 0x4b, 0x54, 0x62, 0xd8, 0x90, 0xd6, 0x20, 0xe5, 0x9d,
-	0x39, 0xc5, 0x06, 0xf7, 0x4a, 0x54, 0xc0, 0xdb, 0x2a, 0x19, 0xea, 0x07, 0x98, 0x2f, 0x3b, 0xd6,
-	0x2b, 0x1b, 0x13, 0xf6, 0xcc, 0xc0, 0x0c, 0x53, 0x32, 0x34, 0xf4, 0x38, 0x2d, 0x69, 0x11, 0xa6,
-	0x68, 0x8b, 0x20, 0x3b, 0x13, 0xe7, 0xe7, 0xba, 0x1f, 0xea, 0x21, 0xac, 0x0c, 0x38, 0xdc, 0x3d,
-	0xed, 0x09, 0xcc, 0x95, 0x1d, 0xeb, 0xd8, 0xd6, 0x89, 0x63, 0x22, 0x7b, 0x54, 0x85, 0xbb, 0xd2,
-	0x31, 0x21, 0x9d, 0x83, 0x24, 0x41, 0xad, 0x53, 0x7f, 0xbe, 0x19, 0x82, 0x5a, 0x47, 0x3c, 0x62,
-	0x06, 0x96, 0xfb, 0x65, 0xbd, 0x84, 0xea, 0x21, 0x2f, 0xcf, 0x6b, 0x6c, 0x11, 0xef, 0x2a, 0xee,
-	0x5c, 0x1e, 0x35, 0xcb, 0x0b, 0xe1, 0xd7, 0x12, 0x36, 0x9f, 0xe1, 0xff, 0xb2, 0x63, 0x9d, 0x34,
-	0x0c, 0x9d, 0xa1, 0xbf, 0x36, 0x92, 0x76, 0x21, 0xc1, 0x3b, 0x2b, 0xce, 0x3b, 0x2b, 0x1b, 0xda,
-	0x59, 0x4f, 0x3b, 0xf6, 0x9c, 0xa6, 0xe6, 0x20, 0x1b, 0x30, 0x17, 0xc9, 0x3e, 0x81, 0x1c, 0x00,
-	0x9f, 0x34, 0xd9, 0x19, 0xb5, 0x31, 0x6b, 0xdf, 0x3d, 0xe2, 0x06, 0xcc, 0x76, 0xae, 0x43, 0xf7,
-	0x94, 0xdc, 0x2b, 0x49, 0x13, 0xd4, 0x12, 0xea, 0xea, 0x26, 0xa8, 0xc3, 0xbd, 0x45, 0xc2, 0x2f,
-	0x70, 0x4f, 0xfc, 0x0a, 0x07, 0xf4, 0xfc, 0x1c, 0xd5, 0x46, 0x76, 0xb1, 0x04, 0x09, 0xa2, 0xd7,
-	0x11, 0xcf, 0x94, 0xac, 0xf0, 0xb5, 0xb4, 0x00, 0xf1, 0xa6, 0x8d, 0xdd, 0x0c, 0x9d, 0xa5, 0xb4,
-	0x03, 0x0b, 0x4d, 0xee, 0xeb, 0x8b, 0x98, 0xe0, 0xf0, 0x7c, 0x77, 0xbf, 0x97, 0x72, 0x17, 0x72,
-	0x21, 0xfe, 0xc3, 0x7a, 0x5c, 0xc5, 0x3c, 0xee, 0x1b, 0x64, 0x63, 0xb3, 0x3d, 0x41, 0xdc, 0x0d,
-	0x98, 0xad, 0x09, 0x56, 0xaf, 0x96, 0xe9, 0xde, 0x66, 0xc9, 0x90, 0x96, 0x60, 0x9a, 0x98, 0xac,
-	0x83, 0xc6, 0x39, 0x3a, 0x45, 0x4c, 0x56, 0x32, 0xd4, 0x3c, 0x4f, 0x36, 0x68, 0x25, 0x0a, 0xf7,
-	0x11, 0x96, 0x3a, 0xe5, 0x25, 0x17, 0xff, 0x22, 0xcb, 0x1a, 0xe4, 0x43, 0xcd, 0x44, 0x9a, 0xaf,
-	0x51, 0x58, 0x15, 0xb7, 0xdd, 0xc3, 0xc7, 0xf7, 0xda, 0x44, 0xa9, 0x26, 0xea, 0xb7, 0x2d, 0xd8,
-	0x1c, 0x95, 0xc0, 0x8b, 0xba, 0xf7, 0xfd, 0x3f, 0x88, 0x97, 0x1d, 0x4b, 0x2a, 0x41, 0xb2, 0x37,
-	0xea, 0xfb, 0x7f, 0x33, 0xff, 0x70, 0x96, 0xef, 0x0f, 0x85, 0x44, 0x97, 0x54, 0x20, 0xdd, 0x37,
-	0x83, 0x57, 0x07, 0x8f, 0xf8, 0x51, 0x79, 0x73, 0x14, 0x2a, 0x34, 0x8f, 0x20, 0xe5, 0x9f, 0x94,
-	0xb9, 0xc1, 0x43, 0x3e, 0x50, 0xde, 0x18, 0x01, 0xfa, 0x43, 0xf6, 0x4d, 0xc2, 0x40, 0x48, 0x3f,
-	0x1a, 0x0c, 0x19, 0x36, 0xf9, 0xa4, 0xb7, 0x30, 0x37, 0x30, 0xf6, 0x94, 0xc1, 0x73, 0xfd, 0xb8,
-	0xbc, 0x35, 0x1a, 0x17, 0xca, 0x0e, 0xac, 0x0c, 0x1b, 0x5b, 0x0f, 0x46, 0x4b, 0x08, 0xa2, 0xac,
-	0x4d, 0x48, 0x14, 0xa6, 0xef, 0x61, 0x21, 0x30, 0x89, 0xd6, 0xc3, 0xaf, 0xbf, 0xc7, 0x90, 0xb7,
-	0xc7, 0x31, 0xfc, 0xfa, 0x81, 0xd1, 0x11, 0xd0, 0x1f, 0x64, 0x04, 0xf5, 0x87, 0xcd, 0x04, 0xc9,
-	0x00, 0x29, 0x64, 0x20, 0xa8, 0x81, 0x32, 0x04, 0x38, 0xf2, 0xc3, 0xf1, 0x1c, 0xe1, 0xd2, 0x86,
-	0xec, 0xf0, 0xff, 0x7c, 0x27, 0xbc, 0xe6, 0x21, 0x54, 0xb9, 0x38, 0x31, 0xd5, 0xb3, 0xde, 0x3f,
-	0xba, 0xfa, 0xad, 0x44, 0xae, 0x6e, 0x94, 0xe8, 0xf5, 0x8d, 0x12, 0xfd, 0x75, 0xa3, 0x44, 0xbf,
-	0xdd, 0x2a, 0x91, 0xeb, 0x5b, 0x25, 0xf2, 0xe3, 0x56, 0x89, 0xbc, 0x2b, 0x5a, 0x98, 0x9d, 0x35,
-	0xab, 0x85, 0x1a, 0xad, 0x6b, 0xae, 0x34, 0x35, 0x4d, 0x5c, 0xc3, 0xfa, 0xb9, 0x66, 0xd1, 0x5d,
-	0xef, 0xf1, 0x77, 0xc9, 0x9f, 0x7f, 0xac, 0xdd, 0x40, 0x4e, 0x75, 0x9a, 0xbf, 0xfc, 0x1e, 0xfd,
-	0x09, 0x00, 0x00, 0xff, 0xff, 0xf9, 0xc6, 0x75, 0xd3, 0x7b, 0x0a, 0x00, 0x00,
+	// 756 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xcd, 0x4e, 0xdb, 0x4c,
+	0x14, 0x8d, 0x93, 0x80, 0xe0, 0x26, 0xfc, 0x7c, 0xfe, 0x22, 0x48, 0x9c, 0x60, 0x52, 0x83, 0x68,
+	0x58, 0x10, 0x2b, 0x54, 0x95, 0xba, 0xab, 0x0a, 0x2a, 0x15, 0x48, 0x29, 0xc8, 0x05, 0xa9, 0xea,
+	0xa2, 0xa9, 0x13, 0x4f, 0xcc, 0x48, 0xc9, 0x4c, 0xe4, 0x99, 0x34, 0xd0, 0x45, 0xd5, 0x47, 0xe8,
+	0x63, 0xb1, 0x64, 0xd9, 0x55, 0xd5, 0x92, 0x47, 0xe8, 0x0b, 0x54, 0xf1, 0xcf, 0xc4, 0xf9, 0x33,
+	0x88, 0xee, 0xc6, 0x73, 0xce, 0x9c, 0x73, 0x7c, 0xaf, 0xe7, 0xca, 0x50, 0xa8, 0x63, 0xce, 0x28,
+	0xb1, 0x75, 0xd2, 0xe4, 0xfa, 0xe7, 0x4a, 0x1d, 0x71, 0xb3, 0xa2, 0xf3, 0xab, 0x72, 0xc7, 0xa1,
+	0x9c, 0xca, 0x29, 0x1f, 0x2d, 0x93, 0x26, 0x57, 0xd4, 0x06, 0x65, 0x6d, 0xca, 0xf4, 0xba, 0xc9,
+	0x90, 0xa0, 0x36, 0x28, 0x26, 0x1e, 0x59, 0xc9, 0xd8, 0xd4, 0xa6, 0xee, 0x52, 0x1f, 0xac, 0xfc,
+	0xdd, 0x8d, 0x69, 0x06, 0xa4, 0xc9, 0x3d, 0x58, 0xb3, 0x21, 0x5d, 0x65, 0xf6, 0xa1, 0x83, 0x4c,
+	0x8e, 0xde, 0x1e, 0x9d, 0xcb, 0x6b, 0x30, 0xcf, 0x10, 0xb1, 0x90, 0x93, 0x95, 0x8a, 0x52, 0x69,
+	0xd1, 0xf0, 0x9f, 0xe4, 0x97, 0xb0, 0xd0, 0x46, 0xdc, 0xb4, 0x4c, 0x6e, 0x66, 0xe3, 0x45, 0xa9,
+	0x94, 0xda, 0xdf, 0x28, 0x87, 0xc2, 0x95, 0x7d, 0xe5, 0x72, 0xd5, 0x27, 0x1d, 0x24, 0x6f, 0x7e,
+	0x6e, 0xc6, 0x0c, 0x71, 0x48, 0x7b, 0x03, 0x99, 0xb0, 0x91, 0x81, 0x58, 0x87, 0x12, 0x86, 0xe4,
+	0x65, 0x88, 0x63, 0xcb, 0x35, 0x4b, 0x1a, 0x71, 0x6c, 0xc9, 0x9b, 0x90, 0x0a, 0xce, 0xd4, 0xb0,
+	0xe5, 0x7a, 0x25, 0x0d, 0x08, 0xb6, 0x8e, 0x2d, 0xed, 0x13, 0xac, 0x54, 0x99, 0x7d, 0xe6, 0x60,
+	0xc2, 0x5f, 0x5b, 0x98, 0x63, 0x4a, 0x66, 0x86, 0xbe, 0x4f, 0x4b, 0xce, 0xc0, 0x1c, 0xed, 0x11,
+	0xe4, 0x64, 0x13, 0xee, 0x39, 0xef, 0x41, 0x3b, 0x81, 0xf5, 0x31, 0x87, 0xc7, 0xa7, 0xbd, 0x80,
+	0xe5, 0x2a, 0xb3, 0xcf, 0x1d, 0x93, 0xb0, 0x26, 0x72, 0xa2, 0x2a, 0xec, 0x49, 0xc7, 0x85, 0x74,
+	0x1e, 0x16, 0x09, 0xea, 0xd5, 0xc2, 0xf9, 0x16, 0x08, 0xea, 0x9d, 0xba, 0x11, 0xb3, 0xb0, 0x36,
+	0x2a, 0x1b, 0x24, 0xd4, 0x4e, 0xdc, 0xf2, 0xbc, 0xc3, 0x36, 0x09, 0x5a, 0xf1, 0xe8, 0xf2, 0x68,
+	0x39, 0xb7, 0x10, 0x61, 0x2d, 0x61, 0xd3, 0x97, 0xe0, 0xbf, 0x2a, 0xb3, 0x2f, 0x3a, 0x96, 0xc9,
+	0xd1, 0x3f, 0x3b, 0xc9, 0x32, 0x24, 0x89, 0xd9, 0x46, 0xfe, 0x7b, 0xba, 0x6b, 0x79, 0x15, 0x12,
+	0x5d, 0x07, 0x67, 0x93, 0xee, 0xd6, 0x60, 0x29, 0x3f, 0x87, 0x75, 0x86, 0x5a, 0x2d, 0xe4, 0xd4,
+	0x9a, 0x08, 0xd5, 0xea, 0x26, 0xc3, 0xac, 0xd6, 0xa1, 0x98, 0x70, 0x96, 0x9d, 0x2b, 0x4a, 0xa5,
+	0x25, 0x23, 0xe3, 0xc1, 0x47, 0x08, 0x1d, 0x0c, 0xc0, 0x33, 0x17, 0x93, 0x5f, 0xc0, 0x42, 0x63,
+	0xf0, 0xdd, 0x51, 0x87, 0x65, 0xe7, 0x8b, 0x89, 0x52, 0x6a, 0xbf, 0x30, 0xf5, 0xdb, 0x3d, 0xf4,
+	0x48, 0x86, 0x60, 0x6b, 0x79, 0xc8, 0x4d, 0xbc, 0xa4, 0x28, 0xc1, 0x17, 0x50, 0x26, 0xc0, 0x57,
+	0x5d, 0x7e, 0x49, 0x1d, 0xcc, 0xaf, 0x1f, 0x5f, 0x8a, 0x2d, 0x58, 0x1a, 0xf4, 0xdd, 0x0c, 0x94,
+	0xfc, 0x9a, 0xa4, 0x09, 0xea, 0x09, 0x75, 0x6d, 0x1b, 0xb4, 0xd9, 0xde, 0x22, 0xe1, 0x57, 0xf8,
+	0x5f, 0xdc, 0xb9, 0x43, 0xda, 0x6a, 0xa1, 0x46, 0xe4, 0x75, 0x09, 0x9a, 0x10, 0x9f, 0x6c, 0x42,
+	0x62, 0xd8, 0x84, 0x5d, 0x58, 0xed, 0xba, 0xbe, 0xa1, 0x88, 0x5e, 0x8f, 0x56, 0xbc, 0xfd, 0x61,
+	0xca, 0x3d, 0xc8, 0x4f, 0xf1, 0x9f, 0x75, 0x99, 0xb4, 0x6f, 0x12, 0x14, 0xc4, 0x5b, 0x0d, 0xf9,
+	0xf7, 0xd7, 0x74, 0x0b, 0x96, 0x1a, 0x82, 0x3e, 0xac, 0x6a, 0x7a, 0xb8, 0xf9, 0xd0, 0xba, 0xee,
+	0xc0, 0x76, 0x54, 0x82, 0x20, 0xfa, 0xfe, 0x9f, 0x39, 0x48, 0x54, 0x99, 0x2d, 0x1f, 0xc3, 0xe2,
+	0x70, 0x76, 0xe6, 0x46, 0xbe, 0xaa, 0xf0, 0xb4, 0x53, 0x9e, 0xcc, 0x84, 0x44, 0x35, 0x0c, 0x48,
+	0x8f, 0x0c, 0xb5, 0xc2, 0xf8, 0x91, 0x30, 0xaa, 0x6c, 0x47, 0xa1, 0x42, 0xf3, 0x14, 0x52, 0xe1,
+	0xd1, 0x93, 0x1f, 0x3f, 0x14, 0x02, 0x95, 0xad, 0x08, 0x30, 0x1c, 0x72, 0x64, 0xb4, 0x4c, 0x84,
+	0x0c, 0xa3, 0x93, 0x21, 0xa7, 0x8d, 0x12, 0xf9, 0x3d, 0x2c, 0x8f, 0x8d, 0x11, 0x75, 0xfc, 0xdc,
+	0x28, 0xae, 0xec, 0x44, 0xe3, 0x42, 0x99, 0xc1, 0xfa, 0xac, 0xeb, 0xf9, 0x34, 0x5a, 0x42, 0x10,
+	0x15, 0xfd, 0x81, 0x44, 0x61, 0xfa, 0x11, 0x56, 0x27, 0x6e, 0x5c, 0x71, 0x7a, 0xfb, 0x87, 0x0c,
+	0xa5, 0x74, 0x1f, 0x43, 0xe8, 0x5f, 0x43, 0x6e, 0xf6, 0x0d, 0xd9, 0x9d, 0x9e, 0x76, 0x0a, 0x55,
+	0xa9, 0x3c, 0x98, 0x1a, 0x58, 0x1f, 0x9c, 0xde, 0xfc, 0x56, 0x63, 0x37, 0x77, 0xaa, 0x74, 0x7b,
+	0xa7, 0x4a, 0xbf, 0xee, 0x54, 0xe9, 0x7b, 0x5f, 0x8d, 0xdd, 0xf6, 0xd5, 0xd8, 0x8f, 0xbe, 0x1a,
+	0xfb, 0x50, 0xb1, 0x31, 0xbf, 0xec, 0xd6, 0xcb, 0x0d, 0xda, 0xd6, 0x7d, 0x69, 0xda, 0x6c, 0xe2,
+	0x06, 0x36, 0x5b, 0xba, 0x4d, 0xf7, 0x82, 0xff, 0x90, 0x2b, 0xf7, 0x4f, 0x84, 0x5f, 0x77, 0x10,
+	0xab, 0xcf, 0xbb, 0x3f, 0x21, 0xcf, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0x33, 0xa5, 0x34, 0x30,
+	0x06, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -880,8 +732,6 @@ type MsgClient interface {
 	UpdateMetadata(ctx context.Context, in *MsgUpdateMetadata, opts ...grpc.CallOption) (*MsgUpdateMetadataResponse, error)
 	UpdateMetadataAuthority(ctx context.Context, in *MsgUpdateMetadataAuthority, opts ...grpc.CallOption) (*MsgUpdateMetadataAuthorityResponse, error)
 	CreateCollection(ctx context.Context, in *MsgCreateCollection, opts ...grpc.CallOption) (*MsgCreateCollectionResponse, error)
-	VerifyCollection(ctx context.Context, in *MsgVerifyCollection, opts ...grpc.CallOption) (*MsgVerifyCollectionResponse, error)
-	UnverifyCollection(ctx context.Context, in *MsgUnverifyCollection, opts ...grpc.CallOption) (*MsgUnverifyCollectionResponse, error)
 	UpdateCollectionAuthority(ctx context.Context, in *MsgUpdateCollectionAuthority, opts ...grpc.CallOption) (*MsgUpdateCollectionAuthorityResponse, error)
 }
 
@@ -956,24 +806,6 @@ func (c *msgClient) CreateCollection(ctx context.Context, in *MsgCreateCollectio
 	return out, nil
 }
 
-func (c *msgClient) VerifyCollection(ctx context.Context, in *MsgVerifyCollection, opts ...grpc.CallOption) (*MsgVerifyCollectionResponse, error) {
-	out := new(MsgVerifyCollectionResponse)
-	err := c.cc.Invoke(ctx, "/bitsong.nft.Msg/VerifyCollection", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *msgClient) UnverifyCollection(ctx context.Context, in *MsgUnverifyCollection, opts ...grpc.CallOption) (*MsgUnverifyCollectionResponse, error) {
-	out := new(MsgUnverifyCollectionResponse)
-	err := c.cc.Invoke(ctx, "/bitsong.nft.Msg/UnverifyCollection", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *msgClient) UpdateCollectionAuthority(ctx context.Context, in *MsgUpdateCollectionAuthority, opts ...grpc.CallOption) (*MsgUpdateCollectionAuthorityResponse, error) {
 	out := new(MsgUpdateCollectionAuthorityResponse)
 	err := c.cc.Invoke(ctx, "/bitsong.nft.Msg/UpdateCollectionAuthority", in, out, opts...)
@@ -992,8 +824,6 @@ type MsgServer interface {
 	UpdateMetadata(context.Context, *MsgUpdateMetadata) (*MsgUpdateMetadataResponse, error)
 	UpdateMetadataAuthority(context.Context, *MsgUpdateMetadataAuthority) (*MsgUpdateMetadataAuthorityResponse, error)
 	CreateCollection(context.Context, *MsgCreateCollection) (*MsgCreateCollectionResponse, error)
-	VerifyCollection(context.Context, *MsgVerifyCollection) (*MsgVerifyCollectionResponse, error)
-	UnverifyCollection(context.Context, *MsgUnverifyCollection) (*MsgUnverifyCollectionResponse, error)
 	UpdateCollectionAuthority(context.Context, *MsgUpdateCollectionAuthority) (*MsgUpdateCollectionAuthorityResponse, error)
 }
 
@@ -1021,12 +851,6 @@ func (*UnimplementedMsgServer) UpdateMetadataAuthority(ctx context.Context, req 
 }
 func (*UnimplementedMsgServer) CreateCollection(ctx context.Context, req *MsgCreateCollection) (*MsgCreateCollectionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCollection not implemented")
-}
-func (*UnimplementedMsgServer) VerifyCollection(ctx context.Context, req *MsgVerifyCollection) (*MsgVerifyCollectionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method VerifyCollection not implemented")
-}
-func (*UnimplementedMsgServer) UnverifyCollection(ctx context.Context, req *MsgUnverifyCollection) (*MsgUnverifyCollectionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnverifyCollection not implemented")
 }
 func (*UnimplementedMsgServer) UpdateCollectionAuthority(ctx context.Context, req *MsgUpdateCollectionAuthority) (*MsgUpdateCollectionAuthorityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCollectionAuthority not implemented")
@@ -1162,42 +986,6 @@ func _Msg_CreateCollection_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_VerifyCollection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgVerifyCollection)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).VerifyCollection(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/bitsong.nft.Msg/VerifyCollection",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).VerifyCollection(ctx, req.(*MsgVerifyCollection))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Msg_UnverifyCollection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUnverifyCollection)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).UnverifyCollection(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/bitsong.nft.Msg/UnverifyCollection",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).UnverifyCollection(ctx, req.(*MsgUnverifyCollection))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Msg_UpdateCollectionAuthority_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateCollectionAuthority)
 	if err := dec(in); err != nil {
@@ -1247,14 +1035,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCollection",
 			Handler:    _Msg_CreateCollection_Handler,
-		},
-		{
-			MethodName: "VerifyCollection",
-			Handler:    _Msg_VerifyCollection_Handler,
-		},
-		{
-			MethodName: "UnverifyCollection",
-			Handler:    _Msg_UnverifyCollection_Handler,
 		},
 		{
 			MethodName: "UpdateCollectionAuthority",
@@ -1556,15 +1336,36 @@ func (m *MsgUpdateMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Data != nil {
-		{
-			size, err := m.Data.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
+	if len(m.Creators) > 0 {
+		for iNdEx := len(m.Creators) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Creators[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTx(dAtA, i, uint64(size))
 			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
+			i--
+			dAtA[i] = 0x32
 		}
+	}
+	if m.SellerFeeBasisPoints != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.SellerFeeBasisPoints))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Uri) > 0 {
+		i -= len(m.Uri)
+		copy(dAtA[i:], m.Uri)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Uri)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Name)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -1747,132 +1548,6 @@ func (m *MsgCreateCollectionResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 		i--
 		dAtA[i] = 0x8
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgVerifyCollection) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgVerifyCollection) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgVerifyCollection) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.NftId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.NftId))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.CollectionId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.CollectionId))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgVerifyCollectionResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgVerifyCollectionResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgVerifyCollectionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgUnverifyCollection) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgUnverifyCollection) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgUnverifyCollection) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.NftId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.NftId))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.CollectionId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.CollectionId))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgUnverifyCollectionResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgUnverifyCollectionResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgUnverifyCollectionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	return len(dAtA) - i, nil
 }
 
@@ -2084,9 +1759,22 @@ func (m *MsgUpdateMetadata) Size() (n int) {
 	if m.MetadataId != 0 {
 		n += 1 + sovTx(uint64(m.MetadataId))
 	}
-	if m.Data != nil {
-		l = m.Data.Size()
+	l = len(m.Name)
+	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Uri)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.SellerFeeBasisPoints != 0 {
+		n += 1 + sovTx(uint64(m.SellerFeeBasisPoints))
+	}
+	if len(m.Creators) > 0 {
+		for _, e := range m.Creators {
+			l = e.Size()
+			n += 1 + l + sovTx(uint64(l))
+		}
 	}
 	return n
 }
@@ -2163,62 +1851,6 @@ func (m *MsgCreateCollectionResponse) Size() (n int) {
 	if m.Id != 0 {
 		n += 1 + sovTx(uint64(m.Id))
 	}
-	return n
-}
-
-func (m *MsgVerifyCollection) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if m.CollectionId != 0 {
-		n += 1 + sovTx(uint64(m.CollectionId))
-	}
-	if m.NftId != 0 {
-		n += 1 + sovTx(uint64(m.NftId))
-	}
-	return n
-}
-
-func (m *MsgVerifyCollectionResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgUnverifyCollection) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	if m.CollectionId != 0 {
-		n += 1 + sovTx(uint64(m.CollectionId))
-	}
-	if m.NftId != 0 {
-		n += 1 + sovTx(uint64(m.NftId))
-	}
-	return n
-}
-
-func (m *MsgUnverifyCollectionResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	return n
 }
 
@@ -3097,7 +2729,90 @@ func (m *MsgUpdateMetadata) Unmarshal(dAtA []byte) error {
 			}
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Uri", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Uri = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SellerFeeBasisPoints", wireType)
+			}
+			m.SellerFeeBasisPoints = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SellerFeeBasisPoints |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creators", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3124,10 +2839,8 @@ func (m *MsgUpdateMetadata) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Data == nil {
-				m.Data = &Data{}
-			}
-			if err := m.Data.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Creators = append(m.Creators, &Creator{})
+			if err := m.Creators[len(m.Creators)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3611,346 +3324,6 @@ func (m *MsgCreateCollectionResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgVerifyCollection) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgVerifyCollection: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgVerifyCollection: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CollectionId", wireType)
-			}
-			m.CollectionId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CollectionId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NftId", wireType)
-			}
-			m.NftId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.NftId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgVerifyCollectionResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgVerifyCollectionResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgVerifyCollectionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgUnverifyCollection) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUnverifyCollection: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUnverifyCollection: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CollectionId", wireType)
-			}
-			m.CollectionId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CollectionId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NftId", wireType)
-			}
-			m.NftId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.NftId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgUnverifyCollectionResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUnverifyCollectionResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUnverifyCollectionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
