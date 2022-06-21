@@ -20,15 +20,26 @@ const (
 
 var _ sdk.Msg = &MsgCreateNFT{}
 
-func NewMsgCreateNFT(sender sdk.AccAddress, updateAuthority string, data Data, presaleHappened, isMutable bool, masterEditionMaxSupply uint64) *MsgCreateNFT {
+func NewMsgCreateNFT(sender sdk.AccAddress,
+	updateAuthority string,
+	name, uri string,
+	sellerFeeBasisPoints uint32,
+	presaleHappened,
+	isMutable bool,
+	creators []Creator,
+	masterEditionMaxSupply uint64,
+) *MsgCreateNFT {
 	return &MsgCreateNFT{
 		Sender: sender.String(),
 		Metadata: Metadata{
-			UpdateAuthority:     updateAuthority,
-			Mint:                sender.String(),
-			Data:                &data,
-			PrimarySaleHappened: presaleHappened,
-			IsMutable:           isMutable,
+			UpdateAuthority:      updateAuthority,
+			MintAuthority:        sender.String(),
+			Name:                 name,
+			Uri:                  uri,
+			SellerFeeBasisPoints: sellerFeeBasisPoints,
+			PrimarySaleHappened:  presaleHappened,
+			IsMutable:            isMutable,
+			Creators:             creators,
 			MasterEdition: &MasterEdition{
 				MaxSupply: masterEditionMaxSupply,
 			},
@@ -46,7 +57,7 @@ func (msg MsgCreateNFT) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if msg.Metadata.Data.SellerFeeBasisPoints > 100 {
+	if msg.Metadata.SellerFeeBasisPoints > 100 {
 		return ErrInvalidSellerFeeBasisPoints
 	}
 
@@ -195,11 +206,20 @@ func (msg MsgSignMetadata) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMetadata{}
 
-func NewMsgUpdateMetadata(sender sdk.AccAddress, metadataId uint64, data *Data) *MsgUpdateMetadata {
+func NewMsgUpdateMetadata(
+	sender sdk.AccAddress,
+	metadataId uint64,
+	name, uri string,
+	sellerFeeBasisPoints uint32,
+	creators []Creator,
+) *MsgUpdateMetadata {
 	return &MsgUpdateMetadata{
-		Sender:     sender.String(),
-		MetadataId: metadataId,
-		Data:       data,
+		Sender:               sender.String(),
+		MetadataId:           metadataId,
+		Name:                 name,
+		Uri:                  uri,
+		SellerFeeBasisPoints: sellerFeeBasisPoints,
+		Creators:             creators,
 	}
 }
 
@@ -213,7 +233,7 @@ func (msg MsgUpdateMetadata) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if msg.Data.SellerFeeBasisPoints > 100 {
+	if msg.SellerFeeBasisPoints > 100 {
 		return ErrInvalidSellerFeeBasisPoints
 	}
 
@@ -314,88 +334,6 @@ func (msg MsgCreateCollection) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgCreateCollection) GetSigners() []sdk.AccAddress {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{sender}
-}
-
-var _ sdk.Msg = &MsgVerifyCollection{}
-
-func NewMsgVerifyCollection(sender sdk.AccAddress, collectionId, nftId uint64) *MsgVerifyCollection {
-	return &MsgVerifyCollection{
-		Sender:       sender.String(),
-		CollectionId: collectionId,
-		NftId:        nftId,
-	}
-}
-
-func (msg MsgVerifyCollection) Route() string { return RouterKey }
-
-func (msg MsgVerifyCollection) Type() string { return TypeMsgVerifyCollection }
-
-func (msg MsgVerifyCollection) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
-	}
-
-	return nil
-}
-
-// GetSignBytes Implements Msg.
-func (msg MsgVerifyCollection) GetSignBytes() []byte {
-	b, err := ModuleCdc.MarshalJSON(&msg)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
-// GetSigners Implements Msg.
-func (msg MsgVerifyCollection) GetSigners() []sdk.AccAddress {
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{sender}
-}
-
-var _ sdk.Msg = &MsgUnverifyCollection{}
-
-func NewMsgUnverifyCollection(sender sdk.AccAddress, collectionId, nftId uint64) *MsgUnverifyCollection {
-	return &MsgUnverifyCollection{
-		Sender:       sender.String(),
-		CollectionId: collectionId,
-		NftId:        nftId,
-	}
-}
-
-func (msg MsgUnverifyCollection) Route() string { return RouterKey }
-
-func (msg MsgUnverifyCollection) Type() string { return TypeMsgUnverifyCollection }
-
-func (msg MsgUnverifyCollection) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
-	}
-
-	return nil
-}
-
-// GetSignBytes Implements Msg.
-func (msg MsgUnverifyCollection) GetSignBytes() []byte {
-	b, err := ModuleCdc.MarshalJSON(&msg)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.MustSortJSON(b)
-}
-
-// GetSigners Implements Msg.
-func (msg MsgUnverifyCollection) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)

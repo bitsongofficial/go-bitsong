@@ -27,8 +27,7 @@ message MsgCreateNFT {
   bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
 }
 message MsgCreateNFTResponse {
-  uint64 id = 1;
-  uint64 metadata_id = 2;
+  string id = 1;
 }
 
 message MsgPrintEdition {
@@ -64,7 +63,8 @@ message MsgUpdateMetadata {
   // Royalty basis points that goes to creators in secondary sales (0-10000)
   uint32 seller_fee_basis_points = 5;
   // Array of creators, optional
-  repeated bitsong.nft.v1beta1.Creator creators = 6;
+  repeated bitsong.nft.v1beta1.Creator creators = 6
+      [ (gogoproto.nullable) = false ];
 }
 message MsgUpdateMetadataResponse {}
 

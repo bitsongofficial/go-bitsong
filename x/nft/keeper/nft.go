@@ -7,21 +7,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 )
 
-func (k Keeper) GetLastNftId(ctx sdk.Context) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyLastNftId)
-	if bz == nil {
-		return 0
-	}
-	return sdk.BigEndianToUint64(bz)
-}
-
-func (k Keeper) SetLastNftId(ctx sdk.Context, id uint64) {
-	idBz := sdk.Uint64ToBigEndian(id)
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyLastNftId, idBz)
-}
-
 func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NFT {
 	store := ctx.KVStore(k.storeKey)
 
@@ -154,7 +139,7 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint6
 		Id:         nftId,
 		Owner:      msg.Owner,
 		MetadataId: msg.MetadataId,
-		Edition:    edition,
+		Seq:        edition,
 	}
 	k.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{

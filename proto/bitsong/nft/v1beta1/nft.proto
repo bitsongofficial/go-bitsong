@@ -25,7 +25,7 @@ message Metadata {
   // Whether or not the data struct is mutable, default is not
   bool is_mutable = 6;
   // Array of creators, optional
-  repeated Creator creators = 7;
+  repeated Creator creators = 7 [ (gogoproto.nullable) = false ];
   // who can update metadata (if is_mutable is true)
   string update_authority = 8;
   // who can mint the editions
@@ -87,7 +87,7 @@ message EventMetadataCreation {
 
 message EventNFTCreation {
   string creator = 1;
-  uint64 nft_id = 2;
+  string nft_id = 2;
 }
 
 message EventPrintEdition {

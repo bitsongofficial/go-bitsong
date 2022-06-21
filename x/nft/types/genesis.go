@@ -36,9 +36,6 @@ func ValidateGenesis(data GenesisState) error {
 	}
 
 	for _, nft := range data.Nfts {
-		if nft.Id > data.LastNftId {
-			return fmt.Errorf("invalid metadata id: %d", nft.Id)
-		}
 		if nft.MetadataId > data.LastMetadataId {
 			return fmt.Errorf("invalid metadata id: %d", nft.MetadataId)
 		}

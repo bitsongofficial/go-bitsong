@@ -26,8 +26,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateMetadata{}, "go-bitsong/nft/MsgUpdateMetadata", nil)
 	cdc.RegisterConcrete(&MsgUpdateMetadataAuthority{}, "go-bitsong/nft/MsgUpdateMetadataAuthority", nil)
 	cdc.RegisterConcrete(&MsgCreateCollection{}, "go-bitsong/nft/MsgCreateCollection", nil)
-	cdc.RegisterConcrete(&MsgVerifyCollection{}, "go-bitsong/nft/MsgVerifyCollection", nil)
-	cdc.RegisterConcrete(&MsgUnverifyCollection{}, "go-bitsong/nft/MsgUnverifyCollection", nil)
 	cdc.RegisterConcrete(&MsgUpdateCollectionAuthority{}, "go-bitsong/nft/MsgUpdateCollectionAuthority", nil)
 }
 
@@ -39,8 +37,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateMetadata{},
 		&MsgUpdateMetadataAuthority{},
 		&MsgCreateCollection{},
-		&MsgVerifyCollection{},
-		&MsgUnverifyCollection{},
 		&MsgUpdateCollectionAuthority{},
 	)
 
