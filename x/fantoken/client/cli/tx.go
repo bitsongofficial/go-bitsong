@@ -33,7 +33,8 @@ func NewTxCmd() *cobra.Command {
 		GetCmdDisableMint(),
 		GetCmdMint(),
 		GetCmdBurn(),
-		GetCmdTransferAuthority(),
+		GetCmdSetAuthority(),
+		GetCmdSetMinter(),
 		GetCmdUpdateFeesProposal(),
 	)
 
@@ -90,6 +91,7 @@ func GetCmdIssue() *cobra.Command {
 				MaxSupply: maxSupply,
 				Authority: authority.String(),
 				URI:       uri,
+				Minter:    authority.String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -266,14 +268,14 @@ func GetCmdBurn() *cobra.Command {
 	return cmd
 }
 
-// GetCmdTransferAuthority implements the transfer fan token authority command
-func GetCmdTransferAuthority() *cobra.Command {
+// GetCmdSetAuthority implements the transfer fan token authority command
+func GetCmdSetAuthority() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer-authority [denom]",
-		Short: "Transfer the authority of a fan token to a new authority",
+		Use:   "set-authority [denom]",
+		Short: "Set the authority of a fan token to a new authority",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken transfer-authority <denom> "+
-				"--dst-authority=<dst-authority> "+
+			"$ %s tx fantoken set-authority <denom> "+
+				"--new-authority=<new-authority> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -286,17 +288,17 @@ func GetCmdTransferAuthority() *cobra.Command {
 				return err
 			}
 
-			srcAuthority := clientCtx.GetFromAddress().String()
+			oldAuthority := clientCtx.GetFromAddress().String()
 
-			dstAuthority, err := cmd.Flags().GetString(FlagDstAuthority)
+			newAuthority, err := cmd.Flags().GetString(FlagNewAuthority)
 			if err != nil {
 				return err
 			}
-			if _, err := sdk.AccAddressFromBech32(dstAuthority); err != nil {
+			if _, err := sdk.AccAddressFromBech32(newAuthority); err != nil {
 				return err
 			}
 
-			msg := fantokentypes.NewMsgTransferAuthority(strings.TrimSpace(args[0]), srcAuthority, dstAuthority)
+			msg := fantokentypes.NewMsgSetAuthority(strings.TrimSpace(args[0]), oldAuthority, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -306,8 +308,55 @@ func GetCmdTransferAuthority() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsTransferAuthority)
-	_ = cmd.MarkFlagRequired(FlagDstAuthority)
+	cmd.Flags().AddFlagSet(FsSetAuthority)
+	_ = cmd.MarkFlagRequired(FlagNewAuthority)
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdSetMinter implements the transfer fan token authority command
+func GetCmdSetMinter() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-minter [denom]",
+		Short: "Set the minter of a fan token to a new minter",
+		Example: fmt.Sprintf(
+			"$ %s tx fantoken set-minter <denom> "+
+				"--new-minter=<new-minter> "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			oldMinter := clientCtx.GetFromAddress().String()
+
+			newMinter, err := cmd.Flags().GetString(FlagNewMinter)
+			if err != nil {
+				return err
+			}
+			if _, err := sdk.AccAddressFromBech32(newMinter); err != nil {
+				return err
+			}
+
+			msg := fantokentypes.NewMsgSetMinter(strings.TrimSpace(args[0]), oldMinter, newMinter)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsSetMinter)
+	_ = cmd.MarkFlagRequired(FlagNewMinter)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -369,17 +418,12 @@ Where proposal.json contains:
 				return err
 			}
 
-			transferFee, err := sdk.ParseCoinNormalized(proposal.TransferFee)
-			if err != nil {
-				return err
-			}
-
 			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
 			if err != nil {
 				return err
 			}
 
-			content := fantokentypes.NewUpdateFeesProposal(proposal.Title, proposal.Description, issueFee, mintFee, burnFee, transferFee)
+			content := fantokentypes.NewUpdateFeesProposal(proposal.Title, proposal.Description, issueFee, mintFee, burnFee)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {

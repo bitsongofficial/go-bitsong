@@ -17,6 +17,9 @@ message Metadata {
   // URI to a document (on or off-chain) that contains additional
   // information.Optional.
   string uri = 3 [ (gogoproto.customname) = "URI" ];
+
+  // sdk.AccAddress allowed to set a new uri
+  string authority = 4;
 }
 
 // FanToken defines a standard for the fungible token
@@ -33,11 +36,10 @@ message FanToken {
     (gogoproto.nullable) = false
   ];
 
-  bool mintable = 3;
+  // sdk.AccAddress allowed to mint new fantoken
+  string minter = 3;
 
-  string authority = 4;
-
-  Metadata meta_data = 5 [
+  Metadata meta_data = 4 [
     (gogoproto.moretags) = "yaml:\"meta_data\"",
     (gogoproto.nullable) = false
   ];

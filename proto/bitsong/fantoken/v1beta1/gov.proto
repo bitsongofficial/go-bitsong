@@ -28,11 +28,6 @@ message UpdateFeesProposal {
     (gogoproto.moretags) = "yaml:\"burn_fee\"",
     (gogoproto.nullable) = false
   ];
-
-  cosmos.base.v1beta1.Coin transfer_fee = 6 [
-    (gogoproto.moretags) = "yaml:\"transfer_fee\"",
-    (gogoproto.nullable) = false
-  ];
 }
 
 message UpdateFeesProposalWithDeposit {
@@ -43,6 +38,5 @@ message UpdateFeesProposalWithDeposit {
   string issue_fee = 3;
   string mint_fee = 4;
   string burn_fee = 5;
-  string transfer_fee = 6;
   string deposit = 7;
 }

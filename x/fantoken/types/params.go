@@ -12,10 +12,9 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 // parameter keys
 var (
-	KeyIssueFee    = []byte("IssueFee")
-	KeyMintFee     = []byte("MintFee")
-	KeyBurnFee     = []byte("BurnFee")
-	KeyTransferFee = []byte("TransferFee")
+	KeyIssueFee = []byte("IssueFee")
+	KeyMintFee  = []byte("MintFee")
+	KeyBurnFee  = []byte("BurnFee")
 )
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
@@ -23,17 +22,15 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyIssueFee, &p.IssueFee, validateFee),
 		paramtypes.NewParamSetPair(KeyMintFee, &p.MintFee, validateFee),
 		paramtypes.NewParamSetPair(KeyBurnFee, &p.BurnFee, validateFee),
-		paramtypes.NewParamSetPair(KeyTransferFee, &p.TransferFee, validateFee),
 	}
 }
 
 // NewParams constructs a new Params instance
 func NewParams(issueFee, mintFee, burnFee, transferFee sdk.Coin) Params {
 	return Params{
-		IssueFee:    issueFee,
-		MintFee:     mintFee,
-		BurnFee:     burnFee,
-		TransferFee: transferFee,
+		IssueFee: issueFee,
+		MintFee:  mintFee,
+		BurnFee:  burnFee,
 	}
 }
 
@@ -45,10 +42,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssueFee:    sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
-		MintFee:     sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
-		BurnFee:     sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
-		TransferFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+		IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
+		MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+		BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 	}
 }
 
@@ -69,10 +65,6 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateFee(p.BurnFee); err != nil {
-		return err
-	}
-
-	if err := validateFee(p.TransferFee); err != nil {
 		return err
 	}
 

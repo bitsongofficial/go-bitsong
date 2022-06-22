@@ -24,8 +24,14 @@ message EventBurn {
   string amount = 2;
 }
 
-message EventTransferAuthority {
+message EventSetAuthority {
   string denom = 1;
-  string src_authority = 2 [ (gogoproto.moretags) = "yaml:\"src_authority\"" ];
-  string dst_authority = 3 [ (gogoproto.moretags) = "yaml:\"dst_authority\"" ];
+  string old_authority = 2 [ (gogoproto.moretags) = "yaml:\"old_authority\"" ];
+  string new_authority = 3 [ (gogoproto.moretags) = "yaml:\"new_authority\"" ];
+}
+
+message EventSetMinter {
+  string denom = 1;
+  string old_minter = 2 [ (gogoproto.moretags) = "yaml:\"old_minter\"" ];
+  string new_minter = 3 [ (gogoproto.moretags) = "yaml:\"new_minter\"" ];
 }

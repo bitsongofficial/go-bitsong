@@ -31,9 +31,14 @@ var (
 
 // ValidateFanToken checks if the given token is valid
 func ValidateFanToken(fantoken *FanToken) error {
-	if len(fantoken.Authority) > 0 {
-		if _, err := sdk.AccAddressFromBech32(fantoken.Authority); err != nil {
+	if len(fantoken.MetaData.Authority) > 0 {
+		if _, err := sdk.AccAddressFromBech32(fantoken.MetaData.Authority); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		}
+	}
+	if len(fantoken.Minter) > 0 {
+		if _, err := sdk.AccAddressFromBech32(fantoken.Minter); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
 		}
 	}
 	if err := ValidateName(fantoken.GetName()); err != nil {
@@ -42,7 +47,7 @@ func ValidateFanToken(fantoken *FanToken) error {
 	if err := ValidateSymbol(fantoken.GetSymbol()); err != nil {
 		return err
 	}
-	if err := ValidateUri(fantoken.GetUri()); err != nil {
+	if err := ValidateUri(fantoken.GetURI()); err != nil {
 		return err
 	}
 	return nil
@@ -100,7 +105,7 @@ func ValidateUri(uri string) error {
 	return nil
 }
 
-func ValidateFees(issueFee, mintFee, burnFee, transferFee sdk.Coin) error {
+func ValidateFees(issueFee, mintFee, burnFee sdk.Coin) error {
 	if err := issueFee.Validate(); err != nil {
 		return err
 	}
@@ -110,10 +115,6 @@ func ValidateFees(issueFee, mintFee, burnFee, transferFee sdk.Coin) error {
 	}
 
 	if err := burnFee.Validate(); err != nil {
-		return err
-	}
-
-	if err := transferFee.Validate(); err != nil {
 		return err
 	}
 

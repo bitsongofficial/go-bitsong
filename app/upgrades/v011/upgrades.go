@@ -22,7 +22,6 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 		params.IssueFee.Denom = appparams.DefaultBondDenom
 		params.MintFee.Denom = appparams.DefaultBondDenom
 		params.BurnFee.Denom = appparams.DefaultBondDenom
-		params.TransferFee.Denom = appparams.DefaultBondDenom
 		ftk.SetParamSet(ctx, params)
 
 		return newVM, err

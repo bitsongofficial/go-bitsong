@@ -14,22 +14,22 @@ var (
 )
 
 // NewFanToken constructs a new FanToken instance
-func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, authority sdk.AccAddress, height int64) *FanToken {
+func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, minter, authority sdk.AccAddress, height int64) *FanToken {
 	return &FanToken{
 		Denom:     GetFantokenDenom(height, authority, symbol, name),
 		MaxSupply: maxSupply,
-		Mintable:  true,
-		Authority: authority.String(),
-		MetaData:  NewMetadata(name, symbol, uri),
+		MetaData:  NewMetadata(name, symbol, uri, authority),
+		Minter:    minter.String(),
 	}
 }
 
 // NewMetadata constructs a new FanToken Metadata instance
-func NewMetadata(name, symbol, uri string) Metadata {
+func NewMetadata(name, symbol, uri string, authority sdk.AccAddress) Metadata {
 	return Metadata{
-		Name:   name,
-		Symbol: symbol,
-		URI:    uri,
+		Name:      name,
+		Symbol:    symbol,
+		URI:       uri,
+		Authority: authority.String(),
 	}
 }
 
@@ -55,17 +55,23 @@ func (ft FanToken) GetMaxSupply() sdk.Int {
 
 // GetMintable implements exported.FanTokenI
 func (ft FanToken) GetMintable() bool {
-	return ft.Mintable
+	return ft.Minter != ""
 }
 
 // GetAuthority implements exported.FanTokenI
 func (ft FanToken) GetAuthority() sdk.AccAddress {
-	owner, _ := sdk.AccAddressFromBech32(ft.Authority)
-	return owner
+	authority, _ := sdk.AccAddressFromBech32(ft.MetaData.Authority)
+	return authority
 }
 
-// GetUri implements exported.FanTokenI
-func (ft FanToken) GetUri() string {
+// GetMinter implements exported.FanTokenI
+func (ft FanToken) GetMinter() sdk.AccAddress {
+	minter, _ := sdk.AccAddressFromBech32(ft.Minter)
+	return minter
+}
+
+// GetURI implements exported.FanTokenI
+func (ft FanToken) GetURI() string {
 	return ft.MetaData.URI
 }
 

@@ -53,7 +53,7 @@ func (k Keeper) GetAllBurnedCoins(ctx sdk.Context) []sdk.Coin {
 	return coins
 }
 
-func (k Keeper) setWithOwner(ctx sdk.Context, owner sdk.AccAddress, denom string) {
+func (k Keeper) setWithMetadataAuthority(ctx sdk.Context, owner sdk.AccAddress, denom string) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&gogotypes.StringValue{Value: denom})
 	store.Set(types.KeyFanTokens(owner, denom), bz)
@@ -85,5 +85,5 @@ func (k Keeper) resetStoreKeyForQueryToken(ctx sdk.Context, denom string, srcOwn
 	store.Delete(types.KeyFanTokens(srcOwner, denom))
 
 	// add the new key
-	k.setWithOwner(ctx, dstOwner, denom)
+	k.setWithMetadataAuthority(ctx, dstOwner, denom)
 }

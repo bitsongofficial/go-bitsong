@@ -25,7 +25,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgMint{}, "go-bitsong/fantoken/MsgMint", nil)
 	cdc.RegisterConcrete(&MsgBurn{}, "go-bitsong/fantoken/MsgBurn", nil)
 	cdc.RegisterConcrete(&MsgDisableMint{}, "go-bitsong/fantoken/MsgDisableMint", nil)
-	cdc.RegisterConcrete(&MsgTransferAuthority{}, "go-bitsong/fantoken/MsgTransferAuthority", nil)
+	cdc.RegisterConcrete(&MsgSetAuthority{}, "go-bitsong/fantoken/MsgSetAuthority", nil)
+	cdc.RegisterConcrete(&MsgSetMinter{}, "go-bitsong/fantoken/MsgSetMinter", nil)
 	cdc.RegisterConcrete(&UpdateFeesProposal{}, "go-bitsong/fantoken/UpdateFeesProposal", nil)
 }
 
@@ -35,7 +36,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgMint{},
 		&MsgBurn{},
 		&MsgDisableMint{},
-		&MsgTransferAuthority{},
+		&MsgSetAuthority{},
+		&MsgSetMinter{},
 	)
 
 	registry.RegisterImplementations(

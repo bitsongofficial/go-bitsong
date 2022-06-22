@@ -31,13 +31,13 @@ func (gs GenesisState) Validate() error {
 			return err
 		}
 
-		if !token.Mintable && token.Authority != "" {
+		/*if token.Authority != "" {
 			return fmt.Errorf("invalid authority")
 		}
 
 		if token.Mintable && token.Authority == "" {
 			return fmt.Errorf("invalid authority")
-		}
+		}*/
 
 		if token.MetaData.Symbol == "" {
 			return fmt.Errorf("invalid symbol")

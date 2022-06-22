@@ -43,16 +43,3 @@ func (k Keeper) deductBurnFee(ctx sdk.Context, authority sdk.AccAddress) error {
 	// send burn fantoken fee to community pool
 	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.BurnFee}, authority)
 }
-
-// deductTransferFee performs fee handling for transfer token
-func (k Keeper) deductTransferFee(ctx sdk.Context, authority sdk.AccAddress) error {
-	params := k.GetParamSet(ctx)
-
-	// check if amount is zero
-	if params.TransferFee.Amount.IsZero() || params.TransferFee.Amount.IsNegative() {
-		return nil
-	}
-
-	// send transfer fantoken fee to community pool
-	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.TransferFee}, authority)
-}

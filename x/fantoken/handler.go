@@ -33,8 +33,12 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.Burn(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgTransferAuthority:
-			res, err := msgServer.TransferAuthority(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgSetAuthority:
+			res, err := msgServer.SetAuthority(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+
+		case *types.MsgSetMinter:
+			res, err := msgServer.SetMinter(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
@@ -58,7 +62,7 @@ func NewProposalHandler(k keeper.Keeper) govtypes.Handler {
 func handleUpdateFeesProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateFeesProposal) error {
 	ctx.Logger().Info("Updating fantoken fees from proposal")
 
-	if err := types.ValidateFees(p.IssueFee, p.MintFee, p.BurnFee, p.TransferFee); err != nil {
+	if err := types.ValidateFees(p.IssueFee, p.MintFee, p.BurnFee); err != nil {
 		return err
 	}
 
@@ -66,7 +70,6 @@ func handleUpdateFeesProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateF
 	params.IssueFee = p.IssueFee
 	params.MintFee = p.MintFee
 	params.BurnFee = p.BurnFee
-	params.TransferFee = p.TransferFee
 	k.SetParamSet(ctx, params)
 
 	return nil

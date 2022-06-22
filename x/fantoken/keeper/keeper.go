@@ -56,13 +56,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // Issue issues a new fantoken
-func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, authority sdk.AccAddress) (denom string, err error) {
+func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, minter, authority sdk.AccAddress) (denom string, err error) {
 	// handle issue fee
-	if err := k.deductIssueFee(ctx, authority); err != nil {
+	if err := k.deductIssueFee(ctx, minter); err != nil {
 		return denom, err
 	}
 
-	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, authority, ctx.BlockHeight())
+	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, minter, authority, ctx.BlockHeight())
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
 	}
@@ -71,24 +71,20 @@ func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.I
 }
 
 // DisableMint disable the mint of a specific fantoken
-func (k Keeper) DisableMint(ctx sdk.Context, denom string, authority sdk.AccAddress) error {
+func (k Keeper) DisableMint(ctx sdk.Context, denom string, minter sdk.AccAddress) error {
 	// get the fantoken
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if authority.String() != fantoken.Authority {
-		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
+	if minter.String() != fantoken.Minter {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the minter of the fantoken %s", minter, denom)
 	}
 
-	if !fantoken.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "the fantoken %s is not mintable", denom)
-	}
+	fantoken.Minter = ""
 
-	fantoken.Mintable = false
-	fantoken.Authority = ""
-
+	// at this point we can set the official supply
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
 	fantoken.MaxSupply = supply
 
@@ -97,51 +93,61 @@ func (k Keeper) DisableMint(ctx sdk.Context, denom string, authority sdk.AccAddr
 	return nil
 }
 
-// TransferAuthority transfers the owner of the specified fantoken to a new one
-func (k Keeper) TransferAuthority(ctx sdk.Context, denom string, srcAuthority, dstAuthority sdk.AccAddress) error {
+// SetAuthority transfers the authority of the specified fantoken to a new one
+func (k Keeper) SetAuthority(ctx sdk.Context, denom string, oldAuthority, newAuthority sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if srcAuthority.String() != fantoken.Authority {
-		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", srcAuthority, denom)
+	if oldAuthority.String() != fantoken.MetaData.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", oldAuthority, denom)
 	}
 
-	// handle transfer fee
-	if err := k.deductTransferFee(ctx, srcAuthority); err != nil {
-		return err
-	}
-
-	fantoken.Authority = dstAuthority.String()
+	fantoken.MetaData.Authority = newAuthority.String()
 
 	// update fantoken
 	k.setFanToken(ctx, &fantoken)
 
 	// reset all indices
-	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), srcAuthority, dstAuthority)
+	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), oldAuthority, newAuthority)
 
 	return nil
 }
 
-// Mint mints the specified amount of fantoken to the specified recipient
-func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, amount sdk.Int, authority sdk.AccAddress) error {
+// SetMinter transfers the minter of the specified fantoken to a new one
+func (k Keeper) SetMinter(ctx sdk.Context, denom string, oldMinter, newMinter sdk.AccAddress) error {
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	if authority.String() != fantoken.Authority {
-		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
+	if oldMinter.String() != fantoken.Minter {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the minter of the fantoken %s", oldMinter, denom)
 	}
 
-	// handle mint fee
-	if err := k.deductMintFee(ctx, authority); err != nil {
+	fantoken.Minter = newMinter.String()
+
+	// update fantoken
+	k.setFanToken(ctx, &fantoken)
+
+	return nil
+}
+
+// Mint mints the specified amount of fantoken to the specified recipient
+func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, amount sdk.Int, minter sdk.AccAddress) error {
+	fantoken, err := k.getFanTokenByDenom(ctx, denom)
+	if err != nil {
 		return err
 	}
 
-	if !fantoken.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", denom)
+	if minter.String() != fantoken.Minter {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the minter of the fantoken %s", minter, denom)
+	}
+
+	// handle mint fee
+	if err := k.deductMintFee(ctx, minter); err != nil {
+		return err
 	}
 
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
@@ -165,10 +171,10 @@ func (k Keeper) Mint(ctx sdk.Context, recipient sdk.AccAddress, denom string, am
 	}
 
 	if recipient.Empty() {
-		recipient = authority
+		recipient = minter
 	}
 
-	// sent coins to the recipient account
+	// send coins to the recipient account
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, mintCoins)
 }
 

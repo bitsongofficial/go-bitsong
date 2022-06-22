@@ -16,14 +16,13 @@ func init() {
 
 var _ govtypes.Content = &UpdateFeesProposal{}
 
-func NewUpdateFeesProposal(title, description string, issueFee, mintFee, burnFee, transferFee sdk.Coin) govtypes.Content {
+func NewUpdateFeesProposal(title, description string, issueFee, mintFee, burnFee sdk.Coin) govtypes.Content {
 	return &UpdateFeesProposal{
 		Title:       title,
 		Description: description,
 		IssueFee:    issueFee,
 		MintFee:     mintFee,
 		BurnFee:     burnFee,
-		TransferFee: transferFee,
 	}
 }
 
@@ -41,7 +40,7 @@ func (p *UpdateFeesProposal) ValidateBasic() error {
 		return err
 	}
 
-	if err := ValidateFees(p.IssueFee, p.MintFee, p.BurnFee, p.TransferFee); err != nil {
+	if err := ValidateFees(p.IssueFee, p.MintFee, p.BurnFee); err != nil {
 		return err
 	}
 
@@ -56,7 +55,6 @@ func (p UpdateFeesProposal) String() string {
   Issue Fee:   %s
   Mint Fee:    %s
   Burn Fee:    %s
-  Transfer Fee: %s
-`, p.Title, p.Description, p.IssueFee, p.MintFee, p.BurnFee, p.TransferFee))
+`, p.Title, p.Description, p.IssueFee, p.MintFee, p.BurnFee))
 	return b.String()
 }

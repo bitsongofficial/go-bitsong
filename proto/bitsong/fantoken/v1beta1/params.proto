@@ -26,9 +26,4 @@ message Params {
     (gogoproto.moretags) = "yaml:\"burn_fee\"",
     (gogoproto.nullable) = false
   ];
-
-  cosmos.base.v1beta1.Coin transfer_fee = 4 [
-    (gogoproto.moretags) = "yaml:\"transfer_fee\"",
-    (gogoproto.nullable) = false
-  ];
 }

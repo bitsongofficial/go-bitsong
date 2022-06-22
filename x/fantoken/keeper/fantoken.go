@@ -62,9 +62,9 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 	// set token
 	k.setFanToken(ctx, token)
 
-	if len(token.Authority) != 0 {
-		// set token to be prefixed with owner
-		k.setWithOwner(ctx, token.GetAuthority(), token.GetDenom())
+	if len(token.MetaData.Authority) != 0 {
+		// set token to be prefixed with metadata authority
+		k.setWithMetadataAuthority(ctx, token.GetAuthority(), token.GetDenom())
 	}
 
 	return nil

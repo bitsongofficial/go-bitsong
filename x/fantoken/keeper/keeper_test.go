@@ -69,6 +69,6 @@ func (suite *KeeperTestSuite) TestIssue() {
 	suite.NoError(err)
 
 	suite.Equal(owner, issuedToken.GetAuthority())
-	suite.Equal(uri, issuedToken.GetUri())
+	suite.Equal(uri, issuedToken.GetURI())
 	// TODO: add more fields
 }

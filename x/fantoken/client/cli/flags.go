@@ -9,16 +9,18 @@ const (
 	FlagName         = "name"
 	FlagMaxSupply    = "max-supply"
 	FlagRecipient    = "recipient"
-	FlagDstAuthority = "dst-authority"
+	FlagNewAuthority = "new-authority"
+	FlagNewMinter    = "new-minter"
 	FlagAmount       = "amount"
 	FlagURI          = "uri"
 )
 
 var (
-	FsIssue             = flag.NewFlagSet("", flag.ContinueOnError)
-	FsMint              = flag.NewFlagSet("", flag.ContinueOnError)
-	FsDisableMint       = flag.NewFlagSet("", flag.ContinueOnError)
-	FsTransferAuthority = flag.NewFlagSet("", flag.ContinueOnError)
+	FsIssue        = flag.NewFlagSet("", flag.ContinueOnError)
+	FsMint         = flag.NewFlagSet("", flag.ContinueOnError)
+	FsDisableMint  = flag.NewFlagSet("", flag.ContinueOnError)
+	FsSetAuthority = flag.NewFlagSet("", flag.ContinueOnError)
+	FsSetMinter    = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -33,5 +35,7 @@ func init() {
 	FsDisableMint.String(FlagName, "[do-not-modify]", "The fantoken name, e.g. IRIS Network")
 	FsDisableMint.String(FlagMaxSupply, "", "The maximum supply of the fantoken")
 
-	FsTransferAuthority.String(FlagDstAuthority, "", "The new authority")
+	FsSetAuthority.String(FlagNewAuthority, "", "The new authority")
+
+	FsSetMinter.String(FlagNewMinter, "", "The new minter")
 }
