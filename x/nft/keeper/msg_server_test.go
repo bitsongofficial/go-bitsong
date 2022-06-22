@@ -261,14 +261,14 @@ func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 
 	tests := []struct {
 		testCase   string
-		nftId      uint64
+		nftId      string
 		sender     sdk.AccAddress
 		target     string
 		expectPass bool
 	}{
 		{
 			"transfer not existing nft",
-			0,
+			"",
 			creator3,
 			creator1.String(),
 			false,

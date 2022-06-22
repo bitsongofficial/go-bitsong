@@ -14,7 +14,7 @@ message Auction {
     // authority with permission to modify this auction.
     string authority = 2;
     // NFT being used to bid
-    uint64 nft_id = 3;
+    string nft_id = 3;
     // Describes transfering nft ownership only or metadata ownership as well
     AuctionPrizeType prize_type = 4;
     // Duration of the auction

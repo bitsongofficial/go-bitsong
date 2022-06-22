@@ -30,7 +30,7 @@ service Query {
 }
 
 // QueryNFTInfoRequest is request type for the nft
-message QueryNFTInfoRequest { uint64 id = 1; }
+message QueryNFTInfoRequest { string id = 1; }
 
 // QueryNFTInfoResponse is response type for the Query/NFTInfo RPC method
 message QueryNFTInfoResponse {
@@ -62,5 +62,5 @@ message QueryCollectionRequest { uint64 id = 1; }
 // QueryCollectionResponse is response type for the Query/Collection RPC method
 message QueryCollectionResponse {
   bitsong.nft.v1beta1.Collection collection = 1 [ (gogoproto.nullable) = false ];
-  repeated uint64 nft_ids = 2;
+  repeated string nft_ids = 2;
 }

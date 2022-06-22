@@ -8,17 +8,14 @@ func NewGenesisState(
 	metadata []Metadata, lastMetadataId uint64,
 	nfts []NFT, lastNftId uint64,
 	collections []Collection, lastCollectionId uint64,
-	collectionRecords []CollectionRecord,
 ) GenesisState {
 	return GenesisState{
-		Params:            params,
-		Metadata:          metadata,
-		LastMetadataId:    lastMetadataId,
-		Nfts:              nfts,
-		LastNftId:         lastNftId,
-		Collections:       collections,
-		LastCollectionId:  lastCollectionId,
-		CollectionRecords: collectionRecords,
+		Params:           params,
+		Metadata:         metadata,
+		LastMetadataId:   lastMetadataId,
+		Nfts:             nfts,
+		Collections:      collections,
+		LastCollectionId: lastCollectionId,
 	}
 }
 
@@ -50,13 +47,5 @@ func ValidateGenesis(data GenesisState) error {
 		}
 	}
 
-	for _, record := range data.CollectionRecords {
-		if record.NftId > data.LastNftId {
-			return fmt.Errorf("invalid nft id: %d", record.NftId)
-		}
-		if record.CollectionId > data.LastCollectionId {
-			return fmt.Errorf("invalid collection id: %d", record.CollectionId)
-		}
-	}
 	return nil
 }

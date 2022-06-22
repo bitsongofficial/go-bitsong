@@ -47,11 +47,6 @@ message Collection {
   string update_authority = 6;
 }
 
-message CollectionRecord {
-  uint64 nft_id = 1;
-  uint64 collection_id = 2;
-}
-
 message Creator {
   string address = 1;
   bool verified = 2;
@@ -96,7 +91,7 @@ message EventPrintEdition {
 }
 
 message EventNFTTransfer {
-  uint64 nft_id = 1;
+  string nft_id = 1;
   string sender = 2;
   string receiver = 3;
 }
@@ -124,13 +119,13 @@ message EventCollectionCreation {
 message EventCollectionVerification {
   string verifier = 1;
   uint64 collection_id = 2;
-  uint64 nft_id = 3;
+  string nft_id = 3;
 }
 
 message EventCollectionUnverification {
   string verifier = 1;
   uint64 collection_id = 2;
-  uint64 nft_id = 3;
+  string nft_id = 3;
 }
 
 message EventUpdateCollectionAuthority {

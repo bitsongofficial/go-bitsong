@@ -125,7 +125,7 @@ func (msg MsgPrintEdition) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgTransferNFT{}
 
-func NewMsgTransferNFT(sender sdk.AccAddress, nftId uint64, newOwner string) *MsgTransferNFT {
+func NewMsgTransferNFT(sender sdk.AccAddress, nftId string, newOwner string) *MsgTransferNFT {
 	return &MsgTransferNFT{
 		Sender:   sender.String(),
 		Id:       nftId,

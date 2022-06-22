@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"bytes"
-
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -70,35 +68,16 @@ func (k Keeper) DeleteCollectionNftRecord(ctx sdk.Context, collectionId uint64, 
 	store.Delete(append(append(types.PrefixCollectionRecord, collectionIdBz...), nftIdBz...))
 }
 
-func (k Keeper) GetCollectionNftRecords(ctx sdk.Context, collectionId uint64) []uint64 {
+func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
 	store := ctx.KVStore(k.storeKey)
 
-	nftIds := []uint64{}
+	nftIds := []string{}
 	it := sdk.KVStorePrefixIterator(store, append(types.PrefixCollectionRecord, sdk.Uint64ToBigEndian(collectionId)...))
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
-		id := sdk.BigEndianToUint64(it.Value())
+		id := string(it.Value())
 		nftIds = append(nftIds, id)
 	}
 	return nftIds
-}
-
-func (k Keeper) GetAllCollectionNftRecords(ctx sdk.Context) []types.CollectionRecord {
-	store := ctx.KVStore(k.storeKey)
-
-	records := []types.CollectionRecord{}
-	it := sdk.KVStorePrefixIterator(store, types.PrefixCollectionRecord)
-	defer it.Close()
-
-	for ; it.Valid(); it.Next() {
-		nftId := sdk.BigEndianToUint64(it.Value())
-		collectionIdBz := bytes.TrimSuffix(bytes.TrimPrefix(it.Key(), types.PrefixCollectionRecord), it.Value())
-		collectionId := sdk.BigEndianToUint64(collectionIdBz)
-		records = append(records, types.CollectionRecord{
-			NftId:        nftId,
-			CollectionId: collectionId,
-		})
-	}
-	return records
 }

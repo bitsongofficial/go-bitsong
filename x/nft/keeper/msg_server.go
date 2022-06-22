@@ -60,11 +60,11 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	m.Keeper.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
 		Creator: msg.Sender,
-		NftId:   nftId,
+		NftId:   nft.Id(),
 	})
 
 	return &types.MsgCreateNFTResponse{
-		Id:         nftId,
+		Id:         nft.Id(),
 		MetadataId: metadataId,
 	}, nil
 }
@@ -139,7 +139,10 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 		return nil, types.ErrNotEnoughPermission
 	}
 
-	metadata.Data = msg.Data
+	metadata.Name = msg.Name
+	metadata.Uri = msg.Uri
+	metadata.SellerFeeBasisPoints = msg.SellerFeeBasisPoints
+
 	for index := range metadata.Creators {
 		metadata.Creators[index].Verified = false
 	}

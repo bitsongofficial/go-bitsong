@@ -28,6 +28,7 @@ message MsgCreateNFT {
 }
 message MsgCreateNFTResponse {
   string id = 1;
+  uint64 metadata_id = 2;
 }
 
 message MsgPrintEdition {
@@ -36,20 +37,20 @@ message MsgPrintEdition {
   string owner = 3;
 }
 message MsgPrintEditionResponse {
-  uint64 id = 1;
+  string id = 1;
   uint64 metadata_id = 2;
 }
 
 message MsgTransferNFT {
   string sender = 1;
-  uint64 id = 2;
+  string id = 2;
   string new_owner = 3;
 }
 message MsgTransferNFTResponse {}
 
 message MsgSignMetadata {
-    string sender = 1;
-    uint64 metadata_id = 2;
+  string sender = 1;
+  uint64 metadata_id = 2;
 }
 message MsgSignMetadataResponse {}
 

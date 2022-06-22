@@ -17,5 +17,4 @@ message GenesisState {
   repeated bitsong.nft.v1beta1.NFT nfts = 4 [ (gogoproto.nullable) = false ];
   repeated bitsong.nft.v1beta1.Collection collections = 5 [ (gogoproto.nullable) = false ];
   uint64 last_collection_id = 6;
-  repeated bitsong.nft.v1beta1.CollectionRecord collection_records = 7 [ (gogoproto.nullable) = false ];
 }

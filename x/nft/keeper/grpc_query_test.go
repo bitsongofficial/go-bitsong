@@ -14,16 +14,16 @@ func (suite *KeeperTestSuite) TestGRPCNFTInfo() {
 
 	tests := []struct {
 		testCase           string
-		nftId              uint64
+		nftId              string
 		expectPass         bool
-		expectedNFTId      uint64
+		expectedNFTId      string
 		expectedMetadataId uint64
 	}{
 		{
 			"not existing nft id query",
-			0,
+			"",
 			false,
-			1,
+			"",
 			1,
 		},
 		{
@@ -168,11 +168,8 @@ func (suite *KeeperTestSuite) TestGRPCCollection() {
 	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	collectionInfo1 := suite.CreateCollection(creator)
 	collectionInfo2 := suite.CreateCollection(creator)
-	nftInfo1 := suite.CreateNFT(creator)
-	nftInfo2 := suite.CreateNFT(creator)
-	suite.VerifyCollection(creator, collectionInfo1.Id, nftInfo1.Id)
-	suite.VerifyCollection(creator, collectionInfo1.Id, nftInfo1.Id)
-	suite.VerifyCollection(creator, collectionInfo1.Id, nftInfo2.Id)
+	suite.CreateNFT(creator)
+	suite.CreateNFT(creator)
 
 	tests := []struct {
 		testCase          string

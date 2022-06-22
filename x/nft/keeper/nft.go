@@ -15,7 +15,7 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
-		id := sdk.BigEndianToUint64(it.Value())
+		id := string(it.Value())
 		nft, err := k.GetNFTById(ctx, id)
 		if err != nil {
 			panic(err)
@@ -26,9 +26,9 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	return nfts
 }
 
-func (k Keeper) GetNFTById(ctx sdk.Context, id uint64) (types.NFT, error) {
+func (k Keeper) GetNFTById(ctx sdk.Context, id string) (types.NFT, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixNFT, sdk.Uint64ToBigEndian(id)...))
+	bz := store.Get(append(types.PrefixNFT, []byte(id)...))
 	if bz == nil {
 		return types.NFT{}, sdkerrors.Wrapf(types.ErrNFTDoesNotExist, "nft: %d does not exist", id)
 	}
@@ -39,11 +39,11 @@ func (k Keeper) GetNFTById(ctx sdk.Context, id uint64) (types.NFT, error) {
 
 func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 	// check if previous NFT exists and delete
-	if oldNft, err := k.GetNFTById(ctx, nft.Id); err == nil {
+	if oldNft, err := k.GetNFTById(ctx, nft.Id()); err == nil {
 		k.DeleteNFT(ctx, oldNft)
 	}
 
-	idBz := sdk.Uint64ToBigEndian(nft.Id)
+	idBz := []byte(nft.Id())
 	bz := k.cdc.MustMarshal(&nft)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(append(types.PrefixNFT, idBz...), bz)
@@ -56,7 +56,7 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 }
 
 func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
-	idBz := sdk.Uint64ToBigEndian(nft.Id)
+	idBz := []byte(nft.Id())
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(append(types.PrefixNFT, idBz...))
 
@@ -99,22 +99,22 @@ func (k Keeper) PayNftIssueFee(ctx sdk.Context, sender sdk.AccAddress) error {
 	return nil
 }
 
-func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint64, error) {
+func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (string, error) {
 	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	if metadata.UpdateAuthority != msg.Sender {
-		return 0, types.ErrNotEnoughPermission
+		return "", types.ErrNotEnoughPermission
 	}
 
 	if metadata.MasterEdition == nil {
-		return 0, types.ErrNotMasterEditionNft
+		return "", types.ErrNotMasterEditionNft
 	}
 
 	if metadata.MasterEdition.MaxSupply <= metadata.MasterEdition.Supply {
-		return 0, types.ErrAlreadyReachedEditionMaxSupply
+		return "", types.ErrAlreadyReachedEditionMaxSupply
 	}
 
 	edition := metadata.MasterEdition.Supply
@@ -124,19 +124,16 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint6
 	// burn fees before minting an nft
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	err = k.PayNftIssueFee(ctx, sender)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	// create nft
-	nftId := k.GetLastNftId(ctx) + 1
-	k.SetLastNftId(ctx, nftId)
 	nft := types.NFT{
-		Id:         nftId,
 		Owner:      msg.Owner,
 		MetadataId: msg.MetadataId,
 		Seq:        edition,
@@ -144,10 +141,10 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (uint6
 	k.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
 		Creator: msg.Sender,
-		NftId:   nftId,
+		NftId:   nft.Id(),
 	})
 
-	return nftId, nil
+	return nft.Id(), nil
 }
 
 func (k Keeper) TransferNFT(ctx sdk.Context, msg *types.MsgTransferNFT) error {

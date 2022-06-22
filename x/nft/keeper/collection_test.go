@@ -74,16 +74,12 @@ func (suite *KeeperTestSuite) TestCollectionGetSet() {
 	suite.Require().Equal(collections, allCollections)
 }
 
-func (suite *KeeperTestSuite) TestCollectionNftRecordGetSet() {
+func (suite *KeeperTestSuite) TestCollectionNftsGetSet() {
 	collectionId := uint64(1)
 
 	// check nft ids by collection id query
-	nftIds := suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, collectionId)
+	nftIds := suite.app.NFTKeeper.GetCollectionNftIds(suite.ctx, collectionId)
 	suite.Require().Len(nftIds, 0)
-
-	// check all nft ids query
-	allNftIds := suite.app.NFTKeeper.GetAllCollectionNftRecords(suite.ctx)
-	suite.Require().Len(allNftIds, 0)
 
 	// create a new collection
 	collectionRecords := []types.CollectionRecord{
