@@ -3,10 +3,8 @@ package keeper
 import (
 	"context"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type msgServer struct {
@@ -34,15 +32,6 @@ func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.Msg
 		return nil, err
 	}
 
-	if m.Keeper.blockedAddrs[msg.Authority] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Authority)
-	}
-
-	// at the moment is disabled, will be enabled once some test will be done
-	if m.Keeper.blockedAddrs[msg.Minter] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Minter)
-	}
-
 	denom, err := m.Keeper.Issue(ctx, msg.Name, msg.Symbol, msg.URI, msg.MaxSupply, minter, authority)
 	if err != nil {
 		return nil, err
@@ -55,25 +44,6 @@ func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.Msg
 	})
 
 	return &types.MsgIssueResponse{}, nil
-}
-
-func (m msgServer) DisableMint(goCtx context.Context, msg *types.MsgDisableMint) (*types.MsgDisableMintResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	minter, err := sdk.AccAddressFromBech32(msg.Minter)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.Keeper.DisableMint(ctx, msg.Denom, minter); err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitTypedEvent(&types.EventDisableMint{
-		Denom: msg.Denom,
-	})
-
-	return &types.MsgDisableMintResponse{}, nil
 }
 
 func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMintResponse, error) {
@@ -95,18 +65,13 @@ func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMi
 		recipient = minter
 	}
 
-	if m.Keeper.blockedAddrs[recipient.String()] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
-	}
-
-	if err := m.Keeper.Mint(ctx, recipient, msg.Denom, msg.Amount, minter); err != nil {
+	if err := m.Keeper.Mint(ctx, minter, recipient, msg.Coin); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitTypedEvent(&types.EventMint{
-		Denom:     msg.Denom,
-		Amount:    msg.Amount.String(),
 		Recipient: recipient.String(),
+		Coin:      msg.Coin.String(),
 	})
 
 	return &types.MsgMintResponse{}, nil
@@ -120,17 +85,13 @@ func (m msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBu
 		return nil, err
 	}
 
-	if m.Keeper.blockedAddrs[msg.Sender] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.Sender)
-	}
-
-	if err := m.Keeper.Burn(ctx, msg.Denom, msg.Amount, owner); err != nil {
+	if err := m.Keeper.Burn(ctx, msg.Coin, owner); err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitTypedEvent(&types.EventBurn{
-		Denom:  msg.Denom,
-		Amount: msg.Amount.String(),
+		Sender: msg.Sender,
+		Coin:   msg.Coin.String(),
 	})
 
 	return &types.MsgBurnResponse{}, nil
@@ -147,14 +108,6 @@ func (m msgServer) SetAuthority(goCtx context.Context, msg *types.MsgSetAuthorit
 	newAuthority, err := sdk.AccAddressFromBech32(msg.NewAuthority)
 	if err != nil {
 		return nil, err
-	}
-
-	if m.Keeper.blockedAddrs[msg.OldAuthority] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.OldAuthority)
-	}
-
-	if m.Keeper.blockedAddrs[msg.NewAuthority] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.NewAuthority)
 	}
 
 	if err := m.Keeper.SetAuthority(ctx, msg.Denom, oldAuthority, newAuthority); err != nil {
@@ -183,14 +136,6 @@ func (m msgServer) SetMinter(goCtx context.Context, msg *types.MsgSetMinter) (*t
 		return nil, err
 	}
 
-	if m.Keeper.blockedAddrs[msg.OldMinter] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.OldMinter)
-	}
-
-	if m.Keeper.blockedAddrs[msg.NewMinter] {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", msg.NewMinter)
-	}
-
 	if err := m.Keeper.SetMinter(ctx, msg.Denom, oldMinter, newMinter); err != nil {
 		return nil, err
 	}
@@ -202,4 +147,42 @@ func (m msgServer) SetMinter(goCtx context.Context, msg *types.MsgSetMinter) (*t
 	})
 
 	return &types.MsgSetMinterResponse{}, nil
+}
+
+func (m msgServer) DisableMint(goCtx context.Context, msg *types.MsgDisableMint) (*types.MsgDisableMintResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	minter, err := sdk.AccAddressFromBech32(msg.Minter)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.Keeper.SetMinter(ctx, msg.Denom, minter, sdk.AccAddress{}); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitTypedEvent(&types.EventDisableMint{
+		Denom: msg.Denom,
+	})
+
+	return &types.MsgDisableMintResponse{}, nil
+}
+
+func (m msgServer) SetUri(goCtx context.Context, msg *types.MsgSetUri) (*types.MsgSetUriResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	authority, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.Keeper.SetUri(ctx, msg.Denom, msg.URI, authority); err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitTypedEvent(&types.EventSetUri{
+		Denom: msg.Denom,
+	})
+
+	return &types.MsgSetUriResponse{}, nil
 }

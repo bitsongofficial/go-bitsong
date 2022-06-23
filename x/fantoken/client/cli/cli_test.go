@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"context"
 	"fmt"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -9,6 +10,7 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -22,8 +24,6 @@ var (
 	symbol    = "btc"
 	uri       = "ipfs://"
 	maxSupply = sdk.NewInt(200000000)
-	mintable  = true
-	height    = int64(1)
 )
 
 type IntegrationTestSuite struct {
@@ -82,11 +82,10 @@ func issueCmd(s *IntegrationTestSuite, ctx client.Context, name, symbol string, 
 	return denom[1 : len(denom)-1]
 }
 
-func mintCmd(s *IntegrationTestSuite, ctx client.Context, denom, amount string, rcpt, from sdk.AccAddress) {
+func mintCmd(s *IntegrationTestSuite, ctx client.Context, coin string, rcpt, from sdk.AccAddress) {
 	args := []string{
-		denom,
+		coin,
 		fmt.Sprintf("--%s=%s", tokencli.FlagRecipient, rcpt),
-		fmt.Sprintf("--%s=%s", tokencli.FlagAmount, amount),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -104,10 +103,9 @@ func mintCmd(s *IntegrationTestSuite, ctx client.Context, denom, amount string, 
 	s.Require().Equal(expectedCode, txResp.Code)
 }
 
-func burnCmd(s *IntegrationTestSuite, ctx client.Context, denom, amount string, from sdk.AccAddress) {
+func burnCmd(s *IntegrationTestSuite, ctx client.Context, coin string, from sdk.AccAddress) {
 	args := []string{
-		denom,
-		fmt.Sprintf("--%s=%s", tokencli.FlagAmount, amount),
+		coin,
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
@@ -190,12 +188,88 @@ func disableMintCmd(s *IntegrationTestSuite, ctx client.Context, denom, from str
 	s.Require().Equal(expectedCode, txResp.Code)
 }
 
+func setUriCmd(s *IntegrationTestSuite, ctx client.Context, denom, uri, from string) {
+	args := []string{
+		denom,
+		fmt.Sprintf("--%s=%s", tokencli.FlagURI, uri),
+
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+	}
+
+	respType := proto.Message(&sdk.TxResponse{})
+	expectedCode := uint32(0)
+
+	bz, err := clitestutil.ExecTestCLICmd(ctx, tokencli.GetCmdSetUri(), args)
+	s.Require().NoError(err)
+	s.Require().NoError(ctx.Codec.UnmarshalJSON(bz.Bytes(), respType), bz.String())
+
+	txResp := respType.(*sdk.TxResponse)
+	s.Require().Equal(expectedCode, txResp.Code)
+}
+
+func queryBalance(s *IntegrationTestSuite, ctx client.Context, denom string, addr sdk.AccAddress) *sdk.Coin {
+	bankClient := banktypes.NewQueryClient(ctx)
+
+	bankRes, err := bankClient.Balance(
+		context.Background(),
+		&banktypes.QueryBalanceRequest{
+			Address: addr.String(),
+			Denom:   denom,
+		},
+	)
+	s.Require().NoError(err)
+
+	return bankRes.Balance
+}
+
 func (s *IntegrationTestSuite) TestCmdIssue() {
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
 	from := val.Address
 
 	issueCmd(s, clientCtx, name, symbol, maxSupply, uri, from)
+}
+
+func (s *IntegrationTestSuite) TestCmdMint() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+	from := val.Address
+
+	// issue a new fantoken
+	denom := issueCmd(s, clientCtx, name, symbol, maxSupply, uri, from)
+
+	// mint 10 tokens
+	coin := fmt.Sprintf("%d%s", 10, denom)
+	mintCmd(s, clientCtx, coin, from, from)
+
+	// query balance
+	balance := queryBalance(s, clientCtx, denom, from)
+	s.Require().Equal(coin, balance.String())
+}
+
+func (s *IntegrationTestSuite) TestCmdBurn() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+	from := val.Address
+
+	// issue a new fantoken
+	denom := issueCmd(s, clientCtx, name, symbol, maxSupply, uri, from)
+
+	// mint 10 tokens
+	coin := fmt.Sprintf("%d%s", 10, denom)
+	mintCmd(s, clientCtx, coin, from, from)
+
+	// burn 6 tokens
+	coin = fmt.Sprintf("%d%s", 6, denom)
+	burnCmd(s, clientCtx, coin, from)
+
+	// query balance
+	expBalance := fmt.Sprintf("%d%s", 4, denom)
+	balance := queryBalance(s, clientCtx, denom, from)
+	s.Require().Equal(expBalance, balance.String())
 }
 
 func (s *IntegrationTestSuite) TestCmdSetAuthority() {
@@ -242,6 +316,29 @@ func (s *IntegrationTestSuite) TestCmdSetMinter() {
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &response))
 	s.Require().Equal(response.Fantoken.Minter, val2.Address.String())
+}
+
+func (s *IntegrationTestSuite) TestCmdSetUri() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+	from := val.Address
+
+	denom := issueCmd(s, clientCtx, name, symbol, maxSupply, uri, from)
+
+	newUri := "ipfs://newuri"
+	setUriCmd(s, clientCtx, denom, newUri, from.String())
+
+	var response tokentypes.QueryFanTokenResponse
+
+	args := []string{
+		denom,
+		fmt.Sprintf("--%s=json", cli.OutputFlag),
+	}
+
+	resp, err := clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdQueryFanToken(), args)
+	s.Require().NoError(err)
+	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &response))
+	s.Require().Equal(response.Fantoken.MetaData.URI, newUri)
 }
 
 func (s *IntegrationTestSuite) TestCmdDisableMint() {
@@ -345,19 +442,21 @@ func (s *IntegrationTestSuite) TestCmdQueryTotalBurn() {
 	resp, err := clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdQueryTotalBurn(), args)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &totalBurn))
-	s.Require().Len(totalBurn.BurnedCoins, 0)
+	s.Require().GreaterOrEqual(len(totalBurn.BurnedCoins), 0)
 
 	// mint
-	mintCmd(s, clientCtx, denom, "10", from, from)
+	coin := fmt.Sprintf("%d%s", 10, denom)
+	mintCmd(s, clientCtx, coin, from, from)
 
 	// burn
-	burnCmd(s, clientCtx, denom, "10", from)
+	coin = fmt.Sprintf("%d%s", 10, denom)
+	burnCmd(s, clientCtx, coin, from)
 
 	// query again
 	resp, err = clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdQueryTotalBurn(), args)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &totalBurn))
-	s.Require().Len(totalBurn.BurnedCoins, 1)
+	s.Require().GreaterOrEqual(len(totalBurn.BurnedCoins), 1)
 	s.Require().Equal(sdk.NewInt(10), totalBurn.BurnedCoins[0].Amount)
 	s.Require().Equal(denom, totalBurn.BurnedCoins[0].Denom)
 }

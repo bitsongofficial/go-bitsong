@@ -22,8 +22,8 @@ func (k Keeper) SetBurnCoin(ctx sdk.Context, total sdk.Coin) {
 	store.Set(key, bz)
 }
 
-// getBurnedCoins returns the total amount of the burned fantoken
-func (k Keeper) getBurnedCoins(ctx sdk.Context, denom string) sdk.Coin {
+// GetBurnedCoins returns the total amount of the burned fantoken
+func (k Keeper) GetBurnedCoins(ctx sdk.Context, denom string) sdk.Coin {
 	key := types.KeyBurnFanTokenAmt(denom)
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(key)

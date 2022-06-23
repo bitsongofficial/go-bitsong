@@ -108,7 +108,7 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	return &types.QueryParamsResponse{Params: params}, nil
 }
 
-// TotalBurn return the all burn coin
+// TotalBurn return the all Burn coin
 func (k Keeper) TotalBurn(c context.Context, req *types.QueryTotalBurnRequest) (*types.QueryTotalBurnResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 

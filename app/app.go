@@ -41,6 +41,8 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
+
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
 	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
@@ -139,6 +141,7 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			fantokenclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

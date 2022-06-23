@@ -26,8 +26,8 @@ func (gs GenesisState) Validate() error {
 	}
 
 	// validate fantoken
-	for _, token := range gs.FanTokens {
-		if err := ValidateFanTokenWithDenom(&token); err != nil {
+	for _, fantoken := range gs.FanTokens {
+		if err := fantoken.ValidateWithDenom(); err != nil {
 			return err
 		}
 
@@ -39,11 +39,11 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("invalid authority")
 		}*/
 
-		if token.MetaData.Symbol == "" {
+		if fantoken.MetaData.Symbol == "" {
 			return fmt.Errorf("invalid symbol")
 		}
 
-		if token.MetaData.Name == "" {
+		if fantoken.MetaData.Name == "" {
 			return fmt.Errorf("invalid name")
 		}
 	}

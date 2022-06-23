@@ -9,7 +9,7 @@ GRPC_PORT=9090
 MNEMONIC_1="guard cream sadness conduct invite crumble clock pudding hole grit liar hotel maid produce squeeze return argue turtle know drive eight casino maze host"
 MNEMONIC_2="friend excite rough reopen cover wheel spoon convince island path clean monkey play snow number walnut pull lock shoot hurry dream divide concert discover"
 MNEMONIC_3="fuel obscure melt april direct second usual hair leave hobby beef bacon solid drum used law mercy worry fat super must ritual bring faculty"
-GENESIS_COINS=10000000000ubtsg
+GENESIS_COINS=1000000000000000ubtsg
 
 # Stop bitsongd if it is already running 
 if pgrep -x "$BINARY" >/dev/null; then
@@ -50,11 +50,13 @@ sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $CHAIN_DIR/$CHAIN_ID/
 sed -i 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/$CHAIN_ID/config/config.toml
 sed -i 's/enable = false/enable = true/g' $CHAIN_DIR/$CHAIN_ID/config/app.toml
 sed -i 's/swagger = false/swagger = true/g' $CHAIN_DIR/$CHAIN_ID/config/app.toml
-sed -i 's/"voting_period": "172800s"/"voting_period": "20s"/g' $CHAIN_DIR/$CHAIN_ID/config/genesis.json
+#sed -i 's/"voting_period": "172800s"/"voting_period": "20s"/g' $CHAIN_DIR/$CHAIN_ID/config/genesis.json
 
 # Start bitsong
 echo "Starting $CHAIN_ID in $CHAIN_DIR..."
 echo "Log file is located at $CHAIN_DIR/$CHAIN_ID.log"
 # $BINARY --home $CHAIN_DIR/$CHAIN_ID start --pruning=nothing --grpc.address="0.0.0.0:$GRPC_PORT" > $CHAIN_DIR/$CHAIN_ID.log 2>&1 &
 $BINARY --home $CHAIN_DIR/$CHAIN_ID prepare-genesis mainnet localnet
+sed -i 's/"voting_period": "604800s"/"voting_period": "20s"/g' $CHAIN_DIR/$CHAIN_ID/config/genesis.json
+
 $BINARY --home $CHAIN_DIR/$CHAIN_ID start --pruning=nothing --trace

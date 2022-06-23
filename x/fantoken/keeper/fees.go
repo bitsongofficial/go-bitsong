@@ -27,7 +27,7 @@ func (k Keeper) deductMintFee(ctx sdk.Context, authority sdk.AccAddress) error {
 		return nil
 	}
 
-	// send mint fantoken fee to community pool
+	// send Mint fantoken fee to community pool
 	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.MintFee}, authority)
 }
 
@@ -40,6 +40,6 @@ func (k Keeper) deductBurnFee(ctx sdk.Context, authority sdk.AccAddress) error {
 		return nil
 	}
 
-	// send burn fantoken fee to community pool
+	// send Burn fantoken fee to community pool
 	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.BurnFee}, authority)
 }

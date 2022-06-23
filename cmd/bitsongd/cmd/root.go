@@ -159,6 +159,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetBroadcastCommand(),
 		authcmd.GetEncodeCommand(),
 		authcmd.GetDecodeCommand(),
+
 	)
 
 	app.ModuleBasics.AddTxCommands(cmd)

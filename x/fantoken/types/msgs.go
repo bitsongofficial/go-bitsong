@@ -15,6 +15,7 @@ const (
 	TypeMsgBurn         = "burn"
 	TypeMsgSetAuthority = "set_authority"
 	TypeMsgSetMinter    = "set_minter"
+	TypeMsgSetUri       = "set_uri"
 )
 
 var (
@@ -24,6 +25,7 @@ var (
 	_ sdk.Msg = &MsgBurn{}
 	_ sdk.Msg = &MsgSetAuthority{}
 	_ sdk.Msg = &MsgSetMinter{}
+	_ sdk.Msg = &MsgSetUri{}
 )
 
 // NewMsgIssue - construct token issue msg.
@@ -66,7 +68,7 @@ func (msg MsgIssue) ValidateBasic() error {
 		},
 	}
 
-	return ValidateFanToken(fantoken)
+	return fantoken.Validate()
 }
 
 // GetSignBytes Implements Msg.
@@ -249,12 +251,11 @@ func (msg MsgDisableMint) ValidateBasic() error {
 }
 
 // NewMsgMint creates a MsgMint
-func NewMsgMint(recipient, denom, minter string, amount sdk.Int) *MsgMint {
+func NewMsgMint(recipient string, coin sdk.Coin, minter string) *MsgMint {
 	return &MsgMint{
 		Recipient: recipient,
-		Denom:     denom,
+		Coin:      coin,
 		Minter:    minter,
-		Amount:    amount,
 	}
 }
 
@@ -296,19 +297,18 @@ func (msg MsgMint) ValidateBasic() error {
 		}
 	}
 
-	if err := ValidateAmount(msg.Amount); err != nil {
+	if err := ValidateAmount(msg.Coin.Amount); err != nil {
 		return err
 	}
 
-	return ValidateDenom(msg.Denom)
+	return ValidateDenom(msg.Coin.Denom)
 }
 
 // NewMsgBurn creates a MsgBurn
-func NewMsgBurn(denom, owner string, amount sdk.Int) *MsgBurn {
+func NewMsgBurn(coin sdk.Coin, sender string) *MsgBurn {
 	return &MsgBurn{
-		Denom:  denom,
-		Amount: amount,
-		Sender: owner,
+		Coin:   coin,
+		Sender: sender,
 	}
 }
 
@@ -343,7 +343,54 @@ func (msg MsgBurn) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
-	if err := ValidateAmount(msg.Amount); err != nil {
+	if err := ValidateAmount(msg.Coin.Amount); err != nil {
+		return err
+	}
+
+	return ValidateDenom(msg.Coin.Denom)
+}
+
+// NewMsgSetUri creates a MsgSetUri
+func NewMsgSetUri(denom, newUri string, sender string) *MsgSetUri {
+	return &MsgSetUri{
+		Authority: sender,
+		Denom:     denom,
+		URI:       newUri,
+	}
+}
+
+// Route implements Msg
+func (msg MsgSetUri) Route() string { return MsgRoute }
+
+// Type implements Msg
+func (msg MsgSetUri) Type() string { return TypeMsgSetUri }
+
+// GetSignBytes implements Msg
+func (msg MsgSetUri) GetSignBytes() []byte {
+	b, err := ModuleCdc.MarshalJSON(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners implements Msg
+func (msg MsgSetUri) GetSigners() []sdk.AccAddress {
+	from, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{from}
+}
+
+// ValidateBasic implements Msg
+func (msg MsgSetUri) ValidateBasic() error {
+	// check the authority
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+	}
+
+	if err := ValidateUri(msg.URI); err != nil {
 		return err
 	}
 

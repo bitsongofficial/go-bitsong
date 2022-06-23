@@ -23,6 +23,7 @@ service Msg {
 
   rpc SetMinter(MsgSetMinter) returns (MsgSetMinterResponse);
   rpc SetAuthority(MsgSetAuthority) returns (MsgSetAuthorityResponse);
+  rpc SetUri(MsgSetUri) returns (MsgSetUriResponse);
 }
 
 // MsgIssue defines a message for issuing a new fan token
@@ -66,13 +67,14 @@ message MsgDisableMintResponse {}
 // MsgMint defines a message for minting a new fan token
 message MsgMint {
   string recipient = 1;
-  string denom = 2;
-  string amount = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"amount\"",
+
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 2 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
     (gogoproto.nullable) = false
   ];
-  string minter = 4;
+
+  string minter = 3;
 }
 
 // MsgMintResponse defines the MsgMint response type
@@ -80,13 +82,13 @@ message MsgMintResponse {}
 
 // MsgBurn defines a message for burning some fan tokens
 message MsgBurn {
-  string denom = 1;
-  string amount = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"amount\"",
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 1 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
     (gogoproto.nullable) = false
   ];
-  string sender = 3;
+
+  string sender = 2;
 }
 
 // MsgBurnResponse defines the MsgBurn response type
@@ -123,3 +125,11 @@ message MsgSetAuthority {
 
 // MsgSetAuthorityResponse defines the MsgTransferAuthority response type
 message MsgSetAuthorityResponse {}
+
+message MsgSetUri {
+  string authority = 1;
+  string denom = 2;
+  string uri = 3 [ (gogoproto.customname) = "URI" ];
+}
+
+message MsgSetUriResponse{}

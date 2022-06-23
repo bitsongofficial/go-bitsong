@@ -114,7 +114,6 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.FantokenParams.IssueFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(1_000_000_000))
 	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
-	genParams.FantokenParams.TransferFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 
 	return genParams
 }

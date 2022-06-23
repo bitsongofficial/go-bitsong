@@ -21,6 +21,7 @@ var (
 	FsDisableMint  = flag.NewFlagSet("", flag.ContinueOnError)
 	FsSetAuthority = flag.NewFlagSet("", flag.ContinueOnError)
 	FsSetMinter    = flag.NewFlagSet("", flag.ContinueOnError)
+	FsSetUri       = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -30,7 +31,6 @@ func init() {
 	FsIssue.String(FlagURI, "", "The fantoken uri")
 
 	FsMint.String(FlagRecipient, "", "Address to which the fantoken is to be minted")
-	FsMint.String(FlagAmount, "", "Amount of the fantoken to be minted")
 
 	FsDisableMint.String(FlagName, "[do-not-modify]", "The fantoken name, e.g. IRIS Network")
 	FsDisableMint.String(FlagMaxSupply, "", "The maximum supply of the fantoken")
@@ -38,4 +38,6 @@ func init() {
 	FsSetAuthority.String(FlagNewAuthority, "", "The new authority")
 
 	FsSetMinter.String(FlagNewMinter, "", "The new minter")
+
+	FsSetUri.String(FlagURI, "", "The uri of the fantoken")
 }

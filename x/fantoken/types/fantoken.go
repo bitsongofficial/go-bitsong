@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 	"gopkg.in/yaml.v2"
 
@@ -16,20 +17,10 @@ var (
 // NewFanToken constructs a new FanToken instance
 func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, minter, authority sdk.AccAddress, height int64) *FanToken {
 	return &FanToken{
-		Denom:     GetFantokenDenom(height, authority, symbol, name),
+		Denom:     GetFantokenDenom(height, minter, symbol, name),
 		MaxSupply: maxSupply,
 		MetaData:  NewMetadata(name, symbol, uri, authority),
 		Minter:    minter.String(),
-	}
-}
-
-// NewMetadata constructs a new FanToken Metadata instance
-func NewMetadata(name, symbol, uri string, authority sdk.AccAddress) Metadata {
-	return Metadata{
-		Name:      name,
-		Symbol:    symbol,
-		URI:       uri,
-		Authority: authority.String(),
 	}
 }
 
@@ -83,4 +74,55 @@ func (ft FanToken) GetMetaData() Metadata {
 func (ft FanToken) String() string {
 	bz, _ := yaml.Marshal(ft)
 	return string(bz)
+}
+
+func (ft FanToken) Validate() error {
+	if len(ft.Minter) > 0 {
+		if _, err := sdk.AccAddressFromBech32(ft.Minter); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
+		}
+	}
+
+	return ft.MetaData.Validate()
+}
+
+func (ft FanToken) ValidateWithDenom() error {
+	if err := ft.Validate(); err != nil {
+		return err
+	}
+
+	if err := ValidateDenom(ft.GetDenom()); err != nil {
+		return err
+	}
+	return nil
+}
+
+// NewMetadata constructs a new FanToken Metadata instance
+func NewMetadata(name, symbol, uri string, authority sdk.AccAddress) Metadata {
+	return Metadata{
+		Name:      name,
+		Symbol:    symbol,
+		URI:       uri,
+		Authority: authority.String(),
+	}
+}
+
+func (m Metadata) Validate() error {
+	if len(m.Authority) > 0 {
+		if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		}
+	}
+
+	if err := ValidateName(m.Name); err != nil {
+		return err
+	}
+	if err := ValidateSymbol(m.Symbol); err != nil {
+		return err
+	}
+	if err := ValidateUri(m.URI); err != nil {
+		return err
+	}
+
+	return nil
 }

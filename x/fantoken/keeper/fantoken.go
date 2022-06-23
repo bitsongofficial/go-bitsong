@@ -74,7 +74,7 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 func (k Keeper) AddBurnCoin(ctx sdk.Context, coin sdk.Coin) {
 	var total = coin
 
-	burnedCoins := k.getBurnedCoins(ctx, coin.Denom)
+	burnedCoins := k.GetBurnedCoins(ctx, coin.Denom)
 	total = total.Add(burnedCoins)
 
 	k.SetBurnCoin(ctx, total)

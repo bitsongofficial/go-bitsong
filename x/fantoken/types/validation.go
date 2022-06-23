@@ -29,41 +29,6 @@ var (
 	regexpSymbol    = regexp.MustCompile(regexpSymbolFmt).MatchString
 )
 
-// ValidateFanToken checks if the given token is valid
-func ValidateFanToken(fantoken *FanToken) error {
-	if len(fantoken.MetaData.Authority) > 0 {
-		if _, err := sdk.AccAddressFromBech32(fantoken.MetaData.Authority); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
-		}
-	}
-	if len(fantoken.Minter) > 0 {
-		if _, err := sdk.AccAddressFromBech32(fantoken.Minter); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
-		}
-	}
-	if err := ValidateName(fantoken.GetName()); err != nil {
-		return err
-	}
-	if err := ValidateSymbol(fantoken.GetSymbol()); err != nil {
-		return err
-	}
-	if err := ValidateUri(fantoken.GetURI()); err != nil {
-		return err
-	}
-	return nil
-}
-
-func ValidateFanTokenWithDenom(fantoken *FanToken) error {
-	if err := ValidateFanToken(fantoken); err != nil {
-		return err
-	}
-
-	if err := ValidateDenom(fantoken.GetDenom()); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ValidateDenom checks if the given denom is valid
 func ValidateDenom(denom string) error {
 	if !strings.HasPrefix(denom, "ft") {
@@ -78,20 +43,22 @@ func ValidateName(name string) error {
 	if len(strings.TrimSpace(name)) > MaximumNameLen {
 		return sdkerrors.Wrapf(ErrInvalidName, "invalid fantoken name %s, only accepts length (%d, %d]", name, MinimumNameLen, MaximumNameLen)
 	}
+
 	return nil
 }
 
 // ValidateSymbol checks if the given symbol is valid
 func ValidateSymbol(symbol string) error {
-	if !regexpSymbol(symbol) {
+	if !regexpSymbol(strings.TrimSpace(symbol)) {
 		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid symbol: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", symbol, MinimumSymbolLen, MaximumSymbolLen, regexpSymbolFmt)
 	}
+
 	return nil
 }
 
 // ValidateAmount checks if the given amount is positive amount
 func ValidateAmount(amount sdk.Int) error {
-	if amount.IsZero() {
+	if amount.IsZero() || amount.IsNegative() {
 		return sdkerrors.Wrapf(ErrInvalidMaxSupply, "invalid fantoken amount %d, only accepts positive amount", amount)
 	}
 	return nil
@@ -102,6 +69,7 @@ func ValidateUri(uri string) error {
 	if len(strings.TrimSpace(uri)) > MaximumUriLen {
 		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length (%d, %d]", uri, MinimumUriLen, MaximumUriLen)
 	}
+
 	return nil
 }
 

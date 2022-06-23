@@ -14,14 +14,13 @@ message EventDisableMint {
 }
 
 message EventMint {
-  string denom = 1;
-  string amount = 2;
-  string recipient = 3;
+  string recipient = 1;
+  string coin = 2;
 }
 
 message EventBurn {
-  string denom = 1;
-  string amount = 2;
+  string sender = 1;
+  string coin = 2;
 }
 
 message EventSetAuthority {
@@ -34,4 +33,8 @@ message EventSetMinter {
   string denom = 1;
   string old_minter = 2 [ (gogoproto.moretags) = "yaml:\"old_minter\"" ];
   string new_minter = 3 [ (gogoproto.moretags) = "yaml:\"new_minter\"" ];
+}
+
+message EventSetUri {
+  string denom = 1;
 }
