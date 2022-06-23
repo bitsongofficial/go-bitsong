@@ -50,7 +50,7 @@ func FlagPrintEdition() *flag.FlagSet {
 func FlagTransferNFT() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.Uint64(FlagNftId, 0, "Id of the nft to transfer")
+	fs.String(FlagNftId, "", "Id of the nft to transfer")
 	fs.String(FlagNewOwner, "", "New owner of the nft")
 
 	return fs
@@ -101,7 +101,7 @@ func FlagVerifyCollection() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.Uint64(FlagCollectionId, 0, "Id of the collection to verify")
-	fs.Uint64(FlagNftId, 0, "Id of the nft to be verififed")
+	fs.String(FlagNftId, "", "Id of the nft to be verififed")
 
 	return fs
 }

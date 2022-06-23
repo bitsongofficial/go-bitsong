@@ -54,6 +54,7 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	// create nft
 	nft := types.NFT{
 		Owner:      msg.Sender,
+		CollId:     msg.CollId,
 		MetadataId: metadataId,
 		Seq:        0,
 	}

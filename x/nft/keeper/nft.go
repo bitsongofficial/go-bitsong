@@ -135,6 +135,7 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (strin
 	// create nft
 	nft := types.NFT{
 		Owner:      msg.Owner,
+		CollId:     msg.CollId,
 		MetadataId: msg.MetadataId,
 		Seq:        edition,
 	}

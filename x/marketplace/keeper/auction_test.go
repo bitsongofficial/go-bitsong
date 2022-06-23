@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // created auction
 			Id:               1,
 			Authority:        owner.String(),
-			NftId:            1,
+			NftId:            "1",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // started auction
 			Id:               2,
 			Authority:        owner.String(),
-			NftId:            2,
+			NftId:            "2",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // bid auction
 			Id:               3,
 			Authority:        owner.String(),
-			NftId:            3,
+			NftId:            "3",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // ended auction
 			Id:               4,
 			Authority:        owner2.String(),
-			NftId:            4,
+			NftId:            "4",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // claimed auction
 			Id:               5,
 			Authority:        owner2.String(),
-			NftId:            5,
+			NftId:            "5",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -170,7 +170,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 		auctionType   types.AuctionPrizeType
 		masterEdition *nfttypes.MasterEdition
 		editionLimit  uint64
-		nftId         uint64
+		nftId         string
 		expectPass    bool
 	}{
 		{
@@ -182,7 +182,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			0,
+			"0",
 			false,
 		},
 		{
@@ -194,7 +194,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			false,
 		},
 		{
@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_FullRightsTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			false,
 		},
 		{
@@ -218,7 +218,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			false,
 		},
 		{
@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_FullRightsTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			true,
 		},
 		{
@@ -242,7 +242,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			true,
 		},
 		{
@@ -254,7 +254,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			1,
+			"1",
 			true,
 		},
 		{
@@ -269,7 +269,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			0,
-			1,
+			"1",
 			false,
 		},
 		{
@@ -284,7 +284,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			0,
-			1,
+			"1",
 			true,
 		},
 		{
@@ -296,7 +296,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_LimitedEditionPrints,
 			nil,
 			1,
-			1,
+			"1",
 			false,
 		},
 		{
@@ -311,7 +311,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			100,
-			1,
+			"1",
 			false,
 		},
 	}
@@ -320,9 +320,10 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      tc.nftOwner.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      tc.nftOwner.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
@@ -459,7 +460,7 @@ func (suite *KeeperTestSuite) TestStartAuction() {
 		auction := types.Auction{
 			Id:        1,
 			Authority: tc.auctionOwner.String(),
-			NftId:     1,
+			NftId:     "1",
 			Duration:  time.Second,
 			State:     tc.auctionState,
 		}
@@ -521,7 +522,7 @@ func (suite *KeeperTestSuite) TestSetAuctionAuthority() {
 		auction := types.Auction{
 			Id:        1,
 			Authority: tc.auctionOwner.String(),
-			NftId:     1,
+			NftId:     "1",
 			Duration:  time.Second,
 			State:     types.AuctionState_Created,
 		}
@@ -639,9 +640,10 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
@@ -656,7 +658,7 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     tc.auctionOwner.String(),
-			NftId:         1,
+			NftId:         "1",
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -682,7 +684,7 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 			case types.AuctionPrizeType_NftOnlyTransfer:
 				fallthrough
 			case types.AuctionPrizeType_FullRightsTransfer:
-				nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id)
+				nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id())
 				suite.Require().NoError(err)
 				if tc.lastBidAmount == 0 {
 					suite.Require().Equal(nft.Owner, auction.Authority)

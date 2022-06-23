@@ -6,20 +6,20 @@ import (
 )
 
 func (k Keeper) ProcessRoyalties(ctx sdk.Context, metadata nfttypes.Metadata, authority sdk.AccAddress, denom string, amount uint64) error {
-	if metadata.Data.SellerFeeBasisPoints > 100 {
+	if metadata.SellerFeeBasisPoints > 100 {
 		return nfttypes.ErrInvalidSellerFeeBasisPoints
 	}
-	totalRoyalties := amount * uint64(metadata.Data.SellerFeeBasisPoints) / 100
+	totalRoyalties := amount * uint64(metadata.SellerFeeBasisPoints) / 100
 
 	totalShare := uint32(0)
-	for _, creator := range metadata.Data.Creators {
+	for _, creator := range metadata.Creators {
 		totalShare += creator.Share
 	}
 	if totalShare == 0 {
 		return nil
 	}
 
-	for _, creator := range metadata.Data.Creators {
+	for _, creator := range metadata.Creators {
 		amount = totalRoyalties * uint64(creator.Share) / uint64(totalShare)
 		if amount == 0 {
 			continue

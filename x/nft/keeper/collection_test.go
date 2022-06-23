@@ -74,62 +74,12 @@ func (suite *KeeperTestSuite) TestCollectionGetSet() {
 	suite.Require().Equal(collections, allCollections)
 }
 
-func (suite *KeeperTestSuite) TestCollectionNftsGetSet() {
+func (suite *KeeperTestSuite) TestCollectionNftsCreationAndQuery() {
 	collectionId := uint64(1)
 
 	// check nft ids by collection id query
 	nftIds := suite.app.NFTKeeper.GetCollectionNftIds(suite.ctx, collectionId)
 	suite.Require().Len(nftIds, 0)
 
-	// create a new collection
-	collectionRecords := []types.CollectionRecord{
-		{
-			NftId:        1,
-			CollectionId: 1,
-		},
-		{
-			NftId:        2,
-			CollectionId: 1,
-		},
-		{
-			NftId:        3,
-			CollectionId: 1,
-		},
-		{
-			NftId:        3,
-			CollectionId: 2,
-		},
-		{
-			NftId:        4,
-			CollectionId: 2,
-		},
-	}
-
-	for _, record := range collectionRecords {
-		suite.app.NFTKeeper.SetCollectionNftRecord(suite.ctx, record.CollectionId, record.NftId)
-	}
-
-	// check all records
-	allCollectionNftRecords := suite.app.NFTKeeper.GetAllCollectionNftRecords(suite.ctx)
-	suite.Require().Len(allCollectionNftRecords, 5)
-	suite.Require().Equal(collectionRecords, allCollectionNftRecords)
-
-	// check by collection id
-	collection1NftRecords := suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, 1)
-	suite.Require().Len(collection1NftRecords, 3)
-	collection2NftRecords := suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, 2)
-	suite.Require().Len(collection2NftRecords, 2)
-
-	// delete nft3 from collection2 record
-	suite.app.NFTKeeper.DeleteCollectionNftRecord(suite.ctx, 2, 3)
-
-	// check all records
-	allCollectionNftRecords = suite.app.NFTKeeper.GetAllCollectionNftRecords(suite.ctx)
-	suite.Require().Len(allCollectionNftRecords, 4)
-
-	// check by collection id
-	collection1NftRecords = suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, 1)
-	suite.Require().Len(collection1NftRecords, 3)
-	collection2NftRecords = suite.app.NFTKeeper.GetCollectionNftRecords(suite.ctx, 2)
-	suite.Require().Len(collection2NftRecords, 1)
+	// TODO: add further tests on GetCollectionNftIds
 }

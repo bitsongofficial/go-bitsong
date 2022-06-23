@@ -33,7 +33,7 @@ type AccountKeeper interface {
 }
 
 type NftKeeper interface {
-	GetNFTById(ctx sdk.Context, id uint64) (nfttypes.NFT, error)
+	GetNFTById(ctx sdk.Context, id string) (nfttypes.NFT, error)
 	GetMetadataById(ctx sdk.Context, id uint64) (nfttypes.Metadata, error)
 	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
 	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error

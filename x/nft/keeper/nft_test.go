@@ -25,19 +25,27 @@ func (suite *KeeperTestSuite) TestNftGetSet() {
 	// create a new nft
 	nfts := []types.NFT{
 		{
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
 			Owner:      addr.String(),
 		},
 		{
+			CollId:     1,
 			MetadataId: 2,
+			Seq:        0,
 			Owner:      addr.String(),
 		},
 		{
+			CollId:     1,
 			MetadataId: 3,
+			Seq:        0,
 			Owner:      addr2.String(),
 		},
 		{
+			CollId:     1,
 			MetadataId: 4,
+			Seq:        0,
 			Owner:      addr2.String(),
 		},
 	}

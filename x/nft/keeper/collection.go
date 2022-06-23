@@ -54,20 +54,6 @@ func (k Keeper) GetAllCollections(ctx sdk.Context) []types.Collection {
 	return collections
 }
 
-func (k Keeper) SetCollectionNftRecord(ctx sdk.Context, collectionId uint64, nftId uint64) {
-	collectionIdBz := sdk.Uint64ToBigEndian(collectionId)
-	nftIdBz := sdk.Uint64ToBigEndian(nftId)
-	store := ctx.KVStore(k.storeKey)
-	store.Set(append(append(types.PrefixCollectionRecord, collectionIdBz...), nftIdBz...), sdk.Uint64ToBigEndian(nftId))
-}
-
-func (k Keeper) DeleteCollectionNftRecord(ctx sdk.Context, collectionId uint64, nftId uint64) {
-	collectionIdBz := sdk.Uint64ToBigEndian(collectionId)
-	nftIdBz := sdk.Uint64ToBigEndian(nftId)
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(append(append(types.PrefixCollectionRecord, collectionIdBz...), nftIdBz...))
-}
-
 func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
 	store := ctx.KVStore(k.storeKey)
 

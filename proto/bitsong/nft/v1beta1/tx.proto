@@ -24,7 +24,8 @@ service Msg {
 
 message MsgCreateNFT {
   string sender = 1;
-  bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
+  uint64 coll_id = 2;
+  bitsong.nft.v1beta1.Metadata metadata = 3 [ (gogoproto.nullable) = false ];
 }
 message MsgCreateNFTResponse {
   string id = 1;
@@ -33,8 +34,9 @@ message MsgCreateNFTResponse {
 
 message MsgPrintEdition {
   string sender = 1;
-  uint64 metadata_id = 2;
-  string owner = 3;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
+  string owner = 4;
 }
 message MsgPrintEditionResponse {
   string id = 1;

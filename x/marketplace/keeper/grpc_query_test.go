@@ -24,7 +24,7 @@ func (suite *KeeperTestSuite) TestGRPCAuctions() {
 		{ // created auction
 			Id:               1,
 			Authority:        owner.String(),
-			NftId:            1,
+			NftId:            "1",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -41,7 +41,7 @@ func (suite *KeeperTestSuite) TestGRPCAuctions() {
 		{ // started auction
 			Id:               2,
 			Authority:        owner.String(),
-			NftId:            2,
+			NftId:            "2",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestGRPCAuctions() {
 		{ // bid auction
 			Id:               3,
 			Authority:        owner.String(),
-			NftId:            3,
+			NftId:            "3",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestGRPCAuctions() {
 		{ // ended auction
 			Id:               4,
 			Authority:        owner2.String(),
-			NftId:            4,
+			NftId:            "4",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestGRPCAuctions() {
 		{ // claimed auction
 			Id:               5,
 			Authority:        owner2.String(),
-			NftId:            5,
+			NftId:            "5",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 		{ // created auction
 			Id:               1,
 			Authority:        owner.String(),
-			NftId:            1,
+			NftId:            "1",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -161,7 +161,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 		{ // started auction
 			Id:               2,
 			Authority:        owner.String(),
-			NftId:            2,
+			NftId:            "2",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 		{ // bid auction
 			Id:               3,
 			Authority:        owner.String(),
-			NftId:            3,
+			NftId:            "3",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -195,7 +195,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 		{ // ended auction
 			Id:               4,
 			Authority:        owner2.String(),
-			NftId:            4,
+			NftId:            "4",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -212,7 +212,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 		{ // claimed auction
 			Id:               5,
 			Authority:        owner2.String(),
-			NftId:            5,
+			NftId:            "5",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -234,7 +234,7 @@ func (suite *KeeperTestSuite) TestGRPCAuction() {
 
 	for _, auction := range auctions {
 		c, err := suite.app.MarketplaceKeeper.Auction(sdk.WrapSDKContext(suite.ctx), &types.QueryAuctionRequest{
-			Id: auction.NftId,
+			Id: auction.Id,
 		})
 		suite.Require().NoError(err)
 		suite.Require().Equal(auction, c.Auction)

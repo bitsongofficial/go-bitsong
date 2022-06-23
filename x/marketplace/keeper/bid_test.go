@@ -323,9 +323,10 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
@@ -340,7 +341,7 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         "1",
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -544,9 +545,10 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
@@ -561,7 +563,7 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         "1",
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -784,23 +786,22 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:                  1,
-			UpdateAuthority:     moduleAddr.String(),
-			PrimarySaleHappened: tc.presaleHappend,
-			Data: &nfttypes.Data{
-				Name: "NewPUNK1",
-				Creators: []*nfttypes.Creator{
-					{Address: creator.String(), Verified: true, Share: 100},
-				},
-				SellerFeeBasisPoints: 10,
+			Id:                   1,
+			UpdateAuthority:      moduleAddr.String(),
+			PrimarySaleHappened:  tc.presaleHappend,
+			Name:                 "NewPUNK1",
+			SellerFeeBasisPoints: 10,
+			Creators: []nfttypes.Creator{
+				{Address: creator.String(), Verified: true, Share: 100},
 			},
 			MasterEdition: &nfttypes.MasterEdition{
 				Supply:    1,
@@ -813,7 +814,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         "1",
 			Duration:      time.Second,
 			PrizeType:     tc.prizeType,
 			State:         tc.state,
@@ -904,7 +905,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			case types.AuctionPrizeType_OpenEditionPrints:
 				nfts := suite.app.NFTKeeper.GetNFTsByOwner(suite.ctx, bidder)
 				suite.Require().Greater(len(nfts), 0)
-				suite.Require().Greater(nfts[len(nfts)-1].Edition, uint64(0))
+				suite.Require().Greater(nfts[len(nfts)-1].Seq, uint64(0))
 			}
 		} else {
 			suite.Require().Error(err)
