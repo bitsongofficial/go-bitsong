@@ -16,4 +16,5 @@ var (
 	ErrInvalidSellerFeeBasisPoints    = sdkerrors.Register(ModuleName, 9, "invalid seller fee basis points")
 	ErrNotMasterEditionNft            = sdkerrors.Register(ModuleName, 10, "not master edition nft")
 	ErrAlreadyReachedEditionMaxSupply = sdkerrors.Register(ModuleName, 11, "already reached edition maximum supply")
+	ErrInvalidNftId                   = sdkerrors.Register(ModuleName, 12, "invalid nft id")
 )

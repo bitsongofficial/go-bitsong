@@ -61,6 +61,11 @@ func GetCmdCreateNFT() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			updateAuthority, err := cmd.Flags().GetString(FlagUpdateAuthority)
 			if err != nil {
 				return err
@@ -81,7 +86,7 @@ func GetCmdCreateNFT() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), updateAuthority, data.Name, data.Uri, data.SellerFeeBasisPoints, false, isMutable, data.Creators, masterEditionMaxSupply)
+			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), collId, updateAuthority, data.Name, data.Uri, data.SellerFeeBasisPoints, false, isMutable, data.Creators, masterEditionMaxSupply)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -112,6 +117,11 @@ func GetCmdPrintEdition() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -122,7 +132,7 @@ func GetCmdPrintEdition() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), metadataId, owner)
+			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), collId, metadataId, owner)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

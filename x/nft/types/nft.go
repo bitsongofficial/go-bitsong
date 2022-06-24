@@ -36,7 +36,7 @@ func IsValidNftId(id string) bool {
 func NftIdToBytes(id string) []byte {
 	splits := strings.Split(id, ":")
 	if !IsValidNftId(id) {
-		panic("invalid nft id")
+		panic(fmt.Sprintf("invalid nft id: %s", id))
 	}
 	collId, _ := strconv.Atoi(splits[0])
 	metadataId, _ := strconv.Atoi(splits[1])

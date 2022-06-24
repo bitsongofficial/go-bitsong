@@ -9,8 +9,8 @@ import (
 func (suite *KeeperTestSuite) TestGRPCNFTInfo() {
 	// create nfts
 	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator)
-	nftInfo2 := suite.CreateNFT(creator)
+	nftInfo1 := suite.CreateNFT(creator, 1)
+	nftInfo2 := suite.CreateNFT(creator, 1)
 
 	tests := []struct {
 		testCase           string
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestGRPCNFTInfo() {
 		})
 		if tc.expectPass {
 			suite.Require().NoError(err)
-			suite.Require().Equal(resp.Nft.Id, tc.expectedNFTId)
+			suite.Require().Equal(resp.Nft.Id(), tc.expectedNFTId)
 			suite.Require().Equal(resp.Metadata.Id, tc.expectedMetadataId)
 		} else {
 			suite.Require().Error(err)
@@ -61,9 +61,9 @@ func (suite *KeeperTestSuite) TestGRPCNFTsByOwner() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	suite.CreateNFT(creator1)
-	suite.CreateNFT(creator1)
-	suite.CreateNFT(creator2)
+	suite.CreateNFT(creator1, 1)
+	suite.CreateNFT(creator1, 1)
+	suite.CreateNFT(creator2, 1)
 
 	tests := []struct {
 		testCase        string
@@ -121,8 +121,8 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 	// create nfts
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator1)
-	nftInfo2 := suite.CreateNFT(creator2)
+	nftInfo1 := suite.CreateNFT(creator1, 1)
+	nftInfo2 := suite.CreateNFT(creator2, 1)
 
 	tests := []struct {
 		testCase          string
@@ -168,8 +168,8 @@ func (suite *KeeperTestSuite) TestGRPCCollection() {
 	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	collectionInfo1 := suite.CreateCollection(creator)
 	collectionInfo2 := suite.CreateCollection(creator)
-	suite.CreateNFT(creator)
-	suite.CreateNFT(creator)
+	suite.CreateNFT(creator, collectionInfo1.Id)
+	suite.CreateNFT(creator, collectionInfo1.Id)
 
 	tests := []struct {
 		testCase          string

@@ -21,6 +21,7 @@ const (
 var _ sdk.Msg = &MsgCreateNFT{}
 
 func NewMsgCreateNFT(sender sdk.AccAddress,
+	collId uint64,
 	updateAuthority string,
 	name, uri string,
 	sellerFeeBasisPoints uint32,
@@ -31,6 +32,7 @@ func NewMsgCreateNFT(sender sdk.AccAddress,
 ) *MsgCreateNFT {
 	return &MsgCreateNFT{
 		Sender: sender.String(),
+		CollId: collId,
 		Metadata: Metadata{
 			UpdateAuthority:      updateAuthority,
 			MintAuthority:        sender.String(),
@@ -84,9 +86,10 @@ func (msg MsgCreateNFT) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgPrintEdition{}
 
-func NewMsgPrintEdition(sender sdk.AccAddress, metadataId uint64, owner string) *MsgPrintEdition {
+func NewMsgPrintEdition(sender sdk.AccAddress, collId, metadataId uint64, owner string) *MsgPrintEdition {
 	return &MsgPrintEdition{
 		Sender:     sender.String(),
+		CollId:     collId,
 		MetadataId: metadataId,
 		Owner:      owner,
 	}

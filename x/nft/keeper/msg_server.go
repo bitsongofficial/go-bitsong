@@ -143,6 +143,7 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 	metadata.Name = msg.Name
 	metadata.Uri = msg.Uri
 	metadata.SellerFeeBasisPoints = msg.SellerFeeBasisPoints
+	metadata.Creators = msg.Creators
 
 	for index := range metadata.Creators {
 		metadata.Creators[index].Verified = false

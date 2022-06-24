@@ -29,6 +29,7 @@ func FlagCreateNFT() *flag.FlagSet {
 	fs.String(FlagSymbol, "", "Symbol of the nft")
 	fs.String(FlagUri, "", "Uri of the nft")
 	fs.Uint32(FlagSellerFeeBasisPoints, 0, "Seller fee basis points of the nft")
+	fs.Uint64(FlagCollectionId, 0, "collection id for the nft")
 	fs.String(FlagCreators, "", "Creators of nft")
 	fs.String(FlagCreatorShares, "", "Shares between creators for seller fee")
 	fs.Bool(FlagMutable, false, "mutability of the nft")
@@ -41,6 +42,7 @@ func FlagCreateNFT() *flag.FlagSet {
 func FlagPrintEdition() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.Uint64(FlagCollectionId, 0, "collection id for the nft")
 	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to print")
 	fs.String(FlagOwner, "", "Owner of printed edition")
 

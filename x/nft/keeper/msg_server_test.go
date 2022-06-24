@@ -8,25 +8,25 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
-func (suite *KeeperTestSuite) CreateNFT(creator sdk.AccAddress) *types.MsgCreateNFTResponse {
+func (suite *KeeperTestSuite) CreateNFT(creator sdk.AccAddress, collectionId uint64) *types.MsgCreateNFTResponse {
 	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
-		creator, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{}, 1,
+		creator, collectionId, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{}, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
 }
 
-func (suite *KeeperTestSuite) CreateMutableNFT(creator sdk.AccAddress) *types.MsgCreateNFTResponse {
+func (suite *KeeperTestSuite) CreateMutableNFT(creator sdk.AccAddress, collectionId uint64) *types.MsgCreateNFTResponse {
 	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
-		creator, creator.String(), "Punk", "punk.com", 0, false, true, []types.Creator{}, 1,
+		creator, collectionId, creator.String(), "Punk", "punk.com", 0, false, true, []types.Creator{}, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
 }
 
-func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, creatorAccs []sdk.AccAddress) *types.MsgCreateNFTResponse {
+func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, collectionId uint64, creatorAccs []sdk.AccAddress) *types.MsgCreateNFTResponse {
 	creators := []types.Creator{}
 	for _, creatorAcc := range creatorAccs {
 		creators = append(creators, types.Creator{
@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, crea
 	}
 	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 	resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
-		creator, creator.String(), "Punk", "punk.com", 0, false, false, creators, 1,
+		creator, collectionId, creator.String(), "Punk", "punk.com", 0, false, false, creators, 1,
 	))
 	suite.Require().NoError(err)
 	return resp
@@ -57,14 +57,14 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 		testCase           string
 		nftId              uint64
 		expectPass         bool
-		expectedNFTId      uint64
+		expectedNFTId      string
 		expectedMetadataId uint64
 	}{
 		{
 			"create an nft",
 			0,
 			true,
-			1,
+			"1:1:0",
 			1,
 		},
 	}
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
-			creator, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{
+			creator, 1, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{
 				{
 					Address:  creator.String(),
 					Verified: true,
@@ -112,7 +112,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 			// test metadataId and nftId to set correctly
 			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, resp.Id)
 			suite.Require().NoError(err)
-			suite.Require().Equal(nft.Id, tc.expectedNFTId)
+			suite.Require().Equal(nft.Id(), tc.expectedNFTId)
 			suite.Require().Equal(nft.MetadataId, tc.expectedMetadataId)
 
 			// test fees are paid correctly
@@ -225,7 +225,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		resp, err := msgServer.PrintEdition(sdk.WrapSDKContext(suite.ctx), types.NewMsgPrintEdition(
-			tc.sender, tc.metadataId, tc.editionOwner,
+			tc.sender, 1, tc.metadataId, tc.editionOwner,
 		))
 		if tc.expectPass {
 			suite.Require().NoError(err)
@@ -238,7 +238,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 			// nft data check (edition, id)
 			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, resp.Id)
 			suite.Require().NoError(err)
-			suite.Require().Equal(nft.Id, uint64(1))
+			suite.Require().Equal(nft.Id(), resp.Id)
 			suite.Require().Equal(nft.Seq, tc.masterEdition.Supply)
 
 			// nft issue fee check
@@ -255,9 +255,9 @@ func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator1)
-	nftInfo2 := suite.CreateNFT(creator1)
-	nftInfo3 := suite.CreateNFT(creator2)
+	nftInfo1 := suite.CreateNFT(creator1, 1)
+	nftInfo2 := suite.CreateNFT(creator1, 1)
+	nftInfo3 := suite.CreateNFT(creator2, 1)
 
 	tests := []struct {
 		testCase   string
@@ -313,7 +313,7 @@ func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 
 			nft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, tc.nftId)
 			suite.Require().NoError(err)
-			suite.Require().Equal(nft.Id, tc.nftId)
+			suite.Require().Equal(nft.Id(), tc.nftId)
 			suite.Require().Equal(nft.Owner, tc.target)
 		} else {
 			suite.Require().Error(err)
@@ -325,7 +325,7 @@ func (suite *KeeperTestSuite) TestMsgServerSignMetadata() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo := suite.CreateNFTWithCreators(creator1, []sdk.AccAddress{creator1, creator2})
+	nftInfo := suite.CreateNFTWithCreators(creator1, 1, []sdk.AccAddress{creator1, creator2})
 
 	tests := []struct {
 		testCase   string
@@ -380,8 +380,8 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	immutableNft := suite.CreateNFT(creator1)
-	mutableNft := suite.CreateMutableNFT(creator2)
+	immutableNft := suite.CreateNFT(creator1, 1)
+	mutableNft := suite.CreateMutableNFT(creator2, 1)
 
 	tests := []struct {
 		testCase   string
@@ -441,8 +441,8 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadataAuthority() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	immutableNft := suite.CreateNFT(creator1)
-	mutableNft := suite.CreateMutableNFT(creator2)
+	immutableNft := suite.CreateNFT(creator1, 1)
+	mutableNft := suite.CreateMutableNFT(creator2, 1)
 
 	tests := []struct {
 		testCase   string
