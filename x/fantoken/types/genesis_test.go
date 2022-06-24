@@ -22,13 +22,13 @@ func TestValidateGenesis(t *testing.T) {
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "test fantoken",
 							Symbol: "symbol",
@@ -41,17 +41,17 @@ func TestValidateGenesis(t *testing.T) {
 			valid: true,
 		},
 		{
-			desc: "invalid authority",
+			desc: "empty authority",
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  true,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "test fantoken",
 							Symbol: "symbol",
@@ -61,20 +61,20 @@ func TestValidateGenesis(t *testing.T) {
 				},
 				BurnedCoins: nil,
 			},
-			valid: false,
+			valid: true,
 		},
 		{
 			desc: "issue fee 0",
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "test fantoken",
 							Symbol: "symbol",
@@ -91,6 +91,8 @@ func TestValidateGenesis(t *testing.T) {
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens:   nil,
 				BurnedCoins: nil,
@@ -102,13 +104,13 @@ func TestValidateGenesis(t *testing.T) {
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData:  Metadata{},
 					},
 				},
@@ -121,13 +123,13 @@ func TestValidateGenesis(t *testing.T) {
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "test token",
 							Symbol: "",
@@ -139,17 +141,17 @@ func TestValidateGenesis(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "invalid name",
+			desc: "empty name",
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "",
 							Symbol: "fttest",
@@ -158,20 +160,20 @@ func TestValidateGenesis(t *testing.T) {
 				},
 				BurnedCoins: nil,
 			},
-			valid: false,
+			valid: true,
 		},
 		{
 			desc: "empty uri",
 			genState: &GenesisState{
 				Params: Params{
 					IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(0)),
+					MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+					BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 				},
 				FanTokens: []FanToken{
 					{
 						Denom:     "fttest",
 						MaxSupply: sdk.NewInt(1),
-						Mintable:  false,
-						Authority: "",
 						MetaData: Metadata{
 							Name:   "test token",
 							Symbol: "fttest",

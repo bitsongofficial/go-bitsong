@@ -49,6 +49,10 @@ func ValidateName(name string) error {
 
 // ValidateSymbol checks if the given symbol is valid
 func ValidateSymbol(symbol string) error {
+	if len(strings.TrimSpace(symbol)) < MinimumSymbolLen {
+		return ErrInvalidSymbol
+	}
+
 	if !regexpSymbol(strings.TrimSpace(symbol)) {
 		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid symbol: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", symbol, MinimumSymbolLen, MaximumSymbolLen, regexpSymbolFmt)
 	}
