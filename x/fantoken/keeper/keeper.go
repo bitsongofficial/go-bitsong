@@ -136,8 +136,8 @@ func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk
 	if coin.Amount.GT(mintableAmt) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidAmount,
-			"the amount exceeds the mintable fantoken amount; expected (0, %d], got %d",
-			mintableAmt, coin.Amount,
+			"the amount exceeds the mintable fantoken amount; expected (0, %d), got %d",
+			mintableAmt.Int64(), coin.Amount.Int64(),
 		)
 	}
 

@@ -59,4 +59,4 @@ echo "Log file is located at $CHAIN_DIR/$CHAIN_ID.log"
 $BINARY --home $CHAIN_DIR/$CHAIN_ID prepare-genesis mainnet localnet
 sed -i 's/"voting_period": "604800s"/"voting_period": "20s"/g' $CHAIN_DIR/$CHAIN_ID/config/genesis.json
 
-$BINARY --home $CHAIN_DIR/$CHAIN_ID start --pruning=nothing --trace
+$BINARY --home $CHAIN_DIR/$CHAIN_ID start --pruning=nothing

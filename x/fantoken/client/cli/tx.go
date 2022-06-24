@@ -36,7 +36,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdSetAuthority(),
 		GetCmdSetMinter(),
 		GetCmdSetUri(),
-		GetCmdUpdateFeesProposal(),
+		// GetCmdUpdateFantokenFees(),
 	)
 
 	return txCmd
@@ -379,16 +379,15 @@ func GetCmdSetUri() *cobra.Command {
 	return cmd
 }
 
-func GetCmdUpdateFeesProposal() *cobra.Command {
+func GetCmdUpdateFantokenFees() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-fees-proposal [proposal-file]",
-		Args:  cobra.ExactArgs(1),
+		Use:   "update-fantoken-fees [proposal-file]",
 		Short: "Submit an update fantoken fees proposal.",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Submit an update fantoken fees proposal along with an initial deposit.
 The proposal details must be supplied via a JSON file.
 Example:
-$ %s tx gov submit-proposal update-fees-proposal <path/to/proposal.json> --from=<key_or_address>
+$ %s tx gov submit-proposal update-fantoken-fees <path/to/proposal.json> --from=<key_or_address>
 Where proposal.json contains:
 {
   "title": "Update Fantoken Fees Proposal",
@@ -402,12 +401,13 @@ Where proposal.json contains:
 			),
 		),
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken update-fees-proposal [proposal-file] "+
+			"$ %s tx gov submit-proposal update-fantoken-fees [proposal-file] "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
 			version.AppName,
 		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
