@@ -53,17 +53,3 @@ func (k Keeper) GetAllCollections(ctx sdk.Context) []types.Collection {
 	}
 	return collections
 }
-
-func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
-	store := ctx.KVStore(k.storeKey)
-
-	nftIds := []string{}
-	it := sdk.KVStorePrefixIterator(store, append(types.PrefixCollectionRecord, sdk.Uint64ToBigEndian(collectionId)...))
-	defer it.Close()
-
-	for ; it.Valid(); it.Next() {
-		id := string(it.Value())
-		nftIds = append(nftIds, id)
-	}
-	return nftIds
-}

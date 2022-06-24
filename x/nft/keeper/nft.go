@@ -26,6 +26,30 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	return nfts
 }
 
+func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
+	store := ctx.KVStore(k.storeKey)
+
+	nftIds := []string{}
+	it := sdk.KVStorePrefixIterator(store, append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(collectionId)...))
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		id := string(it.Value())
+		nftIds = append(nftIds, id)
+	}
+	return nftIds
+}
+
+func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
+	nfts := []types.NFT{}
+	nftIds := k.GetCollectionNftIds(ctx, collectionId)
+	for _, nftId := range nftIds {
+		nft, _ := k.GetNFTById(ctx, nftId)
+		nfts = append(nfts, nft)
+	}
+	return nfts
+}
+
 func (k Keeper) GetNFTById(ctx sdk.Context, id string) (types.NFT, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(append(types.PrefixNFT, []byte(id)...))
@@ -53,6 +77,7 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 		panic(err)
 	}
 	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), idBz)
+	store.Set(append(append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(nft.CollId)...), idBz...), idBz)
 }
 
 func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
@@ -65,6 +90,7 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
 		panic(err)
 	}
 	store.Delete(append(append(types.PrefixNFTByOwner, owner...), idBz...))
+	store.Delete(append(append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(nft.CollId)...), idBz...))
 }
 
 func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {
