@@ -112,6 +112,8 @@ endif
 
 buf: buf-stamp
 
+BUF_VERSION ?= 0.11.0
+
 buf-stamp:
 	@echo "Installing buf..."
 	@curl -sSL \

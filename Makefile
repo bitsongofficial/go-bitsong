@@ -90,14 +90,14 @@ build-linux: go.sum
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
-update-swagger-docs: statik
-	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
-	@if [ -n "$(git status --porcelain)" ]; then \
-        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
-        exit 1;\
-    else \
-    	echo "\033[92mSwagger docs are in sync\033[0m";\
-    fi
+#update-swagger-docs: statik
+#	$(BINDIR)/statik -src=swagger/swagger-ui -dest=swagger -f -m
+#	@if [ -n "$(git status --porcelain)" ]; then \
+#        echo "\033[91mSwagger docs are out of sync!!!\033[0m";\
+#        exit 1;\
+#    else \
+#    	echo "\033[92mSwagger docs are in sync\033[0m";\
+#    fi
 
 ###############################################################################
 ###                                Localnet                                 ###
@@ -154,7 +154,7 @@ distclean: clean
 ###                                Protobuf                                 ###
 ###############################################################################
 
-containerProtoVer=v0.2
+containerProtoVer=v0.7
 containerProtoImage=tendermintdev/sdk-proto-gen:$(containerProtoVer)
 containerProtoGen=cosmos-sdk-proto-gen-$(containerProtoVer)
 containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(containerProtoVer)
@@ -174,9 +174,9 @@ proto-gen-any:
 	@echo "Generating Protobuf Any"
 	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protocgen-any.sh
 
-proto-swagger-gen:
-	@echo "Generating Protobuf Swagger"
-	$(DOCKER) run --rm --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protoc-swagger-gen.sh
+#proto-swagger-gen:
+#	@echo "Generating Protobuf Swagger"
+#	$(DOCKER) run --rm --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(containerProtoImage) sh ./scripts/protoc-swagger-gen.sh
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -192,62 +192,32 @@ proto-lint:
 proto-check-breaking:
 	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=master
 
-TM_URL           = https://raw.githubusercontent.com/tendermint/tendermint/v0.34.13/proto/tendermint
-GOGO_PROTO_URL   = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
-COSMOS_URL 		 = https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.42.10/proto/cosmos
-COSMOS_PROTO_URL = https://raw.githubusercontent.com/regen-network/cosmos-proto/master
-IBC_URL 		 = https://raw.githubusercontent.com/cosmos/ibc-go/v1.2.0/proto/ibc
+GOGO_PROTO_URL           = https://raw.githubusercontent.com/regen-network/protobuf/cosmos
+GOOGLE_PROTO_URL         = https://raw.githubusercontent.com/googleapis/googleapis/master
+REGEN_COSMOS_PROTO_URL   = https://raw.githubusercontent.com/regen-network/cosmos-proto/master
+COSMOS_PROTO_URL         = https://raw.githubusercontent.com/cosmos/cosmos-sdk/v0.45.4/proto/cosmos
 
-TM_CRYPTO_TYPES     = third_party/proto/tendermint/crypto
-TM_ABCI_TYPES       = third_party/proto/tendermint/abci
-TM_TYPES     		= third_party/proto/tendermint/types
-TM_VERSION 			= third_party/proto/tendermint/version
-TM_LIBS				= third_party/proto/tendermint/libs/bits
-IBC_TYPES		 	= third_party/proto/ibc
-
-GOGO_PROTO_TYPES    = third_party/proto/gogoproto
-COSMOS_TYPES 		= third_party/proto/cosmos
-COSMOS_PROTO_TYPES  = third_party/proto/cosmos_proto
-IBC_TYPES		 	= third_party/proto/ibc
+GOGO_PROTO_TYPES         = third_party/proto/gogoproto
+GOOGLE_PROTO_TYPES       = third_party/proto/google
+REGEN_COSMOS_PROTO_TYPES = third_party/proto/cosmos_proto
+COSMOS_PROTO_TYPES       = third_party/proto/cosmos
 
 proto-update-deps:
-	@mkdir -p $(COSMOS_TYPES)/base/query/v1beta1
-	@curl -sSL $(COSMOS_URL)/base/query/v1beta1/pagination.proto > $(COSMOS_TYPES)/base/query/v1beta1/pagination.proto
-
-	@mkdir -p $(COSMOS_TYPES)/upgrade/v1beta1
-	@curl -sSL $(COSMOS_URL)/upgrade/v1beta1/upgrade.proto > $(COSMOS_TYPES)/upgrade/v1beta1/upgrade.proto
-
 	@mkdir -p $(GOGO_PROTO_TYPES)
 	@curl -sSL $(GOGO_PROTO_URL)/gogoproto/gogo.proto > $(GOGO_PROTO_TYPES)/gogo.proto
 
-	@mkdir -p $(COSMOS_PROTO_TYPES)
-	@curl -sSL $(COSMOS_PROTO_URL)/cosmos.proto > $(COSMOS_PROTO_TYPES)/cosmos.proto
+	@mkdir -p $(GOOGLE_PROTO_TYPES)/api/
+	@curl -sSL $(GOOGLE_PROTO_URL)/google/api/annotations.proto > $(GOOGLE_PROTO_TYPES)/api/annotations.proto
+	@curl -sSL $(GOOGLE_PROTO_URL)/google/api/http.proto > $(GOOGLE_PROTO_TYPES)/api/http.proto
 
-	@mkdir -p $(IBC_TYPES)/core/client/v1
-	@curl -sSL $(IBC_URL)/core/client/v1/client.proto > $(IBC_TYPES)/core/client/v1/client.proto
+	@mkdir -p $(REGEN_COSMOS_PROTO_TYPES)
+	@curl -sSL $(REGEN_COSMOS_PROTO_URL)/cosmos.proto > $(REGEN_COSMOS_PROTO_TYPES)/cosmos.proto
 
-## Importing of tendermint protobuf definitions currently requires the
-## use of `sed` in order to build properly with cosmos-sdk's proto file layout
-## (which is the standard Buf.build FILE_LAYOUT)
-## Issue link: https://github.com/tendermint/tendermint/issues/5021
-	@mkdir -p $(TM_ABCI_TYPES)
-	@curl -sSL $(TM_URL)/abci/types.proto > $(TM_ABCI_TYPES)/types.proto
+	@mkdir -p $(COSMOS_PROTO_TYPES)/base/v1beta1/
+	@curl -sSL $(COSMOS_PROTO_URL)/base/v1beta1/coin.proto > $(COSMOS_PROTO_TYPES)/base/v1beta1/coin.proto
 
-	@mkdir -p $(TM_VERSION)
-	@curl -sSL $(TM_URL)/version/types.proto > $(TM_VERSION)/types.proto
-
-	@mkdir -p $(TM_TYPES)
-	@curl -sSL $(TM_URL)/types/types.proto > $(TM_TYPES)/types.proto
-	@curl -sSL $(TM_URL)/types/evidence.proto > $(TM_TYPES)/evidence.proto
-	@curl -sSL $(TM_URL)/types/params.proto > $(TM_TYPES)/params.proto
-	@curl -sSL $(TM_URL)/types/validator.proto > $(TM_TYPES)/validator.proto
-
-	@mkdir -p $(TM_CRYPTO_TYPES)
-	@curl -sSL $(TM_URL)/crypto/proof.proto > $(TM_CRYPTO_TYPES)/proof.proto
-	@curl -sSL $(TM_URL)/crypto/keys.proto > $(TM_CRYPTO_TYPES)/keys.proto
-
-	@mkdir -p $(TM_LIBS)
-	@curl -sSL $(TM_URL)/libs/bits/types.proto > $(TM_LIBS)/types.proto
+	@mkdir -p $(COSMOS_PROTO_TYPES)/base/query/v1beta1/
+	@curl -sSL $(COSMOS_PROTO_URL)/base/query/v1beta1/pagination.proto > $(COSMOS_PROTO_TYPES)/base/query/v1beta1/pagination.proto
 
 .PHONY: proto-all proto-gen proto-lint proto-check-breaking proto-update-deps
 

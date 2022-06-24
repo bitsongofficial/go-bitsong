@@ -1,0 +1,135 @@
+syntax = "proto3";
+package bitsong.fantoken;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the oracle Msg service
+service Msg {
+  // Issue defines a method for issuing a new fan token
+  rpc Issue(MsgIssue) returns (MsgIssueResponse);
+
+  // Mint defines a method for minting some fan tokens
+  rpc Mint(MsgMint) returns (MsgMintResponse);
+
+  // Burn defines a method for burning some fan tokens
+  rpc Burn(MsgBurn) returns (MsgBurnResponse);
+
+  // DisableMint defines a method for disable the mint function
+  rpc DisableMint(MsgDisableMint) returns (MsgDisableMintResponse);
+
+  rpc SetMinter(MsgSetMinter) returns (MsgSetMinterResponse);
+  rpc SetAuthority(MsgSetAuthority) returns (MsgSetAuthorityResponse);
+  rpc SetUri(MsgSetUri) returns (MsgSetUriResponse);
+}
+
+// MsgIssue defines a message for issuing a new fan token
+message MsgIssue {
+
+  // symbol which corresponds to the symbol of the fan token. It is a string and cannot change for the whole life of the fan token
+  string symbol = 1;
+
+  // name which corresponds to the name of the fan token. It is a string and cannot change for the whole life of the fan token
+  string name = 2;
+
+  // max_supply that represents the maximum number of possible mintable tokens. It is an integer number, expressed in micro unit 10^6
+  string max_supply = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"max_supply\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // authority which is who can set a new uri metadata
+  string authority = 4;
+
+  // minter who is who can mint new fantoken and disable the minter process, the minter key also pay the gas fee
+  string minter = 5;
+
+  // URI which is the current uri of the fan token. It is a string can change during the fan token lifecycle thanks to the MsgEdit
+  string uri = 6 [ (gogoproto.customname) = "URI" ];
+}
+
+// MsgIssueResponse defines the MsgIssue response type
+message MsgIssueResponse {}
+
+// MsgDisableMint defines a message for disable the mint function
+message MsgDisableMint {
+  string denom = 1;
+  string minter = 2;
+}
+
+// MsgDisableMintResponse defines the MsgDisableMint response type
+message MsgDisableMintResponse {}
+
+// MsgMint defines a message for minting a new fan token
+message MsgMint {
+  string recipient = 1;
+
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 2 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
+    (gogoproto.nullable) = false
+  ];
+
+  string minter = 3;
+}
+
+// MsgMintResponse defines the MsgMint response type
+message MsgMintResponse {}
+
+// MsgBurn defines a message for burning some fan tokens
+message MsgBurn {
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 1 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
+    (gogoproto.nullable) = false
+  ];
+
+  string sender = 2;
+}
+
+// MsgBurnResponse defines the MsgBurn response type
+message MsgBurnResponse {}
+
+// MsgSetMinter defines a message for changing the fan token minter address
+message MsgSetMinter {
+
+  // denom the fan token denom
+  string denom = 1;
+
+  // old_minter, the actual minter
+  string old_minter = 2 [ (gogoproto.moretags) = "yaml:\"old_minter\"" ];
+
+  // new_minter, the new fan token minter
+  string new_minter = 3 [ (gogoproto.moretags) = "yaml:\"new_minter\"" ];
+}
+
+// MsgSetMinterResponse defines the MsgTransferAuthority response type
+message MsgSetMinterResponse {}
+
+// MsgSetAuthority defines a message for changing the fan token minter address
+message MsgSetAuthority {
+
+  // denom the fan token denom
+  string denom = 1;
+
+  // old_authority, the actual metadata authority
+  string old_authority = 2 [ (gogoproto.moretags) = "yaml:\"old_authority\"" ];
+
+  // new_authority, the new fan token metadata authority
+  string new_authority = 3 [ (gogoproto.moretags) = "yaml:\"new_authority\"" ];
+}
+
+// MsgSetAuthorityResponse defines the MsgTransferAuthority response type
+message MsgSetAuthorityResponse {}
+
+message MsgSetUri {
+  string authority = 1;
+  string denom = 2;
+  string uri = 3 [ (gogoproto.customname) = "URI" ];
+}
+
+message MsgSetUriResponse{}
