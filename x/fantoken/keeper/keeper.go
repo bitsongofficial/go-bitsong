@@ -121,7 +121,7 @@ func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk
 	}
 
 	if minter.String() != fantoken.Minter {
-		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the minter of the fantoken %s", minter, coin.Denom)
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not the minter of the fantoken %s", minter, coin.Denom)
 	}
 
 	// handle Mint fee

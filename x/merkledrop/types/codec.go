@@ -6,6 +6,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 var (
@@ -20,12 +21,10 @@ func init() {
 }
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterInterface((*MerkledropI)(nil), nil)
-	cdc.RegisterConcrete(&Merkledrop{}, "go-bitsong/merkledrop/Merkledrop", nil)
-
 	cdc.RegisterConcrete(&MsgCreate{}, "go-bitsong/merkledrop/MsgCreate", nil)
 	cdc.RegisterConcrete(&MsgClaim{}, "go-bitsong/merkledrop/MsgClaim", nil)
 	cdc.RegisterConcrete(&MsgWithdraw{}, "go-bitsong/merkledrop/MsgWithdraw", nil)
+	cdc.RegisterConcrete(&UpdateFeesProposal{}, "go-bitsong/merkledrop/UpdateFeesProposal", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -34,10 +33,10 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgClaim{},
 		&MsgWithdraw{},
 	)
-	registry.RegisterInterface(
-		"go-bitsong.merkledrop.MerkledropI",
-		(*MerkledropI)(nil),
-		&Merkledrop{},
+
+	registry.RegisterImplementations(
+		(*govtypes.Content)(nil),
+		&UpdateFeesProposal{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

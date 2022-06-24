@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const ProposalTypeUpdateFees = "UpdateFeesProposal"
+const ProposalTypeUpdateFees = "UpdateFantokenFeesProposal"
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeUpdateFees)

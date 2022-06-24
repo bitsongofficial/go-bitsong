@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"strings"
 )
 
 const (
@@ -124,9 +125,13 @@ func (msg MsgSetAuthority) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid old authority address (%s)", err)
 	}
 
-	newAuthority, err := sdk.AccAddressFromBech32(msg.NewAuthority)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
+	var newAuthority sdk.AccAddress
+
+	if len(strings.TrimSpace(msg.NewAuthority)) > 0 {
+		newAuthority, err = sdk.AccAddressFromBech32(msg.NewAuthority)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
+		}
 	}
 
 	// check if the `newAuthority` is same as the original authority

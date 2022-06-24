@@ -7,11 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -273,4 +276,85 @@ $ %s tx merkledrop withdraw 1 --from=<key-name>
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func GetCmdUpdateMerkledropFees() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-merkledrop-fees [proposal-file]",
+		Short: "Submit an update merkledrop fees proposal.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit an update merkledrop fees proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+Example:
+$ %s tx gov submit-proposal update-merkledrop-fees <path/to/proposal.json> --from=<key_or_address>
+Where proposal.json contains:
+{
+  "title": "Update Merkledrop Fees Proposal",
+  "description": "update the current fees",
+  "creation_fee": "1000000ubtsg",
+  "deposit": "500000000ubtsg"
+}
+`, version.AppName,
+			),
+		),
+		Example: fmt.Sprintf(
+			"$ %s tx gov submit-proposal update-merkledrop-fees [proposal-file] "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := parseUpdateFeesProposal(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			creationFee, err := sdk.ParseCoinNormalized(proposal.CreationFee)
+			if err != nil {
+				return err
+			}
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewUpdateFeesProposal(proposal.Title, proposal.Description, creationFee)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	return cmd
+}
+
+func parseUpdateFeesProposal(cdc codec.JSONCodec, proposalFile string) (types.UpdateFeesProposalWithDeposit, error) {
+	proposal := types.UpdateFeesProposalWithDeposit{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err = cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
 }

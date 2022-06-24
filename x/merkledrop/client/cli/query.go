@@ -22,6 +22,7 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		GetCmdQueryMerkledrop(),
 		GetCmdQueryIndexClaimed(),
+		GetCmdQueryParams(),
 	)
 
 	return queryCmd
@@ -30,7 +31,7 @@ func GetQueryCmd() *cobra.Command {
 func GetCmdQueryMerkledrop() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "detail [id]",
-		Long:    "Query a merkledrop detail by id.",
+		Short:   "Query a merkledrop detail by id.",
 		Example: fmt.Sprintf(`$ %s query merkledrop detail [id]`, version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -65,7 +66,7 @@ func GetCmdQueryMerkledrop() *cobra.Command {
 func GetCmdQueryIndexClaimed() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "index-claimed [id] [index]",
-		Long:    "Query if an index and id have been claimed.",
+		Short:   "Query if an index and id have been claimed.",
 		Example: fmt.Sprintf(`$ %s query merkledrop index-claimed [id] [index]`, version.AppName),
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -96,6 +97,32 @@ func GetCmdQueryIndexClaimed() *cobra.Command {
 			}
 
 			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryParams implements the query fantoken related param command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "params",
+		Short:   "Query values set as merkledrop parameters.",
+		Example: fmt.Sprintf("$ %s query merkledrop params", version.AppName),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Params)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

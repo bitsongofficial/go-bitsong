@@ -263,12 +263,12 @@ func GetCmdSetAuthority() *cobra.Command {
 
 			oldAuthority := clientCtx.GetFromAddress().String()
 
-			newAuthority, err := cmd.Flags().GetString(FlagNewAuthority)
-			if err != nil {
-				return err
-			}
-			if _, err := sdk.AccAddressFromBech32(newAuthority); err != nil {
-				return err
+			newAuthority, _ := cmd.Flags().GetString(FlagNewAuthority)
+
+			if len(strings.TrimSpace(newAuthority)) > 0 {
+				if _, err := sdk.AccAddressFromBech32(newAuthority); err != nil {
+					return err
+				}
 			}
 
 			msg := fantokentypes.NewMsgSetAuthority(strings.TrimSpace(args[0]), oldAuthority, newAuthority)
@@ -282,7 +282,7 @@ func GetCmdSetAuthority() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FsSetAuthority)
-	_ = cmd.MarkFlagRequired(FlagNewAuthority)
+	//_ = cmd.MarkFlagRequired(FlagNewAuthority)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

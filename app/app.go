@@ -45,6 +45,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
+	merkledropclient "github.com/bitsongofficial/go-bitsong/x/merkledrop/client"
 
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
@@ -145,6 +146,7 @@ var (
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
 			fantokenclient.ProposalHandler,
+			merkledropclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -229,7 +231,7 @@ type BitsongApp struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper fantokenkeeper.Keeper
+	FanTokenKeeper   fantokenkeeper.Keeper
 	MerkledropKeeper merkledropkeeper.Keeper
 
 	// the module manager
@@ -348,6 +350,9 @@ func NewBitsongApp(
 		authtypes.FeeCollectorName,
 	)
 
+	// Create Merkledrop Keeper
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GetSubspace(merkledroptypes.ModuleName))
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -356,7 +361,8 @@ func NewBitsongApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(app.FanTokenKeeper))
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(app.FanTokenKeeper)).
+		AddRoute(merkledroptypes.RouterKey, merkledrop.NewProposalHandler(app.MerkledropKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -393,8 +399,6 @@ func NewBitsongApp(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
-
-	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GetSubspace(merkledroptypes.ModuleName))
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 

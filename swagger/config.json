@@ -18,6 +18,17 @@
         }
       },
       {
+        "url": "./tmp-swagger-gen/bitsong/merkledrop/v1beta1/query.swagger.json",
+        "dereference": {
+          "circular": "ignore"
+        },
+        "operationIds": {
+          "rename": {
+            "Params": "MerkledropParams"
+          }
+        }
+      },
+      {
         "url": "./swagger/swagger-sdk.yaml",
         "dereference": {
           "circular": "ignore"

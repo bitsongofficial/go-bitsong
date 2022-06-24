@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "bitsong/merkledrop/v1beta1/merkledrop.proto";
+import "bitsong/merkledrop/v1beta1/params.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -16,6 +17,11 @@ service Query {
 
   rpc IndexClaimed(QueryIndexClaimedRequest) returns (QueryIndexClaimedResponse) {
     option (google.api.http).get = "/bitsong/merkledrop/v1beta1/markledrops/{id}/index_claimed/{index}";
+  }
+
+  // Params queries the fantoken parameters
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bitsong/merkledrop/v1beta1/params";
   }
 }
 
@@ -34,4 +40,12 @@ message QueryIndexClaimedResponse {
   bool is_claimed = 1 [
     (gogoproto.moretags) = "yaml:\"is_claimed\""
   ];
+}
+
+// QueryParametersRequest is request type for the Query/Parameters RPC method
+message QueryParamsRequest {}
+
+// QueryParametersResponse is response type for the Query/Parameters RPC method
+message QueryParamsResponse {
+  bitsong.merkledrop.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
 }

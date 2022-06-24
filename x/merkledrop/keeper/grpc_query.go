@@ -38,3 +38,12 @@ func (k Keeper) IndexClaimed(c context.Context, req *types.QueryIndexClaimedRequ
 		IsClaimed: k.IsClaimed(ctx, req.Id, req.Index),
 	}, nil
 }
+
+// Params return the all the parameter in fantoken module
+func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	params := k.GetParamSet(ctx)
+
+	return &types.QueryParamsResponse{Params: params}, nil
+}

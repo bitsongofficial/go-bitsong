@@ -24,10 +24,9 @@ paths:
                       (e.g ft<hash>).
                   max_supply:
                     type: string
-                  mintable:
-                    type: boolean
-                  authority:
+                  minter:
                     type: string
+                    title: sdk.AccAddress allowed to mint new fantoken
                   meta_data:
                     type: object
                     properties:
@@ -46,6 +45,9 @@ paths:
                           additional
 
                           information.Optional.
+                      authority:
+                        type: string
+                        title: sdk.AccAddress allowed to set a new uri
                 title: FanToken defines a standard for the fungible token
             title: >-
               QueryFanTokenResponse is response type for the Query/FanToken RPC
@@ -101,10 +103,9 @@ paths:
                         (e.g ft<hash>).
                     max_supply:
                       type: string
-                    mintable:
-                      type: boolean
-                    authority:
+                    minter:
                       type: string
+                      title: sdk.AccAddress allowed to mint new fantoken
                     meta_data:
                       type: object
                       properties:
@@ -125,6 +126,9 @@ paths:
                             additional
 
                             information.Optional.
+                        authority:
+                          type: string
+                          title: sdk.AccAddress allowed to set a new uri
                   title: FanToken defines a standard for the fungible token
               pagination:
                 type: object
@@ -299,21 +303,6 @@ paths:
                       custom method
 
                       signatures required by gogoproto.
-                  transfer_fee:
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
                 title: Params defines fantoken module's parameters
             title: >-
               QueryParametersResponse is response type for the Query/Parameters
@@ -394,6 +383,124 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  /bitsong/merkledrop/v1beta1/markledrops/{id}:
+    get:
+      operationId: Merkledrop
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              merkledrop:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uint64
+                    title: merkledrop id
+                  merkle_root:
+                    type: string
+                    title: merkle_root of the merkledrop
+                  start_height:
+                    type: string
+                    format: int64
+                    title: merkledrop start height
+                  end_height:
+                    type: string
+                    format: int64
+                    title: merkledrop end height
+                  denom:
+                    type: string
+                    title: denom to distribuite
+                  amount:
+                    type: string
+                    title: amount to distribuite
+                  claimed:
+                    type: string
+                    title: claimed amount
+                  owner:
+                    type: string
+                    title: merkledrop's owner
+                  withdrawn:
+                    type: boolean
+                    title: if the remaining funds are withdrawn
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
+  /bitsong/merkledrop/v1beta1/markledrops/{id}/index_claimed/{index}:
+    get:
+      operationId: IndexClaimed
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              is_claimed:
+                type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          format: uint64
+        - name: index
+          in: path
+          required: true
+          type: string
+          format: uint64
       tags:
         - Query
   /node_info:
@@ -33266,10 +33373,9 @@ definitions:
           ft<hash>).
       max_supply:
         type: string
-      mintable:
-        type: boolean
-      authority:
+      minter:
         type: string
+        title: sdk.AccAddress allowed to mint new fantoken
       meta_data:
         type: object
         properties:
@@ -33284,6 +33390,9 @@ definitions:
             description: |-
               URI to a document (on or off-chain) that contains additional
               information.Optional.
+          authority:
+            type: string
+            title: sdk.AccAddress allowed to set a new uri
     title: FanToken defines a standard for the fungible token
   bitsong.fantoken.v1beta1.Metadata:
     type: object
@@ -33299,6 +33408,9 @@ definitions:
         description: |-
           URI to a document (on or off-chain) that contains additional
           information.Optional.
+      authority:
+        type: string
+        title: sdk.AccAddress allowed to set a new uri
   bitsong.fantoken.v1beta1.Params:
     type: object
     properties:
@@ -33338,18 +33450,6 @@ definitions:
 
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
-      transfer_fee:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
     title: Params defines fantoken module's parameters
   bitsong.fantoken.v1beta1.QueryFanTokenResponse:
     type: object
@@ -33364,10 +33464,9 @@ definitions:
               ft<hash>).
           max_supply:
             type: string
-          mintable:
-            type: boolean
-          authority:
+          minter:
             type: string
+            title: sdk.AccAddress allowed to mint new fantoken
           meta_data:
             type: object
             properties:
@@ -33384,6 +33483,9 @@ definitions:
                 description: |-
                   URI to a document (on or off-chain) that contains additional
                   information.Optional.
+              authority:
+                type: string
+                title: sdk.AccAddress allowed to set a new uri
         title: FanToken defines a standard for the fungible token
     title: QueryFanTokenResponse is response type for the Query/FanToken RPC method
   bitsong.fantoken.v1beta1.QueryFanTokensResponse:
@@ -33401,10 +33503,9 @@ definitions:
                 ft<hash>).
             max_supply:
               type: string
-            mintable:
-              type: boolean
-            authority:
+            minter:
               type: string
+              title: sdk.AccAddress allowed to mint new fantoken
             meta_data:
               type: object
               properties:
@@ -33421,6 +33522,9 @@ definitions:
                   description: |-
                     URI to a document (on or off-chain) that contains additional
                     information.Optional.
+                authority:
+                  type: string
+                  title: sdk.AccAddress allowed to set a new uri
           title: FanToken defines a standard for the fungible token
       pagination:
         type: object
@@ -33485,21 +33589,6 @@ definitions:
 
               signatures required by gogoproto.
           burn_fee:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
-          transfer_fee:
             type: object
             properties:
               denom:
@@ -33955,6 +34044,80 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
+  bitsong.merkledrop.v1beta1.Merkledrop:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uint64
+        title: merkledrop id
+      merkle_root:
+        type: string
+        title: merkle_root of the merkledrop
+      start_height:
+        type: string
+        format: int64
+        title: merkledrop start height
+      end_height:
+        type: string
+        format: int64
+        title: merkledrop end height
+      denom:
+        type: string
+        title: denom to distribuite
+      amount:
+        type: string
+        title: amount to distribuite
+      claimed:
+        type: string
+        title: claimed amount
+      owner:
+        type: string
+        title: merkledrop's owner
+      withdrawn:
+        type: boolean
+        title: if the remaining funds are withdrawn
+  bitsong.merkledrop.v1beta1.QueryIndexClaimedResponse:
+    type: object
+    properties:
+      is_claimed:
+        type: boolean
+  bitsong.merkledrop.v1beta1.QueryMerkledropResponse:
+    type: object
+    properties:
+      merkledrop:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uint64
+            title: merkledrop id
+          merkle_root:
+            type: string
+            title: merkle_root of the merkledrop
+          start_height:
+            type: string
+            format: int64
+            title: merkledrop start height
+          end_height:
+            type: string
+            format: int64
+            title: merkledrop end height
+          denom:
+            type: string
+            title: denom to distribuite
+          amount:
+            type: string
+            title: amount to distribuite
+          claimed:
+            type: string
+            title: claimed amount
+          owner:
+            type: string
+            title: merkledrop's owner
+          withdrawn:
+            type: boolean
+            title: if the remaining funds are withdrawn
   CheckTxResult:
     type: object
     properties:
