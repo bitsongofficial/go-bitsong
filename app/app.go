@@ -743,7 +743,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
-
 	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
