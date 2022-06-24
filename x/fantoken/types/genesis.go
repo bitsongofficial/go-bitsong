@@ -1,7 +1,5 @@
 package types
 
-import "fmt"
-
 // DefaultGenesisState returns the default genesis state for testing
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
@@ -30,25 +28,9 @@ func (gs GenesisState) Validate() error {
 		if err := fantoken.ValidateWithDenom(); err != nil {
 			return err
 		}
-
-		/*if token.Authority != "" {
-			return fmt.Errorf("invalid authority")
-		}
-
-		if token.Mintable && token.Authority == "" {
-			return fmt.Errorf("invalid authority")
-		}*/
-
-		if fantoken.MetaData.Symbol == "" {
-			return fmt.Errorf("invalid symbol")
-		}
-
-		if fantoken.MetaData.Name == "" {
-			return fmt.Errorf("invalid name")
-		}
 	}
 
-	// validate token
+	// validate coins
 	for _, coin := range gs.BurnedCoins {
 		if err := coin.Validate(); err != nil {
 			return err
