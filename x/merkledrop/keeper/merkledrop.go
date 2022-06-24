@@ -30,16 +30,19 @@ func (k Keeper) GetLastMerkleDropId(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(bz)
 }
 
-func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) {
+func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) error {
 	bz := k.cdc.MustMarshal(&merkledrop)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.MerkledropKey(merkledrop.Id), bz)
 
 	owner, err := sdk.AccAddressFromBech32(merkledrop.Owner)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
 	store.Set(types.MerkledropOwnerKey(merkledrop.Id, owner), sdk.Uint64ToBigEndian(merkledrop.Id))
+
+	return nil
 }
 
 func (k Keeper) IsClaimed(ctx sdk.Context, mdId, index uint64) bool {
@@ -113,7 +116,7 @@ func (k Keeper) iterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func
 	}
 }
 
-func (k Keeper) getAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64 {
+func (k Keeper) GetAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64 {
 	var indexes []uint64
 	k.iterateIndexByMerkledropID(ctx, id, func(index uint64) (stop bool) {
 		indexes = append(indexes, index)
@@ -125,7 +128,7 @@ func (k Keeper) getAllIndexesByMerkledropID(ctx sdk.Context, id uint64) []uint64
 
 func (k Keeper) deleteAllIndexesByMerkledropID(ctx sdk.Context, id uint64) {
 	store := ctx.KVStore(k.storeKey)
-	indexes := k.getAllIndexesByMerkledropID(ctx, id)
+	indexes := k.GetAllIndexesByMerkledropID(ctx, id)
 
 	for _, index := range indexes {
 		store.Delete(types.ClaimedMerkledropIndexKey(id, index))
@@ -145,7 +148,6 @@ func (k Keeper) deleteMerkledropByID(ctx sdk.Context, id uint64) error {
 	if err != nil {
 		return err
 	}
-
 	store.Delete(types.MerkledropOwnerKey(merkledrop.Id, owner))
 
 	// delete all indexes

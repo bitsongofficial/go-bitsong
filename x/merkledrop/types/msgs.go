@@ -29,9 +29,12 @@ func (msg MsgCreate) Route() string { return RouterKey }
 func (msg MsgCreate) Type() string { return TypeMsgCreate }
 
 func (msg MsgCreate) ValidateBasic() error {
-
 	if msg.EndHeight <= msg.StartHeight {
 		return sdkerrors.Wrapf(ErrInvalidEndHeight, "end height must be > start height")
+	}
+
+	if err := msg.Coin.Validate(); err != nil {
+		return err
 	}
 
 	if msg.Coin.Amount.LTE(sdk.ZeroInt()) {

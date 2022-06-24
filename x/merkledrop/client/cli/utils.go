@@ -40,13 +40,12 @@ type ClaimInfo struct {
 
 func AccountsFromMap(accMap map[string]string) ([]*Account, error) {
 	i := 0
-
 	accsMap := make([]*Account, len(accMap))
 
 	for strAddr, strAmt := range accMap {
 		amt, ok := sdk.NewIntFromString(strAmt)
 		if !ok {
-			return nil, fmt.Errorf("could not cast %s to sdk.Int", strAddr)
+			return nil, fmt.Errorf("could not cast %s to sdk.Int", strAmt)
 		}
 
 		addr, err := sdk.AccAddressFromBech32(strAddr)

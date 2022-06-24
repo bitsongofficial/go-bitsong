@@ -24,7 +24,11 @@ func IsValidProof(index uint64, account sdk.AccAddress, amount sdk.Int, root []b
 	hasher := sha256.New()
 
 	indexStr := strconv.FormatUint(index, 10)
-	hashBz := crypto.Sha256([]byte(fmt.Sprintf("%s%s%s", indexStr, account.String(), amount.String())))
+	hashBz := crypto.Sha256(
+		[]byte(
+			fmt.Sprintf("%s%s%s", indexStr, account.String(), amount.String()),
+		),
+	)
 
 	for _, p := range proofs {
 		hasher.Reset()

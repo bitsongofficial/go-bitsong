@@ -200,9 +200,9 @@ func TestCreateProof(t *testing.T) {
 	params.SetAddressPrefixes()
 
 	accounts := map[string]string{
-		"bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "1000000ubtsg",
-		"bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "2000000ubtsg",
-		"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000ubtsg",
+		"bitsong1vgpsha4f8grmsqr6krfdxwpcf3x20h0q3ztaj2": "1000000",
+		"bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw": "2000000",
+		"bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw": "3000000",
 	}
 
 	accMap, err := cli.AccountsFromMap(accounts)

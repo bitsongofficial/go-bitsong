@@ -10,12 +10,13 @@ option (gogoproto.goproto_getters_all) = false;
 
 service Msg {
 	rpc Create(MsgCreate) returns (MsgCreateResponse);
+
 	rpc Claim(MsgClaim) returns (MsgClaimResponse);
+
 	rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 }
 
 message MsgCreate {
-
 	// owner of the merkledrop
 	string owner = 1;
 

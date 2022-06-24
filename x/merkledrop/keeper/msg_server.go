@@ -28,13 +28,18 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		msg.StartHeight = ctx.BlockHeight()
 	}
 
-	// check end time and start time
+	// check end height and start height
 	if msg.EndHeight <= msg.StartHeight {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height must be > start height")
 	}
 
 	if msg.EndHeight <= ctx.BlockHeight() {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height (%d) must be > current block height (%d)", msg.EndHeight, ctx.BlockHeight())
+	}
+
+	// validate coin
+	if err := msg.Coin.Validate(); err != nil {
+		return &types.MsgCreateResponse{}, err
 	}
 
 	// check coin amount > 0
@@ -48,16 +53,16 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "owner %s", owner.String())
 	}
 
-	// deduct creation fee
-	fee, err := m.DeductCreationFee(ctx, owner)
-	if err != nil {
-		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrCreationFee, "creation-fee %s", fee.String())
-	}
-
 	// check and decode merkle root
 	_, err = hex.DecodeString(msg.MerkleRoot)
 	if err != nil {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleRoot, "invalid merkle root (%s)", err)
+	}
+
+	// deduct creation fee
+	fee, err := m.DeductCreationFee(ctx, owner)
+	if err != nil {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrCreationFee, "creation-fee %s", fee.String())
 	}
 
 	// send coins
@@ -82,7 +87,9 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		Owner:       msg.Owner,
 		Withdrawn:   false,
 	}
-	m.Keeper.SetMerkleDrop(ctx, merkledrop)
+	if err := m.Keeper.SetMerkleDrop(ctx, merkledrop); err != nil {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidSender, "sender %s", owner.String())
+	}
 
 	// emit event
 	ctx.EventManager().EmitTypedEvent(&types.EventCreate{
@@ -124,7 +131,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 
 	// remaining funds are withdrawn
 	if merkledrop.Withdrawn {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrAlreadyWithdrawn, "claim error")
+		return &types.MsgClaimResponse{}, types.ErrAlreadyWithdrawn
 	}
 
 	// check if is claimed
@@ -146,6 +153,18 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrInvalidMerkleProofs, "invalid proofs")
 	}
 
+	amtAvailable := merkledrop.Amount.Sub(merkledrop.Claimed)
+	if amtAvailable.LT(msg.Amount) {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "something went wrong")
+	}
+
+	// send coins
+	coin := sdk.NewCoin(merkledrop.Denom, msg.Amount)
+	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{coin})
+	if err != nil {
+		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s%s", msg.Amount, merkledrop.Denom)
+	}
+
 	// set claimed
 	m.Keeper.SetClaimed(ctx, msg.MerkledropId, msg.Index)
 
@@ -159,13 +178,6 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		if err != nil {
 			return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
 		}
-	}
-
-	// send coins
-	coin := sdk.NewCoin(merkledrop.Denom, msg.Amount)
-	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sender, sdk.Coins{coin})
-	if err != nil {
-		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s%s", msg.Amount, merkledrop.Denom)
 	}
 
 	// emit event

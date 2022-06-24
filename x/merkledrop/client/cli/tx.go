@@ -27,7 +27,6 @@ func NewTxCmd() *cobra.Command {
 	}
 
 	txCmd.AddCommand(
-		//GetCmdGenerate(),
 		GetCmdCreate(),
 		GetCmdClaim(),
 		GetCmdWithdraw(),
@@ -126,10 +125,6 @@ after the computation the out-list.json should be similar to this output
 
 			startHeight, endHeight, denom, err := parseGenerateFlags(cmd.Flags())
 			merkleRoot := fmt.Sprintf("%x", tree.Root())
-
-			if denom == "" {
-				return fmt.Errorf("denom is required")
-			}
 
 			coin, err := sdk.ParseCoinNormalized(fmt.Sprintf("%s%s", totalAmt.String(), denom))
 			if err != nil {

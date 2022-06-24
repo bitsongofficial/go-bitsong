@@ -4,7 +4,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
@@ -19,32 +18,29 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	owner := suite.TestAccs[0]
 
 	merkledrop := types.Merkledrop{
-		Id:         merkledropID,
-		MerkleRoot: "sdsd",
-		StartTime:  time.Time{},
-		EndTime:    time.Time{},
-		Coin: sdk.Coin{
-			Denom:  denom,
-			Amount: sdk.NewInt(100),
-		},
-		Claimed:   sdk.Coin{Denom: denom, Amount: sdk.ZeroInt()},
-		Owner:     owner.String(),
-		Withdrawn: false,
+		Id:          merkledropID,
+		MerkleRoot:  "sdsd",
+		StartHeight: int64(10),
+		EndHeight:   int64(20),
+		Denom:       denom,
+		Amount:      sdk.NewInt(100),
+		Claimed:     sdk.ZeroInt(),
+		Owner:       owner.String(),
+		Withdrawn:   false,
 	}
+
 	mk.SetMerkleDrop(ctx, merkledrop)
 
 	merkledrop2 := types.Merkledrop{
-		Id:         merkledropID + 1,
-		MerkleRoot: "sdsd",
-		StartTime:  time.Time{},
-		EndTime:    time.Time{},
-		Coin: sdk.Coin{
-			Denom:  denom,
-			Amount: sdk.NewInt(100),
-		},
-		Claimed:   sdk.Coin{Denom: denom, Amount: sdk.ZeroInt()},
-		Owner:     owner.String(),
-		Withdrawn: false,
+		Id:          merkledropID + 1,
+		MerkleRoot:  "sdsd",
+		StartHeight: int64(10),
+		EndHeight:   int64(20),
+		Denom:       denom,
+		Amount:      sdk.NewInt(100),
+		Claimed:     sdk.ZeroInt(),
+		Owner:       owner.String(),
+		Withdrawn:   false,
 	}
 	mk.SetMerkleDrop(ctx, merkledrop2)
 
@@ -64,7 +60,7 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	mk.SetClaimed(ctx, merkledropID, 28)
 
 	// get all indexes by merkledrop id
-	indexes := mk.getAllIndexesByMerkledropID(ctx, merkledropID)
+	indexes := mk.GetAllIndexesByMerkledropID(ctx, merkledropID)
 	assert.Equal(suite.T(), []uint64{0, 10, 28}, indexes)
 
 	// set fake claimed
@@ -74,6 +70,6 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	// get all indexes
 	allindexes := mk.GetAllIndexes(ctx)
 	assert.Equal(suite.T(), 2, len(allindexes))
-	assert.Equal(suite.T(), 3, len(allindexes[0].Indexes))
-	assert.Equal(suite.T(), 2, len(allindexes[1].Indexes))
+	assert.Equal(suite.T(), 3, len(allindexes[0].Index))
+	assert.Equal(suite.T(), 2, len(allindexes[1].Index))
 }
