@@ -30,7 +30,7 @@ func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []stri
 	store := ctx.KVStore(k.storeKey)
 
 	nftIds := []string{}
-	it := sdk.KVStorePrefixIterator(store, append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(collectionId)...))
+	it := sdk.KVStorePrefixIterator(store, append(types.PrefixNFT, sdk.Uint64ToBigEndian(collectionId)...))
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
@@ -52,7 +52,7 @@ func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.
 
 func (k Keeper) GetNFTById(ctx sdk.Context, id string) (types.NFT, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixNFT, []byte(id)...))
+	bz := store.Get(append(types.PrefixNFT, types.NftIdToBytes(id)...))
 	if bz == nil {
 		return types.NFT{}, sdkerrors.Wrapf(types.ErrNFTDoesNotExist, "nft: %d does not exist", id)
 	}
@@ -67,7 +67,7 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 		k.DeleteNFT(ctx, oldNft)
 	}
 
-	idBz := []byte(nft.Id())
+	idBz := nft.IdBytes()
 	bz := k.cdc.MustMarshal(&nft)
 	store := ctx.KVStore(k.storeKey)
 	store.Set(append(types.PrefixNFT, idBz...), bz)
@@ -76,12 +76,11 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 	if err != nil {
 		panic(err)
 	}
-	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), idBz)
-	store.Set(append(append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(nft.CollId)...), idBz...), idBz)
+	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), []byte(nft.Id()))
 }
 
 func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
-	idBz := []byte(nft.Id())
+	idBz := nft.IdBytes()
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(append(types.PrefixNFT, idBz...))
 
@@ -90,7 +89,6 @@ func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
 		panic(err)
 	}
 	store.Delete(append(append(types.PrefixNFTByOwner, owner...), idBz...))
-	store.Delete(append(append(types.PrefixNFTByCollection, sdk.Uint64ToBigEndian(nft.CollId)...), idBz...))
 }
 
 func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {

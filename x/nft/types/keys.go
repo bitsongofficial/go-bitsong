@@ -15,11 +15,10 @@ const (
 )
 
 var (
-	PrefixNFT             = []byte{0x01}
-	PrefixNFTByOwner      = []byte{0x02}
-	PrefixNFTByCollection = []byte{0x03}
-	PrefixMetadata        = []byte{0x04}
-	PrefixCollection      = []byte{0x05}
-	KeyLastMetadataId     = []byte{0x06}
-	KeyLastCollectionId   = []byte{0x07}
+	PrefixNFT           = []byte{0x01}
+	PrefixNFTByOwner    = []byte{0x02}
+	PrefixMetadata      = []byte{0x03}
+	PrefixCollection    = []byte{0x04}
+	KeyLastMetadataId   = []byte{0x05}
+	KeyLastCollectionId = []byte{0x06}
 )
