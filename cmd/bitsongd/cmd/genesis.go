@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -40,6 +41,7 @@ type GenesisParams struct {
 
 	CrisisConstantFee sdk.Coin
 
+	FantokenParams fantokentypes.Params
 	MerkledropParams merkledroptypes.Params
 }
 
@@ -110,6 +112,11 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.SlashingParams.SlashFractionDowntime = sdk.MustNewDecFromStr("0.01")   // 1% liveness slashing
 
 	genParams.CrisisConstantFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(133_333_000_000))
+
+	genParams.FantokenParams = fantokentypes.DefaultParams()
+	genParams.FantokenParams.IssueFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(1_000_000_000))
+	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
+	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 
 	genParams.MerkledropParams.CreationFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(500_000_000))
 
@@ -190,6 +197,14 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
 	}
 	appState[slashingtypes.ModuleName] = slashingGenStateBz
+
+	fantokenGenState := fantokentypes.DefaultGenesisState()
+	fantokenGenState.Params = genesisParams.FantokenParams
+	fantokenGenStateBz, err := cdc.MarshalJSON(fantokenGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
+	}
+	appState[fantokentypes.ModuleName] = fantokenGenStateBz
 
 	merkledropGenState := merkledrop.DefaultGenesisState()
 	merkledropGenState.Params = genesisParams.MerkledropParams

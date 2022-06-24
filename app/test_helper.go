@@ -2,13 +2,19 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	bankcli "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 )
 
-// Setup initializes a new BitsongApp.
+// Setup initializes a new BitsongApp
 func Setup(isCheckTx bool) *BitsongApp {
 	db := dbm.NewMemDB()
 	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig(), simapp.EmptyAppOptions{})
@@ -29,4 +35,15 @@ func Setup(isCheckTx bool) *BitsongApp {
 	}
 
 	return app
+}
+
+func QueryBalanceExec(clientCtx client.Context, address string, denom string, extraArgs ...string) (testutil.BufferWriter, error) {
+	args := []string{
+		address,
+		fmt.Sprintf("--%s=%s", bankcli.FlagDenom, denom),
+		fmt.Sprintf("--%s=json", cli.OutputFlag),
+	}
+	args = append(args, extraArgs...)
+
+	return clitestutil.ExecTestCLICmd(clientCtx, bankcli.GetBalancesCmd(), args)
 }

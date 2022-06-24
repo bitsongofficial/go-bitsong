@@ -3,6 +3,10 @@ package app
 import (
 	"fmt"
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
+	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	merkledropkeeper "github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
 	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
@@ -39,6 +43,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
+
+	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
 
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
@@ -138,6 +144,7 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			fantokenclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -150,6 +157,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
+		fantoken.AppModuleBasic{},
 		merkledrop.AppModuleBasic{},
 	)
 
@@ -162,6 +170,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		merkledroptypes.ModuleName:     nil,
 	}
 )
@@ -220,6 +229,7 @@ type BitsongApp struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
+	FanTokenKeeper fantokenkeeper.Keeper
 	MerkledropKeeper merkledropkeeper.Keeper
 
 	// the module manager
@@ -251,7 +261,7 @@ func NewBitsongApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, merkledroptypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, merkledroptypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -327,6 +337,17 @@ func NewBitsongApp(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
+	// Create Fantoken Keeper
+	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		app.GetSubspace(fantokentypes.ModuleName),
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.ModuleAccountAddrs(),
+		authtypes.FeeCollectorName,
+	)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -334,7 +355,8 @@ func NewBitsongApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(app.FanTokenKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -397,6 +419,7 @@ func NewBitsongApp(
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
@@ -414,14 +437,14 @@ func NewBitsongApp(
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName, routertypes.ModuleName,
 		authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, merkledroptypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName,
 		routertypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, merkledroptypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -433,6 +456,7 @@ func NewBitsongApp(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
+		fantokentypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -466,6 +490,7 @@ func NewBitsongApp(
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
+		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
@@ -658,9 +683,20 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
+	// v10 Upgrade
 	if upgradeInfo.Name == v010.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// v11 Upgrade
+	if upgradeInfo.Name == v011.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{fantokentypes.ModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
@@ -672,6 +708,11 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v010.UpgradeName,
 		v010.CreateUpgradeHandler(app.mm, app.configurator, app.BankKeeper, app.IBCKeeper, &app.StakingKeeper),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v011.UpgradeName,
+		v011.CreateUpgradeHandler(app.mm, app.configurator, &app.FanTokenKeeper),
 	)
 }
 
@@ -701,6 +742,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
+	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
 	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
