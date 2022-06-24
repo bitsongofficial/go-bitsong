@@ -1,0 +1,75 @@
+syntax = "proto3";
+package bitsong.merkledrop.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
+option (gogoproto.goproto_getters_all) = false;
+
+service Msg {
+	rpc Create(MsgCreate) returns (MsgCreateResponse);
+
+	rpc Claim(MsgClaim) returns (MsgClaimResponse);
+
+	rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+}
+
+message MsgCreate {
+	// owner of the merkledrop
+	string owner = 1;
+
+	// merkle_root used to compute proofs
+	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+
+	// merkledrop start height
+	int64 start_height = 3;
+
+	// merkledrop end height
+	int64 end_height = 4;
+
+	// coins to distribute
+	cosmos.base.v1beta1.Coin coin = 5 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
+}
+
+message MsgCreateResponse {
+	string owner = 1;
+	uint64 id = 2;
+}
+
+message MsgClaim {
+	string sender = 1;
+	uint64 merkledrop_id = 2;
+	uint64 index = 3;
+	string amount = 4 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+		(gogoproto.nullable) = false
+	];
+	repeated string proofs = 5;
+}
+
+message MsgClaimResponse {
+	uint64 id = 1;
+	uint64 index = 2;
+	string amount = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+		(gogoproto.nullable) = false
+	];
+}
+
+message MsgWithdraw {
+	uint64 id = 1;
+	string owner = 2;
+}
+
+message MsgWithdrawResponse {
+	uint64 id = 1;
+	cosmos.base.v1beta1.Coin coin = 3 [
+		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
+		(gogoproto.nullable) = false
+	];
+}

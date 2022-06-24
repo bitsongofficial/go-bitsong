@@ -7,6 +7,9 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
+	merkledropkeeper "github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
+	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 
 	"io"
 	stdlog "log"
@@ -155,6 +158,7 @@ var (
 		vesting.AppModuleBasic{},
 		router.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
+		merkledrop.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -167,6 +171,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		merkledroptypes.ModuleName:     nil,
 	}
 )
 
@@ -225,6 +230,7 @@ type BitsongApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	FanTokenKeeper fantokenkeeper.Keeper
+	MerkledropKeeper merkledropkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -255,7 +261,7 @@ func NewBitsongApp(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, merkledroptypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -388,6 +394,8 @@ func NewBitsongApp(
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
 
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GetSubspace(merkledroptypes.ModuleName))
+
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
 	// NOTE: Any module instantiated in the module manager that is later modified
@@ -417,6 +425,7 @@ func NewBitsongApp(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		routerModule,
+		merkledrop.NewAppModule(appCodec, app.MerkledropKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -428,14 +437,14 @@ func NewBitsongApp(
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName, routertypes.ModuleName,
 		authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName,
 		routertypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -465,6 +474,7 @@ func NewBitsongApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		merkledroptypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -733,6 +743,8 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
+
+	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
 }
