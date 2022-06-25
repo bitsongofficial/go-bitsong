@@ -700,7 +700,7 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 	// v11 Upgrade
 	if upgradeInfo.Name == v011.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
-			Added: []string{fantokentypes.ModuleName},
+			Added: []string{fantokentypes.ModuleName, merkledroptypes.ModuleName},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
