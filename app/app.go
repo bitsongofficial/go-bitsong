@@ -716,7 +716,7 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v011.UpgradeName,
-		v011.CreateUpgradeHandler(app.mm, app.configurator, &app.FanTokenKeeper),
+		v011.CreateUpgradeHandler(app.mm, app.configurator, &app.FanTokenKeeper, &app.MerkledropKeeper),
 	)
 }
 
