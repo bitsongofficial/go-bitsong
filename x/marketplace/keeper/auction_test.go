@@ -160,7 +160,11 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 func (suite *KeeperTestSuite) TestCreateAuction() {
 	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	user2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-
+	nft := nfttypes.NFT{
+		CollId:     1,
+		MetadataId: 1,
+		Seq:        0,
+	}
 	tests := []struct {
 		testCase      string
 		fee           sdk.Coin
@@ -182,7 +186,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			"0",
+			"0:0:0",
 			false,
 		},
 		{
@@ -194,7 +198,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			false,
 		},
 		{
@@ -206,7 +210,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_FullRightsTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			false,
 		},
 		{
@@ -218,7 +222,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			false,
 		},
 		{
@@ -230,7 +234,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_FullRightsTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			true,
 		},
 		{
@@ -242,7 +246,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			true,
 		},
 		{
@@ -254,7 +258,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_NftOnlyTransfer,
 			nil,
 			0,
-			"1",
+			nft.Id(),
 			true,
 		},
 		{
@@ -269,7 +273,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			0,
-			"1",
+			nft.Id(),
 			false,
 		},
 		{
@@ -284,7 +288,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			0,
-			"1",
+			nft.Id(),
 			true,
 		},
 		{
@@ -296,7 +300,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			types.AuctionPrizeType_LimitedEditionPrints,
 			nil,
 			1,
-			"1",
+			nft.Id(),
 			false,
 		},
 		{
@@ -311,7 +315,7 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 				MaxSupply: 10,
 			},
 			100,
-			"1",
+			nft.Id(),
 			false,
 		},
 	}
@@ -658,7 +662,7 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     tc.auctionOwner.String(),
-			NftId:         "1",
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,

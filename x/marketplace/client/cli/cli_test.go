@@ -45,7 +45,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	_, err = s.network.WaitForHeight(1)
 	s.Require().NoError(err)
 
-	_, err = marketplacetestutil.CreateAuction(clientCtx, 1, val.Address.String(), s.cfg.BondDenom)
+	_, err = marketplacetestutil.CreateAuction(clientCtx, "1:1:0", val.Address.String(), s.cfg.BondDenom)
 	s.Require().NoError(err)
 
 	_, err = s.network.WaitForHeight(1)

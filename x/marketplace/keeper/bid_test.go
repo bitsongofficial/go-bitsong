@@ -341,7 +341,7 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         "1",
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -563,7 +563,7 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         "1",
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -814,7 +814,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         "1",
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.prizeType,
 			State:         tc.state,
