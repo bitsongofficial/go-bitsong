@@ -70,16 +70,6 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 	return nil
 }
 
-// AddBurnCoin saves the total amount of the burned fantokens
-func (k Keeper) AddBurnCoin(ctx sdk.Context, coin sdk.Coin) {
-	var total = coin
-
-	burnedCoins := k.GetBurnedCoins(ctx, coin.Denom)
-	total = total.Add(burnedCoins)
-
-	k.SetBurnCoin(ctx, total)
-}
-
 // getFanTokenSupply queries the fantoken supply from the total supply
 func (k Keeper) getFanTokenSupply(ctx sdk.Context, denom string) sdk.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount

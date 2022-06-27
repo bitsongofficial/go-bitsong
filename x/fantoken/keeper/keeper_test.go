@@ -126,11 +126,6 @@ func (suite *KeeperTestSuite) TestBurn() {
 	supply := suite.bk.GetSupply(suite.ctx, denom)
 	suite.Equal(sdk.NewInt(4), supply.Amount)
 	suite.Equal(denom, supply.Denom)
-
-	// check burned coins
-	burnedCoins := suite.keeper.GetBurnedCoins(suite.ctx, denom)
-	suite.Equal(sdk.NewInt(6), burnedCoins.Amount)
-	suite.Equal(denom, burnedCoins.Denom)
 }
 
 func (suite *KeeperTestSuite) TestSetMinter() {

@@ -21,17 +21,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 			panic(err.Error())
 		}
 	}
-
-	for _, coin := range data.BurnedCoins {
-		k.SetBurnCoin(ctx, coin)
-	}
 }
 
 // ExportGenesis outputs the genesis state
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		Params:      k.GetParamSet(ctx),
-		FanTokens:   k.GetFanTokens(ctx, nil),
-		BurnedCoins: k.GetAllBurnedCoins(ctx),
+		Params:    k.GetParamSet(ctx),
+		FanTokens: k.GetFanTokens(ctx, nil),
 	}
 }

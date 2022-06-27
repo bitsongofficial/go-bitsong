@@ -25,7 +25,6 @@ func GetQueryCmd() *cobra.Command {
 	queryCmd.AddCommand(
 		GetCmdQueryFanToken(),
 		GetCmdQueryFanTokens(),
-		GetCmdQueryTotalBurn(),
 		GetCmdQueryParams(),
 	)
 
@@ -127,31 +126,6 @@ func GetCmdQueryParams() *cobra.Command {
 			}
 
 			return clientCtx.PrintProto(&res.Params)
-		},
-	}
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdQueryTotalBurn return the total amount of all burned fantokens
-func GetCmdQueryTotalBurn() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "total-burn",
-		Short:   "Query the total amount of all burned fantokens.",
-		Example: fmt.Sprintf("$ %s query fantoken total-burn", version.AppName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.TotalBurn(context.Background(), &types.QueryTotalBurnRequest{})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

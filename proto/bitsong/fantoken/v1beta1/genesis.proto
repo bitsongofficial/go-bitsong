@@ -14,7 +14,4 @@ message GenesisState {
 
   repeated bitsong.fantoken.v1beta1.FanToken fan_tokens = 2
       [ (gogoproto.nullable) = false ];
-
-  repeated cosmos.base.v1beta1.Coin burned_coins = 3
-      [ (gogoproto.nullable) = false ];
 }

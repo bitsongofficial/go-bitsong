@@ -130,8 +130,7 @@ func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk
 	}
 
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
-	burnedCoins := k.GetBurnedCoins(ctx, fantoken.GetDenom())
-	mintableAmt := fantoken.MaxSupply.Sub(supply).Sub(burnedCoins.Amount)
+	mintableAmt := fantoken.MaxSupply.Sub(supply)
 
 	if coin.Amount.GT(mintableAmt) {
 		return sdkerrors.Wrapf(
@@ -170,8 +169,6 @@ func (k Keeper) Burn(ctx sdk.Context, coin sdk.Coin, owner sdk.AccAddress) error
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return err
 	}
-
-	k.AddBurnCoin(ctx, coin)
 
 	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
 }

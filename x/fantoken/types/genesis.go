@@ -30,11 +30,5 @@ func (gs GenesisState) Validate() error {
 		}
 	}
 
-	// validate coins
-	for _, coin := range gs.BurnedCoins {
-		if err := coin.Validate(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
