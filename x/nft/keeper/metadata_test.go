@@ -36,7 +36,7 @@ func (suite *KeeperTestSuite) TestMetadataGetSet() {
 	metadata := []types.Metadata{
 		{
 			Id:                   1,
-			UpdateAuthority:      "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
+			MetadataAuthority:    "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
 			MintAuthority:        "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
 			Name:                 "meta1",
 			Uri:                  "uri1",
@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) TestMetadataGetSet() {
 		},
 		{
 			Id:                   2,
-			UpdateAuthority:      "",
+			MetadataAuthority:    "",
 			MintAuthority:        "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
 			Name:                 "meta1",
 			Uri:                  "uri1",
@@ -58,7 +58,7 @@ func (suite *KeeperTestSuite) TestMetadataGetSet() {
 		},
 		{
 			Id:                   3,
-			UpdateAuthority:      "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
+			MetadataAuthority:    "bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47",
 			MintAuthority:        "",
 			Name:                 "meta1",
 			Uri:                  "uri1",
@@ -69,7 +69,7 @@ func (suite *KeeperTestSuite) TestMetadataGetSet() {
 		},
 		{
 			Id:                   4,
-			UpdateAuthority:      "",
+			MetadataAuthority:    "",
 			MintAuthority:        "",
 			Name:                 "meta1",
 			Uri:                  "uri1",

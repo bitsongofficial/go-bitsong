@@ -17,6 +17,7 @@ service Msg {
   rpc SignMetadata(MsgSignMetadata) returns (MsgSignMetadataResponse);
   rpc UpdateMetadata(MsgUpdateMetadata) returns (MsgUpdateMetadataResponse);
   rpc UpdateMetadataAuthority(MsgUpdateMetadataAuthority) returns (MsgUpdateMetadataAuthorityResponse);
+  rpc UpdateMintAuthority(MsgUpdateMintAuthority) returns (MsgUpdateMintAuthorityResponse);
 
   rpc CreateCollection(MsgCreateCollection) returns (MsgCreateCollectionResponse);
   rpc UpdateCollectionAuthority(MsgUpdateCollectionAuthority) returns (MsgUpdateCollectionAuthorityResponse);
@@ -77,6 +78,13 @@ message MsgUpdateMetadataAuthority {
   string new_authority = 3;
 }
 message MsgUpdateMetadataAuthorityResponse {}
+
+message MsgUpdateMintAuthority {
+  string sender = 1;
+  uint64 metadata_id = 2;
+  string new_authority = 3;
+}
+message MsgUpdateMintAuthorityResponse {}
 
 message MsgCreateCollection {
   string sender = 1;

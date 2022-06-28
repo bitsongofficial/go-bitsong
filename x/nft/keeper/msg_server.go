@@ -136,7 +136,7 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 		return nil, types.ErrMetadataImmutable
 	}
 
-	if metadata.UpdateAuthority != msg.Sender {
+	if metadata.MetadataAuthority != msg.Sender {
 		return nil, types.ErrNotEnoughPermission
 	}
 
@@ -165,6 +165,16 @@ func (m msgServer) UpdateMetadataAuthority(goCtx context.Context, msg *types.Msg
 		return nil, err
 	}
 	return &types.MsgUpdateMetadataAuthorityResponse{}, nil
+}
+
+func (m msgServer) UpdateMintAuthority(goCtx context.Context, msg *types.MsgUpdateMintAuthority) (*types.MsgUpdateMintAuthorityResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := m.Keeper.UpdateMintAuthority(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateMintAuthorityResponse{}, nil
 }
 
 func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateCollection) (*types.MsgCreateCollectionResponse, error) {

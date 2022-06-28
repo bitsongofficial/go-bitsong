@@ -31,7 +31,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"distribution to single creator",
 			nfttypes.Metadata{
 				Id:                   1,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK1",
 				SellerFeeBasisPoints: 10,
@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"distribution to multiple creators",
 			nfttypes.Metadata{
 				Id:                   2,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK2",
 				SellerFeeBasisPoints: 10,
@@ -72,7 +72,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"dust amount distribution cheeck",
 			nfttypes.Metadata{
 				Id:                   2,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK2",
 				SellerFeeBasisPoints: 10,
@@ -93,7 +93,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"distribution to no creator",
 			nfttypes.Metadata{
 				Id:                   3,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK3",
 				SellerFeeBasisPoints: 10,
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"distribution to invalid metadata - SellerFeeBasisPoints",
 			nfttypes.Metadata{
 				Id:                   3,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK3",
 				SellerFeeBasisPoints: 1000,
@@ -129,7 +129,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 			"distribution by zero balance account",
 			nfttypes.Metadata{
 				Id:                   3,
-				UpdateAuthority:      owner.String(),
+				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
 				Name:                 "NewPUNK3",
 				SellerFeeBasisPoints: 1000,

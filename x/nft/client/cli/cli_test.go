@@ -67,7 +67,7 @@ func (s *IntegrationTestSuite) TestGetCmdQueryNFTInfo() {
 		clientCtx,
 		cmd,
 		[]string{
-			"1",
+			"1:1:0",
 			"--output=json",
 		},
 	)

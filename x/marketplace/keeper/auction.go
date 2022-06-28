@@ -210,19 +210,35 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 	}
 
 	// If auction needs metadata ownership as well, metadata authority is transferred to marketplace module
-	if msg.PrizeType == types.AuctionPrizeType_FullRightsTransfer ||
-		msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints ||
-		msg.PrizeType == types.AuctionPrizeType_OpenEditionPrints {
-
+	if msg.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
 		// Ensure nft metadata is owned by the sender if auction prize type is `FullRightsTransfer`
-		if metadata.UpdateAuthority != msg.Sender {
+		if metadata.MetadataAuthority != msg.Sender {
 			return 0, nfttypes.ErrNotEnoughPermission
 		}
-		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+		err = k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       msg.Sender,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: moduleAddr.String(),
 		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	if msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints ||
+		msg.PrizeType == types.AuctionPrizeType_OpenEditionPrints {
+		// Ensure nft mint permission is owned by the sender if auction prize type is `PrintAuction`
+		if metadata.MintAuthority != msg.Sender {
+			return 0, nfttypes.ErrNotEnoughPermission
+		}
+		err = k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       msg.Sender,
+			MetadataId:   nft.MetadataId,
+			NewAuthority: moduleAddr.String(),
+		})
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	// Create auction object from provided params
@@ -357,7 +373,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 				return err
 			}
 		}
-		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
 			MetadataId:   nft.MetadataId,
 			NewAuthority: auction.Authority,

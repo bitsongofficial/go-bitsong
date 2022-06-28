@@ -156,7 +156,7 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 		})
 		if tc.expectPass {
 			suite.Require().NoError(err)
-			suite.Require().Equal(resp.Metadata.UpdateAuthority, tc.expectedAuthority)
+			suite.Require().Equal(resp.Metadata.MetadataAuthority, tc.expectedAuthority)
 		} else {
 			suite.Require().Error(err)
 		}

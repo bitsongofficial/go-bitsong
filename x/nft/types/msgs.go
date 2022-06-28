@@ -12,6 +12,7 @@ const (
 	TypeMsgSignMetadata              = "sign_metadata"
 	TypeMsgUpdateMetadata            = "update_metadata"
 	TypeMsgUpdateMetadataAuthority   = "update_metadata_authority"
+	TypeMsgUpdateMintAuthority       = "update_metadata_authority"
 	TypeMsgCreateCollection          = "create_collection"
 	TypeMsgVerifyCollection          = "verify_collection"
 	TypeMsgUnverifyCollection        = "unverify_collection"
@@ -34,7 +35,7 @@ func NewMsgCreateNFT(sender sdk.AccAddress,
 		Sender: sender.String(),
 		CollId: collId,
 		Metadata: Metadata{
-			UpdateAuthority:      updateAuthority,
+			MetadataAuthority:    updateAuthority,
 			MintAuthority:        sender.String(),
 			Name:                 name,
 			Uri:                  uri,
@@ -295,6 +296,47 @@ func (msg MsgUpdateMetadataAuthority) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgUpdateMetadataAuthority) GetSigners() []sdk.AccAddress {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
+}
+
+var _ sdk.Msg = &MsgUpdateMintAuthority{}
+
+func NewMsgUpdateMintAuthority(sender sdk.AccAddress, metadataId uint64, newAuthority string) *MsgUpdateMintAuthority {
+	return &MsgUpdateMintAuthority{
+		Sender:       sender.String(),
+		MetadataId:   metadataId,
+		NewAuthority: newAuthority,
+	}
+}
+
+func (msg MsgUpdateMintAuthority) Route() string { return RouterKey }
+
+func (msg MsgUpdateMintAuthority) Type() string { return TypeMsgUpdateMintAuthority }
+
+func (msg MsgUpdateMintAuthority) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgUpdateMintAuthority) GetSignBytes() []byte {
+	b, err := ModuleCdc.MarshalJSON(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgUpdateMintAuthority) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)

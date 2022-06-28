@@ -193,7 +193,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 	for _, tc := range tests {
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, types.Metadata{
 			Id:                   1,
-			UpdateAuthority:      metadataAuthority.String(),
+			MetadataAuthority:    metadataAuthority.String(),
 			MintAuthority:        metadataAuthority.String(),
 			Name:                 "meta1",
 			Uri:                  "uri1",
@@ -492,7 +492,7 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadataAuthority() {
 			metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, tc.metadataId)
 			suite.Require().NoError(err)
 			suite.Require().Equal(metadata.Id, tc.metadataId)
-			suite.Require().Equal(metadata.UpdateAuthority, tc.newOwner)
+			suite.Require().Equal(metadata.MetadataAuthority, tc.newOwner)
 		} else {
 			suite.Require().Error(err)
 		}

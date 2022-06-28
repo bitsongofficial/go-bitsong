@@ -134,7 +134,7 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (strin
 		return "", err
 	}
 
-	if metadata.UpdateAuthority != msg.Sender {
+	if metadata.MintAuthority != msg.Sender {
 		return "", types.ErrNotEnoughPermission
 	}
 

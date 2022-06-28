@@ -313,6 +313,48 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 	return cmd
 }
 
+func GetCmdUpdateMintAuthority() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "update-mint-authority",
+		Long: "Update mint authority by id and params",
+		Example: fmt.Sprintf(
+			`$ %s tx nft update-mint-authority
+				--metadata-id=1
+				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
+			version.AppName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
+			if err != nil {
+				return err
+			}
+
+			newAuthority, err := cmd.Flags().GetString(FlagNewAuthority)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagUpdateMetadataAuthority())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func GetCmdCreateCollection() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "create-collection",

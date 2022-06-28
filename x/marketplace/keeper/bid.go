@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -140,7 +138,6 @@ func (k Keeper) GetAllBidderMetadata(ctx sdk.Context) []types.BidderMetadata {
 func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount uint64, bidIndex uint64) uint64 {
 	auctionBids := k.GetBidsByAuction(ctx, auctionId)
 	higherBidsCount := uint64(0)
-	fmt.Println("CalculateHigherBids", auctionBids, amount, bidIndex)
 	for _, bid := range auctionBids {
 		if bid.Amount > amount {
 			higherBidsCount++
@@ -406,7 +403,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		fallthrough
 	case types.AuctionPrizeType_LimitedEditionPrints:
 		_, err := k.nftKeeper.PrintEdition(ctx, &nfttypes.MsgPrintEdition{
-			Sender:     metadata.UpdateAuthority,
+			Sender:     metadata.MintAuthority,
 			MetadataId: nft.MetadataId,
 			Owner:      msg.Sender,
 		})

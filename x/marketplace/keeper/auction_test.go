@@ -333,9 +333,10 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:              1,
-			UpdateAuthority: tc.metadataOwner.String(),
-			MasterEdition:   tc.masterEdition,
+			Id:                1,
+			MetadataAuthority: tc.metadataOwner.String(),
+			MintAuthority:     tc.metadataOwner.String(),
+			MasterEdition:     tc.masterEdition,
 		}
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
 
@@ -380,13 +381,15 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			// check metadata ownership transfer
 			switch tc.auctionType {
 			case types.AuctionPrizeType_FullRightsTransfer:
-				fallthrough
+				updatedMetadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(updatedMetadata.MetadataAuthority, moduleAddr.String())
 			case types.AuctionPrizeType_OpenEditionPrints:
 				fallthrough
 			case types.AuctionPrizeType_LimitedEditionPrints:
 				updatedMetadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
-				suite.Require().Equal(updatedMetadata.UpdateAuthority, moduleAddr.String())
+				suite.Require().Equal(updatedMetadata.MintAuthority, moduleAddr.String())
 			}
 
 			// check auction object created
@@ -653,8 +656,9 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:              1,
-			UpdateAuthority: moduleAddr.String(),
+			Id:                1,
+			MetadataAuthority: moduleAddr.String(),
+			MintAuthority:     moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
 
@@ -703,16 +707,16 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
 				if tc.lastBidAmount == 0 {
-					suite.Require().Equal(metadata.UpdateAuthority, auction.Authority)
+					suite.Require().Equal(metadata.MetadataAuthority, auction.Authority)
 				} else {
-					suite.Require().Equal(metadata.UpdateAuthority, moduleAddr.String())
+					suite.Require().Equal(metadata.MetadataAuthority, moduleAddr.String())
 				}
 			case types.AuctionPrizeType_OpenEditionPrints:
 				fallthrough
 			case types.AuctionPrizeType_LimitedEditionPrints:
 				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
-				suite.Require().Equal(metadata.UpdateAuthority, auction.Authority)
+				suite.Require().Equal(metadata.MintAuthority, auction.Authority)
 			}
 		} else {
 			suite.Require().Error(err)

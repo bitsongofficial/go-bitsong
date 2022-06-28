@@ -27,7 +27,7 @@ message Metadata {
   // Array of creators, optional
   repeated Creator creators = 7 [ (gogoproto.nullable) = false ];
   // who can update metadata (if is_mutable is true)
-  string update_authority = 8;
+  string metadata_authority = 8;
   // who can mint the editions
   string mint_authority = 9;
   MasterEdition master_edition = 10;

@@ -31,6 +31,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgUpdateMetadataAuthority:
 			res, err := msgServer.UpdateMetadataAuthority(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgUpdateMintAuthority:
+			res, err := msgServer.UpdateMintAuthority(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgCreateCollection:
 			res, err := msgServer.CreateCollection(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)

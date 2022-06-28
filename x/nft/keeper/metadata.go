@@ -76,11 +76,30 @@ func (k Keeper) UpdateMetadataAuthority(ctx sdk.Context, msg *types.MsgUpdateMet
 		return err
 	}
 
-	if metadata.UpdateAuthority != msg.Sender {
+	if metadata.MetadataAuthority != msg.Sender {
 		return types.ErrNotEnoughPermission
 	}
 
-	metadata.UpdateAuthority = msg.NewAuthority
+	metadata.MetadataAuthority = msg.NewAuthority
+	k.SetMetadata(ctx, metadata)
+	ctx.EventManager().EmitTypedEvent(&types.EventMetadataAuthorityUpdate{
+		MetadataId:   msg.Sender,
+		NewAuthority: msg.NewAuthority,
+	})
+	return nil
+}
+
+func (k Keeper) UpdateMintAuthority(ctx sdk.Context, msg *types.MsgUpdateMintAuthority) error {
+	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	if err != nil {
+		return err
+	}
+
+	if metadata.MintAuthority != msg.Sender {
+		return types.ErrNotEnoughPermission
+	}
+
+	metadata.MintAuthority = msg.NewAuthority
 	k.SetMetadata(ctx, metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataAuthorityUpdate{
 		MetadataId:   msg.Sender,
