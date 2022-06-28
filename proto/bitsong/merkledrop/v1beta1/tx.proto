@@ -12,8 +12,6 @@ service Msg {
 	rpc Create(MsgCreate) returns (MsgCreateResponse);
 
 	rpc Claim(MsgClaim) returns (MsgClaimResponse);
-
-	rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
 }
 
 message MsgCreate {
@@ -57,19 +55,6 @@ message MsgClaimResponse {
 	uint64 index = 2;
 	string amount = 3 [
 		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-		(gogoproto.nullable) = false
-	];
-}
-
-message MsgWithdraw {
-	uint64 id = 1;
-	string owner = 2;
-}
-
-message MsgWithdrawResponse {
-	uint64 id = 1;
-	cosmos.base.v1beta1.Coin coin = 3 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Coin",
 		(gogoproto.nullable) = false
 	];
 }

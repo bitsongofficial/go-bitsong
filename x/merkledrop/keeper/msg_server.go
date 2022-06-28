@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -23,18 +22,43 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 	// unwrap context
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	startHeight := sdk.NewInt(msg.StartHeight)
+	endHeight := sdk.NewInt(msg.EndHeight)
+
+	// check end height and start height
+	if startHeight.IsNegative() {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidStartHeight, "start height must be greater then zero")
+	}
+
 	// check start height > 0
-	if msg.StartHeight == 0 {
+	if startHeight.IsZero() {
 		msg.StartHeight = ctx.BlockHeight()
 	}
 
 	// check end height and start height
-	if msg.EndHeight <= msg.StartHeight {
+	if endHeight.LTE(startHeight) {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height must be > start height")
 	}
 
-	if msg.EndHeight <= ctx.BlockHeight() {
+	if endHeight.LTE(sdk.NewInt(ctx.BlockHeight())) {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height (%d) must be > current block height (%d)", msg.EndHeight, ctx.BlockHeight())
+	}
+
+	// add check startheight
+	// - max-start-height = blockheight + 100_000
+	maxStartHeight := ctx.BlockHeight() + int64(100_000)
+
+	// - max-end-height = msg.StartHeight + 5_000_000
+	maxEndHeight := msg.StartHeight + int64(5_000_000)
+
+	// start-height > max-start-height: return error
+	if startHeight.GT(sdk.NewInt(maxStartHeight)) {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidStartHeight, "start height is > block-height + 100000")
+	}
+
+	// end-height > max-end-height: return error
+	if endHeight.GT(sdk.NewInt(maxEndHeight)) {
+		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidEndHeight, "end height is > msg.StartHeight + 5000000")
 	}
 
 	// validate coin
@@ -43,7 +67,7 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 	}
 
 	// check coin amount > 0
-	if !msg.Coin.Amount.GT(sdk.ZeroInt()) {
+	if msg.Coin.Amount.LTE(sdk.ZeroInt()) {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidCoin, "invalid coin amount, must be greater then zero")
 	}
 
@@ -84,7 +108,6 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		Denom:       msg.Coin.Denom,
 		Claimed:     sdk.ZeroInt(),
 		Owner:       msg.Owner,
-		Withdrawn:   false,
 	}
 	if err := m.Keeper.SetMerkleDrop(ctx, merkledrop); err != nil {
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidSender, "sender %s", owner.String())
@@ -118,19 +141,17 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.MerkledropId)
 	}
 
+	startHeight := sdk.NewInt(merkledrop.StartHeight)
+	endHeight := sdk.NewInt(merkledrop.EndHeight)
+
 	// merkledrop begun
-	if merkledrop.StartHeight > ctx.BlockHeight() {
+	if startHeight.GT(sdk.NewInt(ctx.BlockHeight())) {
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotBegun, "start-height %d, current-height %d", merkledrop.StartHeight, ctx.BlockHeight())
 	}
 
-	// merkledrop not expired
-	if merkledrop.EndHeight < ctx.BlockHeight() {
+	// merkledrop not expired, last block is included
+	if endHeight.LTE(sdk.NewInt(ctx.BlockHeight())) {
 		return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrMerkledropExpired, "end-height %d, current-height %d", merkledrop.EndHeight, ctx.BlockHeight())
-	}
-
-	// remaining funds are withdrawn
-	if merkledrop.Withdrawn {
-		return &types.MsgClaimResponse{}, types.ErrAlreadyWithdrawn
 	}
 
 	// check if is claimed
@@ -173,7 +194,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 
 	// if claimed amount == total amount, then prune the merkledrop from the state
 	if merkledrop.Claimed == merkledrop.Amount {
-		err := m.Keeper.deleteMerkledropByID(ctx, merkledrop.Id)
+		err := m.Keeper.DeleteMerkledropByID(ctx, merkledrop.Id)
 		if err != nil {
 			return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
 		}
@@ -190,73 +211,5 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 		Id:     0,
 		Index:  0,
 		Amount: msg.Amount,
-	}, nil
-}
-
-func (m msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
-	// unwrap context
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// decode owner
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
-	if err != nil {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "owner %s", owner.String())
-	}
-
-	// get merkledrop
-	merkledrop, err := m.Keeper.getMerkleDropById(ctx, msg.Id)
-	if err != nil {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExist, "merkledrop: %d does not exist", msg.Id)
-	}
-
-	// remaining funds are withdrawn
-	if merkledrop.Withdrawn {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrAlreadyWithdrawn, "withdraw error")
-	}
-
-	// check owner
-	if merkledrop.Owner != owner.String() {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrInvalidOwner, "unauthorized: %s", msg.Owner)
-	}
-
-	// make sure is expired
-	if merkledrop.EndHeight > ctx.BlockHeight() {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrMerkledropNotExpired, "end-height: %d, current-height: %d", merkledrop.EndHeight, ctx.BlockHeight())
-	}
-
-	// check if total amount < claimed amount  (who knows?)
-	if merkledrop.Amount.LT(merkledrop.Claimed) {
-		panic(fmt.Errorf("merkledrop-id: %d, total_amount (%s) < claimed_amount (%s)", merkledrop.Id, merkledrop.Amount, merkledrop.Claimed))
-	}
-
-	// set withdrawn flag
-	merkledrop.Withdrawn = true
-	m.Keeper.SetMerkleDrop(ctx, merkledrop)
-
-	// get balance
-	balance := merkledrop.Amount.Sub(merkledrop.Claimed)
-
-	// prune merkledrop from the state
-	err = m.Keeper.deleteMerkledropByID(ctx, merkledrop.Id)
-	if err != nil {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
-	}
-
-	// send coins
-	coin := sdk.NewCoin(merkledrop.Denom, balance)
-	err = m.Keeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.Coins{coin})
-	if err != nil {
-		return &types.MsgWithdrawResponse{}, sdkerrors.Wrapf(types.ErrTransferCoins, "%s", coin)
-	}
-
-	// emit event
-	ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
-		MerkledropId: merkledrop.Id,
-		Coin:         coin,
-	})
-
-	return &types.MsgWithdrawResponse{
-		Id:   merkledrop.Id,
-		Coin: coin,
 	}, nil
 }

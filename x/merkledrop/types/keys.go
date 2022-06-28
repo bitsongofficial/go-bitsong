@@ -22,12 +22,15 @@ const (
 // - 0x02:<owner>:<merkledropID_bytes>: merkledrop
 // - 0x03: lastMerkledropID
 // - 0x04:<merkledropID_bytes>:<merkledropIndex>: true
+// - 0x10:<merkedropEndHeight>: merkledropID
 var (
 	PrefixMerkleDrop        = []byte{0x01}
 	PrefixMerkleDropByOwner = []byte{0x02}
 	KeyLastMerkleDropId     = []byte{0x03}
 
 	PrefixClaimedMerkleDrop = []byte{0x04}
+
+	PrefixMerkleDropByEndHeight = []byte{0x10}
 
 	sep = []byte(":")
 )
@@ -41,6 +44,11 @@ func MerkledropKey(id uint64) []byte {
 func MerkledropOwnerKey(id uint64, owner sdk.AccAddress) []byte {
 	idBz := sdk.Uint64ToBigEndian(id)
 	return genKey(PrefixMerkleDropByOwner, sep, owner, sep, idBz)
+}
+
+func MerkledropEndHeightKey(height int64) []byte {
+	heightBz := sdk.Uint64ToBigEndian(uint64(height))
+	return genKey(PrefixMerkleDropByEndHeight, sep, heightBz)
 }
 
 func LastMerkledropIDKey() []byte {

@@ -14,14 +14,6 @@ type MerkledropI interface {
 	GetAmount() string
 }
 
-/*func NewMerkledrop(merkleRoot string, amount sdk.Int, owner sdk.AccAddress) *Merkledrop {
-	return &Merkledrop{
-		MerkleRoot:  merkleRoot,
-		TotalAmount: amount,
-		Owner:       owner.String(),
-	}
-}*/
-
 func (m Merkledrop) GetMerkleRoot() string {
 	return m.MerkleRoot
 }

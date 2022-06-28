@@ -32,7 +32,6 @@ func NewTxCmd() *cobra.Command {
 	txCmd.AddCommand(
 		GetCmdCreate(),
 		GetCmdClaim(),
-		GetCmdWithdraw(),
 	)
 
 	return txCmd
@@ -223,46 +222,6 @@ $ %s tx merkledrop claim 1 \
 			}
 
 			msg := types.NewMsgClaim(index, merkledropId, sdk.NewInt(amount), proofs, clientCtx.GetFromAddress())
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().AddFlagSet(FlagClaimMerkledrop())
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func GetCmdWithdraw() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw [id]",
-		Short: "Withdraw remaining funds from an expired merkledrop",
-		Long: `Withdraw remaining funds from an expired merkledrop
-Parameters:
-	id: merkledrop id
-		`,
-		Example: strings.TrimSpace(fmt.Sprintf(`
-$ %s tx merkledrop withdraw 1 --from=<key-name>
-`,
-			version.AppName),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			merkledropId, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdraw(clientCtx.GetFromAddress(), merkledropId)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -41,7 +41,4 @@ message Merkledrop {
 
 	// merkledrop's owner
 	string owner = 8;
-
-	// if the remaining funds are withdrawn
-	bool withdrawn = 9;
 }

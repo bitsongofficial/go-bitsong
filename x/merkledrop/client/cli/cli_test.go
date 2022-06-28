@@ -155,33 +155,6 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMerkledrop() {
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), respType), out.String())
 	txResp = respType.(*sdk.TxResponse)
 	s.Require().Equal(expectedCode, txResp.Code)
-
-	//------test GetCmdWithdraw()-------------
-	cmd = cli.GetCmdWithdraw()
-	args = addCommonFlags(
-		[]string{
-			"1",
-		}, val.Address,
-	)
-
-	respType = proto.Message(&sdk.TxResponse{})
-	expectedCode = uint32(13)
-	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args)
-
-	s.Require().NoError(err)
-	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), respType), out.String())
-	txResp = respType.(*sdk.TxResponse)
-	s.Require().Equal(expectedCode, txResp.Code)
-
-	s.network.WaitForHeight(int64(endHeight) + 1)
-
-	expectedCode = uint32(0)
-	out, err = clitestutil.ExecTestCLICmd(clientCtx, cmd, args)
-
-	s.Require().NoError(err)
-	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(out.Bytes(), respType), out.String())
-	txResp = respType.(*sdk.TxResponse)
-	s.Require().Equal(expectedCode, txResp.Code)
 }
 
 func TestSimpleProof(t *testing.T) {

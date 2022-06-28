@@ -5,8 +5,6 @@ import (
 )
 
 const (
-	FlagMerkleRoot  = "merkle-root"
-	FlagCoin        = "coin"
 	FlagProofs      = "proofs"
 	FlagIndex       = "index"
 	FlagStartHeight = "start-height"
@@ -14,19 +12,6 @@ const (
 	FlagAmount      = "amount"
 	FlagDenom       = "denom"
 )
-
-/*func FlagCreateMerkledrop() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-
-	fs.String(FlagMerkleRoot, "", "Merkle root of the merkledrop")
-
-	fs.Int64(FlagAmount, 0, "Amount of the merkledrop")
-	fs.String(FlagDenom, "", "Denom of the merkledrop")
-	fs.Int64(FlagStartHeight, 0, "Start height of the merkledrop")
-	fs.Int64(FlagEndHeight, 0, "End height of the merkledrop")
-
-	return fs
-}*/
 
 func FlagsCreate() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)

@@ -26,7 +26,6 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 		Amount:      sdk.NewInt(100),
 		Claimed:     sdk.ZeroInt(),
 		Owner:       owner.String(),
-		Withdrawn:   false,
 	}
 
 	mk.SetMerkleDrop(ctx, merkledrop)
@@ -40,7 +39,6 @@ func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 		Amount:      sdk.NewInt(100),
 		Claimed:     sdk.ZeroInt(),
 		Owner:       owner.String(),
-		Withdrawn:   false,
 	}
 	mk.SetMerkleDrop(ctx, merkledrop2)
 

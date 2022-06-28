@@ -23,7 +23,6 @@ func init() {
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreate{}, "go-bitsong/merkledrop/MsgCreate", nil)
 	cdc.RegisterConcrete(&MsgClaim{}, "go-bitsong/merkledrop/MsgClaim", nil)
-	cdc.RegisterConcrete(&MsgWithdraw{}, "go-bitsong/merkledrop/MsgWithdraw", nil)
 	cdc.RegisterConcrete(&UpdateFeesProposal{}, "go-bitsong/merkledrop/UpdateFeesProposal", nil)
 }
 
@@ -31,7 +30,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreate{},
 		&MsgClaim{},
-		&MsgWithdraw{},
 	)
 
 	registry.RegisterImplementations(

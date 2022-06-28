@@ -40,7 +40,11 @@ func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) erro
 		return err
 	}
 
+	// set key by owner
 	store.Set(types.MerkledropOwnerKey(merkledrop.Id, owner), sdk.Uint64ToBigEndian(merkledrop.Id))
+
+	// set key by end-height
+	store.Set(types.MerkledropEndHeightKey(merkledrop.EndHeight), sdk.Uint64ToBigEndian(merkledrop.Id))
 
 	return nil
 }
@@ -101,6 +105,20 @@ func (k Keeper) getMerkleDropsByOwner(ctx sdk.Context, owner sdk.AccAddress) []t
 	return merkledrops
 }
 
+func (k Keeper) GetMerkleDropsIDByEndHeight(ctx sdk.Context, endHeight int64) []uint64 {
+	store := ctx.KVStore(k.storeKey)
+
+	var merkledropIDs []uint64
+	it := sdk.KVStorePrefixIterator(store, types.MerkledropEndHeightKey(endHeight))
+	defer it.Close()
+
+	for ; it.Valid(); it.Next() {
+		id := sdk.BigEndianToUint64(it.Value())
+		merkledropIDs = append(merkledropIDs, id)
+	}
+	return merkledropIDs
+}
+
 func (k Keeper) iterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func(index uint64) bool) {
 	store := ctx.KVStore(k.storeKey)
 	prefix := types.ClaimedMerkledropKey(mdId)
@@ -135,7 +153,7 @@ func (k Keeper) deleteAllIndexesByMerkledropID(ctx sdk.Context, id uint64) {
 	}
 }
 
-func (k Keeper) deleteMerkledropByID(ctx sdk.Context, id uint64) error {
+func (k Keeper) DeleteMerkledropByID(ctx sdk.Context, id uint64) error {
 	store := ctx.KVStore(k.storeKey)
 
 	merkledrop, err := k.getMerkleDropById(ctx, id)
@@ -152,6 +170,9 @@ func (k Keeper) deleteMerkledropByID(ctx sdk.Context, id uint64) error {
 
 	// delete all indexes
 	k.deleteAllIndexesByMerkledropID(ctx, id)
+
+	// delete end-height key
+	store.Delete(types.MerkledropEndHeightKey(merkledrop.EndHeight))
 
 	// delete merkledrop
 	store.Delete(types.MerkledropKey(id))
