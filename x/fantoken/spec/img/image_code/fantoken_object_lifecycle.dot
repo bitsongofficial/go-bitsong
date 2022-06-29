@@ -1,0 +1,16 @@
+digraph finite_state_machine {
+    rankdir=LR;
+    bgcolor="transparent";
+    size="8,5"
+
+    node [shape = circle, label="1", fontsize=14, color="gray", fontcolor="gray"] 1;
+    node [shape = circle, label="2", fontsize=14, color="gray", fontcolor="gray"] 2;
+    
+    node [shape = point, fontsize=14, color="gray", fontcolor="gray"]; qi
+    
+    qi -> 1 [label="issuing", fontsize=14, color="gray", fontcolor="gray"];
+    
+    1  -> 1 [ label = "ownership transfer", fontsize=14, color="gray", fontcolor="gray"];
+    1  -> 2 [ label = "disable minting", fontsize=14, color="gray", fontcolor="gray"];
+    2  -> 2 [ label = "ownership transfer", fontsize=14, color="gray", fontcolor="gray"];
+}
