@@ -22,6 +22,15 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*types.MsgCreateNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	collection, err := m.Keeper.GetCollectionById(ctx, msg.CollId)
+	if err != nil {
+		return nil, err
+	}
+
+	if collection.UpdateAuthority != msg.Sender {
+		return nil, types.ErrNotEnoughPermission
+	}
+
 	// create metadata
 	metadataId := m.Keeper.GetLastMetadataId(ctx) + 1
 	m.Keeper.SetLastMetadataId(ctx, metadataId)

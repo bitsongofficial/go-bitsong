@@ -38,10 +38,10 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
-	_, err = testutil.CreateNFT(clientCtx, val.Address.String(), s.cfg.BondDenom)
+	_, err = testutil.CreateCollection(clientCtx, val.Address.String(), s.cfg.BondDenom)
 	s.Require().NoError(err)
 
-	_, err = testutil.CreateCollection(clientCtx, val.Address.String(), s.cfg.BondDenom)
+	_, err = testutil.CreateNFT(clientCtx, val.Address.String(), s.cfg.BondDenom)
 	s.Require().NoError(err)
 
 	_, err = s.network.WaitForHeight(1)

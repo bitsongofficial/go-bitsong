@@ -9,8 +9,9 @@ import (
 func (suite *KeeperTestSuite) TestGRPCNFTInfo() {
 	// create nfts
 	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator, 1)
-	nftInfo2 := suite.CreateNFT(creator, 1)
+	collInfo := suite.CreateCollection(creator)
+	nftInfo1 := suite.CreateNFT(creator, collInfo.Id)
+	nftInfo2 := suite.CreateNFT(creator, collInfo.Id)
 
 	tests := []struct {
 		testCase           string
@@ -61,9 +62,11 @@ func (suite *KeeperTestSuite) TestGRPCNFTsByOwner() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	suite.CreateNFT(creator1, 1)
-	suite.CreateNFT(creator1, 1)
-	suite.CreateNFT(creator2, 1)
+	collInfo1 := suite.CreateCollection(creator1)
+	suite.CreateNFT(creator1, collInfo1.Id)
+	suite.CreateNFT(creator1, collInfo1.Id)
+	collInfo2 := suite.CreateCollection(creator2)
+	suite.CreateNFT(creator2, collInfo2.Id)
 
 	tests := []struct {
 		testCase        string
@@ -121,8 +124,11 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 	// create nfts
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator1, 1)
-	nftInfo2 := suite.CreateNFT(creator2, 1)
+	collInfo1 := suite.CreateCollection(creator1)
+	nftInfo1 := suite.CreateNFT(creator1, collInfo1.Id)
+
+	collInfo2 := suite.CreateCollection(creator2)
+	nftInfo2 := suite.CreateNFT(creator2, collInfo2.Id)
 
 	tests := []struct {
 		testCase          string

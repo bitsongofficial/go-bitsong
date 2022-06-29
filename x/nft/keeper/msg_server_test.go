@@ -82,9 +82,11 @@ func (suite *KeeperTestSuite) TestMsgServerCreateNFT() {
 		suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.Coins{issuePrice})
 		suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, creator, sdk.Coins{issuePrice})
 
+		collInfo := suite.CreateCollection(creator)
+
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		resp, err := msgServer.CreateNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateNFT(
-			creator, 1, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{
+			creator, collInfo.Id, creator.String(), "Punk", "punk.com", 0, false, false, []types.Creator{
 				{
 					Address:  creator.String(),
 					Verified: true,
@@ -255,9 +257,11 @@ func (suite *KeeperTestSuite) TestMsgServerTransferNFT() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo1 := suite.CreateNFT(creator1, 1)
-	nftInfo2 := suite.CreateNFT(creator1, 1)
-	nftInfo3 := suite.CreateNFT(creator2, 1)
+	collInfo1 := suite.CreateCollection(creator1)
+	collInfo2 := suite.CreateCollection(creator2)
+	nftInfo1 := suite.CreateNFT(creator1, collInfo1.Id)
+	nftInfo2 := suite.CreateNFT(creator1, collInfo1.Id)
+	nftInfo3 := suite.CreateNFT(creator2, collInfo2.Id)
 
 	tests := []struct {
 		testCase   string
@@ -325,7 +329,8 @@ func (suite *KeeperTestSuite) TestMsgServerSignMetadata() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	nftInfo := suite.CreateNFTWithCreators(creator1, 1, []sdk.AccAddress{creator1, creator2})
+	collInfo1 := suite.CreateCollection(creator1)
+	nftInfo := suite.CreateNFTWithCreators(creator1, collInfo1.Id, []sdk.AccAddress{creator1, creator2})
 
 	tests := []struct {
 		testCase   string
@@ -380,8 +385,10 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadata() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	immutableNft := suite.CreateNFT(creator1, 1)
-	mutableNft := suite.CreateMutableNFT(creator2, 1)
+	collInfo1 := suite.CreateCollection(creator1)
+	immutableNft := suite.CreateNFT(creator1, collInfo1.Id)
+	collInfo2 := suite.CreateCollection(creator2)
+	mutableNft := suite.CreateMutableNFT(creator2, collInfo2.Id)
 
 	tests := []struct {
 		testCase   string
@@ -441,8 +448,10 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateMetadataAuthority() {
 	creator1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	creator3 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	immutableNft := suite.CreateNFT(creator1, 1)
-	mutableNft := suite.CreateMutableNFT(creator2, 1)
+	collInfo1 := suite.CreateCollection(creator1)
+	immutableNft := suite.CreateNFT(creator1, collInfo1.Id)
+	collInfo2 := suite.CreateCollection(creator2)
+	mutableNft := suite.CreateMutableNFT(creator2, collInfo2.Id)
 
 	tests := []struct {
 		testCase   string
