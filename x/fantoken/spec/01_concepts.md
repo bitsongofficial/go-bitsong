@@ -33,7 +33,7 @@ A **fan token** is characterized by:
 | --------------------- | ---------------------------- | ---------------------------------------------- |
 | name | `string` | It is chosen once by the user. It should correspond to the long name the user want to associate to the symbol (e.g., Dollar, Euro, BitSong). It can also be empty and its max length is of 128 characters. |
 | symbol | `string` | It is chosen once by the user and can be any string matching the pattern `^[a-z0-9]{1,64}$`, i.e., any lowercase string containing letters and digits with a length between 1 and 64 characters. It should follow the ISO standard for the [alphabetic code](https://www.iso.org/iso-4217-currency-codes.html) (e.g., USD, EUR, BTSG, etc.).|
-| uri | `string` | It is a link to a resource which contains a set of information linked to the _fan token_. |
+| uri | `string` | It is a link to a resource which contains a set of information linked to the _fan token_. It can also be empty and its max length is of 512 characters. |
 | authority | `sdk.AccAddress` | It is the address of the authority for the _fan token_ `metadata` managment. It can be changed to trasfer the ability of changing the metadata the token during the time. |
 
 
