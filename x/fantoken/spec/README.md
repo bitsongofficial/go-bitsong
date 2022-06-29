@@ -14,13 +14,14 @@ In the music industry, for example, _fan tokens_ enable to empower a lot of diff
 
 Based on the concept of the **ERC-20 Standard**, BitSong _fan tokens_ enable the user to a new way of **value exchanging**. Here, through tokens issued by a particular entity, the fans can deeply interact with their influencers or idols.
 
-We can identify each _fan token_ through two keys: the **denom** and the **symbol**.
-Even if they both represent the token, we generate them in different ways, and, for this reason, they also share separate information.
+We can identify each _fan token_ through its `denom`.
+Moreover, even if its `denom` allow the global identification of the token, each _fan token_ is also equipped with a `name` and a `symbol`, which helps in its recognition. The `name` and the `symbol` of a _fan token_, together with a `uri` and an `authority` (i.e., the address of the wallet which is able to manage those data) are part of the `metadata` of the _fan token_.
 
 More specifically:
 
-- **denom** is calculated by the tendermint crypto hash function through the creator, symbol, name and block height for the transaction. For this reason, it is _unique_;
-- **symbol**, on the other hand, is defined by the user and can be any string matching the pattern `^[a-z0-9]{1,64}$`, so any lowercase string containing letters and digits with a length between 1 and 64 characters.
+- **denom** is calculated by the tendermint crypto hash function through the *block height* of the transaction, the first *minter*, the *symbol*, and the *name*. For this reason, it is _unique_;
+- **symbol** is defined by the user and can be any string matching the pattern `^[a-z0-9]{1,64}$`, so any lowercase string containing letters and digits with a length between 1 and 64 characters. _It cannot be empty_;
+- **name**, on the other hand, is also defined by the user but it can be any string containing less than 129 characters. _It can also be empty_.
 
 Finally, thanks to the _fantoken_ module, users on BitSong can:
 
