@@ -6,7 +6,7 @@ order: 6
 
 ## Transactions
 
-The `transactions` commands allow users to issue, mint, burn and transfer `fantokens`.
+The `transactions` commands allow users to `issue`, `mint`, `burn`, `disable minting`, `transfer minting and editing capabilities` for _fan tokens_.
 
 ```bash=
 bitsongd tx fantoken --help
@@ -17,41 +17,55 @@ bitsongd tx fantoken --help
 bitsongd tx fantoken issue \
     --name "fantoken name" \
     --symbol "bitangel" \
-    --uri "ipfs://...." \
     --max-supply 100000000000 \
-    --from <key-name> -b block --chain-id <chain-id>
+    --uri "ipfs://...." \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
 ```
 
 ### mint
 
 ```bash=
-bitsongd tx fantoken mint <denom> \
+bitsongd tx fantoken mint [amount][denom] \
     --recipient <address> \
-    --amount "1" \
-    --from <key-name> -b block --chain-id <chain-id>
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
 ```
 
 ### burn
 
 ```bash=
-bitsongd tx fantoken burn <denom> \
-    --amount "1" \
-    --from <key-name> -b block --chain-id <chain-id>
+bitsongd tx fantoken burn [amount][denom] \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
+```
+
+### set-authority
+
+```bash=
+bitsongd tx fantoken set-authority [denom] \
+    --new-authority <address> \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
+```
+
+### set-minter
+
+```bash=
+bitsongd tx fantoken set-minter [denom] \
+    --new-minter <address> \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
+```
+
+### set-uri
+
+```bash=
+bitsongd tx fantoken set-uri [denom] \
+    --uri <uri> \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
 ```
 
 ### disable-mint
 
 ```bash=
-bitsongd tx fantoken disable-mint <denom> \
-    --from <key-name> -b block --chain-id <chain-id>
-```
-
-### transfer-authority
-
-```bash=
-bitsongd tx fantoken transfer-authority <denom> \
-    --dst-authority <address> \
-    --from <key-name> -b block --chain-id <chain-id>
+bitsongd tx fantoken disable-mint [denom] \
+    --from <key-name> -b block --chain-id <chain-id> --fees <fee>
 ```
 
 ## Query
@@ -59,27 +73,13 @@ bitsongd tx fantoken transfer-authority <denom> \
 The `query` commands allow users to query the `fantoken` module
 
 ```bash=
-bitsongd query fantoken --help
+bitsongd q fantoken --help
 ```
 
 ### denom
 
 ```bash=
-bitsongd query fantoken denom <denom>
-```
-
-Example Output
-
-```bash=
-fantoken:
-  authority: bitsong1nzxmsks45e55d5edj4mcd08u8dycaxq5eplakw
-  denom: ftF0EA7AE2933E757BB3120E29A58FB63A54B3E726
-  max_supply: "100000000000"
-  meta_data:
-    name: fantoken name
-    symbol: angelo
-    uri: ipfs://....
-  mintable: true
+bitsongd q fantoken denom <denom>
 ```
 
 ### authority
@@ -88,57 +88,8 @@ fantoken:
 bitsongd q fantoken authority <address>
 ```
 
-Example Output
-
-```bash=
-fantokens:
-- authority: bitsong1zm6wlhr622yr9d7hh4t70acdfg6c32kcv34duw
-  denom: ftE1A74A564AF1AEBD79F0B9E45FA2D60E4E2241FF
-  max_supply: "100000000000"
-  meta_data:
-    name: fantoken name
-    symbol: angelo
-    uri: ipfs://....
-  mintable: true
-pagination:
-  next_key: null
-  total: "0"
-```
-
 ### params
 
 ```bash=
 bitsongd q fantoken params
-```
-
-Example Output
-
-```bash=
-burn_fee:
-  amount: "0"
-  denom: ubtsg
-issue_fee:
-  amount: "1000000000"
-  denom: ubtsg
-mint_fee:
-  amount: "0"
-  denom: ubtsg
-transfer_fee:
-  amount: "0"
-  denom: ubtsg
-
-```
-
-### total-burn
-
-```bash=
-bitsongd q fantoken total-burn
-```
-
-Example Output
-
-```bash=
-burned_coins:
-- amount: "1"
-  denom: ftE1A74A564AF1AEBD79F0B9E45FA2D60E4E2241FF
 ```
