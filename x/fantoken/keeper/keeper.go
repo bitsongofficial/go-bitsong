@@ -95,19 +95,19 @@ func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.I
 // Mint mints the specified amount of fantoken to the specified recipient
 func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk.Coin) error {
 	if recipient.Empty() {
-		return sdkerrors.Wrapf(types.ErrInvalidRecipient, "the address %s is not a valid recipient", recipient)
+		return sdkerrors.Wrapf(types.ErrInvalidRecipient, "the address %s is not a valid recipient", recipient.String())
 	}
 
 	if minter.Empty() {
-		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not a valid minter address", minter)
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not a valid minter address", minter.String())
 	}
 
 	if k.blockedAddrs[minter.String()] {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", minter.String())
 	}
 
 	if k.blockedAddrs[recipient.String()] {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient.String())
 	}
 
 	if err := types.ValidateAmount(coin.Amount); err != nil {
@@ -120,7 +120,7 @@ func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk
 	}
 
 	if minter.String() != fantoken.Minter {
-		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not the minter of the fantoken %s", minter, coin.Denom)
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not the minter of the fantoken %s", minter.String(), coin.Denom)
 	}
 
 	// handle Mint fee
