@@ -331,60 +331,6 @@ paths:
                       format: byte
       tags:
         - Query
-  /bitsong/fantoken/v1beta1/total_burn:
-    get:
-      summary: TotalBurn queries all the burnt coins
-      operationId: TotalBurn
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              burned_coins:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    denom:
-                      type: string
-                    amount:
-                      type: string
-                  description: >-
-                    Coin defines a token with a denomination and an amount.
-
-
-                    NOTE: The amount field is an Int which implements the custom
-                    method
-
-                    signatures required by gogoproto.
-            title: >-
-              QueryTotalBurnResponse is response type for the Query/TotalBurn
-              RPC method
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
   /bitsong/merkledrop/v1beta1/markledrops/{id}:
     get:
       operationId: Merkledrop
@@ -424,9 +370,6 @@ paths:
                   owner:
                     type: string
                     title: merkledrop's owner
-                  withdrawn:
-                    type: boolean
-                    title: if the remaining funds are withdrawn
         default:
           description: An unexpected error response.
           schema:
@@ -501,6 +444,62 @@ paths:
           required: true
           type: string
           format: uint64
+      tags:
+        - Query
+  /bitsong/merkledrop/v1beta1/params:
+    get:
+      summary: Params queries the fantoken parameters
+      operationId: MerkledropParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  creation_fee:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+                title: Params defines merkledrop module's parameters
+            title: >-
+              QueryParametersResponse is response type for the Query/Parameters
+              RPC method
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
       tags:
         - Query
   /node_info:
@@ -33607,24 +33606,6 @@ definitions:
     title: >-
       QueryParametersResponse is response type for the Query/Parameters RPC
       method
-  bitsong.fantoken.v1beta1.QueryTotalBurnResponse:
-    type: object
-    properties:
-      burned_coins:
-        type: array
-        items:
-          type: object
-          properties:
-            denom:
-              type: string
-            amount:
-              type: string
-          description: |-
-            Coin defines a token with a denomination and an amount.
-
-            NOTE: The amount field is an Int which implements the custom method
-            signatures required by gogoproto.
-    title: QueryTotalBurnResponse is response type for the Query/TotalBurn RPC method
   cosmos.base.query.v1beta1.PageRequest:
     type: object
     properties:
@@ -34074,9 +34055,22 @@ definitions:
       owner:
         type: string
         title: merkledrop's owner
-      withdrawn:
-        type: boolean
-        title: if the remaining funds are withdrawn
+  bitsong.merkledrop.v1beta1.Params:
+    type: object
+    properties:
+      creation_fee:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    title: Params defines merkledrop module's parameters
   bitsong.merkledrop.v1beta1.QueryIndexClaimedResponse:
     type: object
     properties:
@@ -34115,9 +34109,31 @@ definitions:
           owner:
             type: string
             title: merkledrop's owner
-          withdrawn:
-            type: boolean
-            title: if the remaining funds are withdrawn
+  bitsong.merkledrop.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          creation_fee:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+        title: Params defines merkledrop module's parameters
+    title: >-
+      QueryParametersResponse is response type for the Query/Parameters RPC
+      method
   CheckTxResult:
     type: object
     properties:
