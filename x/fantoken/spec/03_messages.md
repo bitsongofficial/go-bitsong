@@ -7,7 +7,7 @@ order: 3
 Messages (`msg`s) are objects that trigger state transitions. Messages are wrapped in transactions (`tx`s) that clients submit to the network. The BitSong SDK wraps and unwraps `fantoken` module messages from transactions.
 
 ## MsgIssue
-The `MsgIssue` message is used to issue a new _fan token_. It takes as input `Symbol`, `Name`, `MaxSupply` (expressed in micro unit (![formula](https://render.githubusercontent.com/render/math?math=\color{gray}\mu=10^{-6})) as explained in [concepts](01_concepts.md#Fan-token)), `Authority` (i.e., the address of the wallet which is able to modify the `metadata` of the _fan token_), `URI` (which is a link to the `fan token` metadata) and the `Minter` (i.e., the address of the wallet which is able to mint the _fan token_). Thanks to these values, the module can verify if the `Authority` and the `Minter` are valid addresses for the issue of a new token (they are not a blocked addresses or module accounts) and also verifies the values for the `name` (which can be any strings with less than 129 characters, even the empty one), the `symbol` (that must match the regex `^[a-z0-9]{1,64}$`) and the `uri` (which can be any strings with less than 513 characters, even the empty one). At this point, it proceeds with token issuing and emitting of corresponding events. More specifically, the module deduct the `issuing fee` from the `minter` wallet, calculates the `denom`, generates the `metadata`, and finally creates the _fan token_. At this point, an `EventIssue` event is emitted.
+The `MsgIssue` message is used to issue a new _fan token_. It takes as input `Symbol`, `Name`, `MaxSupply` (expressed in micro unit (![formula](https://render.githubusercontent.com/render/math?math=\color{gray}\mu=10^{-6})) as explained in [concepts](01_concepts.md#Fan-token)), `Authority` (i.e., the address of the wallet which is able to modify the `metadata` of the _fan token_), `URI` (which is a link to the `fan token` metadata) and the `Minter` (i.e., the address of the wallet which is able to mint the _fan token_). Thanks to these values, the module can verify if the `Authority` and the `Minter` are valid addresses for the issue of a new token (they are not a blocked addresses or module accounts) and also verifies the values for the `name` (which can be any strings with max 128 characters, even the empty one), the `symbol` (that must match the regex `^[a-z0-9]{1,64}$`) and the `uri` (which can be any strings with less than 513 characters, even the empty one). At this point, it proceeds with token issuing and emitting of corresponding events. More specifically, the **module deduct the `issuing fee` from the `minter` wallet**, calculates the `denom`, generates the `metadata`, and finally creates the _fan token_. At this point, an `EventIssue` event is emitted.
 
 ```go
 type MsgIssue struct {
@@ -34,7 +34,7 @@ type MsgDisableMint struct {
 
 The `MsgMint` message is used to mint an existing _fan token_. It takes as input `Recipient`, `Coin`, and `Minter` (all described in [fan token definition](01_concepts.md#Fan-token) except the `Coin`, which is an object made up of the `denom` of the _fan token_ to mint and its quantity, expressed in micro unit). In such a message, the `Recipient` is not required and its default value is the same of `Minter`. 
 Thanks to these values, the module can verify whether the minting operation is lawful (i.e., requested: by the minter, on a mintable _fan token_, and for a quantity that allow to do not overcome the maximum supply), recalling that only the minter for of the _fan token_ can mint the token to any specified account.
-At this point, the token is minted, the supply is increased, the coins are sent to the recipient, and an `EventMint` event is emitted.
+At this point, the token is minted, the supply is increased, the coins are sent to the recipient, the **module deduct the `mint fee` from the `minter` wallet** and an `EventMint` event is emitted.
 
 ```go
 type MsgMint struct {
@@ -47,7 +47,7 @@ type MsgMint struct {
 ## MsgBurn
 
 The `MsgBurn` message is used to burn _fan token_. It takes as input `Coin`, and `Sender` (as above, the `Coin` is an object made up of the `denom` of the _fan token_ to burn and its quantity, expressed in micro unit, while `Sender` must be equal to the user who want to burn the tokens).
-The module can verify whether the burning operation is lawful (i.e., the sender has a sufficient amount of token, in other words check if `sender balance` > `amount to burn`). At this point, the token is burned, the supply is lowered and an `EventBurn` event is emitted.
+The module can verify whether the burning operation is lawful (i.e., the sender has a sufficient amount of token, in other words check if `sender balance` > `amount to burn`). At this point, the token is burned, the supply is lowered, the **module deduct the `burn fee` from the `owner` wallet** and an `EventBurn` event is emitted.
 In such a way, that specific token ends its lifecycle, as shown in the [relative docs](01_concepts.md#Lifecycle-of-a-fan-token).
 
 ```go
