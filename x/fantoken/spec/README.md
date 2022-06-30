@@ -21,7 +21,7 @@ More specifically:
 
 - **denom** is calculated by the tendermint crypto hash function through the *block height* of the transaction, the first *minter*, the *symbol*, and the *name*. For this reason, it is _unique_;
 - **symbol** is defined by the user and can be any string matching the pattern `^[a-z0-9]{1,64}$`, so any lowercase string containing letters and digits with a length between 1 and 64 characters. _It cannot be empty_;
-- **name**, on the other hand, is also defined by the user but it can be any string containing less than 129 characters. _It can also be empty_.
+- **name**, on the other hand, is also defined by the user but it can be any string containing max 128 characters. _It can also be empty_.
 
 Finally, thanks to the _fantoken_ module, users on BitSong can:
 
