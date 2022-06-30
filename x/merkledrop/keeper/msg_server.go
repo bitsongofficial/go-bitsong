@@ -30,8 +30,8 @@ func (m msgServer) Create(goCtx context.Context, msg *types.MsgCreate) (*types.M
 		return &types.MsgCreateResponse{}, sdkerrors.Wrapf(types.ErrInvalidStartHeight, "start height must be greater then zero")
 	}
 
-	// check start height > 0
-	if startHeight.IsZero() {
+	// check start height > current height
+	if startHeight.LT(sdk.NewInt(ctx.BlockHeight())) {
 		msg.StartHeight = ctx.BlockHeight()
 	}
 
