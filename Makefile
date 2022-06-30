@@ -154,7 +154,7 @@ distclean: clean
 ###                                Protobuf                                 ###
 ###############################################################################
 
-containerProtoVer=v0.7
+containerProtoVer=v0.2
 containerProtoImage=tendermintdev/sdk-proto-gen:$(containerProtoVer)
 containerProtoGen=cosmos-sdk-proto-gen-$(containerProtoVer)
 containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(containerProtoVer)
