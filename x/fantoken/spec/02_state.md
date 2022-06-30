@@ -17,9 +17,9 @@ In the state definition, we can find the **Params**. This section corresponds to
 
 ```go
 type Params struct {
-	IssueFee    sdk.Coin
-    MintFee     sdk.Coin
-    BurnFee     sdk.Coin
+	IssueFee	sdk.Coin
+	MintFee		sdk.Coin
+	BurnFee		sdk.Coin
 }
 ```
 
@@ -46,7 +46,7 @@ type FanToken struct {
 
 type Metadata struct {
 	Name		string
-    Symbol      string
+	Symbol      string
 	URI         string
 	Authority	string
 }
