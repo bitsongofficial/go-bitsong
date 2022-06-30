@@ -46,20 +46,22 @@ It is possible to entirely represent the lifecycle of a fan token through Finite
 
 We can describe the lifecycle of a fan token **object** through two states.
 
-![Fantoken object lifecycle](img/fantoken_object_lifecycle.png "Fantoken object lifecycle")
+![Fantoken object lifecycle](img/fantoken_object_lifecycle.svg "Fantoken object lifecycle")
 
-Referring to the figure above, as detailed in the documentation, to "create" the fan token, we need to **issue it**. This operation leads to the birth of the object and thus to its first state, state _1_. Here, the token is related to a `minter`, who is able to mint the token to different wallets, and an `authority`, that is responsible for managing the `metadata`. From this state, it is possible:
+Referring to the figure above, as detailed in the documentation, to "create" the fan token, we need to **issue it**. This operation leads to the birth of the object and thus to its first state, state _1_. Here, the token is related to a `minter`, who is able to mint the token to different wallets, and an `authority`, that is responsible for managing the `metadata`. It is important to recall that some operations are reversible, while some others are not. For example, reaching the max-supply through minting operations, can be reverted by burning tokens. While, for example, the selection of an empty address for the minter (which strictly means **disable minting** operations) is a **irreversible** operation.
+
+<!-- From this state, it is possible:
 
 - to **transfer the ability to mint to a new address**, which produces the changing of the minter, without modifying the landing state. This operation can be done on every state until when the minter address is set to empty;
 - to **transfer the ability to edit the metadata to a new address**, which produces the changing of the authority, without modifying the landing state. This operation can be done on every state until when the authority address is set to empty;
 - to **disable the minting ability**, which is achived by setting the `minter` address to an empty one. This produces a state change to the state _2_. Here, no one can mint the _fan token_ anymore.
 Once the _fan token_ lands in state _2_, the only possible action is to transfer its authority (the ability to change its `metadata`) to another address or to disable this feature landing the _fan token_ to the state _4_. Once the `minter` address is set to empty, the minting **ability can be enabled** no more;
 - to **disable the ability to edit the metadata**, which is achived by setting the `authority` address to an empty one. This produces a state change to the state _3_. Here, no one can manage the _fan token_ `metadata` anymore.
-Once the _fan token_ lands in state _3_, the only possible action is to transfer its `minter` address (that corresponds to the address of who is able to mint the `fan token`) to another address or to disable this feature landing the _fan token_ to the state _4_. Once the `authority` address is set to empty, the **ability to change the fan token metadata can be enabled** no more.
+Once the _fan token_ lands in state _3_, the only possible action is to transfer its `minter` address (that corresponds to the address of who is able to mint the `fan token`) to another address or to disable this feature landing the _fan token_ to the state _4_. Once the `authority` address is set to empty, the **ability to change the fan token metadata can be enabled** no more. -->
 
-Also referring to the lifecycle of a fan token **instance**, it is possible to identify two states.
+Referring to the lifecycle of a fan token **instance**, it is possible to identify two states.
 
-![Fantoken instance lifecycle](img/fantoken_instance_lifecycle.png "Fantoken instance lifecycle")
+![Fantoken instance lifecycle](img/fantoken_instance_lifecycle.svg "Fantoken instance lifecycle")
 
 Concerning to the figure above, when the fan token object is issued, we can **mint** it. Minting leads to the birth of a new instance, moving the fan token instance to state _1_. In this state, the token can be:
 
