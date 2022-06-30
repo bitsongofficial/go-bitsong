@@ -76,4 +76,4 @@ Features that may be added in the future are described in Future Improvements.
    Benchmarks
    -->
 6. **[Client](06_client.md)**
-6. **[Future Improvements](07_future_improvements.md)**
+7. **[Future Improvements](07_future_improvements.md)**

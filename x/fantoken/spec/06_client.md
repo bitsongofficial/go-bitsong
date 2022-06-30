@@ -70,7 +70,7 @@ bitsongd tx fantoken disable-mint [denom] \
 
 ## Query
 
-The `query` commands allow users to query the `fantoken` module
+The `query` commands allow users to query the `fantoken` module.
 
 ```bash=
 bitsongd q fantoken --help
