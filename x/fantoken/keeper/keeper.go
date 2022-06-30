@@ -154,6 +154,10 @@ func (k Keeper) Burn(ctx sdk.Context, coin sdk.Coin, owner sdk.AccAddress) error
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", owner.String())
 	}
 
+	if owner.Empty() {
+		return types.ErrInvalidOwner
+	}
+
 	// handle Burn fee
 	if err := k.deductBurnFee(ctx, owner); err != nil {
 		return err
@@ -180,6 +184,10 @@ func (k Keeper) SetAuthority(ctx sdk.Context, denom string, oldAuthority, newAut
 
 	if k.blockedAddrs[newAuthority.String()] {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", newAuthority.String())
+	}
+
+	if oldAuthority.Empty() {
+		return types.ErrInvalidAuthority
 	}
 
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
@@ -220,6 +228,10 @@ func (k Keeper) SetMinter(ctx sdk.Context, denom string, oldMinter, newMinter sd
 		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", newMinter.String())
 	}
 
+	if oldMinter.Empty() {
+		return types.ErrInvalidMinter
+	}
+
 	// get the fantoken
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
@@ -257,6 +269,10 @@ func (k Keeper) SetUri(ctx sdk.Context, denom, newUri string, authority sdk.AccA
 	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
+	}
+
+	if authority.Empty() {
+		return types.ErrInvalidAuthority
 	}
 
 	if authority.String() != fantoken.MetaData.Authority {

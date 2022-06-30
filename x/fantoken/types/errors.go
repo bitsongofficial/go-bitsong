@@ -17,7 +17,7 @@ var (
 	ErrInvalidAuthority   = sdkerrors.Register(ModuleName, 8, "invalid fantoken authority")
 	ErrInvalidMinter      = sdkerrors.Register(ModuleName, 9, "invalid fantoken minter")
 	ErrInvalidRecipient   = sdkerrors.Register(ModuleName, 10, "invalid fantoken recipient")
-	ErrNotMintable        = sdkerrors.Register(ModuleName, 11, "fantoken is not mintable")
+	ErrInvalidOwner       = sdkerrors.Register(ModuleName, 11, "the owner is empty or invalid")
 	ErrNotFoundTokenAmt   = sdkerrors.Register(ModuleName, 12, "burned fantoken amount not found")
 	ErrInvalidAmount      = sdkerrors.Register(ModuleName, 13, "invalid amount")
 	ErrInvalidUri         = sdkerrors.Register(ModuleName, 14, "invalid uri length")
