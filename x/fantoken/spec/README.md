@@ -40,7 +40,6 @@ Features that may be added in the future are described in Future Improvements.
 2. **[State](02_state.md)**
    - [Params](02_state.md#Params)
    - [Fan Token](02_state.md#Token)
-   - [Burned Coins](02_state.md#BurnedCoins)
      <!--
      State Transitions
      -->
@@ -48,11 +47,13 @@ Features that may be added in the future are described in Future Improvements.
      Keeper
      -->
 3. **[Messages](03_messages.md)**
-   - [MsgIssueFanToken](03_messages.md#MsgIssueFanToken)
-   - [MsgEditFanToken](03_messages.md#MsgEditFanToken)
-   - [MsgMintFanToken](03_messages.md#MsgMintFanToken)
-   - [MsgBurnFanToken](03_messages.md#MsgBurnFanToken)
-   - [MsgTransferFanTokenOwner](03_messages.md#MsgTransferFanTokenOwner)
+   - [MsgIssue](03_messages.md#MsgIssue)
+   - [MsgDisableMint](03_messages.md#MsgDisableMint)
+   - [MsgMint](03_messages.md#MsgMint)
+   - [MsgBurn](03_messages.md#MsgBurn)
+   - [MsgSetAuthority](03_messages.md#MsgSetAuthority)
+   - [MsgSetMinter](03_messages.md#MsgSetMinter)
+   - [MsgSetUri](03_messages.md#MsgSetUri)
      <!--
      Begin-Block
      -->
@@ -60,11 +61,13 @@ Features that may be added in the future are described in Future Improvements.
      End-Block
      -->
 4. **[Events](04_events.md)**
-   - [MsgIssueFanToken](04_events.md#MsgIssueFanToken)
-   - [MsgEditFanToken](04_events.md#MsgEditFanToken)
-   - [MsgMintFanToken](04_events.md#MsgMintFanToken)
-   - [MsgBurnFanToken](04_events.md#MsgBurnFanToken)
-   - [MsgTransferFanTokenOwner](04_events.md#MsgTransferFanTokenOwner)
+   - [EventIssue](04_events.md#EventIssue)
+   - [EventDisableMint](04_events.md#EventDisableMint)
+   - [EventMint](04_events.md#EventMint)
+   - [EventBurn](04_events.md#EventBurn)
+   - [EventSetAuthority](04_events.md#EventSetAuthority)
+   - [EventSetMinter](04_events.md#EventSetMinter)
+   - [EventSetUri](04_events.md#EventSetUri)
 5. **[Parameters](05_parameters.md)**
    <!--
    Test Cases
