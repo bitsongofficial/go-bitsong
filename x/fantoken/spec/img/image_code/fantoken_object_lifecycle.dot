@@ -4,76 +4,76 @@ digraph finite_state_machine {
     rankdir="LR";
     bgcolor="transparent";
 
-    node [shape = circle, width=2.0 ,label="just issued\nfan token\n\nno circulating tokens\n\n+ editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 1;
-    node [shape = circle, width=2.0 ,label="some tokens\nare circulating\n\n+ editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 2;
-    node [shape = circle, width=2.0 ,label="max-supply reached\n\n+ editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 3;
-    node [shape = circle, width=2.0 ,label="minting disabled\nsome are circulating\n\n+ editable\n- mintable", fontsize=12, color="black", fontcolor="black"] 4;
-    node [shape = circle, width=2.0 ,label="minting disabled\nno circulating\n\n+ editable\n- mintable", fontsize=12, color="black", fontcolor="black"] 5;
-    node [shape = circle, width=2.0 ,label="immutable\nminting disabled\nsome are circulating\n\n- editable\n- mintable", fontsize=12, color="black", fontcolor="black"] 6;
-    node [shape = circle, width=2.0 ,label="immutable\nsome are circulating\n\n- editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 7;
-    node [shape = circle, width=2.0 ,label="immutable\nno circulating\n\n- editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 8;
-    node [shape = circle, width=2.0 ,label="immutable\nmax-supply reached\n\n- editable\n+ mintable", fontsize=12, color="black", fontcolor="black"] 9;
-    node [shape = circle, width=2.0 ,label="immutable\nminting disabled\nno circulating\n\n- editable\n- mintable", fontsize=12, color="black", fontcolor="black"] 10;
+    node [shape = circle, width=2.0 ,label="just issued\nfan token\n\nno circulating tokens\n\n+ editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 1;
+    node [shape = circle, width=2.0 ,label="some tokens\nare circulating\n\n+ editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 2;
+    node [shape = circle, width=2.0 ,label="max-supply reached\n\n+ editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 3;
+    node [shape = circle, width=2.0 ,label="minting disabled\nsome are circulating\n\n+ editable\n- mintable", fontsize=12, color="gray", fontcolor="gray"] 4;
+    node [shape = circle, width=2.0 ,label="minting disabled\nno circulating\n\n+ editable\n- mintable", fontsize=12, color="gray", fontcolor="gray"] 5;
+    node [shape = circle, width=2.0 ,label="immutable\nminting disabled\nsome are circulating\n\n- editable\n- mintable", fontsize=12, color="gray", fontcolor="gray"] 6;
+    node [shape = circle, width=2.0 ,label="immutable\nsome are circulating\n\n- editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 7;
+    node [shape = circle, width=2.0 ,label="immutable\nno circulating\n\n- editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 8;
+    node [shape = circle, width=2.0 ,label="immutable\nmax-supply reached\n\n- editable\n+ mintable", fontsize=12, color="gray", fontcolor="gray"] 9;
+    node [shape = circle, width=2.0 ,label="immutable\nminting disabled\nno circulating\n\n- editable\n- mintable", fontsize=12, color="gray", fontcolor="gray"] 10;
     
-    node [shape = point, width=0.1 fontsize=12, color="black", fontcolor="black"]; qi
+    node [shape = point, width=0.1 fontsize=12, color="gray", fontcolor="gray"]; qi
 
-    qi      ->  1       [ label="issue", fontsize=12, color="black", fontcolor="black"];
+    qi      ->  1       [ label="issue", fontsize=12, color="gray", fontcolor="gray"];
 
-    1       ->  1       [ label = "change minter", fontsize=12, color="black", fontcolor="black"];
-    1       ->  1       [ label = "change authority", fontsize=12, color="black", fontcolor="black"];
-    1       ->  1       [ label = "change metadata", fontsize=12, color="black", fontcolor="black"];
+    1       ->  1       [ label = "change minter", fontsize=12, color="gray", fontcolor="gray"];
+    1       ->  1       [ label = "change authority", fontsize=12, color="gray", fontcolor="gray"];
+    1       ->  1       [ label = "change metadata", fontsize=12, color="gray", fontcolor="gray"];
 
-    2       ->  2       [ label = "change minter", fontsize=12, color="black", fontcolor="black"];
-    2       ->  2       [ label = "change authority", fontsize=12, color="black", fontcolor="black"];
-    2       ->  2       [ label = "change metadata", fontsize=12, color="black", fontcolor="black"];
+    2       ->  2       [ label = "change minter", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  2       [ label = "change authority", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  2       [ label = "change metadata", fontsize=12, color="gray", fontcolor="gray"];
 
-    3       ->  3       [ label = "change minter", fontsize=12, color="black", fontcolor="black"];
-    3       ->  3       [ label = "change authority", fontsize=12, color="black", fontcolor="black"];
-    3       ->  3       [ label = "change metadata", fontsize=12, color="black", fontcolor="black"];
+    3       ->  3       [ label = "change minter", fontsize=12, color="gray", fontcolor="gray"];
+    3       ->  3       [ label = "change authority", fontsize=12, color="gray", fontcolor="gray"];
+    3       ->  3       [ label = "change metadata", fontsize=12, color="gray", fontcolor="gray"];
 
-    4       ->  4       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-    4       ->  4       [ label = "change authority", fontsize=12, color="black", fontcolor="black"];
-    4       ->  4       [ label = "change metadata", fontsize=12, color="black", fontcolor="black"];
+    4       ->  4       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
+    4       ->  4       [ label = "change authority", fontsize=12, color="gray", fontcolor="gray"];
+    4       ->  4       [ label = "change metadata", fontsize=12, color="gray", fontcolor="gray"];
 
-    5       ->  5       [ label = "change authority", fontsize=12, color="black", fontcolor="black"];
-    5       ->  5       [ label = "change metadata", labeldistance=3, fontsize=12, color="black", fontcolor="black"];
+    5       ->  5       [ label = "change authority", fontsize=12, color="gray", fontcolor="gray"];
+    5       ->  5       [ label = "change metadata", labeldistance=3, fontsize=12, color="gray", fontcolor="gray"];
 
-    1       ->  2       [ label = "mint", fontsize=12, color="black", fontcolor="black"];
-    8       ->  7       [ label = "mint", fontsize=12, color="black", fontcolor="black"];
-    7       ->  7       [ label = "mint", fontsize=12, color="black", fontcolor="black"];
-    2       ->  2       [ label = "mint", fontsize=12, color="black", fontcolor="black"];
+    1       ->  2       [ label = "mint", fontsize=12, color="gray", fontcolor="gray"];
+    8       ->  7       [ label = "mint", fontsize=12, color="gray", fontcolor="gray"];
+    7       ->  7       [ label = "mint", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  2       [ label = "mint", fontsize=12, color="gray", fontcolor="gray"];
 
-    2       ->  3       [ label = "mint all", fontsize=12, color="black", fontcolor="black"];
-    1       ->  3       [ label = "mint all", fontsize=12, color="black", fontcolor="black"];
-    7       ->  9       [ label = "mint all", fontsize=12, color="black", fontcolor="black"];
-    8       ->  9       [ label = "mint all", fontsize=12, color="black", fontcolor="black"];
+    2       ->  3       [ label = "mint all", fontsize=12, color="gray", fontcolor="gray"];
+    1       ->  3       [ label = "mint all", fontsize=12, color="gray", fontcolor="gray"];
+    7       ->  9       [ label = "mint all", fontsize=12, color="gray", fontcolor="gray"];
+    8       ->  9       [ label = "mint all", fontsize=12, color="gray", fontcolor="gray"];
 
-    3       ->  2       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-    2       ->  2       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-    6       ->  6       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-    7       ->  7       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-    9       ->  7       [ label = "burn", fontsize=12, color="black", fontcolor="black"];
-
-
-    1       ->  5       [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-    2       ->  4       [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-    3       ->  4       [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-    7       ->  6       [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-    8       ->  10      [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-    9       ->  6       [ label = "disable mint", fontsize=12, color="black", fontcolor="black"];
-
-    4       ->  5       [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
-    2       ->  1       [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
-    6       ->  10      [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
-    7       ->  8       [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
-    9       ->  8       [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
-    3       ->  1       [ label = "burn all", fontsize=12, color="black", fontcolor="black"];
+    3       ->  2       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  2       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
+    6       ->  6       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
+    7       ->  7       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
+    9       ->  7       [ label = "burn", fontsize=12, color="gray", fontcolor="gray"];
 
 
-    2       ->  7       [ label = "make it immutable", fontsize=12, color="black", fontcolor="black"];
-    3       ->  7       [ label = "make it immutable", fontsize=12, color="black", fontcolor="black"];
-    4       ->  7       [ label = "make it immutable", fontsize=12, color="black", fontcolor="black"];
-    1       ->  8       [ label = "make it immutable", fontsize=12, color="black", fontcolor="black"];
-    5       ->  10      [ label = "make it immutable", fontsize=12, color="black", fontcolor="black"];
+    1       ->  5       [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  4       [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+    3       ->  4       [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+    7       ->  6       [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+    8       ->  10      [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+    9       ->  6       [ label = "disable mint", fontsize=12, color="gray", fontcolor="gray"];
+
+    4       ->  5       [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+    2       ->  1       [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+    6       ->  10      [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+    7       ->  8       [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+    9       ->  8       [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+    3       ->  1       [ label = "burn all", fontsize=12, color="gray", fontcolor="gray"];
+
+
+    2       ->  7       [ label = "make it immutable", fontsize=12, color="gray", fontcolor="gray"];
+    3       ->  7       [ label = "make it immutable", fontsize=12, color="gray", fontcolor="gray"];
+    4       ->  7       [ label = "make it immutable", fontsize=12, color="gray", fontcolor="gray"];
+    1       ->  8       [ label = "make it immutable", fontsize=12, color="gray", fontcolor="gray"];
+    5       ->  10      [ label = "make it immutable", fontsize=12, color="gray", fontcolor="gray"];
 
 }
