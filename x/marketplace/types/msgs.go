@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -46,7 +47,7 @@ func (msg MsgCreateAuction) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if msg.NftId == "" {
+	if !nfttypes.IsValidNftId(msg.NftId) {
 		return ErrInvalidNftId
 	}
 
