@@ -32,6 +32,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdSignMetadata(),
 		GetCmdUpdateMetadata(),
 		GetCmdUpdateMetadataAuthority(),
+		GetCmdUpdateMintAuthority(),
 		GetCmdCreateCollection(),
 		GetCmdUpdateCollectionAuthority(),
 	)

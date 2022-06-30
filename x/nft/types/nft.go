@@ -18,6 +18,9 @@ func (nft NFT) IdBytes() []byte {
 
 func IsValidNftId(id string) bool {
 	splits := strings.Split(id, ":")
+	if len(splits) != 3 {
+		return false
+	}
 	collId, err := strconv.Atoi(splits[0])
 	if err != nil || collId < 0 {
 		return false
