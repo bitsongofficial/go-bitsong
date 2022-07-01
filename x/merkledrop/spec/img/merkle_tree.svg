@@ -11,14 +11,14 @@
 <!-- n001 -->
 <g id="node1" class="node">
 <title>n001</title>
-<ellipse fill="white" stroke="black" cx="318.79" cy="-234" rx="74.19" ry="18"/>
-<text text-anchor="middle" x="318.79" y="-230.3" font-family="Times,serif" font-size="14.00">root = hash(A, B)</text>
+<ellipse fill="none" stroke="black" cx="318.79" cy="-234" rx="74.19" ry="18"/>
+<text text-anchor="middle" x="318.79" y="-230.3" font-family="Times,serif" font-size="14.00" fill="gray">root = hash(A, B)</text>
 </g>
 <!-- n002 -->
 <g id="node2" class="node">
 <title>n002</title>
-<ellipse fill="white" stroke="black" cx="236.79" cy="-162" rx="65.79" ry="18"/>
-<text text-anchor="middle" x="236.79" y="-158.3" font-family="Times,serif" font-size="14.00">A = hash(C, D)</text>
+<ellipse fill="none" stroke="black" cx="236.79" cy="-162" rx="65.79" ry="18"/>
+<text text-anchor="middle" x="236.79" y="-158.3" font-family="Times,serif" font-size="14.00" fill="gray">A = hash(C, D)</text>
 </g>
 <!-- n001&#45;&#45;n002 -->
 <g id="edge1" class="edge">
@@ -28,8 +28,8 @@
 <!-- n003 -->
 <g id="node3" class="node">
 <title>n003</title>
-<ellipse fill="white" stroke="black" cx="400.79" cy="-162" rx="63.89" ry="18"/>
-<text text-anchor="middle" x="400.79" y="-158.3" font-family="Times,serif" font-size="14.00">B = hash(E, F)</text>
+<ellipse fill="none" stroke="black" cx="400.79" cy="-162" rx="63.89" ry="18"/>
+<text text-anchor="middle" x="400.79" y="-158.3" font-family="Times,serif" font-size="14.00" fill="gray">B = hash(E, F)</text>
 </g>
 <!-- n001&#45;&#45;n003 -->
 <g id="edge2" class="edge">
@@ -39,8 +39,8 @@
 <!-- n004 -->
 <g id="node4" class="node">
 <title>n004</title>
-<ellipse fill="white" stroke="black" cx="72.79" cy="-90" rx="72.59" ry="18"/>
-<text text-anchor="middle" x="72.79" y="-86.3" font-family="Times,serif" font-size="14.00">C = hash(block1)</text>
+<ellipse fill="none" stroke="black" cx="72.79" cy="-90" rx="72.59" ry="18"/>
+<text text-anchor="middle" x="72.79" y="-86.3" font-family="Times,serif" font-size="14.00" fill="gray">C = hash(block1)</text>
 </g>
 <!-- n002&#45;&#45;n004 -->
 <g id="edge3" class="edge">
@@ -50,8 +50,8 @@
 <!-- n005 -->
 <g id="node5" class="node">
 <title>n005</title>
-<ellipse fill="white" stroke="black" cx="236.79" cy="-90" rx="73.39" ry="18"/>
-<text text-anchor="middle" x="236.79" y="-86.3" font-family="Times,serif" font-size="14.00">D = hash(block2)</text>
+<ellipse fill="none" stroke="black" cx="236.79" cy="-90" rx="73.39" ry="18"/>
+<text text-anchor="middle" x="236.79" y="-86.3" font-family="Times,serif" font-size="14.00" fill="gray">D = hash(block2)</text>
 </g>
 <!-- n002&#45;&#45;n005 -->
 <g id="edge4" class="edge">
@@ -61,8 +61,8 @@
 <!-- n006 -->
 <g id="node6" class="node">
 <title>n006</title>
-<ellipse fill="white" stroke="black" cx="400.79" cy="-90" rx="72.29" ry="18"/>
-<text text-anchor="middle" x="400.79" y="-86.3" font-family="Times,serif" font-size="14.00">E = hash(block3)</text>
+<ellipse fill="none" stroke="black" cx="400.79" cy="-90" rx="72.29" ry="18"/>
+<text text-anchor="middle" x="400.79" y="-86.3" font-family="Times,serif" font-size="14.00" fill="gray">E = hash(block3)</text>
 </g>
 <!-- n003&#45;&#45;n006 -->
 <g id="edge5" class="edge">
@@ -72,8 +72,8 @@
 <!-- n007 -->
 <g id="node7" class="node">
 <title>n007</title>
-<ellipse fill="white" stroke="black" cx="562.79" cy="-90" rx="71.49" ry="18"/>
-<text text-anchor="middle" x="562.79" y="-86.3" font-family="Times,serif" font-size="14.00">F = hash(block4)</text>
+<ellipse fill="none" stroke="black" cx="562.79" cy="-90" rx="71.49" ry="18"/>
+<text text-anchor="middle" x="562.79" y="-86.3" font-family="Times,serif" font-size="14.00" fill="gray">F = hash(block4)</text>
 </g>
 <!-- n003&#45;&#45;n007 -->
 <g id="edge6" class="edge">
@@ -83,8 +83,8 @@
 <!-- n008 -->
 <g id="node8" class="node">
 <title>n008</title>
-<polygon fill="white" stroke="black" points="99.79,-36 45.79,-36 45.79,0 99.79,0 99.79,-36"/>
-<text text-anchor="middle" x="72.79" y="-14.3" font-family="Times,serif" font-size="14.00">block1</text>
+<polygon fill="none" stroke="black" points="99.79,-36 45.79,-36 45.79,0 99.79,0 99.79,-36"/>
+<text text-anchor="middle" x="72.79" y="-14.3" font-family="Times,serif" font-size="14.00" fill="gray">block1</text>
 </g>
 <!-- n004&#45;&#45;n008 -->
 <g id="edge7" class="edge">
@@ -94,8 +94,8 @@
 <!-- n009 -->
 <g id="node9" class="node">
 <title>n009</title>
-<polygon fill="white" stroke="black" points="263.79,-36 209.79,-36 209.79,0 263.79,0 263.79,-36"/>
-<text text-anchor="middle" x="236.79" y="-14.3" font-family="Times,serif" font-size="14.00">block2</text>
+<polygon fill="none" stroke="black" points="263.79,-36 209.79,-36 209.79,0 263.79,0 263.79,-36"/>
+<text text-anchor="middle" x="236.79" y="-14.3" font-family="Times,serif" font-size="14.00" fill="gray">block2</text>
 </g>
 <!-- n005&#45;&#45;n009 -->
 <g id="edge8" class="edge">
@@ -105,8 +105,8 @@
 <!-- n010 -->
 <g id="node10" class="node">
 <title>n010</title>
-<polygon fill="white" stroke="black" points="427.79,-36 373.79,-36 373.79,0 427.79,0 427.79,-36"/>
-<text text-anchor="middle" x="400.79" y="-14.3" font-family="Times,serif" font-size="14.00">block3</text>
+<polygon fill="none" stroke="black" points="427.79,-36 373.79,-36 373.79,0 427.79,0 427.79,-36"/>
+<text text-anchor="middle" x="400.79" y="-14.3" font-family="Times,serif" font-size="14.00" fill="gray">block3</text>
 </g>
 <!-- n006&#45;&#45;n010 -->
 <g id="edge9" class="edge">
@@ -116,8 +116,8 @@
 <!-- n011 -->
 <g id="node11" class="node">
 <title>n011</title>
-<polygon fill="white" stroke="black" points="589.79,-36 535.79,-36 535.79,0 589.79,0 589.79,-36"/>
-<text text-anchor="middle" x="562.79" y="-14.3" font-family="Times,serif" font-size="14.00">block4</text>
+<polygon fill="none" stroke="black" points="589.79,-36 535.79,-36 535.79,0 589.79,0 589.79,-36"/>
+<text text-anchor="middle" x="562.79" y="-14.3" font-family="Times,serif" font-size="14.00" fill="gray">block4</text>
 </g>
 <!-- n007&#45;&#45;n011 -->
 <g id="edge10" class="edge">
