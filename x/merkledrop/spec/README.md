@@ -28,6 +28,9 @@ Features that may be added in the future are described in Future Improvements.
    - [Merkle Tree](01_concepts.md#Merkle-tree)
    - [Verification process](01_concepts.md#Verification-process)
 2. **[State](02_state.md)**
+   - [LastMerkledropId](02_state.md#LastMerkledropId)
+   - [Merkledrops](02_state.md#Merkledrops)
+   - [Indexes](02_state.md#Indexes)
    - [Params](02_state.md#Params)
      <!--
      State Transitions
@@ -48,7 +51,7 @@ Features that may be added in the future are described in Future Improvements.
    - [EventCreate](04_events.md#EventCreate)
    - [EventClaim](04_events.md#EventClaim)
    - [EventWithdraw](04_events.md#EventWithdraw)
-6. **[Parameters](05_parameters.md)**
+6. **[Parameters](06_parameters.md)**
    <!--
    Test Cases
    -->
