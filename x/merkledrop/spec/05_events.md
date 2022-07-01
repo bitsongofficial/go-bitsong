@@ -26,5 +26,5 @@ The merkledrop module emits the following events:
 
 | Type                     | Attribute Key | Attribute Value   |
 | :----------------------- | :------------ | :---------------- |
-| bitsong.fantoken.v1beta1.EventWithdraw | merkledrop_id        | {merkledrop_id}         |
-| bitsong.fantoken.v1beta1.EventWithdraw | coin        | {coin}         |
+| bitsong.merkledrop.v1beta1.EventWithdraw | merkledrop_id        | {merkledrop_id}         |
+| bitsong.merkledrop.v1beta1.EventWithdraw | coin        | {coin}         |

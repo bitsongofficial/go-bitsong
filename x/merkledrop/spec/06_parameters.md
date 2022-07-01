@@ -4,7 +4,7 @@ order: 6
 
 # Parameters
 
-Fantoken module parameters.
+Merkledrop module parameters.
 
 | Key         | Type             | Value                                     |
 | ----------- | ---------------- | ----------------------------------------- |
