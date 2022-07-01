@@ -2,9 +2,9 @@ graph ""
    {
    bgcolor="transparent";
 
-   n001 [label=<H<SUB>ABCDEFGHIJKLMNOP</SUB>> style="dashed" color="blue"];
+   n001 [label=<H<SUB>ABCDEFGHIJKLMNOP</SUB>> style="dashed" color="blue" fontcolor="gray"];
    n001 -- n002 ;
-   n002 [label=<H<SUB>ABCDEFGH</SUB>> style="dashed" color="blue"];
+   n002 [label=<H<SUB>ABCDEFGH</SUB>> style="dashed" color="blue" fontcolor="gray"];
    
    n001 -- n003 ;
    n003 [label=<H<SUB>IJKLMNOP</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
@@ -12,47 +12,47 @@ graph ""
    n002 -- n004 ;
    n004 [label=<H<SUB>ABCD</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
    n002 -- n005 ;
-   n005 [label=<H<SUB>EFGH</SUB>> style="dashed" color="blue"];
+   n005 [label=<H<SUB>EFGH</SUB>> style="dashed" color="blue" fontcolor="gray"];
 
    n003 -- n006 ;
-   n006 [label=<H<SUB>IJKL</SUB>>];
+   n006 [label=<H<SUB>IJKL</SUB>> fontcolor="gray"];
    n003 -- n007 ;
-   n007 [label=<H<SUB>MNOP</SUB>>];
+   n007 [label=<H<SUB>MNOP</SUB>> fontcolor="gray"];
 
    n004 -- n008 ;
-   n008 [label=<H<SUB>AB</SUB>>];
+   n008 [label=<H<SUB>AB</SUB>> fontcolor="gray"];
    n004 -- n009 ;
-   n009 [label=<H<SUB>CD</SUB>>];
+   n009 [label=<H<SUB>CD</SUB>> fontcolor="gray"];
 
    n005 -- n010 ;
    n010 [label=<H<SUB>EF</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
    n005 -- n011 ;
-   n011 [label=<H<SUB>GH</SUB>> style="dashed" color="blue"];
+   n011 [label=<H<SUB>GH</SUB>> style="dashed" color="blue" fontcolor="gray"];
 
    n006 -- n012 ;
-   n012 [label=<H<SUB>IJ</SUB>>];
+   n012 [label=<H<SUB>IJ</SUB>> fontcolor="gray"];
    n006 -- n013 ;
-   n013 [label=<H<SUB>KL</SUB>>];
+   n013 [label=<H<SUB>KL</SUB>> fontcolor="gray"];
 
    n007 -- n014 ;
-   n014 [label=<H<SUB>MN</SUB>>];
+   n014 [label=<H<SUB>MN</SUB>> fontcolor="gray"];
    n007 -- n015 ;
-   n015 [label=<H<SUB>OP</SUB>>];
+   n015 [label=<H<SUB>OP</SUB>> fontcolor="gray"];
 
    n008 -- n016 ;
-   n016 [label=<H<SUB>A</SUB>>];
+   n016 [label=<H<SUB>A</SUB>> fontcolor="gray"];
    n008 -- n017 ;
-   n017 [label=<H<SUB>B</SUB>>];
+   n017 [label=<H<SUB>B</SUB>> fontcolor="gray"];
 
    n009 -- n018 ;
-   n018 [label=<H<SUB>C</SUB>>];
+   n018 [label=<H<SUB>C</SUB>> fontcolor="gray"];
    n009 -- n019 ;
-   n019 [label=<H<SUB>D</SUB>>];
+   n019 [label=<H<SUB>D</SUB>> fontcolor="gray"];
 
    n010 -- n020 ;
-   n020 [label=<H<SUB>E</SUB>>];
+   n020 [label=<H<SUB>E</SUB>> fontcolor="gray"];
    n010 -- n021 ;
-   n021 [label=<H<SUB>F</SUB>>];
+   n021 [label=<H<SUB>F</SUB>> fontcolor="gray"];
 
    n011 -- n022 ;
    n022 [label=<H<SUB>G</SUB>> style="filled" fillcolor="green" fontcolor="white"];
@@ -60,23 +60,23 @@ graph ""
    n023 [label=<H<SUB>H</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
 
    n012 -- n024 ;
-   n024 [label=<H<SUB>I</SUB>>];
+   n024 [label=<H<SUB>I</SUB>> fontcolor="gray"];
    n012 -- n025 ;
-   n025 [label=<H<SUB>J</SUB>>];
+   n025 [label=<H<SUB>J</SUB>> fontcolor="gray"];
 
    n013 -- n026 ;
-   n026 [label=<H<SUB>K</SUB>>];
+   n026 [label=<H<SUB>K</SUB>> fontcolor="gray"];
    n013 -- n027 ;
-   n027 [label=<H<SUB>L</SUB>>];
+   n027 [label=<H<SUB>L</SUB>> fontcolor="gray"];
 
    n014 -- n028 ;
-   n028 [label=<H<SUB>M</SUB>>];
+   n028 [label=<H<SUB>M</SUB>> fontcolor="gray"];
    n014 -- n029 ;
-   n029 [label=<H<SUB>N</SUB>>];
+   n029 [label=<H<SUB>N</SUB>> fontcolor="gray"];
 
    n015 -- n030 ;
-   n030 [label=<H<SUB>O</SUB>>];
+   n030 [label=<H<SUB>O</SUB>> fontcolor="gray"];
    n015 -- n031 ;
-   n031 [label=<H<SUB>P</SUB>>];
+   n031 [label=<H<SUB>P</SUB>> fontcolor="gray"];
 
 }
