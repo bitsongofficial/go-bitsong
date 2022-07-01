@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// var _ paramtypes.ParamSet = (*Params)(nil)
+var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 	KeyCreationFee = []byte("CreationFee")
@@ -34,7 +34,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		CreationFee: sdk.NewInt64Coin(sdk.DefaultBondDenom, 100_000_000),
+		CreationFee: sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000),
 	}
 }
 
