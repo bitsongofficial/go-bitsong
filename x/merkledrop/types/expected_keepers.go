@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 type BankKeeper interface {
@@ -13,10 +13,18 @@ type BankKeeper interface {
 	// MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 }
 
+// ParamSubspace defines the expected Subspace interface for parameters (noalias)
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramstypes.ParamSet)
+	SetParamSet(ctx sdk.Context, ps paramstypes.ParamSet)
+	HasKeyTable() bool
+	WithKeyTable(table paramstypes.KeyTable) paramstypes.Subspace
+}
+
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
-	SetModuleAccount(ctx sdk.Context, macc authtypes.ModuleAccountI)
-	GetAccount(sdk.Context, sdk.AccAddress) authtypes.AccountI
-	// Fetch the sequence of an account at a specified address.
-	GetSequence(sdk.Context, sdk.AccAddress) (uint64, error)
+}
+
+type DistrKeeper interface {
+	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }

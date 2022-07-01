@@ -2,7 +2,24 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
+
+type DistrKeeper interface {
+	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
+}
+
+// ParamSubspace defines the expected Subspace interface for parameters (noalias)
+type ParamSubspace interface {
+	GetParamSet(ctx sdk.Context, ps paramstypes.ParamSet)
+	SetParamSet(ctx sdk.Context, ps paramstypes.ParamSet)
+	HasKeyTable() bool
+	WithKeyTable(table paramstypes.KeyTable) paramstypes.Subspace
+}
+
+type AccountKeeper interface {
+	GetModuleAddress(name string) sdk.AccAddress
+}
 
 // BankKeeper defines the expected bank keeper (noalias)
 type BankKeeper interface {

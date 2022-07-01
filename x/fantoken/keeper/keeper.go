@@ -4,48 +4,47 @@ import (
 	"fmt"
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	distr "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 type Keeper struct {
-	storeKey         sdk.StoreKey
-	cdc              codec.Codec
-	bankKeeper       types.BankKeeper
-	distrKeeper      distr.Keeper
-	paramSpace       paramstypes.Subspace
-	blockedAddrs     map[string]bool
-	feeCollectorName string
+	storeKey      sdk.StoreKey
+	cdc           codec.Codec
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	distrKeeper   types.DistrKeeper
+	paramSpace    types.ParamSubspace
+	blockedAddrs  map[string]bool
 }
 
 func NewKeeper(
 	cdc codec.Codec,
 	key sdk.StoreKey,
-	paramSpace paramstypes.Subspace,
+	paramSpace types.ParamSubspace,
+	ak types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	distrKeeper distr.Keeper,
+	distrKeeper types.DistrKeeper,
 	blockedAddrs map[string]bool,
-	feeCollectorName string,
 ) Keeper {
+	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
+		panic("the " + types.ModuleName + " module account has not been set")
+	}
+
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:         key,
-		cdc:              cdc,
-		paramSpace:       paramSpace,
-		bankKeeper:       bankKeeper,
-		distrKeeper:      distrKeeper,
-		feeCollectorName: feeCollectorName,
-		blockedAddrs:     blockedAddrs,
+		storeKey:     key,
+		cdc:          cdc,
+		paramSpace:   paramSpace,
+		bankKeeper:   bankKeeper,
+		distrKeeper:  distrKeeper,
+		blockedAddrs: blockedAddrs,
 	}
 }
 

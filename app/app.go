@@ -344,14 +344,21 @@ func NewBitsongApp(
 		appCodec,
 		keys[fantokentypes.StoreKey],
 		app.GetSubspace(fantokentypes.ModuleName),
+		app.AccountKeeper,
 		app.BankKeeper,
 		app.DistrKeeper,
 		app.ModuleAccountAddrs(),
-		authtypes.FeeCollectorName,
 	)
 
 	// Create Merkledrop Keeper
-	app.MerkledropKeeper = merkledropkeeper.NewKeeper(appCodec, keys[merkledroptypes.StoreKey], app.AccountKeeper, app.BankKeeper, app.DistrKeeper, app.GetSubspace(merkledroptypes.ModuleName))
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(
+		appCodec,
+		keys[merkledroptypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.GetSubspace(merkledroptypes.ModuleName),
+	)
 
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
