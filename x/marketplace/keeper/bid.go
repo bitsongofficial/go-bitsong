@@ -153,13 +153,16 @@ func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bi
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
+		if auction.Claimed > 0 {
+			return false
+		}
 		if auction.LastBidAmount == bid.Amount {
 			return true
 		}
 	case types.AuctionPrizeType_OpenEditionPrints:
 		return true
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index) < auction.EditionLimit {
+		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index)+auction.Claimed < auction.EditionLimit {
 			return true
 		}
 	}
@@ -404,6 +407,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	case types.AuctionPrizeType_LimitedEditionPrints:
 		_, err := k.nftKeeper.PrintEdition(ctx, &nfttypes.MsgPrintEdition{
 			Sender:     metadata.MintAuthority,
+			CollId:     nft.CollId,
 			MetadataId: nft.MetadataId,
 			Owner:      msg.Sender,
 		})
@@ -415,6 +419,9 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	// Update auction with claimed status
 	auction.Claimed++
 	k.SetAuction(ctx, auction)
+
+	// Remove bid from the storage
+	k.DeleteBid(ctx, bid)
 
 	// Emit event for claiming bid
 	ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{
