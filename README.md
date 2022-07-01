@@ -1,12 +1,18 @@
-<p align="center" background="black"><img src="bitsong-logo.png" width="398"></p>
+<p><img src="banner.png"></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
-**BitSong** is a new music streaming platform based on [Tendermint](https://github.com/tendermint/tendermint) consensus BFT, the [Cosmos SDK](https://github.com/cosmos/cosmos-sdk) toolkits and the [IPFS](https://ipfs.io/) distribuited filesystem. Please make sure you study these projects as well if you are not already familiar.
+# Introduction
 
-**BitSong** is a project dedicated to musicians and their fans, which aims to overcome the bureaucratic and economic obstacles within this industry and reward artists and users for simply using the platform.
+## What is BitSong?
 
-**Artists** need no longer to wait several months before a record label sends various reports, they can check the progress in real time directly within the Wallet.
+BitSong is a multifunctional blockchain-based ecosystem built to empower the music industry. It unites artists, fans, distributors in an environment where music, merchandise, and fan loyalty are assets of value. BitSong’s decentralized ecosystem of services providers the global music community with a trustless marketplace for music streaming, Fan Tokens, and NFTs, powered by the BTSG token.
+
+## Brief History of BitSong
+
+BitSong was conceived in 2018 by developer and entrepreneur Angelo Recca. Angelo realized that while the digitalization of music has brought many benefits to the industry, it’s also created a new set of problems around the ownership of music and attribution of royalties. He joined forces with Iulian Anghelin and BitSong was born.
+The initial intention was for BitSong to become an Ethereum-based application where fans could stream music and artists could receive royalties directly. However, after discovering Cosmos and its ambition to become the “Internet of Blockchains,” Angelo and Iulian immediately recognized the full potential of becoming part of a multi-chain environment.
+After launching the main BitSong blockchain in August 2020, the bitsong-2b mainnet went live on October 21, 2021. Featuring Fan Tokens, NFTs, and music streaming platform, all underpinned by secure, robust, battle-tested blockchain technology, the launch of BitSong marks a turning point in the ongoing development of the music industry.
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
