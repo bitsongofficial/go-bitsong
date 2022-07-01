@@ -1,0 +1,82 @@
+graph ""
+   {
+   bgcolor="transparent";
+
+   n001 [label=<H<SUB>ABCDEFGHIJKLMNOP</SUB>> style="dashed" color="blue"];
+   n001 -- n002 ;
+   n002 [label=<H<SUB>ABCDEFGH</SUB>> style="dashed" color="blue"];
+   
+   n001 -- n003 ;
+   n003 [label=<H<SUB>IJKLMNOP</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
+   
+   n002 -- n004 ;
+   n004 [label=<H<SUB>ABCD</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
+   n002 -- n005 ;
+   n005 [label=<H<SUB>EFGH</SUB>> style="dashed" color="blue"];
+
+   n003 -- n006 ;
+   n006 [label=<H<SUB>IJKL</SUB>>];
+   n003 -- n007 ;
+   n007 [label=<H<SUB>MNOP</SUB>>];
+
+   n004 -- n008 ;
+   n008 [label=<H<SUB>AB</SUB>>];
+   n004 -- n009 ;
+   n009 [label=<H<SUB>CD</SUB>>];
+
+   n005 -- n010 ;
+   n010 [label=<H<SUB>EF</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
+   n005 -- n011 ;
+   n011 [label=<H<SUB>GH</SUB>> style="dashed" color="blue"];
+
+   n006 -- n012 ;
+   n012 [label=<H<SUB>IJ</SUB>>];
+   n006 -- n013 ;
+   n013 [label=<H<SUB>KL</SUB>>];
+
+   n007 -- n014 ;
+   n014 [label=<H<SUB>MN</SUB>>];
+   n007 -- n015 ;
+   n015 [label=<H<SUB>OP</SUB>>];
+
+   n008 -- n016 ;
+   n016 [label=<H<SUB>A</SUB>>];
+   n008 -- n017 ;
+   n017 [label=<H<SUB>B</SUB>>];
+
+   n009 -- n018 ;
+   n018 [label=<H<SUB>C</SUB>>];
+   n009 -- n019 ;
+   n019 [label=<H<SUB>D</SUB>>];
+
+   n010 -- n020 ;
+   n020 [label=<H<SUB>E</SUB>>];
+   n010 -- n021 ;
+   n021 [label=<H<SUB>F</SUB>>];
+
+   n011 -- n022 ;
+   n022 [label=<H<SUB>G</SUB>> style="filled" fillcolor="green" fontcolor="white"];
+   n011 -- n023 ;
+   n023 [label=<H<SUB>H</SUB>> style="filled" fillcolor="blue" fontcolor="white"];
+
+   n012 -- n024 ;
+   n024 [label=<H<SUB>I</SUB>>];
+   n012 -- n025 ;
+   n025 [label=<H<SUB>J</SUB>>];
+
+   n013 -- n026 ;
+   n026 [label=<H<SUB>K</SUB>>];
+   n013 -- n027 ;
+   n027 [label=<H<SUB>L</SUB>>];
+
+   n014 -- n028 ;
+   n028 [label=<H<SUB>M</SUB>>];
+   n014 -- n029 ;
+   n029 [label=<H<SUB>N</SUB>>];
+
+   n015 -- n030 ;
+   n030 [label=<H<SUB>O</SUB>>];
+   n015 -- n031 ;
+   n031 [label=<H<SUB>P</SUB>>];
+
+}

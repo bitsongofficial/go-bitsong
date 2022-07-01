@@ -1,0 +1,30 @@
+graph cluster01
+   {
+   bgcolor="transparent";
+
+   n001 [label="root = hash(A, B)"];
+   n001 -- n002 ;
+   n002 [label="A = hash(C, D)"];  
+   n001 -- n003 ;
+   n003 [label="B = hash(E, F)"];  
+
+   n002 -- n004 ;
+   n004 [label="C = hash(block1)"];  
+   n002 -- n005 ;
+   n005 [label="D = hash(block2)"];  
+
+   n003 -- n006 ;
+   n006 [label="E = hash(block3)"];  
+   n003 -- n007 ;
+   n007 [label="F = hash(block4)"];  
+
+   n004 -- n008 ;
+   n008 [label="block1" shape=box];  
+   n005 -- n009 ;
+   n009 [label="block2" shape=box];  
+
+   n006 -- n010 ;
+   n010 [label="block3" shape=box];  
+   n007 -- n011 ;
+   n011 [label="block4" shape=box];  
+   }
