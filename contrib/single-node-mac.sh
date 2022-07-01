@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -rf ~/.bitsongd
+
 set -o errexit -o nounset
 
 # Build genesis file incl account for passed address

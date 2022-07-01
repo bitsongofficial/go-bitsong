@@ -1,0 +1,42 @@
+syntax = "proto3";
+package bitsong.fantoken.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
+option (gogoproto.goproto_getters_all) = false;
+
+message UpdateFeesProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  string title = 1;
+  string description = 2;
+
+  cosmos.base.v1beta1.Coin issue_fee = 3 [
+    (gogoproto.moretags) = "yaml:\"issue_fee\"",
+    (gogoproto.nullable) = false
+  ];
+
+  cosmos.base.v1beta1.Coin mint_fee = 4 [
+    (gogoproto.moretags) = "yaml:\"mint_fee\"",
+    (gogoproto.nullable) = false
+  ];
+
+  cosmos.base.v1beta1.Coin burn_fee = 5 [
+    (gogoproto.moretags) = "yaml:\"burn_fee\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message UpdateFeesProposalWithDeposit {
+  option (gogoproto.goproto_stringer) = true;
+
+  string title = 1;
+  string description = 2;
+  string issue_fee = 3;
+  string mint_fee = 4;
+  string burn_fee = 5;
+  string deposit = 7;
+}
