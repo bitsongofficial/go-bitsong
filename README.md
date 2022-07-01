@@ -10,32 +10,22 @@
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
-**Note**: Requires [Go 1.16.0+](https://golang.org/dl/)
+**Note**: Requires [Go 1.18.x+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
 ## From Source
-1. **Install Go** by following the [official docs](https://golang.org/doc/install). Remember to set your `$GOPATH` and `$PATH` environment variables, for example:
+1. **Install Go** 
     ```bash
-    wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz
-    sudo tar -xvzf go1.16.3.linux-amd64.tar.gz
-    sudo mv go /usr/local
-     
-    cat <<EOF >> ~/.profile  
-    export GOPATH=$HOME/go  
-    export GO111MODULE=on  
-    export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin  
-    EOF
+    wget -q -O - https://git.io/vQhTU | bash -s -- --remove
+    wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.18.3
     ```
 2. **Clone BitSong source code to your machine**
     ```bash
-    mkdir -p $GOPATH/src/github.com/BitSongOfficial
-    cd $GOPATH/src/github.com/BitSongOfficial
     git clone https://github.com/BitSongOfficial/go-bitsong.git
     cd go-bitsong
-    git checkout sdk-v0.42.x
     ```
   3. **Compile**
 		```bash
@@ -85,9 +75,9 @@ You can now start `bitsongd` by calling `bitsongd start`. You will see logs begi
 ## Resources
 - [Official Website](https://bitsong.io)
 
-## Buy/Sell BTSG ERC20
-- [Uniswap BTSG/ETH](https://app.uniswap.org/#/swap?outputCurrency=0x05079687d35b93538cbd59fe5596380cae9054a9)
-- [Uniswap Liquidity Pool BTSG/ETH](https://uniswap.info/pair/0x98195a436C46EE53803eDA921dC3932073Ed7f4d)
+## Decentralized Exchanges
+- [Osmosis ATOM/BTSG](https://app.osmosis.zone/?from=ATOM&to=BTSG)
+- [Osmosis OSMO/BTSG](https://app.osmosis.zone/?from=OSMO&to=BTSG)
 
 ### Community
 - [Discord](https://discord.gg/mZC9Yk3)
