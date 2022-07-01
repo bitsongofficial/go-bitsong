@@ -44,7 +44,7 @@ func (k Keeper) SetMerkleDrop(ctx sdk.Context, merkledrop types.Merkledrop) erro
 	store.Set(types.MerkledropOwnerKey(merkledrop.Id, owner), sdk.Uint64ToBigEndian(merkledrop.Id))
 
 	// set key by end-height
-	store.Set(types.MerkledropEndHeightKey(merkledrop.EndHeight), sdk.Uint64ToBigEndian(merkledrop.Id))
+	store.Set(types.MerkledropEndHeightAndIDKey(merkledrop.EndHeight, merkledrop.Id), []byte{0x01})
 
 	return nil
 }
@@ -106,17 +106,28 @@ func (k Keeper) getMerkleDropsByOwner(ctx sdk.Context, owner sdk.AccAddress) []t
 }
 
 func (k Keeper) GetMerkleDropsIDByEndHeight(ctx sdk.Context, endHeight int64) []uint64 {
+	var mdIDs []uint64
+	k.iterateMerkledropIDByEndHeight(ctx, endHeight, func(mdID uint64) (stop bool) {
+		mdIDs = append(mdIDs, mdID)
+		return false
+	})
+
+	return mdIDs
+}
+
+func (k Keeper) iterateMerkledropIDByEndHeight(ctx sdk.Context, endHeight int64, cb func(mdID uint64) bool) {
 	store := ctx.KVStore(k.storeKey)
+	prefix := types.MerkledropEndHeightKey(endHeight)
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close()
 
-	var merkledropIDs []uint64
-	it := sdk.KVStorePrefixIterator(store, types.MerkledropEndHeightKey(endHeight))
-	defer it.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		mdID := sdk.BigEndianToUint64(bytes.TrimPrefix(iterator.Key(), prefix))
 
-	for ; it.Valid(); it.Next() {
-		id := sdk.BigEndianToUint64(it.Value())
-		merkledropIDs = append(merkledropIDs, id)
+		if cb(mdID) {
+			break
+		}
 	}
-	return merkledropIDs
 }
 
 func (k Keeper) iterateIndexByMerkledropID(ctx sdk.Context, mdId uint64, cb func(index uint64) bool) {
@@ -172,7 +183,7 @@ func (k Keeper) DeleteMerkledropByID(ctx sdk.Context, id uint64) error {
 	k.deleteAllIndexesByMerkledropID(ctx, id)
 
 	// delete end-height key
-	store.Delete(types.MerkledropEndHeightKey(merkledrop.EndHeight))
+	store.Delete(types.MerkledropEndHeightAndIDKey(merkledrop.EndHeight, merkledrop.Id))
 
 	// delete merkledrop
 	store.Delete(types.MerkledropKey(id))

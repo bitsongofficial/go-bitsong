@@ -1,6 +1,8 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 const (
 	// ModuleName is the name of the module
@@ -48,7 +50,13 @@ func MerkledropOwnerKey(id uint64, owner sdk.AccAddress) []byte {
 
 func MerkledropEndHeightKey(height int64) []byte {
 	heightBz := sdk.Uint64ToBigEndian(uint64(height))
-	return genKey(PrefixMerkleDropByEndHeight, sep, heightBz)
+	return genKey(PrefixMerkleDropByEndHeight, sep, heightBz, sep)
+}
+
+func MerkledropEndHeightAndIDKey(height int64, id uint64) []byte {
+	heightBz := sdk.Uint64ToBigEndian(uint64(height))
+	idBz := sdk.Uint64ToBigEndian(id)
+	return genKey(PrefixMerkleDropByEndHeight, sep, heightBz, sep, idBz)
 }
 
 func LastMerkledropIDKey() []byte {

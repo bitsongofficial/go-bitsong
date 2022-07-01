@@ -193,7 +193,7 @@ func (m msgServer) Claim(goCtx context.Context, msg *types.MsgClaim) (*types.Msg
 	m.Keeper.SetMerkleDrop(ctx, merkledrop)
 
 	// if claimed amount == total amount, then prune the merkledrop from the state
-	if merkledrop.Claimed == merkledrop.Amount {
+	if merkledrop.Claimed.Equal(merkledrop.Amount) {
 		err := m.Keeper.DeleteMerkledropByID(ctx, merkledrop.Id)
 		if err != nil {
 			return &types.MsgClaimResponse{}, sdkerrors.Wrapf(types.ErrDeleteMerkledrop, err.Error())
