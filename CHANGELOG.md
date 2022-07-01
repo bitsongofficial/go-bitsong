@@ -36,11 +36,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [v0.11.0] -2022-07-01
 
+* (fantoken) introduce the [fantoken module](./x/fantoken/spec)
+* (merkledrop) introduce the [merkledrop module](./x/merkledrop/spec)
 * (app) bump [cosmos-sdk](https://github.com/cosmos/cosmos-sdk) to [v0.45.6](https://github.com/cosmos/cosmos-sdk/tree/v0.45.6)
-* (app) update swagger to reflect new modules
-* (fantoken) introduce the fantoken module
-* (merkledrop) introduce the merkledrop module
-* (app) small fixs Makefile
 * (app) bump [ibc](https://github.com/cosmos/ibc-go) to [v3.0.0](https://github.com/cosmos/ibc-go/tree/v3.0.0)
 * (app) bump [tendermint](https://github.com/tendermint/tendermint) to [v0.34.19](https://github.com/tendermint/tendermint/tree/v0.34.19)
 * (app) bump [packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware) to [v2.1.1](github.com/strangelove-ventures/packet-forward-middleware/tree/v2.1.1)
+* (app) update swagger to reflect new modules
+* (app) small fixs Makefile
