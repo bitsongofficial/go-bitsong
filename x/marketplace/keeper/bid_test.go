@@ -768,18 +768,18 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			1,
 			true,
 		},
-		// {
-		// 	"successful bid claim - open edition",
-		// 	types.AuctionState_Ended,
-		// 	types.AuctionPrizeType_OpenEditionPrints,
-		// 	false,
-		// 	1000,
-		// 	1100,
-		// 	1000,
-		// 	0,
-		// 	1,
-		// 	true,
-		// },
+		{
+			"successful bid claim - open edition",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_OpenEditionPrints,
+			false,
+			1000,
+			1100,
+			1000,
+			0,
+			1,
+			true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -910,6 +910,10 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 				suite.Require().Greater(len(nfts), 0)
 				suite.Require().Greater(nfts[len(nfts)-1].Seq, uint64(0))
 			}
+
+			// try claim again after successful execution
+			err = suite.app.MarketplaceKeeper.ClaimBid(suite.ctx, msg)
+			suite.Require().Error(err)
 		} else {
 			suite.Require().Error(err)
 		}
