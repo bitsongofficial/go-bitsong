@@ -43,7 +43,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // created auction
 			Id:               1,
 			Authority:        owner.String(),
-			NftId:            "1",
+			NftId:            "1:1:0",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // started auction
 			Id:               2,
 			Authority:        owner.String(),
-			NftId:            "2",
+			NftId:            "1:2:0",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -77,7 +77,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // bid auction
 			Id:               3,
 			Authority:        owner.String(),
-			NftId:            "3",
+			NftId:            "1:3:0",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // ended auction
 			Id:               4,
 			Authority:        owner2.String(),
-			NftId:            "4",
+			NftId:            "1:4:0",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
@@ -111,7 +111,7 @@ func (suite *KeeperTestSuite) TestAuctionGetSet() {
 		{ // claimed auction
 			Id:               5,
 			Authority:        owner2.String(),
-			NftId:            "5",
+			NftId:            "1:5:0",
 			PrizeType:        types.AuctionPrizeType_NftOnlyTransfer,
 			Duration:         time.Second,
 			BidDenom:         "ubtsg",
