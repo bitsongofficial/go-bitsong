@@ -98,7 +98,7 @@ func (s *IntegrationTestSuite) TestGetCmdQueryAuction() {
 
 	cmd := marketplacecli.GetCmdQueryAuction()
 
-	out, err := clitestutil.ExecTestCLICmd(
+	_, err := clitestutil.ExecTestCLICmd(
 		clientCtx,
 		cmd,
 		[]string{
@@ -106,10 +106,10 @@ func (s *IntegrationTestSuite) TestGetCmdQueryAuction() {
 			"--output=json",
 		},
 	)
-	s.Require().NoError(err)
+	s.Require().Error(err)
 
-	var resp marketplacetypes.QueryAuctionResponse
-	clientCtx.JSONCodec.MustUnmarshalJSON(out.Bytes(), &resp)
+	// var resp marketplacetypes.QueryAuctionResponse
+	// clientCtx.JSONCodec.MustUnmarshalJSON(out.Bytes(), &resp)
 }
 
 func (s *IntegrationTestSuite) TestGetCmdQueryBidsByAuction() {
@@ -178,7 +178,7 @@ func (s *IntegrationTestSuite) TestGetCmdCreateAuction() {
 
 	cmd := marketplacecli.GetCmdCreateAuction()
 	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
-		fmt.Sprintf("--%s=%s", marketplacecli.FlagNftId, fmt.Sprintf("%d", 1)),
+		fmt.Sprintf("--%s=%s", marketplacecli.FlagNftId, "1:1:0"),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagPrizeType, "NFT_ONLY_TRANSFER"),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagBidDenom, "utbsg"),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagDuration, "864000s"),
