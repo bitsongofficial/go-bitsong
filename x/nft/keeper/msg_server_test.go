@@ -132,6 +132,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 
 	tests := []struct {
 		testCase      string
+		collId        uint64
 		metadataId    uint64
 		sender        sdk.AccAddress
 		editionOwner  string
@@ -140,6 +141,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 	}{
 		{
 			"metadata does not exist",
+			1,
 			0,
 			metadataAuthority,
 			editionOwner.String(),
@@ -152,6 +154,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 		{
 			"not metadata authority",
 			1,
+			1,
 			editionOwner,
 			editionOwner.String(),
 			&types.MasterEdition{
@@ -163,6 +166,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 		{
 			"empty master edition",
 			1,
+			1,
 			metadataAuthority,
 			editionOwner.String(),
 			nil,
@@ -170,6 +174,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 		},
 		{
 			"exceed max supply",
+			1,
 			1,
 			metadataAuthority,
 			editionOwner.String(),
@@ -180,7 +185,20 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 			false,
 		},
 		{
+			"master edition nft check",
+			0,
+			1,
+			metadataAuthority,
+			editionOwner.String(),
+			&types.MasterEdition{
+				Supply:    1,
+				MaxSupply: 2,
+			},
+			false,
+		},
+		{
 			"successful printing",
+			1,
 			1,
 			metadataAuthority,
 			editionOwner.String(),
@@ -211,6 +229,12 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 			IsMutable:           true,
 			MasterEdition:       tc.masterEdition,
 		})
+		suite.app.NFTKeeper.SetNFT(suite.ctx, types.NFT{
+			CollId:     1,
+			MetadataId: 1,
+			Seq:        0,
+			Owner:      metadataAuthority.String(),
+		})
 
 		// set params for issue fee
 		issuePrice := sdk.NewInt64Coin("stake", 1000000)
@@ -227,7 +251,7 @@ func (suite *KeeperTestSuite) TestMsgServerPrintEdition() {
 
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		resp, err := msgServer.PrintEdition(sdk.WrapSDKContext(suite.ctx), types.NewMsgPrintEdition(
-			tc.sender, 1, tc.metadataId, tc.editionOwner,
+			tc.sender, tc.collId, tc.metadataId, tc.editionOwner,
 		))
 		if tc.expectPass {
 			suite.Require().NoError(err)

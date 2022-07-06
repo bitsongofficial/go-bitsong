@@ -134,6 +134,16 @@ func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (strin
 		return "", err
 	}
 
+	masterEditionNft := types.NFT{
+		CollId:     msg.CollId,
+		MetadataId: msg.MetadataId,
+		Seq:        0,
+	}
+
+	if _, err := k.GetNFTById(ctx, masterEditionNft.Id()); err != nil {
+		return "", types.ErrMasterEditionNftDoesNotExists
+	}
+
 	if metadata.MintAuthority != msg.Sender {
 		return "", types.ErrNotEnoughPermission
 	}
