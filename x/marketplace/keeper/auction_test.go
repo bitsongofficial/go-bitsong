@@ -238,6 +238,30 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 			true,
 		},
 		{
+			"Successful mint authority transfer auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			owner,
+			types.AuctionPrizeType_MintAuthorityTransfer,
+			nil,
+			0,
+			nft.Id(),
+			true,
+		},
+		{
+			"Successful metadata authority transfer auction",
+			sdk.NewInt64Coin("ubtsg", 0),
+			sdk.NewInt64Coin("ubtsg", 0),
+			owner,
+			owner,
+			types.AuctionPrizeType_MetadataAuthorityTransfer,
+			nil,
+			0,
+			nft.Id(),
+			true,
+		},
+		{
 			"Successful nft only transfer auction",
 			sdk.NewInt64Coin("ubtsg", 0),
 			sdk.NewInt64Coin("ubtsg", 0),
@@ -380,10 +404,14 @@ func (suite *KeeperTestSuite) TestCreateAuction() {
 
 			// check metadata ownership transfer
 			switch tc.auctionType {
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
+				fallthrough
 			case types.AuctionPrizeType_FullRightsTransfer:
 				updatedMetadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
 				suite.Require().Equal(updatedMetadata.MetadataAuthority, moduleAddr.String())
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				fallthrough
 			case types.AuctionPrizeType_OpenEditionPrints:
 				fallthrough
 			case types.AuctionPrizeType_LimitedEditionPrints:
@@ -622,6 +650,24 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 			true,
 		},
 		{
+			"return nft back if no bid when mint authority transfer",
+			owner,
+			types.AuctionPrizeType_MintAuthorityTransfer,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
+		{
+			"return nft back if no bid when metadata authority transfer",
+			owner,
+			types.AuctionPrizeType_MetadataAuthorityTransfer,
+			types.AuctionState_Started,
+			0,
+			1,
+			true,
+		},
+		{
 			"metadata return when auction ends on limited edition",
 			owner,
 			types.AuctionPrizeType_LimitedEditionPrints,
@@ -703,6 +749,8 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 
 			// check metadata ownership transfer
 			switch tc.auctionType {
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
+				fallthrough
 			case types.AuctionPrizeType_FullRightsTransfer:
 				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
 				suite.Require().NoError(err)
@@ -710,6 +758,14 @@ func (suite *KeeperTestSuite) TestEndAuction() {
 					suite.Require().Equal(metadata.MetadataAuthority, auction.Authority)
 				} else {
 					suite.Require().Equal(metadata.MetadataAuthority, moduleAddr.String())
+				}
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				metadata, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, nft.MetadataId)
+				suite.Require().NoError(err)
+				if tc.lastBidAmount == 0 {
+					suite.Require().Equal(metadata.MintAuthority, auction.Authority)
+				} else {
+					suite.Require().Equal(metadata.MintAuthority, moduleAddr.String())
 				}
 			case types.AuctionPrizeType_OpenEditionPrints:
 				fallthrough

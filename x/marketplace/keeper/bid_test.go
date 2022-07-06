@@ -418,6 +418,10 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 			switch tc.auctionType {
 			case types.AuctionPrizeType_NftOnlyTransfer:
 				fallthrough
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				fallthrough
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
+				fallthrough
 			case types.AuctionPrizeType_FullRightsTransfer:
 				if auction.InstantSalePrice <= tc.newBidAmount {
 					suite.Require().Equal(auction.State, types.AuctionState_Ended)
@@ -733,6 +737,30 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			true,
 		},
 		{
+			"successful bid claim - with metadata authority transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_MetadataAuthorityTransfer,
+			false,
+			1000,
+			0,
+			1000,
+			0,
+			1,
+			true,
+		},
+		{
+			"successful bid claim - with mint authority transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_MintAuthorityTransfer,
+			false,
+			1000,
+			0,
+			1000,
+			0,
+			1,
+			true,
+		},
+		{
 			"successful bid claim - with nft only transfer",
 			types.AuctionState_Ended,
 			types.AuctionPrizeType_NftOnlyTransfer,
@@ -898,7 +926,13 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			case types.AuctionPrizeType_FullRightsTransfer:
 				// check metadata ownership is also transfered to bidder if full rights transfer auction
 				suite.Require().Equal(newmeta.MetadataAuthority, bidder.String())
-				fallthrough
+				newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(newNft.Owner, bidder.String())
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				suite.Require().Equal(newmeta.MintAuthority, bidder.String())
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
+				suite.Require().Equal(newmeta.MetadataAuthority, bidder.String())
 			case types.AuctionPrizeType_NftOnlyTransfer:
 				newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
 				suite.Require().NoError(err)

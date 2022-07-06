@@ -152,6 +152,10 @@ func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bi
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
 		if auction.Claimed > 0 {
 			return false
@@ -194,6 +198,10 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
 		if sdk.NewInt(int64(auction.LastBidAmount+tickSize)).GT(msg.Amount.Amount) ||
@@ -252,6 +260,10 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	// If the amount exceeds `instant_sale_price`, end the auction
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
 		if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
@@ -394,7 +406,28 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
-		fallthrough
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   moduleAddr.String(),
+			Id:       auction.NftId,
+			NewOwner: bidder.String(),
+		})
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		// Transfer ownership of NFT to bidder
 		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
