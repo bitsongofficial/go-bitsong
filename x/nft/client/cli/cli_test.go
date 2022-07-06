@@ -146,7 +146,7 @@ func (s *IntegrationTestSuite) TestGetCmdTransferNFT() {
 
 	cmd := nftcli.GetCmdTransferNFT()
 	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
-		fmt.Sprintf("--%s=%d", nftcli.FlagNftId, 1),
+		fmt.Sprintf("--%s=%s", nftcli.FlagNftId, "1:1:0"),
 		fmt.Sprintf("--%s=%s", nftcli.FlagNewOwner, val.Address.String()),
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
 
