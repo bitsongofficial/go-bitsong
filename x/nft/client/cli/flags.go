@@ -92,9 +92,11 @@ func FlagUpdateMetadataAuthority() *flag.FlagSet {
 func FlagCreateCollection() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.String(FlagSymbol, "", "Symbol of the collection")
 	fs.String(FlagName, "", "Name of the collection")
 	fs.String(FlagUri, "", "Uri of the collection")
 	fs.String(FlagUpdateAuthority, "", "Update authority of the collection")
+	fs.Bool(FlagMutable, false, "mutability of the collection")
 
 	return fs
 }

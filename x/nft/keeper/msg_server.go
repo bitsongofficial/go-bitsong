@@ -194,8 +194,10 @@ func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateC
 
 	collection := types.Collection{
 		Id:              collectionId,
+		Symbol:          msg.Symbol,
 		Name:            msg.Name,
 		Uri:             msg.Uri,
+		IsMutable:       msg.IsMutable,
 		UpdateAuthority: msg.UpdateAuthority,
 	}
 	m.Keeper.SetCollection(ctx, collection)

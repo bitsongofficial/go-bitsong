@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) CreateNFTWithCreators(creator sdk.AccAddress, coll
 func (suite *KeeperTestSuite) CreateCollection(creator sdk.AccAddress) *types.MsgCreateCollectionResponse {
 	msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 	resp, err := msgServer.CreateCollection(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateCollection(
-		creator, "Punk Collection", "punk.com", creator.String(),
+		creator, "PUNK", "Punk Collection", "punk.com", creator.String(), false,
 	))
 	suite.Require().NoError(err)
 	return resp
@@ -550,7 +550,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCollection() {
 
 		msgServer := keeper.NewMsgServerImpl(suite.app.NFTKeeper)
 		resp, err := msgServer.CreateCollection(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateCollection(
-			creator, "Punk Collection", "punk.com", creator.String(),
+			creator, "PUNK", "Punk Collection", "punk.com", creator.String(), false,
 		))
 		if tc.expectPass {
 			suite.Require().NoError(err)

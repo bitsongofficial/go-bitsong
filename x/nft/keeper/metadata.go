@@ -101,7 +101,7 @@ func (k Keeper) UpdateMintAuthority(ctx sdk.Context, msg *types.MsgUpdateMintAut
 
 	metadata.MintAuthority = msg.NewAuthority
 	k.SetMetadata(ctx, metadata)
-	ctx.EventManager().EmitTypedEvent(&types.EventMetadataAuthorityUpdate{
+	ctx.EventManager().EmitTypedEvent(&types.EventMintAuthorityUpdate{
 		MetadataId:   msg.Sender,
 		NewAuthority: msg.NewAuthority,
 	})

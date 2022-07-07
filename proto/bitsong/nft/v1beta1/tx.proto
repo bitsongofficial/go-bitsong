@@ -88,9 +88,11 @@ message MsgUpdateMintAuthorityResponse {}
 
 message MsgCreateCollection {
   string sender = 1;
-  string name = 2;
-  string uri = 3;
-  string update_authority = 4;
+  string symbol = 2;
+  string name = 3;
+  string uri = 4;
+  bool is_mutable = 5;
+  string update_authority = 6;
 }
 message MsgCreateCollectionResponse {
     uint64 id = 1;

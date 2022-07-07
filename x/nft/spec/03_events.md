@@ -73,6 +73,14 @@ The nft module emits the following events:
 | bitsong.nft.v1beta1.EventMetadataAuthorityUpdate | new_authority | {new_authority}                         |
 | message                                          | action        | /bitsong.nft.MsgUpdateMetadataAuthority |
 
+## MsgUpdateMintAuthority
+
+| Type                                         | Attribute Key | Attribute Value                     |
+| :------------------------------------------- | :------------ | :---------------------------------- |
+| bitsong.nft.v1beta1.EventMintAuthorityUpdate | metadata_id   | {metadata_id}                       |
+| bitsong.nft.v1beta1.EventMintAuthorityUpdate | new_authority | {new_authority}                     |
+| message                                      | action        | /bitsong.nft.MsgUpdateMintAuthority |
+
 ## MsgCreateCollection
 
 | Type                                        | Attribute Key | Attribute Value                  |

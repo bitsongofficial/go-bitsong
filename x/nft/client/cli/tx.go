@@ -373,6 +373,11 @@ func GetCmdCreateCollection() *cobra.Command {
 				return err
 			}
 
+			symbol, err := cmd.Flags().GetString(FlagSymbol)
+			if err != nil {
+				return err
+			}
+
 			name, err := cmd.Flags().GetString(FlagName)
 			if err != nil {
 				return err
@@ -388,7 +393,12 @@ func GetCmdCreateCollection() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateCollection(clientCtx.GetFromAddress(), name, uri, updateAuthority)
+			isMutable, err := cmd.Flags().GetBool(FlagMutable)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateCollection(clientCtx.GetFromAddress(), symbol, name, uri, updateAuthority, isMutable)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

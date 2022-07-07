@@ -35,7 +35,7 @@ message Metadata {
 
 message Collection {
   uint64 id = 1;
-  /// The symbol for the asset
+  // The symbol for the asset
   string symbol = 2;
 
   string name = 3;
@@ -107,6 +107,11 @@ message EventMetadataUpdate {
 }
 
 message EventMetadataAuthorityUpdate {
+  string metadata_id = 1;
+  string new_authority = 2;
+}
+
+message EventMintAuthorityUpdate {
   string metadata_id = 1;
   string new_authority = 2;
 }
