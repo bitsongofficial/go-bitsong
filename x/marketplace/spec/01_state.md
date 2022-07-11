@@ -2,6 +2,8 @@
 
 ## Auction
 
+`Auction` object is created when a user create auction, and based on user interactions and as time goes, changes are applied to `Auction` object.
+
 ```protobuf
 message Auction {
     // unique identifier of the auction
@@ -9,11 +11,12 @@ message Auction {
     // authority with permission to modify this auction.
     string authority = 2;
     // NFT being used to bid
-    uint64 nft_id = 3;
+    string nft_id = 3;
     // Describes transfering nft ownership only or metadata ownership as well
     AuctionPrizeType prize_type = 4;
     // Duration of the auction
-    google.protobuf.Duration duration = 5 [ (gogoproto.stdduration) = true ];
+    google.protobuf.Duration duration = 5
+        [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
     // Denom to be used on bids
     string bid_denom = 6;
     // Minimum price for any bid to meet.
@@ -27,15 +30,18 @@ message Auction {
     // The amount of bid put last time
     uint64 last_bid_amount = 11;
     // The time the last bid was placed, used to keep track of auction timing.
-    google.protobuf.Timestamp last_bid = 12 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp last_bid = 12
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Slot time the auction was officially ended by.
-    google.protobuf.Timestamp ended_at = 13 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp ended_at = 13
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // End time is the cut-off point that the auction is forced to end by.
-    google.protobuf.Timestamp end_auction_at = 14 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp end_auction_at = 14
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Ticked to true when a prize is claimed by person who won it
-    bool claimed = 15;
-    // Only valid for LimitedEditionPrints auction
-    uint64 printable_editions = 16;
+    uint64 claimed = 15;
+    // Edition limitation for limited edition auction
+    uint64 edition_limit = 16;
 }
 
 /// Define valid auction state transitions.
@@ -45,7 +51,6 @@ enum AuctionState {
   STARTED = 2 [ (gogoproto.enumvalue_customname) = "Started" ];
   ENDED = 3 [ (gogoproto.enumvalue_customname) = "Ended" ];
 }
-
 ```
 
 ### Auction type
@@ -54,22 +59,27 @@ enum AuctionState {
 enum AuctionPrizeType {
     // Transfer ownership of only nft without metadata
     NFT_ONLY_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "NftOnlyTransfer" ];
-    // Transfer ownership of both nft and metadata
+    // Transfer ownership of both nft and metadata mint, update ownership
     FULL_RIGHTS_TRANSFER = 1 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+    // Transfer ownership of metadata
+    METADATA_AUTHORITY_TRANSFER = 2 [ (gogoproto.enumvalue_customname) = "MetadataAuthorityTransfer" ];
+    // Transfer ownership of mint
+    MINT_AUTHORITY_TRANSFER = 3 [ (gogoproto.enumvalue_customname) = "MintAuthorityTransfer" ];
     // Printing a new child edition from limited supply
-    LIMITED_EDITION_PRINTS = 2 [ (gogoproto.enumvalue_customname) = "LimitedEditionPrints" ];
+    LIMITED_EDITION_PRINTS = 4 [ (gogoproto.enumvalue_customname) = "LimitedEditionPrints" ];
     // Printing a new child edition from unlimited supply
-    OPEN_EDITION_PRINTS = 3 [ (gogoproto.enumvalue_customname) = "OpenEditionPrints" ];
+    OPEN_EDITION_PRINTS = 5 [ (gogoproto.enumvalue_customname) = "OpenEditionPrints" ];
 }
 ```
 
 1. `NftOnlyTransfer` is the auction for sending nft to winner bidder.
-2. `FullRightsTransfer` is the auction to transfer both nft and metadata ownership.
-3. `LimitedEditionPrints` is the auction to provide limited number of editions printed to auction winners. Editions can be printed after auction ends.
-4. `OpenEditionPrints` is the auction to provide all auction participants to get printed versions. Editions can be instantly printed after bid even before auction ends.
+2. `FullRightsTransfer` is the auction to transfer nft ownership, metadata authority and mint authority.
+3. `MetadataAuthorityTransfer` is the auction to transfer metadata authority.
+4. `MintAuthorityTransfer` is the auction to transfer mint authority.
+5. `LimitedEditionPrints` is the auction to provide limited number of editions printed to auction winners. Editions can be printed after auction ends.
+6. `OpenEditionPrints` is the auction to provide all auction participants to get printed versions. Editions can be instantly printed after bid even before auction ends.
 
-Note: `Metadata` ownership is temporarily transfered to marketplace module during the auction phase for `FullRightsTransfer`, `LimitedEditionPrints` and `OpenEditionPrints`.
-After auction ends, metadata ownership is returned back to owner for `LimitedEditionPrints` and `OpenEditionPrints` case.
+Note: `Metadata` mint ownership is temporarily transfered to marketplace module during the auction phase for `LimitedEditionPrints` and `OpenEditionPrints`. After auction ends, metadata ownership is returned back to owner for `LimitedEditionPrints` and `OpenEditionPrints` case.
 
 ### Storage
 
@@ -86,8 +96,11 @@ message Bid {
   string bidder = 1;
   uint64 auction_id = 2;
   uint64 amount = 3;
+  uint64 index = 4;
 }
 ```
+
+Note: `index` is the bidder index on the auction - this value is considered on `LimitedEditionPrints` auction to determine the winner.
 
 - Bid: `0x05 | format(auction_id) | bidder -> Bid`
 - Bid by bidder: `0x06 | bidder | format(auction_id) -> Bid`
@@ -101,11 +114,12 @@ message BidderMetadata {
     // Relationship with the bidder who's metadata this covers.
     string bidder = 1;
     // Relationship with the auction this bid was placed on.
-    string last_auction_id = 2;
+    uint64 last_auction_id = 2;
     // Amount that the user bid.
     uint64 last_bid = 3;
     // Tracks the last time this user bid.
-    google.protobuf.Timestamp last_bid_timestamp = 4 [ (gogoproto.stdtime) = true ];
+    google.protobuf.Timestamp last_bid_timestamp = 4
+        [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Whether the last bid the user made was cancelled. This should also be enough to know if the
     // user is a winner, as if cancelled it implies previous bids were also cancelled.
     bool last_bid_cancelled = 5;
