@@ -38,6 +38,11 @@ Steps:
 2. Ensure nft is owned by the sender
 3. Ensure nft metadata is owned by the sender if auction prize type is `FullRightsTransfer`
 4. Send ownerships (nft, metadata) to marketplace module based on auction type
+   - If full rights transfer auction, transfer metadata, mint, nft ownerships to marketplace module
+   - If mint authority transfer auction, transfer mint authority to marketplace module
+   - If metadata authority transfer auction, transfer meatadata authority to marketplace module
+   - If nft only transfer auction, transfer nft ownership to marketplace module
+   - If print editions auction, transfer mint authority to marketplace module
 5. Generate new auction id and store last auction id
 6. Create auction object from provided params and generated auction id
 7. Emit event for auction creation
@@ -175,6 +180,11 @@ Steps:
 5. If `primary_sale_happened` is true for the metadata, process royalties from NFT's `seller_fee_basis_points` field to creators
 6. Set `primary_sale_happened` as true if it's not set already
 7. Transfer ownerships or print an edition to the bidder based on auction type
+   - If full rights transfer auction, transfer metadata, mint, nft ownerships to winner bidder
+   - If mint authority transfer auction, transfer mint authority to winner bidder
+   - If metadata authority transfer auction, transfer meatadata authority to winner bidder
+   - If nft only transfer auction, transfer nft ownership to winner bidder
+   - If print editions auction, print edition with mint authority
 8. Increase auction claim count by 1
 9. Delete claimed bid object
 10. Emit event for claiming bid
