@@ -2,7 +2,7 @@
 
 ## Candy machine configuration
 
-| parameter             | Description                                               |
+| Parameter             | Description                                               |
 | :-------------------- | :-------------------------------------------------------- |
 | collectionId          | Id of collection to mint                                  |
 | price                 | price of nft to pay for minting an nft                    |
