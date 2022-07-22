@@ -57,6 +57,16 @@ message EventCreateCandyMachine {
   uint64 collection_id = 2;
 }
 
+message EventUpdateCandyMachine {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventCloseCandyMachine {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
 message EventMintNFT {
   uint64 collection_id = 1;
   string nft_id = 2;

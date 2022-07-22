@@ -15,5 +15,6 @@ const (
 )
 
 var (
-	PrefixCandyMachine = []byte{0x01}
+	PrefixCandyMachine          = []byte{0x01}
+	PrefixCandyMachineByEndTime = []byte{0x02}
 )

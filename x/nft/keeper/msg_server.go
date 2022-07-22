@@ -22,59 +22,13 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*types.MsgCreateNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	collection, err := m.Keeper.GetCollectionById(ctx, msg.CollId)
+	metadataId, nftId, err := m.Keeper.CreateNFT(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
-
-	if collection.UpdateAuthority != msg.Sender {
-		return nil, types.ErrNotEnoughPermission
-	}
-
-	// create metadata
-	metadataId := m.Keeper.GetLastMetadataId(ctx) + 1
-	m.Keeper.SetLastMetadataId(ctx, metadataId)
-	msg.Metadata.Id = metadataId
-	for index := range msg.Metadata.Creators {
-		msg.Metadata.Creators[index].Verified = false
-	}
-	if msg.Metadata.MasterEdition != nil {
-		msg.Metadata.MasterEdition.Supply = 1
-		if msg.Metadata.MasterEdition.MaxSupply < 1 {
-			msg.Metadata.MasterEdition.MaxSupply = 1
-		}
-	}
-	m.Keeper.SetMetadata(ctx, msg.Metadata)
-	ctx.EventManager().EmitTypedEvent(&types.EventMetadataCreation{
-		Creator:    msg.Sender,
-		MetadataId: msg.Metadata.Id,
-	})
-
-	// burn fees before minting an nft
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, err
-	}
-	err = m.Keeper.PayNftIssueFee(ctx, sender)
-	if err != nil {
-		return nil, err
-	}
-
-	// create nft
-	nft := types.NFT{
-		Owner:      msg.Sender,
-		CollId:     msg.CollId,
-		MetadataId: metadataId,
-		Seq:        0,
-	}
-	m.Keeper.SetNFT(ctx, nft)
-	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
-		Creator: msg.Sender,
-		NftId:   nft.Id(),
-	})
 
 	return &types.MsgCreateNFTResponse{
-		Id:         nft.Id(),
+		Id:         nftId,
 		MetadataId: metadataId,
 	}, nil
 }
