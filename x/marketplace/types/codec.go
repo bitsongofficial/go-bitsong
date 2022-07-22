@@ -20,13 +20,13 @@ func init() {
 }
 
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateAuction{}, "go-bitsong/nft/MsgCreateAuction", nil)
-	cdc.RegisterConcrete(&MsgSetAuctionAuthority{}, "go-bitsong/nft/MsgSetAuctionAuthority", nil)
-	cdc.RegisterConcrete(&MsgStartAuction{}, "go-bitsong/nft/MsgStartAuction", nil)
-	cdc.RegisterConcrete(&MsgEndAuction{}, "go-bitsong/nft/MsgEndAuction", nil)
-	cdc.RegisterConcrete(&MsgPlaceBid{}, "go-bitsong/nft/MsgPlaceBid", nil)
-	cdc.RegisterConcrete(&MsgCancelBid{}, "go-bitsong/nft/MsgCancelBid", nil)
-	cdc.RegisterConcrete(&MsgClaimBid{}, "go-bitsong/nft/MsgClaimBid", nil)
+	cdc.RegisterConcrete(&MsgCreateAuction{}, "go-bitsong/marketplace/MsgCreateAuction", nil)
+	cdc.RegisterConcrete(&MsgSetAuctionAuthority{}, "go-bitsong/marketplace/MsgSetAuctionAuthority", nil)
+	cdc.RegisterConcrete(&MsgStartAuction{}, "go-bitsong/marketplace/MsgStartAuction", nil)
+	cdc.RegisterConcrete(&MsgEndAuction{}, "go-bitsong/marketplace/MsgEndAuction", nil)
+	cdc.RegisterConcrete(&MsgPlaceBid{}, "go-bitsong/marketplace/MsgPlaceBid", nil)
+	cdc.RegisterConcrete(&MsgCancelBid{}, "go-bitsong/marketplace/MsgCancelBid", nil)
+	cdc.RegisterConcrete(&MsgClaimBid{}, "go-bitsong/marketplace/MsgClaimBid", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
