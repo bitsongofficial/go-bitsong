@@ -3,7 +3,7 @@ package simulation
 import (
 	"fmt"
 
-	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
+	"github.com/bitsongofficial/go-bitsong/x/candymachine/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/kv"
 )
