@@ -211,14 +211,22 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		return err
 	}
 
-	// TODO: update metadata initialization
 	// mint nft by module account
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
+	// TODO: update metadata initialization
 	_, nftId, err := k.nftKeeper.CreateNFT(ctx, &nfttypes.MsgCreateNFT{
 		Sender: moduleAddr.String(),
 		CollId: msg.CollectionId,
 		Metadata: nfttypes.Metadata{
-			Uri: machine.MetadataBaseUrl,
+			Name:                 "Name",
+			Uri:                  machine.MetadataBaseUrl,
+			SellerFeeBasisPoints: 0,
+			PrimarySaleHappened:  true,
+			IsMutable:            machine.Mutable,
+			Creators:             []nfttypes.Creator{},
+			MetadataAuthority:    msg.Sender,
+			MintAuthority:        msg.Sender,
+			MasterEdition:        &nfttypes.MasterEdition{},
 		},
 	})
 	if err != nil {

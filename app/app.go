@@ -8,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bitsongofficial/go-bitsong/x/candymachine"
+	candymachinekeeper "github.com/bitsongofficial/go-bitsong/x/candymachine/keeper"
+	candymachinetypes "github.com/bitsongofficial/go-bitsong/x/candymachine/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -160,6 +163,7 @@ var (
 		fantoken.AppModuleBasic{},
 		nft.AppModuleBasic{},
 		marketplace.AppModuleBasic{},
+		candymachine.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -174,6 +178,7 @@ var (
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		marketplacetypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		candymachinetypes.ModuleName:   {},
 	}
 )
 
@@ -231,9 +236,10 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper    fantokenkeeper.Keeper
-	NFTKeeper         nftkeeper.Keeper
-	MarketplaceKeeper marketplacekeeper.Keeper
+	FanTokenKeeper     fantokenkeeper.Keeper
+	NFTKeeper          nftkeeper.Keeper
+	MarketplaceKeeper  marketplacekeeper.Keeper
+	CandyMachineKeeper candymachinekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -266,7 +272,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey,
-		nfttypes.StoreKey, marketplacetypes.StoreKey,
+		nfttypes.StoreKey, marketplacetypes.StoreKey, candymachinetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -397,6 +403,7 @@ func New(
 
 	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.GetSubspace(nfttypes.ModuleName), app.BankKeeper)
 	app.MarketplaceKeeper = marketplacekeeper.NewKeeper(appCodec, keys[marketplacetypes.StoreKey], app.GetSubspace(marketplacetypes.ModuleName), app.BankKeeper, app.NFTKeeper, app.AccountKeeper)
+	app.CandyMachineKeeper = candymachinekeeper.NewKeeper(appCodec, keys[candymachinetypes.StoreKey], app.GetSubspace(candymachinetypes.ModuleName), app.BankKeeper, app.NFTKeeper, app.AccountKeeper)
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
@@ -425,6 +432,7 @@ func New(
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
+		candymachine.NewAppModule(appCodec, app.CandyMachineKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
@@ -438,12 +446,12 @@ func New(
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
-		routertypes.ModuleName, marketplacetypes.ModuleName,
+		routertypes.ModuleName, marketplacetypes.ModuleName, candymachinetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, feegrant.ModuleName, authz.ModuleName,
-		marketplacetypes.ModuleName,
+		marketplacetypes.ModuleName, candymachinetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -467,6 +475,7 @@ func New(
 		fantokentypes.ModuleName,
 		nfttypes.ModuleName,
 		marketplacetypes.ModuleName,
+		candymachinetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -499,6 +508,7 @@ func New(
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
+		candymachine.NewAppModule(appCodec, app.CandyMachineKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
@@ -792,6 +802,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(nfttypes.ModuleName)
 	paramsKeeper.Subspace(marketplacetypes.ModuleName)
+	paramsKeeper.Subspace(candymachinetypes.ModuleName)
 
 	return paramsKeeper
 }
