@@ -33,11 +33,6 @@ func NewDecodeStore(cdc codec.Codec) func(kvA, kvB kv.Pair) string {
 			cdc.MustUnmarshal(kvA.Value, &collectionA)
 			cdc.MustUnmarshal(kvB.Value, &collectionB)
 			return fmt.Sprintf("%v\n%v", collectionA, collectionB)
-		case bytes.Equal(kvA.Key[:1], types.PrefixCollectionRecord):
-			var recordA, recordB types.Collection
-			cdc.MustUnmarshal(kvA.Value, &recordA)
-			cdc.MustUnmarshal(kvB.Value, &recordB)
-			return fmt.Sprintf("%v\n%v", recordA, recordB)
 		default:
 			panic(fmt.Sprintf("invalid %s key prefix %X", types.ModuleName, kvA.Key[:1]))
 		}

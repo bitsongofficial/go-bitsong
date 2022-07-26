@@ -323,16 +323,18 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:              1,
-			UpdateAuthority: moduleAddr.String(),
+			Id:                1,
+			MetadataAuthority: moduleAddr.String(),
+			MintAuthority:     moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
 
@@ -340,7 +342,7 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -415,6 +417,10 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 			// check auction end when it's bigger than instant sale price
 			switch tc.auctionType {
 			case types.AuctionPrizeType_NftOnlyTransfer:
+				fallthrough
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				fallthrough
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
 				fallthrough
 			case types.AuctionPrizeType_FullRightsTransfer:
 				if auction.InstantSalePrice <= tc.newBidAmount {
@@ -544,16 +550,18 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:              1,
-			UpdateAuthority: moduleAddr.String(),
+			Id:                1,
+			MetadataAuthority: moduleAddr.String(),
+			MintAuthority:     moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
 
@@ -561,7 +569,7 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.auctionType,
 			State:         tc.state,
@@ -729,6 +737,30 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			true,
 		},
 		{
+			"successful bid claim - with metadata authority transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_MetadataAuthorityTransfer,
+			false,
+			1000,
+			0,
+			1000,
+			0,
+			1,
+			true,
+		},
+		{
+			"successful bid claim - with mint authority transfer",
+			types.AuctionState_Ended,
+			types.AuctionPrizeType_MintAuthorityTransfer,
+			false,
+			1000,
+			0,
+			1000,
+			0,
+			1,
+			true,
+		},
+		{
 			"successful bid claim - with nft only transfer",
 			types.AuctionState_Ended,
 			types.AuctionPrizeType_NftOnlyTransfer,
@@ -784,23 +816,23 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 
 		// set nft with ownership
 		nft := nfttypes.NFT{
-			Id:         1,
-			Owner:      moduleAddr.String(),
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
+			Owner:      moduleAddr.String(),
 		}
 		suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
-			Id:                  1,
-			UpdateAuthority:     moduleAddr.String(),
-			PrimarySaleHappened: tc.presaleHappend,
-			Data: &nfttypes.Data{
-				Name: "NewPUNK1",
-				Creators: []*nfttypes.Creator{
-					{Address: creator.String(), Verified: true, Share: 100},
-				},
-				SellerFeeBasisPoints: 10,
+			Id:                   1,
+			MetadataAuthority:    moduleAddr.String(),
+			MintAuthority:        moduleAddr.String(),
+			PrimarySaleHappened:  tc.presaleHappend,
+			Name:                 "NewPUNK1",
+			SellerFeeBasisPoints: 10,
+			Creators: []nfttypes.Creator{
+				{Address: creator.String(), Verified: true, Share: 100},
 			},
 			MasterEdition: &nfttypes.MasterEdition{
 				Supply:    1,
@@ -813,7 +845,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 		auction := types.Auction{
 			Id:            1,
 			Authority:     owner.String(),
-			NftId:         1,
+			NftId:         nft.Id(),
 			Duration:      time.Second,
 			PrizeType:     tc.prizeType,
 			State:         tc.state,
@@ -893,8 +925,14 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			switch tc.prizeType {
 			case types.AuctionPrizeType_FullRightsTransfer:
 				// check metadata ownership is also transfered to bidder if full rights transfer auction
-				suite.Require().Equal(newmeta.UpdateAuthority, bidder.String())
-				fallthrough
+				suite.Require().Equal(newmeta.MetadataAuthority, bidder.String())
+				newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(newNft.Owner, bidder.String())
+			case types.AuctionPrizeType_MintAuthorityTransfer:
+				suite.Require().Equal(newmeta.MintAuthority, bidder.String())
+			case types.AuctionPrizeType_MetadataAuthorityTransfer:
+				suite.Require().Equal(newmeta.MetadataAuthority, bidder.String())
 			case types.AuctionPrizeType_NftOnlyTransfer:
 				newNft, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, auction.NftId)
 				suite.Require().NoError(err)
@@ -904,10 +942,109 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			case types.AuctionPrizeType_OpenEditionPrints:
 				nfts := suite.app.NFTKeeper.GetNFTsByOwner(suite.ctx, bidder)
 				suite.Require().Greater(len(nfts), 0)
-				suite.Require().Greater(nfts[len(nfts)-1].Edition, uint64(0))
+				suite.Require().Greater(nfts[len(nfts)-1].Seq, uint64(0))
 			}
+
+			// check bid is deleted after claim bid
+			_, err = suite.app.MarketplaceKeeper.GetBid(suite.ctx, tc.auctionId, bidder)
+			suite.Require().Error(err)
+
+			// try claim again after successful execution
+			err = suite.app.MarketplaceKeeper.ClaimBid(suite.ctx, msg)
+			suite.Require().Error(err)
 		} else {
 			suite.Require().Error(err)
 		}
 	}
+}
+
+func (suite *KeeperTestSuite) TestWinnerStateDoesNotChangeAfterWinnerClaim() {
+	suite.ctx = suite.ctx.WithBlockTime(time.Now().UTC())
+	owner := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	bidder2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	creator := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	coins := sdk.Coins{sdk.NewInt64Coin("ubtsg", 1000000000)}
+	suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, coins)
+	suite.app.BankKeeper.SendCoinsFromModuleToModule(suite.ctx, minttypes.ModuleName, types.ModuleName, coins)
+
+	// module account
+	moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+	// set nft with ownership
+	nft := nfttypes.NFT{
+		CollId:     1,
+		MetadataId: 1,
+		Seq:        0,
+		Owner:      moduleAddr.String(),
+	}
+	suite.app.NFTKeeper.SetNFT(suite.ctx, nft)
+
+	// set metadata with ownership
+	metadata := nfttypes.Metadata{
+		Id:                   1,
+		MetadataAuthority:    moduleAddr.String(),
+		MintAuthority:        moduleAddr.String(),
+		PrimarySaleHappened:  false,
+		Name:                 "NewPUNK1",
+		SellerFeeBasisPoints: 10,
+		Creators: []nfttypes.Creator{
+			{Address: creator.String(), Verified: true, Share: 100},
+		},
+		MasterEdition: &nfttypes.MasterEdition{
+			Supply:    1,
+			MaxSupply: 1000,
+		},
+	}
+	suite.app.NFTKeeper.SetMetadata(suite.ctx, metadata)
+
+	// set auction with ownership
+	auction := types.Auction{
+		Id:            1,
+		Authority:     owner.String(),
+		NftId:         nft.Id(),
+		Duration:      time.Second,
+		PrizeType:     types.AuctionPrizeType_LimitedEditionPrints,
+		State:         types.AuctionState_Ended,
+		LastBidAmount: 1000000,
+		BidDenom:      "ubtsg",
+		EditionLimit:  1,
+	}
+	suite.app.MarketplaceKeeper.SetAuction(suite.ctx, auction)
+
+	bids := suite.app.MarketplaceKeeper.GetAllBids(suite.ctx)
+	for _, bid := range bids {
+		suite.app.MarketplaceKeeper.DeleteBid(suite.ctx, bid)
+	}
+
+	suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+		Bidder:    bidder.String(),
+		AuctionId: 1,
+		Amount:    1500000,
+	})
+
+	suite.app.MarketplaceKeeper.SetBid(suite.ctx, types.Bid{
+		Bidder:    bidder2.String(),
+		AuctionId: 1,
+		Amount:    1000000,
+	})
+
+	suite.app.MarketplaceKeeper.SetBidderMetadata(suite.ctx, types.BidderMetadata{
+		Bidder:           bidder.String(),
+		LastAuctionId:    1,
+		LastBid:          1500000,
+		LastBidTimestamp: suite.ctx.BlockTime(),
+		LastBidCancelled: false,
+	})
+
+	// execute SetAuctionAuthority
+	msg := types.NewMsgClaimBid(bidder, 1)
+	err := suite.app.MarketplaceKeeper.ClaimBid(suite.ctx, msg)
+	suite.Require().NoError(err)
+
+	// try claim again after successful execution
+	msg = types.NewMsgClaimBid(bidder2, 1)
+	err = suite.app.MarketplaceKeeper.ClaimBid(suite.ctx, msg)
+	suite.Require().Error(err)
 }

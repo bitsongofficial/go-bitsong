@@ -32,9 +32,8 @@ func NewTxCmd() *cobra.Command {
 		GetCmdSignMetadata(),
 		GetCmdUpdateMetadata(),
 		GetCmdUpdateMetadataAuthority(),
+		GetCmdUpdateMintAuthority(),
 		GetCmdCreateCollection(),
-		GetCmdVerifyCollection(),
-		GetCmdUnverifyCollection(),
 		GetCmdUpdateCollectionAuthority(),
 	)
 
@@ -63,6 +62,11 @@ func GetCmdCreateNFT() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			updateAuthority, err := cmd.Flags().GetString(FlagUpdateAuthority)
 			if err != nil {
 				return err
@@ -83,7 +87,7 @@ func GetCmdCreateNFT() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), updateAuthority, data, false, isMutable, masterEditionMaxSupply)
+			msg := types.NewMsgCreateNFT(clientCtx.GetFromAddress(), collId, updateAuthority, data.Name, data.Uri, data.SellerFeeBasisPoints, false, isMutable, data.Creators, masterEditionMaxSupply)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -114,6 +118,11 @@ func GetCmdPrintEdition() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -124,7 +133,7 @@ func GetCmdPrintEdition() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), metadataId, owner)
+			msg := types.NewMsgPrintEdition(clientCtx.GetFromAddress(), collId, metadataId, owner)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -160,7 +169,7 @@ func GetCmdTransferNFT() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			nftId, err := cmd.Flags().GetUint64(FlagNftId)
+			nftId, err := cmd.Flags().GetString(FlagNftId)
 			if err != nil {
 				return err
 			}
@@ -247,7 +256,7 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, &data)
+			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, data.Name, data.Uri, data.SellerFeeBasisPoints, data.Creators)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -305,6 +314,48 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 	return cmd
 }
 
+func GetCmdUpdateMintAuthority() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "update-mint-authority",
+		Long: "Update mint authority by id and params",
+		Example: fmt.Sprintf(
+			`$ %s tx nft update-mint-authority
+				--metadata-id=1
+				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
+			version.AppName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
+			if err != nil {
+				return err
+			}
+
+			newAuthority, err := cmd.Flags().GetString(FlagNewAuthority)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FlagUpdateMetadataAuthority())
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func GetCmdCreateCollection() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "create-collection",
@@ -318,6 +369,11 @@ func GetCmdCreateCollection() *cobra.Command {
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			symbol, err := cmd.Flags().GetString(FlagSymbol)
 			if err != nil {
 				return err
 			}
@@ -337,7 +393,12 @@ func GetCmdCreateCollection() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateCollection(clientCtx.GetFromAddress(), name, uri, updateAuthority)
+			isMutable, err := cmd.Flags().GetBool(FlagMutable)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateCollection(clientCtx.GetFromAddress(), symbol, name, uri, updateAuthority, isMutable)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -348,90 +409,6 @@ func GetCmdCreateCollection() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FlagCreateCollection())
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func GetCmdVerifyCollection() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:  "verify-collection",
-		Long: "Verify a nft to be part of collection",
-		Example: fmt.Sprintf(
-			`$ %s tx nft verify-collection
-				--collection-id=1
-				--nft-id=1`,
-			version.AppName,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			collectionId, err := cmd.Flags().GetUint64(FlagCollectionId)
-			if err != nil {
-				return err
-			}
-
-			nftId, err := cmd.Flags().GetUint64(FlagNftId)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgVerifyCollection(clientCtx.GetFromAddress(), collectionId, nftId)
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().AddFlagSet(FlagVerifyCollection())
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func GetCmdUnverifyCollection() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:  "unverify-collection",
-		Long: "Unverify a nft to be part of collection",
-		Example: fmt.Sprintf(
-			`$ %s tx nft unverify-collection
-				--collection-id=1
-				--nft-id=1`,
-			version.AppName,
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			collectionId, err := cmd.Flags().GetUint64(FlagCollectionId)
-			if err != nil {
-				return err
-			}
-
-			nftId, err := cmd.Flags().GetUint64(FlagNftId)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgUnverifyCollection(clientCtx.GetFromAddress(), collectionId, nftId)
-
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().AddFlagSet(FlagVerifyCollection())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -479,27 +456,23 @@ func GetCmdUpdateCollectionAuthority() *cobra.Command {
 	return cmd
 }
 
-func collectNftData(cmd *cobra.Command) (types.Data, error) {
-	symbol, err := cmd.Flags().GetString(FlagSymbol)
-	if err != nil {
-		return types.Data{}, err
-	}
+func collectNftData(cmd *cobra.Command) (types.Metadata, error) {
 	name, err := cmd.Flags().GetString(FlagName)
 	if err != nil {
-		return types.Data{}, err
+		return types.Metadata{}, err
 	}
 	uri, err := cmd.Flags().GetString(FlagUri)
 	if err != nil {
-		return types.Data{}, err
+		return types.Metadata{}, err
 	}
 	sellerFeeBasisPoints, err := cmd.Flags().GetUint32(FlagSellerFeeBasisPoints)
 	if err != nil {
-		return types.Data{}, err
+		return types.Metadata{}, err
 	}
 
 	creatorAccsStr, err := cmd.Flags().GetString(FlagCreators)
 	if err != nil {
-		return types.Data{}, err
+		return types.Metadata{}, err
 	}
 	creatorAccs := []string{}
 	if creatorAccsStr != "" {
@@ -507,28 +480,27 @@ func collectNftData(cmd *cobra.Command) (types.Data, error) {
 	}
 	creatorSharesStr, err := cmd.Flags().GetString(FlagCreatorShares)
 	if err != nil {
-		return types.Data{}, err
+		return types.Metadata{}, err
 	}
 	creatorShareStrs := []string{}
 	if creatorSharesStr != "" {
 		creatorShareStrs = strings.Split(creatorSharesStr, ",")
 	}
-	creators := []*types.Creator{}
+	creators := []types.Creator{}
 	for index, creatorAcc := range creatorAccs {
 		shareStr := creatorShareStrs[index]
 		share, err := strconv.Atoi(shareStr)
 		if err != nil {
-			return types.Data{}, err
+			return types.Metadata{}, err
 		}
-		creators = append(creators, &types.Creator{
+		creators = append(creators, types.Creator{
 			Address: creatorAcc,
 			Share:   uint32(share),
 		})
 	}
 
-	return types.Data{
+	return types.Metadata{
 		Name:                 name,
-		Symbol:               symbol,
 		Uri:                  uri,
 		SellerFeeBasisPoints: sellerFeeBasisPoints,
 		Creators:             creators,

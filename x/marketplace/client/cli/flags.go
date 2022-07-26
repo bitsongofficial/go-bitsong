@@ -24,7 +24,7 @@ const (
 func FlagCreateAuction() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.Uint64(FlagNftId, 0, "Id of the nft to put on auction")
+	fs.String(FlagNftId, "", "Id of the nft to put on auction")
 	fs.String(FlagPrizeType, "", "Type of prize, NFT_ONLY_TRANSFER | FULL_RIGHTS_TRANSFER | LIMITED_EDITION_PRINTS | OPEN_EDITION_PRINTS")
 	fs.String(FlagBidDenom, "", "Denom to be used for bidding on the auction")
 	fs.Duration(FlagDuration, 0, "Duration of the auction")

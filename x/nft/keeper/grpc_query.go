@@ -93,7 +93,7 @@ func (k Keeper) Collection(c context.Context, req *types.QueryCollectionRequest)
 		return nil, err
 	}
 
-	nftIds := k.GetCollectionNftRecords(ctx, req.Id)
+	nftIds := k.GetCollectionNftIds(ctx, req.Id)
 	return &types.QueryCollectionResponse{
 		Collection: collection,
 		NftIds:     nftIds,

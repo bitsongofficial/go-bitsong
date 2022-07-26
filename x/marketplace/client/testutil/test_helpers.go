@@ -12,11 +12,11 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 )
 
-func CreateAuction(clientCtx client.Context, nftId uint64, from string, bondDenom string) (testutil.BufferWriter, error) {
+func CreateAuction(clientCtx client.Context, nftId string, from string, bondDenom string) (testutil.BufferWriter, error) {
 	cmd := marketplacecli.GetCmdCreateAuction()
 
 	return clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
-		fmt.Sprintf("--%s=%s", marketplacecli.FlagNftId, fmt.Sprintf("%d", nftId)),
+		fmt.Sprintf("--%s=%s", marketplacecli.FlagNftId, nftId),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagPrizeType, "NFT_ONLY_TRANSFER"),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagBidDenom, "utbsg"),
 		fmt.Sprintf("--%s=%s", marketplacecli.FlagDuration, "864000s"),

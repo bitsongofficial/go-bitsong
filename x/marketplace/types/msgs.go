@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -19,7 +20,7 @@ const (
 
 var _ sdk.Msg = &MsgCreateAuction{}
 
-func NewMsgCreateAuction(sender sdk.AccAddress, nftId uint64, prizeType AuctionPrizeType,
+func NewMsgCreateAuction(sender sdk.AccAddress, nftId string, prizeType AuctionPrizeType,
 	bidDenom string, duration time.Duration,
 	priceFloor, instantSalePrice, tickSize, editionLimit uint64,
 ) *MsgCreateAuction {
@@ -46,7 +47,7 @@ func (msg MsgCreateAuction) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if msg.NftId == 0 {
+	if !nfttypes.IsValidNftId(msg.NftId) {
 		return ErrInvalidNftId
 	}
 

@@ -57,7 +57,7 @@ func GetCmdCreateAuction() *cobra.Command {
 				return err
 			}
 
-			nftId, err := cmd.Flags().GetUint64(FlagNftId)
+			nftId, err := cmd.Flags().GetString(FlagNftId)
 			if err != nil {
 				return err
 			}

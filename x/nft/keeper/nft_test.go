@@ -6,26 +6,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (suite *KeeperTestSuite) TestLastNftIdGetSet() {
-	// get default last nft id
-	lastNftId := suite.app.NFTKeeper.GetLastNftId(suite.ctx)
-	suite.Require().Equal(lastNftId, uint64(0))
-
-	// set last nft id to new value
-	newNftId := uint64(2)
-	suite.app.NFTKeeper.SetLastNftId(suite.ctx, newNftId)
-
-	// check last nft id update
-	lastNftId = suite.app.NFTKeeper.GetLastNftId(suite.ctx)
-	suite.Require().Equal(lastNftId, newNftId)
-}
-
 func (suite *KeeperTestSuite) TestNftGetSet() {
 	addr := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	addr2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 
 	// get nft by not available id
-	_, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, 0)
+	_, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, "")
 	suite.Require().Error(err)
 
 	// get nfts by owner when there's nothing
@@ -39,23 +25,27 @@ func (suite *KeeperTestSuite) TestNftGetSet() {
 	// create a new nft
 	nfts := []types.NFT{
 		{
-			Id:         1,
+			CollId:     1,
 			MetadataId: 1,
+			Seq:        0,
 			Owner:      addr.String(),
 		},
 		{
-			Id:         2,
+			CollId:     1,
 			MetadataId: 2,
+			Seq:        0,
 			Owner:      addr.String(),
 		},
 		{
-			Id:         3,
+			CollId:     1,
 			MetadataId: 3,
+			Seq:        0,
 			Owner:      addr2.String(),
 		},
 		{
-			Id:         4,
+			CollId:     1,
 			MetadataId: 4,
+			Seq:        0,
 			Owner:      addr2.String(),
 		},
 	}
@@ -66,7 +56,7 @@ func (suite *KeeperTestSuite) TestNftGetSet() {
 
 	// check nfts existance by id
 	for _, nft := range nfts {
-		n, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id)
+		n, err := suite.app.NFTKeeper.GetNFTById(suite.ctx, nft.Id())
 		suite.Require().NoError(err)
 		suite.Require().Equal(nft, n)
 	}

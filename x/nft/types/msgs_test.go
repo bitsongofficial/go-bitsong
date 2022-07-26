@@ -6,6 +6,7 @@ package types
 // NewMsgSignMetadata
 // NewMsgUpdateMetadata
 // NewMsgUpdateMetadataAuthority
+// NewMsgUpdateMintAuthority
 // NewMsgCreateCollection
 // NewMsgVerifyCollection
 // NewMsgUnverifyCollection

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -140,7 +138,6 @@ func (k Keeper) GetAllBidderMetadata(ctx sdk.Context) []types.BidderMetadata {
 func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount uint64, bidIndex uint64) uint64 {
 	auctionBids := k.GetBidsByAuction(ctx, auctionId)
 	higherBidsCount := uint64(0)
-	fmt.Println("CalculateHigherBids", auctionBids, amount, bidIndex)
 	for _, bid := range auctionBids {
 		if bid.Amount > amount {
 			higherBidsCount++
@@ -155,14 +152,21 @@ func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bi
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
+		if auction.Claimed > 0 {
+			return false
+		}
 		if auction.LastBidAmount == bid.Amount {
 			return true
 		}
 	case types.AuctionPrizeType_OpenEditionPrints:
 		return true
 	case types.AuctionPrizeType_LimitedEditionPrints:
-		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index) < auction.EditionLimit {
+		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index)+auction.Claimed < auction.EditionLimit {
 			return true
 		}
 	}
@@ -194,6 +198,10 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
 		if sdk.NewInt(int64(auction.LastBidAmount+tickSize)).GT(msg.Amount.Amount) ||
@@ -252,6 +260,10 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	// If the amount exceeds `instant_sale_price`, end the auction
 	switch auction.PrizeType {
 	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		fallthrough
 	case types.AuctionPrizeType_FullRightsTransfer:
 		if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
@@ -394,7 +406,28 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
-		fallthrough
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   moduleAddr.String(),
+			Id:       auction.NftId,
+			NewOwner: bidder.String(),
+		})
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
 	case types.AuctionPrizeType_NftOnlyTransfer:
 		// Transfer ownership of NFT to bidder
 		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
@@ -406,7 +439,8 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		fallthrough
 	case types.AuctionPrizeType_LimitedEditionPrints:
 		_, err := k.nftKeeper.PrintEdition(ctx, &nfttypes.MsgPrintEdition{
-			Sender:     metadata.UpdateAuthority,
+			Sender:     metadata.MintAuthority,
+			CollId:     nft.CollId,
 			MetadataId: nft.MetadataId,
 			Owner:      msg.Sender,
 		})
@@ -418,6 +452,9 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	// Update auction with claimed status
 	auction.Claimed++
 	k.SetAuction(ctx, auction)
+
+	// Remove bid from the storage
+	k.DeleteBid(ctx, bid)
 
 	// Emit event for claiming bid
 	ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{

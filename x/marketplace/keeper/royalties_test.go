@@ -30,15 +30,13 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to single creator",
 			nfttypes.Metadata{
-				Id:              1,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name: "NewPUNK1",
-					Creators: []*types.Creator{
-						{Address: creator1.String(), Verified: true, Share: 100},
-					},
-					SellerFeeBasisPoints: 10,
+				Id:                   1,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK1",
+				SellerFeeBasisPoints: 10,
+				Creators: []types.Creator{
+					{Address: creator1.String(), Verified: true, Share: 100},
 				},
 				PrimarySaleHappened: true,
 				IsMutable:           false,
@@ -52,16 +50,14 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to multiple creators",
 			nfttypes.Metadata{
-				Id:              2,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name: "NewPUNK2",
-					Creators: []*types.Creator{
-						{Address: creator1.String(), Verified: true, Share: 100},
-						{Address: creator2.String(), Verified: true, Share: 100},
-					},
-					SellerFeeBasisPoints: 10,
+				Id:                   2,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK2",
+				SellerFeeBasisPoints: 10,
+				Creators: []types.Creator{
+					{Address: creator1.String(), Verified: true, Share: 100},
+					{Address: creator2.String(), Verified: true, Share: 100},
 				},
 				PrimarySaleHappened: true,
 				IsMutable:           false,
@@ -75,16 +71,14 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"dust amount distribution cheeck",
 			nfttypes.Metadata{
-				Id:              2,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name: "NewPUNK2",
-					Creators: []*types.Creator{
-						{Address: creator1.String(), Verified: true, Share: 1000000},
-						{Address: creator2.String(), Verified: true, Share: 1},
-					},
-					SellerFeeBasisPoints: 10,
+				Id:                   2,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK2",
+				SellerFeeBasisPoints: 10,
+				Creators: []types.Creator{
+					{Address: creator1.String(), Verified: true, Share: 1000000},
+					{Address: creator2.String(), Verified: true, Share: 1},
 				},
 				PrimarySaleHappened: true,
 				IsMutable:           false,
@@ -98,16 +92,14 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to no creator",
 			nfttypes.Metadata{
-				Id:              3,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name:                 "NewPUNK3",
-					Creators:             []*types.Creator{},
-					SellerFeeBasisPoints: 10,
-				},
-				PrimarySaleHappened: true,
-				IsMutable:           false,
+				Id:                   3,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK3",
+				SellerFeeBasisPoints: 10,
+				Creators:             []types.Creator{},
+				PrimarySaleHappened:  true,
+				IsMutable:            false,
 			},
 			owner,
 			10000,
@@ -118,16 +110,14 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to invalid metadata - SellerFeeBasisPoints",
 			nfttypes.Metadata{
-				Id:              3,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name:                 "NewPUNK3",
-					Creators:             []*types.Creator{},
-					SellerFeeBasisPoints: 1000,
-				},
-				PrimarySaleHappened: true,
-				IsMutable:           false,
+				Id:                   3,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK3",
+				SellerFeeBasisPoints: 1000,
+				Creators:             []types.Creator{},
+				PrimarySaleHappened:  true,
+				IsMutable:            false,
 			},
 			owner,
 			10000,
@@ -138,15 +128,13 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution by zero balance account",
 			nfttypes.Metadata{
-				Id:              3,
-				UpdateAuthority: owner.String(),
-				Mint:            owner.String(),
-				Data: &nfttypes.Data{
-					Name: "NewPUNK3",
-					Creators: []*types.Creator{
-						{Address: creator1.String(), Verified: true, Share: 100},
-					},
-					SellerFeeBasisPoints: 1000,
+				Id:                   3,
+				MetadataAuthority:    owner.String(),
+				MintAuthority:        owner.String(),
+				Name:                 "NewPUNK3",
+				SellerFeeBasisPoints: 1000,
+				Creators: []types.Creator{
+					{Address: creator1.String(), Verified: true, Share: 100},
 				},
 				PrimarySaleHappened: true,
 				IsMutable:           false,
