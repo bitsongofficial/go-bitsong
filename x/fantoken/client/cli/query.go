@@ -14,18 +14,17 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// GetQueryCmd returns the query commands for the token module.
+// GetQueryCmd returns the query commands for the fantoken module.
 func GetQueryCmd() *cobra.Command {
 	queryCmd := &cobra.Command{
 		Use:                types.ModuleName,
-		Short:              "Querying commands for the token module",
+		Short:              "Querying commands for the fantoken module",
 		DisableFlagParsing: true,
 	}
 
 	queryCmd.AddCommand(
 		GetCmdQueryFanToken(),
 		GetCmdQueryFanTokens(),
-		GetCmdQueryTotalBurn(),
 		GetCmdQueryParams(),
 	)
 
@@ -36,7 +35,7 @@ func GetQueryCmd() *cobra.Command {
 func GetCmdQueryFanToken() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "denom [denom]",
-		Long:    "Query a fantoken by denom.",
+		Short:   "Query a fantoken by denom.",
 		Example: fmt.Sprintf("$ %s query fantoken denom <denom>", version.AppName),
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -60,7 +59,7 @@ func GetCmdQueryFanToken() *cobra.Command {
 				return err
 			}
 
-			return clientCtx.PrintProto(res.Token)
+			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
@@ -68,24 +67,22 @@ func GetCmdQueryFanToken() *cobra.Command {
 	return cmd
 }
 
-// GetCmdQueryTokens implements the query tokens command.
+// GetCmdQueryFanTokens implements the query fantokens command.
 func GetCmdQueryFanTokens() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "owner [owner]",
-		Long:    "Query fantokens by the owner.",
-		Example: fmt.Sprintf("$ %s query fantoken owner <owner>", version.AppName),
+		Use:     "authority [authority]",
+		Short:   "Query fantokens by the authority.",
+		Example: fmt.Sprintf("$ %s query fantoken authority <authority>", version.AppName),
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			var owner sdk.AccAddress
-			if len(args) > 0 {
-				owner, err = sdk.AccAddressFromBech32(args[0])
-				if err != nil {
-					return err
-				}
+			authority, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
@@ -93,31 +90,28 @@ func GetCmdQueryFanTokens() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			res, err := queryClient.FanTokens(
-				context.Background(),
-				&types.QueryFanTokensRequest{
-					Owner:      owner.String(),
-					Pagination: pageReq,
-				},
-			)
+			res, err := queryClient.FanTokens(context.Background(), &types.QueryFanTokensRequest{
+				Authority:  authority.String(),
+				Pagination: pageReq,
+			})
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintObjectLegacy(res.Tokens)
+			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "all tokens")
+	flags.AddPaginationFlagsToCmd(cmd, "all fantokens")
 
 	return cmd
 }
 
-// GetCmdQueryParams implements the query token related param command.
+// GetCmdQueryParams implements the query fantoken related param command.
 func GetCmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "params",
-		Long:    "Query values set as token parameters.",
+		Short:   "Query values set as fantoken parameters.",
 		Example: fmt.Sprintf("$ %s query fantoken params", version.AppName),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
@@ -132,31 +126,6 @@ func GetCmdQueryParams() *cobra.Command {
 			}
 
 			return clientCtx.PrintProto(&res.Params)
-		},
-	}
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-// GetCmdQueryTotalBurn return the total amount of all burned tokens
-func GetCmdQueryTotalBurn() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "total-burn",
-		Long:    "Query the total amount of all burned tokens.",
-		Example: fmt.Sprintf("$ %s query fantoken total-burn", version.AppName),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-			res, err := queryClient.TotalBurn(context.Background(), &types.QueryTotalBurnRequest{})
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
 		},
 	}
 	flags.AddQueryFlagsToCmd(cmd)

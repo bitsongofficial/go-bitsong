@@ -9,90 +9,127 @@ option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the oracle Msg service
 service Msg {
-  // IssueFanToken defines a method for issuing a new fan token
-  rpc IssueFanToken(MsgIssueFanToken) returns (MsgIssueFanTokenResponse);
+  // Issue defines a method for issuing a new fan token
+  rpc Issue(MsgIssue) returns (MsgIssueResponse);
 
-  // EditFanToken defines a method for editing a fantoken
-  rpc EditFanToken(MsgEditFanToken) returns (MsgEditFanTokenResponse);
+  // Mint defines a method for minting some fan tokens
+  rpc Mint(MsgMint) returns (MsgMintResponse);
 
-  // MintFanToken defines a method for minting some fan tokens
-  rpc MintFanToken(MsgMintFanToken) returns (MsgMintFanTokenResponse);
+  // Burn defines a method for burning some fan tokens
+  rpc Burn(MsgBurn) returns (MsgBurnResponse);
 
-  // BurnFanToken defines a method for burning some fan tokens
-  rpc BurnFanToken(MsgBurnFanToken) returns (MsgBurnFanTokenResponse);
+  // DisableMint defines a method for disable the mint function
+  rpc DisableMint(MsgDisableMint) returns (MsgDisableMintResponse);
 
-  // TransferFanTokenOwner defines a method for minting some fan tokens
-  rpc TransferFanTokenOwner(MsgTransferFanTokenOwner)
-      returns (MsgTransferFanTokenOwnerResponse);
+  rpc SetMinter(MsgSetMinter) returns (MsgSetMinterResponse);
+  rpc SetAuthority(MsgSetAuthority) returns (MsgSetAuthorityResponse);
+  rpc SetUri(MsgSetUri) returns (MsgSetUriResponse);
 }
 
-// MsgIssueFanToken defines an SDK message for issuing a new fan token
-message MsgIssueFanToken {
+// MsgIssue defines a message for issuing a new fan token
+message MsgIssue {
+
+  // symbol which corresponds to the symbol of the fan token. It is a string and cannot change for the whole life of the fan token
   string symbol = 1;
+
+  // name which corresponds to the name of the fan token. It is a string and cannot change for the whole life of the fan token
   string name = 2;
+
+  // max_supply that represents the maximum number of possible mintable tokens. It is an integer number, expressed in micro unit 10^6
   string max_supply = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"max_supply\"",
     (gogoproto.nullable) = false
   ];
-  string description = 4;
-  string owner = 5;
-  cosmos.base.v1beta1.Coin issue_fee = 6 [
-    (gogoproto.moretags) = "yaml:\"issue_fee\"",
-    (gogoproto.nullable) = false
-  ];
+
+  // authority which is who can set a new uri metadata
+  string authority = 4;
+
+  // minter who is who can mint new fantoken and disable the minter process, the minter key also pay the gas fee
+  string minter = 5;
+
+  // URI which is the current uri of the fan token. It is a string can change during the fan token lifecycle thanks to the MsgEdit
+  string uri = 6 [ (gogoproto.customname) = "URI" ];
 }
 
-// MsgIssueFanTokenResponse defines the Msg/IssueFanToken response type
-message MsgIssueFanTokenResponse {}
+// MsgIssueResponse defines the MsgIssue response type
+message MsgIssueResponse {}
 
-// MsgTransferFanTokenOwner defines an SDK message for transferring the token
-// owner
-message MsgTransferFanTokenOwner {
+// MsgDisableMint defines a message for disable the mint function
+message MsgDisableMint {
   string denom = 1;
-  string src_owner = 2 [ (gogoproto.moretags) = "yaml:\"src_owner\"" ];
-  string dst_owner = 3 [ (gogoproto.moretags) = "yaml:\"dst_owner\"" ];
+  string minter = 2;
 }
 
-// MsgTransferFanTokenOwnerResponse defines the Msg/TransferFanTokenOwner
-// response type
-message MsgTransferFanTokenOwnerResponse {}
+// MsgDisableMintResponse defines the MsgDisableMint response type
+message MsgDisableMintResponse {}
 
-// MsgEditFanToken defines an SDK message for editing a fan token
-message MsgEditFanToken {
-  string denom = 1;
-  bool mintable = 2;
-  string owner = 3;
-}
-
-// MsgEditFanTokenResponse defines the Msg/EditFanToken response type
-message MsgEditFanTokenResponse {}
-
-// MsgMintFanToken defines an SDK message for minting a new fan token
-message MsgMintFanToken {
+// MsgMint defines a message for minting a new fan token
+message MsgMint {
   string recipient = 1;
-  string denom = 2;
-  string amount = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"amount\"",
+
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 2 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
     (gogoproto.nullable) = false
   ];
-  string owner = 4;
+
+  string minter = 3;
 }
 
-// MsgMintFanTokenResponse defines the Msg/MintFanToken response type
-message MsgMintFanTokenResponse {}
+// MsgMintResponse defines the MsgMint response type
+message MsgMintResponse {}
 
-// MsgBurnFanToken defines an SDK message for burning some fan tokens
-message MsgBurnFanToken {
+// MsgBurn defines a message for burning some fan tokens
+message MsgBurn {
+  // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
+  cosmos.base.v1beta1.Coin coin = 1 [
+    (gogoproto.moretags) = "yaml:\"coin\"",
+    (gogoproto.nullable) = false
+  ];
+
+  string sender = 2;
+}
+
+// MsgBurnResponse defines the MsgBurn response type
+message MsgBurnResponse {}
+
+// MsgSetMinter defines a message for changing the fan token minter address
+message MsgSetMinter {
+
+  // denom the fan token denom
   string denom = 1;
-  string amount = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false
-  ];
-  string sender = 3;
+
+  // old_minter, the actual minter
+  string old_minter = 2 [ (gogoproto.moretags) = "yaml:\"old_minter\"" ];
+
+  // new_minter, the new fan token minter
+  string new_minter = 3 [ (gogoproto.moretags) = "yaml:\"new_minter\"" ];
 }
 
-// MsgBurnFanTokenResponse defines the Msg/BurnFanToken response type
-message MsgBurnFanTokenResponse {}
+// MsgSetMinterResponse defines the MsgTransferAuthority response type
+message MsgSetMinterResponse {}
+
+// MsgSetAuthority defines a message for changing the fan token minter address
+message MsgSetAuthority {
+
+  // denom the fan token denom
+  string denom = 1;
+
+  // old_authority, the actual metadata authority
+  string old_authority = 2 [ (gogoproto.moretags) = "yaml:\"old_authority\"" ];
+
+  // new_authority, the new fan token metadata authority
+  string new_authority = 3 [ (gogoproto.moretags) = "yaml:\"new_authority\"" ];
+}
+
+// MsgSetAuthorityResponse defines the MsgTransferAuthority response type
+message MsgSetAuthorityResponse {}
+
+message MsgSetUri {
+  string authority = 1;
+  string denom = 2;
+  string uri = 3 [ (gogoproto.customname) = "URI" ];
+}
+
+message MsgSetUriResponse{}

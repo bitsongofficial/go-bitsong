@@ -2,47 +2,49 @@ package keeper
 
 import (
 	"fmt"
-
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 type Keeper struct {
-	storeKey         sdk.StoreKey
-	cdc              codec.Codec
-	bankKeeper       types.BankKeeper
-	paramSpace       paramstypes.Subspace
-	blockedAddrs     map[string]bool
-	feeCollectorName string
+	storeKey      sdk.StoreKey
+	cdc           codec.Codec
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	distrKeeper   types.DistrKeeper
+	paramSpace    types.ParamSubspace
+	blockedAddrs  map[string]bool
 }
 
 func NewKeeper(
 	cdc codec.Codec,
 	key sdk.StoreKey,
-	paramSpace paramstypes.Subspace,
+	paramSpace types.ParamSubspace,
+	ak types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	distrKeeper types.DistrKeeper,
 	blockedAddrs map[string]bool,
-	feeCollectorName string,
 ) Keeper {
+	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
+		panic("the " + types.ModuleName + " module account has not been set")
+	}
+
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		storeKey:         key,
-		cdc:              cdc,
-		paramSpace:       paramSpace,
-		bankKeeper:       bankKeeper,
-		feeCollectorName: feeCollectorName,
-		blockedAddrs:     blockedAddrs,
+		storeKey:     key,
+		cdc:          cdc,
+		paramSpace:   paramSpace,
+		bankKeeper:   bankKeeper,
+		distrKeeper:  distrKeeper,
+		blockedAddrs: blockedAddrs,
 	}
 }
 
@@ -51,173 +53,243 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("go-bitsong/%s", types.ModuleName))
 }
 
-// IssueFanToken issues a new fantoken
-func (k Keeper) IssueFanToken(
-	ctx sdk.Context,
-	symbol string,
-	name string,
-	maxSupply sdk.Int,
-	description string,
-	owner sdk.AccAddress,
-	issueFee sdk.Coin,
-) (denom string, err error) {
-	issuePrice := k.GetParamSet(ctx).IssuePrice
-	if issueFee.Denom != issuePrice.GetDenom() {
-		return denom, sdkerrors.Wrapf(types.ErrInvalidDenom, "the issue fee denom %s is invalid", issueFee.String())
-	}
-	if issueFee.Amount.LT(issuePrice.Amount) {
-		return denom, sdkerrors.Wrapf(types.ErrLessIssueFee, "the issue fee %s is less than %s", issueFee.String(), issuePrice.String())
+// Issue issues a new fantoken
+func (k Keeper) Issue(ctx sdk.Context, name, symbol, uri string, maxSupply sdk.Int, minter, authority sdk.AccAddress) (denom string, err error) {
+	if k.blockedAddrs[authority.String()] {
+		return denom, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", authority.String())
 	}
 
-	denom = types.GetFantokenDenom(owner, symbol, name)
-	denomMetaData := banktypes.Metadata{
-		Description: description,
-		Base:        denom,
-		Display:     symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: denom, Exponent: 0},
-			{Denom: symbol, Exponent: types.FanTokenDecimal},
-		},
+	// at the moment is disabled, will be enabled once some test will be done
+	if k.blockedAddrs[minter.String()] {
+		return denom, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", minter.String())
 	}
-	fantoken := types.NewFanToken(name, maxSupply, owner, denomMetaData)
+
+	// check minter
+	if minter.Empty() {
+		return denom, sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not a valid minter address", minter)
+	}
+
+	// handle issue fee
+	if err := k.deductIssueFee(ctx, minter); err != nil {
+		return denom, err
+	}
+
+	fantoken := types.NewFanToken(name, symbol, uri, maxSupply, minter, authority, ctx.BlockHeight())
+	if err := fantoken.Validate(); err != nil {
+		return denom, err
+	}
+
+	found := k.HasFanToken(ctx, fantoken.Denom)
+	if found {
+		return denom, types.ErrDenomAlreadyExists
+	}
 
 	if err := k.AddFanToken(ctx, fantoken); err != nil {
 		return denom, err
 	}
 
-	return denom, nil
+	return fantoken.GetDenom(), nil
 }
 
-// EditFanToken edits the specified fantoken
-func (k Keeper) EditFanToken(
-	ctx sdk.Context,
-	denom string,
-	mintable bool,
-	owner sdk.AccAddress,
-) error {
-	// get the destination fantoken
-	fantoken, err := k.getFanTokenByDenom(ctx, denom)
+// Mint mints the specified amount of fantoken to the specified recipient
+func (k Keeper) Mint(ctx sdk.Context, minter, recipient sdk.AccAddress, coin sdk.Coin) error {
+	if recipient.Empty() {
+		return sdkerrors.Wrapf(types.ErrInvalidRecipient, "the address %s is not a valid recipient", recipient.String())
+	}
+
+	if minter.Empty() {
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not a valid minter address", minter.String())
+	}
+
+	if k.blockedAddrs[minter.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", minter.String())
+	}
+
+	if k.blockedAddrs[recipient.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient.String())
+	}
+
+	if err := types.ValidateAmount(coin.Amount); err != nil {
+		return err
+	}
+
+	fantoken, err := k.getFanTokenByDenom(ctx, coin.Denom)
 	if err != nil {
 		return err
 	}
 
-	if owner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", owner, denom)
+	if minter.String() != fantoken.Minter {
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not the minter of the fantoken %s", minter.String(), coin.Denom)
 	}
 
-	if !fantoken.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "the fantoken %s is not mintable", denom)
-	}
-
-	fantoken.Mintable = mintable
-
-	if !mintable {
-		supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
-		precision := sdk.NewIntWithDecimal(1, types.FanTokenDecimal)
-		fantoken.MaxSupply = supply.Quo(precision)
-	}
-
-	k.setFanToken(ctx, fantoken)
-
-	return nil
-}
-
-// TransferFanTokenOwner transfers the owner of the specified fantoken to a new one
-func (k Keeper) TransferFanTokenOwner(
-	ctx sdk.Context,
-	denom string,
-	srcOwner sdk.AccAddress,
-	dstOwner sdk.AccAddress,
-) error {
-	fantoken, err := k.getFanTokenByDenom(ctx, denom)
-	if err != nil {
+	// handle Mint fee
+	if err := k.deductMintFee(ctx, minter); err != nil {
 		return err
-	}
-
-	if srcOwner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", srcOwner, denom)
-	}
-
-	fantoken.Owner = dstOwner.String()
-
-	// update fantoken
-	k.setFanToken(ctx, fantoken)
-
-	// reset all indices
-	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), srcOwner, dstOwner)
-
-	return nil
-}
-
-// MintFanToken mints the specified amount of fantoken to the specified recipient
-func (k Keeper) MintFanToken(
-	ctx sdk.Context,
-	recipient sdk.AccAddress,
-	denom string,
-	amount sdk.Int,
-	owner sdk.AccAddress,
-) error {
-	fantoken, err := k.getFanTokenByDenom(ctx, denom)
-	if err != nil {
-		return err
-	}
-
-	if owner.String() != fantoken.Owner {
-		return sdkerrors.Wrapf(types.ErrInvalidOwner, "the address %s is not the owner of the fantoken %s", owner, denom)
-	}
-
-	if !fantoken.Mintable {
-		return sdkerrors.Wrapf(types.ErrNotMintable, "%s", denom)
 	}
 
 	supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
 	mintableAmt := fantoken.MaxSupply.Sub(supply)
 
-	if amount.GT(mintableAmt) {
+	if coin.Amount.GT(mintableAmt) {
 		return sdkerrors.Wrapf(
 			types.ErrInvalidAmount,
-			"the amount exceeds the mintable fantoken amount; expected (0, %d], got %d",
-			mintableAmt, amount,
+			"the amount exceeds the mintable fantoken amount; expected [0, %d], got %d",
+			mintableAmt.Int64(), coin.Amount.Int64(),
 		)
 	}
 
-	mintCoin := sdk.NewCoin(fantoken.GetDenom(), amount)
-	mintCoins := sdk.NewCoins(mintCoin)
-
-	// mint coins
-	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoins); err != nil {
+	// Mint coins
+	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(coin)); err != nil {
 		return err
 	}
 
-	if recipient.Empty() {
-		recipient = owner
-	}
-
-	// sent coins to the recipient account
-	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, mintCoins)
+	// send coins to the recipient account
+	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, recipient, sdk.NewCoins(coin))
 }
 
-// BurnToken burns the specified amount of fantoken
-func (k Keeper) BurnFanToken(
-	ctx sdk.Context,
-	denom string,
-	amount sdk.Int,
-	owner sdk.AccAddress,
-) error {
-	_, err := k.getFanTokenByDenom(ctx, denom)
+// Burn burns the specified amount of fantoken
+func (k Keeper) Burn(ctx sdk.Context, coin sdk.Coin, owner sdk.AccAddress) error {
+	if k.blockedAddrs[owner.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", owner.String())
+	}
+
+	if owner.Empty() {
+		return types.ErrInvalidOwner
+	}
+
+	// handle Burn fee
+	if err := k.deductBurnFee(ctx, owner); err != nil {
+		return err
+	}
+
+	found := k.HasFanToken(ctx, coin.Denom)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrFanTokenNotExists, "fantoken not found: %s", coin.Denom)
+	}
+
+	// Burn coins
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(coin)); err != nil {
+		return err
+	}
+
+	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, sdk.NewCoins(coin))
+}
+
+// SetAuthority transfers the authority of the specified fantoken to a new one
+func (k Keeper) SetAuthority(ctx sdk.Context, denom string, oldAuthority, newAuthority sdk.AccAddress) error {
+	if k.blockedAddrs[oldAuthority.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", oldAuthority.String())
+	}
+
+	if k.blockedAddrs[newAuthority.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", newAuthority.String())
+	}
+
+	if oldAuthority.Empty() {
+		return types.ErrInvalidAuthority
+	}
+
+	fantoken, err := k.getFanTokenByDenom(ctx, denom)
 	if err != nil {
 		return err
 	}
 
-	burnCoin := sdk.NewCoin(denom, amount)
-	burnCoins := sdk.NewCoins(burnCoin)
+	if oldAuthority.String() != fantoken.MetaData.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", oldAuthority, denom)
+	}
 
-	// burn coins
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, burnCoins); err != nil {
+	if fantoken.GetAuthority().String() == "" {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the metadata are immutable")
+	}
+
+	fantoken.MetaData.Authority = newAuthority.String()
+
+	if err := fantoken.Validate(); err != nil {
 		return err
 	}
 
-	k.AddBurnCoin(ctx, burnCoin)
+	// update fantoken
+	k.setFanToken(ctx, &fantoken)
 
-	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins)
+	// reset all indices
+	k.resetStoreKeyForQueryToken(ctx, fantoken.GetDenom(), oldAuthority, newAuthority)
+
+	return nil
+}
+
+// SetMinter transfers the minter of the specified fantoken to a new one
+func (k Keeper) SetMinter(ctx sdk.Context, denom string, oldMinter, newMinter sdk.AccAddress) error {
+	if k.blockedAddrs[oldMinter.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", oldMinter.String())
+	}
+
+	if k.blockedAddrs[newMinter.String()] {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", newMinter.String())
+	}
+
+	if oldMinter.Empty() {
+		return types.ErrInvalidMinter
+	}
+
+	// get the fantoken
+	fantoken, err := k.getFanTokenByDenom(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if oldMinter.String() != fantoken.Minter {
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the address %s is not the minter of the fantoken %s", oldMinter, denom)
+	}
+
+	if fantoken.Minter == "" {
+		return sdkerrors.Wrapf(types.ErrInvalidMinter, "the minting is disabled")
+	}
+
+	fantoken.Minter = newMinter.String()
+
+	if newMinter.String() == "" {
+		// at this point we can set the official supply
+		supply := k.getFanTokenSupply(ctx, fantoken.GetDenom())
+		fantoken.MaxSupply = supply
+	}
+
+	if err := fantoken.Validate(); err != nil {
+		return err
+	}
+
+	// update fantoken
+	k.setFanToken(ctx, &fantoken)
+
+	return nil
+}
+
+func (k Keeper) SetUri(ctx sdk.Context, denom, newUri string, authority sdk.AccAddress) error {
+	// get the fantoken
+	fantoken, err := k.getFanTokenByDenom(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if authority.Empty() {
+		return types.ErrInvalidAuthority
+	}
+
+	if authority.String() != fantoken.MetaData.Authority {
+		return sdkerrors.Wrapf(types.ErrInvalidAuthority, "the address %s is not the authority of the fantoken %s", authority, denom)
+	}
+
+	if err := types.ValidateUri(newUri); err != nil {
+		return err
+	}
+
+	fantoken.MetaData.URI = newUri
+
+	if err := fantoken.Validate(); err != nil {
+		return err
+	}
+
+	// update fantoken
+	k.setFanToken(ctx, &fantoken)
+
+	return nil
 }

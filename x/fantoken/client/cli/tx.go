@@ -2,7 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
+	"github.com/cosmos/cosmos-sdk/codec"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,43 +15,44 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/go-bitsong/types"
-	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// NewTxCmd returns the transaction commands for the token module.
+// NewTxCmd returns the transaction commands for the fantoken module.
 func NewTxCmd() *cobra.Command {
 	txCmd := &cobra.Command{
-		Use:                        tokentypes.ModuleName,
-		Short:                      "FanToken transaction subcommands",
+		Use:                        fantokentypes.ModuleName,
+		Short:                      "Fan Token transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
 	txCmd.AddCommand(
-		GetCmdIssueFanToken(),
-		GetCmdEditFanToken(),
-		GetCmdMintFanToken(),
-		GetCmdBurnFanToken(),
-		GetCmdTransferFanTokenOwner(),
+		GetCmdIssue(),
+		GetCmdMint(),
+		GetCmdBurn(),
+		GetCmdDisableMint(),
+		GetCmdSetAuthority(),
+		GetCmdSetMinter(),
+		GetCmdSetUri(),
+		// GetCmdUpdateFantokenFees(),
 	)
 
 	return txCmd
 }
 
-// GetCmdIssueFanToken implements the issue fan token command
-func GetCmdIssueFanToken() *cobra.Command {
+// GetCmdIssue implements the issue fantoken command
+func GetCmdIssue() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "issue",
-		Long: "Issue a new fantoken.",
+		Use:   "issue",
+		Short: "Issue a new fantoken.",
 		Example: fmt.Sprintf(
 			"$ %s tx fantoken issue "+
 				"--name=\"Kitty Token\" "+
 				"--symbol=\"kitty\" "+
 				"--max-supply=\"1000000000000\" "+
-				"--issue-fee=\"1000000ubtsg\" "+
-				"--description=\"Kitty Token\" "+
+				"--uri=\"ipfs://...\" "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -61,7 +64,7 @@ func GetCmdIssueFanToken() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress()
+			authority := clientCtx.GetFromAddress()
 			symbol, err := cmd.Flags().GetString(FlagSymbol)
 			if err != nil {
 				return err
@@ -78,29 +81,18 @@ func GetCmdIssueFanToken() *cobra.Command {
 			if !ok {
 				return fmt.Errorf("failed to parse max supply: %s", maxSupplyStr)
 			}
-			description, err := cmd.Flags().GetString(FlagDescription)
+			uri, err := cmd.Flags().GetString(FlagURI)
 			if err != nil {
-				return err
-			}
-			issueFeeStr, err := cmd.Flags().GetString(FlagIssueFee)
-			if err != nil {
-				return err
-			}
-			issueFee, err := sdk.ParseCoinNormalized(issueFeeStr)
-			if err != nil {
-				return fmt.Errorf("failed to parse issue fee: %s", issueFeeStr)
-			}
-			if issueFee.Denom != types.BondDenom {
-				return fmt.Errorf("the issue fee denom should be bond denom")
+				return fmt.Errorf("the uri field is invalid")
 			}
 
-			msg := &tokentypes.MsgIssueFanToken{
-				Symbol:      symbol,
-				Name:        name,
-				MaxSupply:   maxSupply,
-				Description: description,
-				Owner:       owner.String(),
-				IssueFee:    issueFee,
+			msg := &fantokentypes.MsgIssue{
+				Symbol:    symbol,
+				Name:      name,
+				MaxSupply: maxSupply,
+				Authority: authority.String(),
+				URI:       uri,
+				Minter:    authority.String(),
 			}
 
 			if err := msg.ValidateBasic(); err != nil {
@@ -111,24 +103,22 @@ func GetCmdIssueFanToken() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsIssueFanToken)
+	cmd.Flags().AddFlagSet(FsIssue)
 	_ = cmd.MarkFlagRequired(FlagSymbol)
 	_ = cmd.MarkFlagRequired(FlagName)
 	_ = cmd.MarkFlagRequired(FlagMaxSupply)
-	_ = cmd.MarkFlagRequired(FlagIssueFee)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-// GetCmdEditFanToken implements the edit fan token mintable command
-func GetCmdEditFanToken() *cobra.Command {
+// GetCmdDisableMint implements the edit fan token mintable command
+func GetCmdDisableMint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "edit [denom]",
-		Long: "Edit an existing fantoken.",
+		Use:   "disable-mint [denom]",
+		Short: "Disable Mint of an existing fantoken.",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken edit <denom> "+
-				"--mintable=true "+
+			"$ %s tx fantoken disable-mint <denom> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -141,18 +131,9 @@ func GetCmdEditFanToken() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			authority := clientCtx.GetFromAddress().String()
 
-			rawMintable, err := cmd.Flags().GetString(FlagMintable)
-			if err != nil {
-				return err
-			}
-			mintable, err := strconv.ParseBool(rawMintable)
-			if err != nil {
-				return err
-			}
-
-			msg := tokentypes.NewMsgEditFanToken(args[0], mintable, owner)
+			msg := fantokentypes.NewMsgDisableMint(args[0], authority)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -161,20 +142,19 @@ func GetCmdEditFanToken() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsEditFanToken)
+	cmd.Flags().AddFlagSet(FsDisableMint)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func GetCmdMintFanToken() *cobra.Command {
+func GetCmdMint() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "mint [denom]",
-		Long: "Mint fantokens to a specified address.",
+		Use:   "mint [amount][denom]",
+		Short: "Mint fan tokens to a specified address.",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken mint <denom> "+
+			"$ %s tx fantoken mint [amount][denom] "+
 				"--recipient=<recipient>"+
-				"--amount=<amount> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -187,31 +167,24 @@ func GetCmdMintFanToken() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			minter := clientCtx.GetFromAddress().String()
 
-			amountStr, err := cmd.Flags().GetString(FlagAmount)
+			rcpt, err := cmd.Flags().GetString(FlagRecipient)
 			if err != nil {
 				return err
 			}
-
-			amount, ok := sdk.NewIntFromString(amountStr)
-			if !ok {
-				return fmt.Errorf("invalid amount %s", amount)
-			}
-
-			addr, err := cmd.Flags().GetString(FlagRecipient)
-			if err != nil {
-				return err
-			}
-			if len(addr) > 0 {
-				if _, err = sdk.AccAddressFromBech32(addr); err != nil {
+			if rcpt != "" {
+				if _, err = sdk.AccAddressFromBech32(rcpt); err != nil {
 					return err
 				}
 			}
 
-			msg := tokentypes.NewMsgMintFanToken(
-				addr, strings.TrimSpace(args[0]), owner, amount,
-			)
+			coin, err := sdk.ParseCoinNormalized(strings.TrimSpace(args[0]))
+			if err != nil {
+				return err
+			}
+
+			msg := fantokentypes.NewMsgMint(rcpt, coin, minter)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -221,20 +194,19 @@ func GetCmdMintFanToken() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsMintFanToken)
+	cmd.Flags().AddFlagSet(FsMint)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-func GetCmdBurnFanToken() *cobra.Command {
+func GetCmdBurn() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "burn [denom]",
-		Long: "Burn fantoken.",
+		Use:   "burn [amount][denom]",
+		Short: "Burn fantoken.",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken burn <denom> "+
-				"--amount=<amount> "+
+			"$ %s tx fantoken burn [amount][denom] "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -249,29 +221,12 @@ func GetCmdBurnFanToken() *cobra.Command {
 
 			owner := clientCtx.GetFromAddress().String()
 
-			amountStr, err := cmd.Flags().GetString(FlagAmount)
+			coin, err := sdk.ParseCoinNormalized(strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
 			}
 
-			amount, ok := sdk.NewIntFromString(amountStr)
-			if !ok {
-				return fmt.Errorf("invalid amount %s", amount)
-			}
-
-			addr, err := cmd.Flags().GetString(FlagRecipient)
-			if err != nil {
-				return err
-			}
-			if len(addr) > 0 {
-				if _, err = sdk.AccAddressFromBech32(addr); err != nil {
-					return err
-				}
-			}
-
-			msg := tokentypes.NewMsgBurnFanToken(
-				strings.TrimSpace(args[0]), owner, amount,
-			)
+			msg := fantokentypes.NewMsgBurn(coin, owner)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -281,21 +236,19 @@ func GetCmdBurnFanToken() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsMintFanToken)
-	_ = cmd.MarkFlagRequired(FlagAmount)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }
 
-// GetCmdTransferFanTokenOwner implements the transfer fan token owner command
-func GetCmdTransferFanTokenOwner() *cobra.Command {
+// GetCmdSetAuthority implements the transfer fan token authority command
+func GetCmdSetAuthority() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "transfer [denom]",
-		Long: "Transfer the owner of a fantoken to a new owner.",
+		Use:   "set-authority [denom]",
+		Short: "Set the authority of a fan token to a new authority",
 		Example: fmt.Sprintf(
-			"$ %s tx fantoken transfer <denom> "+
-				"--recipient=<recipient> "+
+			"$ %s tx fantoken set-authority <denom> "+
+				"--new-authority=<new-authority> "+
 				"--from=<key-name> "+
 				"--chain-id=<chain-id> "+
 				"--fees=<fee>",
@@ -308,17 +261,17 @@ func GetCmdTransferFanTokenOwner() *cobra.Command {
 				return err
 			}
 
-			owner := clientCtx.GetFromAddress().String()
+			oldAuthority := clientCtx.GetFromAddress().String()
 
-			toAddr, err := cmd.Flags().GetString(FlagRecipient)
-			if err != nil {
-				return err
-			}
-			if _, err := sdk.AccAddressFromBech32(toAddr); err != nil {
-				return err
+			newAuthority, _ := cmd.Flags().GetString(FlagNewAuthority)
+
+			if len(strings.TrimSpace(newAuthority)) > 0 {
+				if _, err := sdk.AccAddressFromBech32(newAuthority); err != nil {
+					return err
+				}
 			}
 
-			msg := tokentypes.NewMsgTransferFanTokenOwner(strings.TrimSpace(args[0]), owner, toAddr)
+			msg := fantokentypes.NewMsgSetAuthority(strings.TrimSpace(args[0]), oldAuthority, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -328,9 +281,193 @@ func GetCmdTransferFanTokenOwner() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsTransferFanTokenOwner)
-	_ = cmd.MarkFlagRequired(FlagRecipient)
+	cmd.Flags().AddFlagSet(FsSetAuthority)
+	//_ = cmd.MarkFlagRequired(FlagNewAuthority)
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
+}
+
+// GetCmdSetMinter implements the transfer fan token authority command
+func GetCmdSetMinter() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-minter [denom]",
+		Short: "Set the minter of a fan token to a new minter",
+		Example: fmt.Sprintf(
+			"$ %s tx fantoken set-minter <denom> "+
+				"--new-minter=<new-minter> "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			oldMinter := clientCtx.GetFromAddress().String()
+
+			newMinter, err := cmd.Flags().GetString(FlagNewMinter)
+			if err != nil {
+				return err
+			}
+			if _, err := sdk.AccAddressFromBech32(newMinter); err != nil {
+				return err
+			}
+
+			msg := fantokentypes.NewMsgSetMinter(strings.TrimSpace(args[0]), oldMinter, newMinter)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsSetMinter)
+	_ = cmd.MarkFlagRequired(FlagNewMinter)
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdSetUri implements the transfer fan token authority command
+func GetCmdSetUri() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-uri [denom]",
+		Short: "Set the uri of the fantoken",
+		Example: fmt.Sprintf(
+			"$ %s tx fantoken set-uri <denom> "+
+				"--uri=<uri> "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			uri, err := cmd.Flags().GetString(FlagURI)
+			if err != nil {
+				return err
+			}
+
+			authority := clientCtx.GetFromAddress().String()
+
+			msg := fantokentypes.NewMsgSetUri(strings.TrimSpace(args[0]), uri, authority)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsSetUri)
+	_ = cmd.MarkFlagRequired(FlagURI)
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdUpdateFantokenFees() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-fantoken-fees [proposal-file]",
+		Short: "Submit an update fantoken fees proposal.",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Submit an update fantoken fees proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+Example:
+$ %s tx gov submit-proposal update-fantoken-fees <path/to/proposal.json> --from=<key_or_address>
+Where proposal.json contains:
+{
+  "title": "Update Fantoken Fees Proposal",
+  "description": "update the current fees",
+  "issue_fee": "1000000ubtsg",
+  "mint_fee": "1000000ubtsg",
+  "burn_fee": "1000000ubtsg",
+  "deposit": "500000000ubtsg"
+}
+`, version.AppName,
+			),
+		),
+		Example: fmt.Sprintf(
+			"$ %s tx gov submit-proposal update-fantoken-fees [proposal-file] "+
+				"--from=<key-name> "+
+				"--chain-id=<chain-id> "+
+				"--fees=<fee>",
+			version.AppName,
+		),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			proposal, err := parseUpdateFeesProposal(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			issueFee, err := sdk.ParseCoinNormalized(proposal.IssueFee)
+			if err != nil {
+				return err
+			}
+
+			mintFee, err := sdk.ParseCoinNormalized(proposal.MintFee)
+			if err != nil {
+				return err
+			}
+
+			burnFee, err := sdk.ParseCoinNormalized(proposal.BurnFee)
+			if err != nil {
+				return err
+			}
+
+			deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+			if err != nil {
+				return err
+			}
+
+			content := fantokentypes.NewUpdateFeesProposal(proposal.Title, proposal.Description, issueFee, mintFee, burnFee)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	return cmd
+}
+
+func parseUpdateFeesProposal(cdc codec.JSONCodec, proposalFile string) (fantokentypes.UpdateFeesProposalWithDeposit, error) {
+	proposal := fantokentypes.UpdateFeesProposalWithDeposit{}
+
+	contents, err := os.ReadFile(proposalFile)
+	if err != nil {
+		return proposal, err
+	}
+
+	if err = cdc.UnmarshalJSON(contents, &proposal); err != nil {
+		return proposal, err
+	}
+
+	return proposal, nil
 }

@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/types"
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,19 +12,25 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 // parameter keys
 var (
-	KeyIssuePrice = []byte("IssuePrice")
+	KeyIssueFee = []byte("IssueFee")
+	KeyMintFee  = []byte("MintFee")
+	KeyBurnFee  = []byte("BurnFee")
 )
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyIssuePrice, &p.IssuePrice, validateIssuePrice),
+		paramtypes.NewParamSetPair(KeyIssueFee, &p.IssueFee, validateFee),
+		paramtypes.NewParamSetPair(KeyMintFee, &p.MintFee, validateFee),
+		paramtypes.NewParamSetPair(KeyBurnFee, &p.BurnFee, validateFee),
 	}
 }
 
 // NewParams constructs a new Params instance
-func NewParams(issuePrice sdk.Coin) Params {
+func NewParams(issueFee, mintFee, burnFee, transferFee sdk.Coin) Params {
 	return Params{
-		IssuePrice: issuePrice,
+		IssueFee: issueFee,
+		MintFee:  mintFee,
+		BurnFee:  burnFee,
 	}
 }
 
@@ -37,7 +42,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssuePrice: sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
+		IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
+		MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
+		BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 	}
 }
 
@@ -47,22 +54,30 @@ func (p Params) String() string {
 	return string(out)
 }
 
-// ValidateParams validates the given params
-func ValidateParams(p Params) error {
-	if err := validateIssuePrice(p.IssuePrice); err != nil {
+// Validate validates the given params
+func (p Params) Validate() error {
+	if err := validateFee(p.IssueFee); err != nil {
+		return err
+	}
+
+	if err := validateFee(p.MintFee); err != nil {
+		return err
+	}
+
+	if err := validateFee(p.BurnFee); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validateIssuePrice(i interface{}) error {
+func validateFee(i interface{}) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v.IsNegative() {
-		return fmt.Errorf("issue price should not be negative")
+		return fmt.Errorf("fee should not be negative")
 	}
 	return nil
 }
