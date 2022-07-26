@@ -135,6 +135,44 @@ func (k Keeper) GetAllBidderMetadata(ctx sdk.Context) []types.BidderMetadata {
 	return biddermetadata
 }
 
+func (k Keeper) CalculateHigherBids(ctx sdk.Context, auctionId uint64, amount uint64, bidIndex uint64) uint64 {
+	auctionBids := k.GetBidsByAuction(ctx, auctionId)
+	higherBidsCount := uint64(0)
+	for _, bid := range auctionBids {
+		if bid.Amount > amount {
+			higherBidsCount++
+		} else if bid.Amount == amount && bid.Index < bidIndex {
+			higherBidsCount++
+		}
+	}
+	return higherBidsCount
+}
+
+func (k Keeper) IsWinnerBid(ctx sdk.Context, auction types.Auction, bid types.Bid) bool {
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if auction.Claimed > 0 {
+			return false
+		}
+		if auction.LastBidAmount == bid.Amount {
+			return true
+		}
+	case types.AuctionPrizeType_OpenEditionPrints:
+		return true
+	case types.AuctionPrizeType_LimitedEditionPrints:
+		if k.CalculateHigherBids(ctx, auction.Id, bid.Amount, bid.Index)+auction.Claimed < auction.EditionLimit {
+			return true
+		}
+	}
+	return false
+}
+
 func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 
 	// Verify auction is `Started` status
@@ -155,9 +193,30 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	if tickSize == 0 {
 		tickSize = 1
 	}
-	if sdk.NewInt(int64(auction.LastBidAmount+tickSize)).GT(msg.Amount.Amount) ||
-		msg.Amount.Amount.LT(sdk.NewInt(int64(auction.PriceFloor))) {
-		return types.ErrInvalidBidAmount
+
+	bids := k.GetBidsByAuction(ctx, msg.AuctionId)
+
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if sdk.NewInt(int64(auction.LastBidAmount+tickSize)).GT(msg.Amount.Amount) ||
+			msg.Amount.Amount.LT(sdk.NewInt(int64(auction.PriceFloor))) {
+			return types.ErrInvalidBidAmount
+		}
+	case types.AuctionPrizeType_LimitedEditionPrints:
+		if k.CalculateHigherBids(ctx, msg.AuctionId, msg.Amount.Amount.Uint64(), uint64(len(bids))) >= auction.EditionLimit {
+			return types.ErrHigherBidsExceedsEditionLimit
+		}
+		fallthrough
+	case types.AuctionPrizeType_OpenEditionPrints:
+		if msg.Amount.Amount.LT(sdk.NewInt(int64(auction.PriceFloor))) {
+			return types.ErrInvalidBidAmount
+		}
 	}
 
 	bidder, err := sdk.AccAddressFromBech32(msg.Sender)
@@ -175,6 +234,7 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 		AuctionId: msg.AuctionId,
 		Bidder:    msg.Sender,
 		Amount:    msg.Amount.Amount.Uint64(),
+		Index:     uint64(len(bids)),
 	})
 
 	// Transfer amount of token to bid account
@@ -198,13 +258,22 @@ func (k Keeper) PlaceBid(ctx sdk.Context, msg *types.MsgPlaceBid) error {
 	})
 
 	// If the amount exceeds `instant_sale_price`, end the auction
-	if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
-		err := k.EndAuction(ctx, &types.MsgEndAuction{
-			Sender:    auction.Authority,
-			AuctionId: auction.Id,
-		})
-		if err != nil {
-			return err
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if msg.Amount.Amount.GTE(sdk.NewInt(int64(auction.InstantSalePrice))) {
+			err := k.EndAuction(ctx, &types.MsgEndAuction{
+				Sender:    auction.Authority,
+				AuctionId: auction.Id,
+			})
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -235,8 +304,8 @@ func (k Keeper) CancelBid(ctx sdk.Context, msg *types.MsgCancelBid) error {
 		return err
 	}
 
-	// Refuse to cancel if the auction ended and this person is a winning account.
-	if auction.LastBidAmount == bid.Amount {
+	// Refuse to cancel if the auction ended and this account is a winning account.
+	if k.IsWinnerBid(ctx, auction, bid) {
 		return types.ErrCanNotCancelWinningBid
 	}
 
@@ -291,7 +360,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	}
 
 	// Ensure the sender is winner bidder
-	if auction.LastBidAmount != bid.Amount {
+	if !k.IsWinnerBid(ctx, auction, bid) {
 		return types.ErrNotWinningBid
 	}
 
@@ -329,26 +398,63 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		}
 	}
 
-	// Transfer ownership of NFT to bidder
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-	k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
-		Sender:   moduleAddr.String(),
-		Id:       auction.NftId,
-		NewOwner: bidder.String(),
-	})
-
-	// If auction type is for transferring metadata ownership as well, transfer metadata ownership as well
-	if auction.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_FullRightsTransfer:
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   moduleAddr.String(),
+			Id:       auction.NftId,
+			NewOwner: bidder.String(),
+		})
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: bidder.String(),
+		})
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		// Transfer ownership of NFT to bidder
+		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   moduleAddr.String(),
+			Id:       auction.NftId,
+			NewOwner: bidder.String(),
+		})
+	case types.AuctionPrizeType_OpenEditionPrints:
+		fallthrough
+	case types.AuctionPrizeType_LimitedEditionPrints:
+		_, err := k.nftKeeper.PrintEdition(ctx, &nfttypes.MsgPrintEdition{
+			Sender:     metadata.MintAuthority,
+			CollId:     nft.CollId,
+			MetadataId: nft.MetadataId,
+			Owner:      msg.Sender,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	// Update auction with claimed status
-	auction.Claimed = true
+	auction.Claimed++
 	k.SetAuction(ctx, auction)
+
+	// Remove bid from the storage
+	k.DeleteBid(ctx, bid)
 
 	// Emit event for claiming bid
 	ctx.EventManager().EmitTypedEvent(&types.EventClaimBid{

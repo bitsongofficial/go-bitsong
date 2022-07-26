@@ -14,7 +14,7 @@ message Auction {
     // authority with permission to modify this auction.
     string authority = 2;
     // NFT being used to bid
-    uint64 nft_id = 3;
+    string nft_id = 3;
     // Describes transfering nft ownership only or metadata ownership as well
     AuctionPrizeType prize_type = 4;
     // Duration of the auction
@@ -42,7 +42,9 @@ message Auction {
     google.protobuf.Timestamp end_auction_at = 14
         [ (gogoproto.stdtime) = true, (gogoproto.nullable) = false ];
     // Ticked to true when a prize is claimed by person who won it
-    bool claimed = 15;
+    uint64 claimed = 15;
+    // Edition limitation for limited edition auction
+    uint64 edition_limit = 16;
 }
 
 /// Define valid auction state transitions.
@@ -58,6 +60,7 @@ message Bid {
   string bidder = 1;
   uint64 auction_id = 2;
   uint64 amount = 3;
+  uint64 index = 4;
 }
 
 /// Models a set of metadata for a bidder, meant to be stored in a PDA. This allows looking up
@@ -80,8 +83,16 @@ message BidderMetadata {
 enum AuctionPrizeType {
     // Transfer ownership of only nft without metadata
     NFT_ONLY_TRANSFER = 0 [ (gogoproto.enumvalue_customname) = "NftOnlyTransfer" ];
-    // Transfer ownership of both nft and metadata
+    // Transfer ownership of both nft and metadata mint, update ownership
     FULL_RIGHTS_TRANSFER = 1 [ (gogoproto.enumvalue_customname) = "FullRightsTransfer" ];
+    // Transfer ownership of metadata
+    METADATA_AUTHORITY_TRANSFER = 2 [ (gogoproto.enumvalue_customname) = "MetadataAuthorityTransfer" ];
+    // Transfer ownership of mint
+    MINT_AUTHORITY_TRANSFER = 3 [ (gogoproto.enumvalue_customname) = "MintAuthorityTransfer" ];
+    // Printing a new child edition from limited supply
+    LIMITED_EDITION_PRINTS = 4 [ (gogoproto.enumvalue_customname) = "LimitedEditionPrints" ];
+    // Printing a new child edition from unlimited supply
+    OPEN_EDITION_PRINTS = 5 [ (gogoproto.enumvalue_customname) = "OpenEditionPrints" ];
 }
 
 // Params defines marketplace module's parameters

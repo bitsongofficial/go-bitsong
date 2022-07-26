@@ -44,15 +44,10 @@ func GetCmdQueryNFTInfo() *cobra.Command {
 				return err
 			}
 
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				return err
-			}
-
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.NFTInfo(context.Background(), &types.QueryNFTInfoRequest{
-				Id: uint64(id),
+				Id: args[0],
 			})
 
 			if err != nil {

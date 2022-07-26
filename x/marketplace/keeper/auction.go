@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -172,37 +173,84 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 	if err != nil {
 		return 0, err
 	}
-	if nft.Owner != msg.Sender {
-		return 0, nfttypes.ErrNotNFTOwner
+
+	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
+	switch msg.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		fallthrough
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if nft.Owner != msg.Sender {
+			return 0, nfttypes.ErrNotNFTOwner
+		}
+
+		// Send nft ownership to marketplace module
+		err = k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+			Sender:   msg.Sender,
+			Id:       msg.NftId,
+			NewOwner: moduleAddr.String(),
+		})
+		if err != nil {
+			return 0, err
+		}
 	}
 
-	// Send nft ownership to marketplace module
-	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-	err = k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
-		Sender:   msg.Sender,
-		Id:       msg.NftId,
-		NewOwner: moduleAddr.String(),
-	})
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
 	if err != nil {
 		return 0, err
 	}
 
-	// If auction is for transferring metadata ownership as well, metadata authority is transferred to marketplace module
-	if msg.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
-		metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
-		if err != nil {
-			return 0, err
+	if msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints ||
+		msg.PrizeType == types.AuctionPrizeType_OpenEditionPrints {
+		if metadata.MasterEdition == nil || metadata.MasterEdition.MaxSupply == 1 {
+			return 0, nfttypes.ErrNotMasterEditionNft
 		}
+	}
 
+	if msg.PrizeType == types.AuctionPrizeType_LimitedEditionPrints {
+		if metadata.MasterEdition.MaxSupply < metadata.MasterEdition.Supply+msg.EditionLimit {
+			return 0, types.ErrNotEnoughEditionsRemaining
+		}
+	}
+
+	// If auction needs metadata ownership as well, metadata authority is transferred to marketplace module
+	switch msg.PrizeType {
+	case types.AuctionPrizeType_FullRightsTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		// Ensure nft metadata is owned by the sender if auction prize type is `FullRightsTransfer`
-		if metadata.UpdateAuthority != msg.Sender {
+		if metadata.MetadataAuthority != msg.Sender {
 			return 0, nfttypes.ErrNotEnoughPermission
 		}
-		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+		err = k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       msg.Sender,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: moduleAddr.String(),
 		})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	switch msg.PrizeType {
+	case types.AuctionPrizeType_FullRightsTransfer:
+		fallthrough
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		fallthrough
+	case types.AuctionPrizeType_LimitedEditionPrints:
+		fallthrough
+	case types.AuctionPrizeType_OpenEditionPrints:
+		// Ensure nft mint permission is owned by the sender if auction prize type is `PrintAuction`
+		if metadata.MintAuthority != msg.Sender {
+			return 0, nfttypes.ErrNotEnoughPermission
+		}
+		err = k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       msg.Sender,
+			MetadataId:   nft.MetadataId,
+			NewAuthority: moduleAddr.String(),
+		})
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	// Create auction object from provided params
@@ -223,7 +271,8 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		LastBid:          time.Time{},
 		EndedAt:          time.Time{},
 		EndAuctionAt:     time.Time{},
-		Claimed:          false,
+		Claimed:          0,
+		EditionLimit:     msg.EditionLimit,
 	}
 	k.SetAuction(ctx, auction)
 
@@ -291,25 +340,78 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 	k.SetAuction(ctx, auction)
 
 	// If winning bid does not exists, send nft and metadata ownership back to auction authority
-	if auction.LastBidAmount == 0 {
-		moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-		k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
-			Sender:   moduleAddr.String(),
-			Id:       auction.NftId,
-			NewOwner: auction.Authority,
-		})
-		if auction.PrizeType == types.AuctionPrizeType_FullRightsTransfer {
-			nft, err := k.nftKeeper.GetNFTById(ctx, auction.NftId)
-			if err != nil {
-				return err
-			}
+	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
+	nft, err := k.nftKeeper.GetNFTById(ctx, auction.NftId)
+	if err != nil {
+		return err
+	}
 
+	bids := k.GetBidsByAuction(ctx, msg.AuctionId)
+	// process module owned items
+	switch auction.PrizeType {
+	case types.AuctionPrizeType_NftOnlyTransfer:
+		if auction.LastBidAmount == 0 {
+			k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+				Sender:   moduleAddr.String(),
+				Id:       auction.NftId,
+				NewOwner: auction.Authority,
+			})
+		}
+	case types.AuctionPrizeType_FullRightsTransfer:
+		if auction.LastBidAmount == 0 {
+			k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
+				Sender:   moduleAddr.String(),
+				Id:       auction.NftId,
+				NewOwner: auction.Authority,
+			})
+			k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
+				Sender:       moduleAddr.String(),
+				MetadataId:   nft.MetadataId,
+				NewAuthority: auction.Authority,
+			})
+			k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+				Sender:       moduleAddr.String(),
+				MetadataId:   nft.MetadataId,
+				NewAuthority: auction.Authority,
+			})
+		}
+	case types.AuctionPrizeType_MetadataAuthorityTransfer:
+		if auction.LastBidAmount == 0 {
 			k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 				Sender:       moduleAddr.String(),
 				MetadataId:   nft.MetadataId,
 				NewAuthority: auction.Authority,
 			})
 		}
+	case types.AuctionPrizeType_MintAuthorityTransfer:
+		if auction.LastBidAmount == 0 {
+			k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+				Sender:       moduleAddr.String(),
+				MetadataId:   nft.MetadataId,
+				NewAuthority: auction.Authority,
+			})
+		}
+	case types.AuctionPrizeType_LimitedEditionPrints:
+		fallthrough
+	case types.AuctionPrizeType_OpenEditionPrints:
+		for _, bid := range bids {
+			cacheCtx, write := ctx.CacheContext()
+			err := k.ClaimBid(cacheCtx, &types.MsgClaimBid{
+				Sender:    bid.Bidder,
+				AuctionId: bid.AuctionId,
+			})
+			if err == nil {
+				write()
+			} else {
+				fmt.Println(err)
+			}
+		}
+		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
+			Sender:       moduleAddr.String(),
+			MetadataId:   nft.MetadataId,
+			NewAuthority: auction.Authority,
+		})
+	default:
 	}
 
 	// Emit event for auction end

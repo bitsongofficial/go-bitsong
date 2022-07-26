@@ -18,18 +18,20 @@ const (
 
 	FlagAuctionState = "state"
 	FlagAuthority    = "authority"
+	FlagEditionLimit = "edition-limit"
 )
 
 func FlagCreateAuction() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.Uint64(FlagNftId, 0, "Id of the nft to put on auction")
-	fs.String(FlagPrizeType, "", "Type of prize, NFT_ONLY_TRANSFER | FULL_RIGHTS_TRANSFER")
+	fs.String(FlagNftId, "", "Id of the nft to put on auction")
+	fs.String(FlagPrizeType, "", "Type of prize, NFT_ONLY_TRANSFER | FULL_RIGHTS_TRANSFER | LIMITED_EDITION_PRINTS | OPEN_EDITION_PRINTS")
 	fs.String(FlagBidDenom, "", "Denom to be used for bidding on the auction")
 	fs.Duration(FlagDuration, 0, "Duration of the auction")
 	fs.Uint64(FlagPriceFloor, 0, "Minimum price of the nft.")
 	fs.Uint64(FlagInstantSalePrice, 0, "Instant sale price of the nft.")
 	fs.Uint64(FlagTickSize, 0, "Tick size to be increased at least for new bid.")
+	fs.Uint64(FlagEditionLimit, 0, "Edition limit for printing: valid for LIMITED_EDITION_PRINTS auction")
 
 	return fs
 }

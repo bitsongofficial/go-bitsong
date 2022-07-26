@@ -53,7 +53,7 @@ func (k Keeper) NFTsByOwner(c context.Context, req *types.QueryNFTsByOwnerReques
 
 	metadata := []types.Metadata{}
 	for _, nft := range nfts {
-		meta, err := k.GetMetadataById(ctx, nft.Id)
+		meta, err := k.GetMetadataById(ctx, nft.MetadataId)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (k Keeper) Collection(c context.Context, req *types.QueryCollectionRequest)
 		return nil, err
 	}
 
-	nftIds := k.GetCollectionNftRecords(ctx, req.Id)
+	nftIds := k.GetCollectionNftIds(ctx, req.Id)
 	return &types.QueryCollectionResponse{
 		Collection: collection,
 		NftIds:     nftIds,

@@ -22,12 +22,27 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*types.MsgCreateNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	collection, err := m.Keeper.GetCollectionById(ctx, msg.CollId)
+	if err != nil {
+		return nil, err
+	}
+
+	if collection.UpdateAuthority != msg.Sender {
+		return nil, types.ErrNotEnoughPermission
+	}
+
 	// create metadata
 	metadataId := m.Keeper.GetLastMetadataId(ctx) + 1
 	m.Keeper.SetLastMetadataId(ctx, metadataId)
 	msg.Metadata.Id = metadataId
-	for index := range msg.Metadata.Data.Creators {
-		msg.Metadata.Data.Creators[index].Verified = false
+	for index := range msg.Metadata.Creators {
+		msg.Metadata.Creators[index].Verified = false
+	}
+	if msg.Metadata.MasterEdition != nil {
+		msg.Metadata.MasterEdition.Supply = 1
+		if msg.Metadata.MasterEdition.MaxSupply < 1 {
+			msg.Metadata.MasterEdition.MaxSupply = 1
+		}
 	}
 	m.Keeper.SetMetadata(ctx, msg.Metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataCreation{
@@ -36,40 +51,45 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 	})
 
 	// burn fees before minting an nft
-	fee := m.GetParamSet(ctx).IssuePrice
-	if fee.IsPositive() {
-		feeCoins := sdk.Coins{fee}
-		sender, err := sdk.AccAddressFromBech32(msg.Sender)
-		if err != nil {
-			return nil, err
-		}
-		err = m.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, feeCoins)
-		if err != nil {
-			return nil, err
-		}
-		err = m.bankKeeper.BurnCoins(ctx, types.ModuleName, feeCoins)
-		if err != nil {
-			return nil, err
-		}
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return nil, err
+	}
+	err = m.Keeper.PayNftIssueFee(ctx, sender)
+	if err != nil {
+		return nil, err
 	}
 
 	// create nft
-	nftId := m.Keeper.GetLastNftId(ctx) + 1
-	m.Keeper.SetLastNftId(ctx, nftId)
 	nft := types.NFT{
-		Id:         nftId,
 		Owner:      msg.Sender,
+		CollId:     msg.CollId,
 		MetadataId: metadataId,
+		Seq:        0,
 	}
 	m.Keeper.SetNFT(ctx, nft)
 	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
 		Creator: msg.Sender,
-		NftId:   nftId,
+		NftId:   nft.Id(),
 	})
 
 	return &types.MsgCreateNFTResponse{
-		Id:         nftId,
+		Id:         nft.Id(),
 		MetadataId: metadataId,
+	}, nil
+}
+
+func (m msgServer) PrintEdition(goCtx context.Context, msg *types.MsgPrintEdition) (*types.MsgPrintEditionResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	nftId, err := m.Keeper.PrintEdition(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgPrintEditionResponse{
+		Id:         nftId,
+		MetadataId: msg.MetadataId,
 	}, nil
 }
 
@@ -93,9 +113,9 @@ func (m msgServer) SignMetadata(goCtx context.Context, msg *types.MsgSignMetadat
 	}
 
 	isCreator := false
-	for index, creator := range metadata.Data.Creators {
+	for index, creator := range metadata.Creators {
 		if creator.Address == msg.Sender {
-			metadata.Data.Creators[index].Verified = true
+			metadata.Creators[index].Verified = true
 			isCreator = true
 		}
 	}
@@ -125,13 +145,17 @@ func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMet
 		return nil, types.ErrMetadataImmutable
 	}
 
-	if metadata.UpdateAuthority != msg.Sender {
+	if metadata.MetadataAuthority != msg.Sender {
 		return nil, types.ErrNotEnoughPermission
 	}
 
-	metadata.Data = msg.Data
-	for index := range metadata.Data.Creators {
-		metadata.Data.Creators[index].Verified = false
+	metadata.Name = msg.Name
+	metadata.Uri = msg.Uri
+	metadata.SellerFeeBasisPoints = msg.SellerFeeBasisPoints
+	metadata.Creators = msg.Creators
+
+	for index := range metadata.Creators {
+		metadata.Creators[index].Verified = false
 	}
 	m.Keeper.SetMetadata(ctx, metadata)
 	ctx.EventManager().EmitTypedEvent(&types.EventMetadataUpdate{
@@ -152,6 +176,16 @@ func (m msgServer) UpdateMetadataAuthority(goCtx context.Context, msg *types.Msg
 	return &types.MsgUpdateMetadataAuthorityResponse{}, nil
 }
 
+func (m msgServer) UpdateMintAuthority(goCtx context.Context, msg *types.MsgUpdateMintAuthority) (*types.MsgUpdateMintAuthorityResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	err := m.Keeper.UpdateMintAuthority(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateMintAuthorityResponse{}, nil
+}
+
 func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateCollection) (*types.MsgCreateCollectionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -160,8 +194,10 @@ func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateC
 
 	collection := types.Collection{
 		Id:              collectionId,
+		Symbol:          msg.Symbol,
 		Name:            msg.Name,
 		Uri:             msg.Uri,
+		IsMutable:       msg.IsMutable,
 		UpdateAuthority: msg.UpdateAuthority,
 	}
 	m.Keeper.SetCollection(ctx, collection)
@@ -173,61 +209,6 @@ func (m msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateC
 	return &types.MsgCreateCollectionResponse{
 		Id: collectionId,
 	}, nil
-}
-
-func (m msgServer) VerifyCollection(goCtx context.Context, msg *types.MsgVerifyCollection) (*types.MsgVerifyCollectionResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	collection, err := m.Keeper.GetCollectionById(ctx, msg.CollectionId)
-	if err != nil {
-		return nil, err
-	}
-	if collection.UpdateAuthority != msg.Sender {
-		return nil, types.ErrNotEnoughPermission
-	}
-	if m.Keeper.GetLastCollectionId(ctx) < msg.CollectionId {
-		return nil, types.ErrCollectionDoesNotExist
-	}
-	if m.Keeper.GetLastNftId(ctx) < msg.NftId {
-		return nil, types.ErrNFTDoesNotExist
-	}
-
-	m.Keeper.SetCollectionNftRecord(ctx, msg.CollectionId, msg.NftId)
-	ctx.EventManager().EmitTypedEvent(&types.EventCollectionVerification{
-		Verifier:     msg.Sender,
-		CollectionId: msg.CollectionId,
-		NftId:        msg.NftId,
-	})
-
-	return &types.MsgVerifyCollectionResponse{}, nil
-}
-
-func (m msgServer) UnverifyCollection(goCtx context.Context, msg *types.MsgUnverifyCollection) (*types.MsgUnverifyCollectionResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	collection, err := m.Keeper.GetCollectionById(ctx, msg.CollectionId)
-	if err != nil {
-		return nil, err
-	}
-	if collection.UpdateAuthority != msg.Sender {
-		return nil, types.ErrNotEnoughPermission
-	}
-
-	if m.Keeper.GetLastCollectionId(ctx) < msg.CollectionId {
-		return nil, types.ErrCollectionDoesNotExist
-	}
-	if m.Keeper.GetLastNftId(ctx) < msg.NftId {
-		return nil, types.ErrNFTDoesNotExist
-	}
-
-	m.Keeper.DeleteCollectionNftRecord(ctx, msg.CollectionId, msg.NftId)
-	ctx.EventManager().EmitTypedEvent(&types.EventCollectionUnverification{
-		Verifier:     msg.Sender,
-		CollectionId: msg.CollectionId,
-		NftId:        msg.NftId,
-	})
-
-	return &types.MsgUnverifyCollectionResponse{}, nil
 }
 
 func (m msgServer) UpdateCollectionAuthority(goCtx context.Context, msg *types.MsgUpdateCollectionAuthority) (*types.MsgUpdateCollectionAuthorityResponse, error) {

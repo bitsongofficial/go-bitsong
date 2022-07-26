@@ -16,6 +16,7 @@ func CreateNFT(clientCtx client.Context, from string, bondDenom string) (testuti
 	cmd := nftcli.GetCmdCreateNFT()
 
 	return clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("--%s=%d", nftcli.FlagCollectionId, 1),
 		fmt.Sprintf("--%s=%s", nftcli.FlagName, "Punk10"),
 		fmt.Sprintf("--%s=%s", nftcli.FlagSymbol, "PUNK"),
 		fmt.Sprintf("--%s=%s", nftcli.FlagUri, "https://punk.com/10"),
