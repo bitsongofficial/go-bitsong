@@ -22,7 +22,7 @@ type KeeperTestSuite struct {
 
 	legacyAmino *codec.LegacyAmino
 	ctx         sdk.Context
-	app         *simapp.Bitsong
+	app         *simapp.BitsongApp
 }
 
 func (suite *KeeperTestSuite) SetupTest() {

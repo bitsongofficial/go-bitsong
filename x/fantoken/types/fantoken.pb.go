@@ -5,9 +5,8 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-sdk/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/cosmos/cosmos-sdk/x/bank/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -26,19 +25,65 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type Metadata struct {
+	// name defines the name of the fantoken (eg: Kitty Punk)
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// symbol is the token symbol usually shown on exchanges (eg: KITTY)
+	Symbol string `protobuf:"bytes,2,opt,name=symbol,proto3" json:"symbol,omitempty"`
+	// URI to a document (on or off-chain) that contains additional
+	// information.Optional.
+	URI string `protobuf:"bytes,3,opt,name=uri,proto3" json:"uri,omitempty"`
+	// sdk.AccAddress allowed to set a new uri
+	Authority string `protobuf:"bytes,4,opt,name=authority,proto3" json:"authority,omitempty"`
+}
+
+func (m *Metadata) Reset()         { *m = Metadata{} }
+func (m *Metadata) String() string { return proto.CompactTextString(m) }
+func (*Metadata) ProtoMessage()    {}
+func (*Metadata) Descriptor() ([]byte, []int) {
+	return fileDescriptor_af4dfaf3dfee0855, []int{0}
+}
+func (m *Metadata) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Metadata) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Metadata.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Metadata) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Metadata.Merge(m, src)
+}
+func (m *Metadata) XXX_Size() int {
+	return m.Size()
+}
+func (m *Metadata) XXX_DiscardUnknown() {
+	xxx_messageInfo_Metadata.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Metadata proto.InternalMessageInfo
+
 // FanToken defines a standard for the fungible token
 type FanToken struct {
-	Name      string                                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// denom represents the string name of the given denom unit (e.g ft<hash>).
+	Denom     string                                 `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
 	MaxSupply github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=max_supply,json=maxSupply,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"max_supply" yaml:"max_supply"`
-	Mintable  bool                                   `protobuf:"varint,3,opt,name=mintable,proto3" json:"mintable,omitempty"`
-	Owner     string                                 `protobuf:"bytes,4,opt,name=owner,proto3" json:"owner,omitempty"`
-	MetaData  types.Metadata                         `protobuf:"bytes,5,opt,name=meta_data,json=metaData,proto3" json:"meta_data" yaml:"meta_data"`
+	// sdk.AccAddress allowed to mint new fantoken
+	Minter   string   `protobuf:"bytes,3,opt,name=minter,proto3" json:"minter,omitempty"`
+	MetaData Metadata `protobuf:"bytes,4,opt,name=meta_data,json=metaData,proto3" json:"meta_data" yaml:"meta_data"`
 }
 
 func (m *FanToken) Reset()      { *m = FanToken{} }
 func (*FanToken) ProtoMessage() {}
 func (*FanToken) Descriptor() ([]byte, []int) {
-	return fileDescriptor_af4dfaf3dfee0855, []int{0}
+	return fileDescriptor_af4dfaf3dfee0855, []int{1}
 }
 func (m *FanToken) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -67,46 +112,9 @@ func (m *FanToken) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_FanToken proto.InternalMessageInfo
 
-// Params defines fantoken module's parameters
-type Params struct {
-	IssuePrice types1.Coin `protobuf:"bytes,1,opt,name=issue_price,json=issuePrice,proto3" json:"issue_price" yaml:"issue_price"`
-}
-
-func (m *Params) Reset()      { *m = Params{} }
-func (*Params) ProtoMessage() {}
-func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_af4dfaf3dfee0855, []int{1}
-}
-func (m *Params) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Params.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Params) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Params.Merge(m, src)
-}
-func (m *Params) XXX_Size() int {
-	return m.Size()
-}
-func (m *Params) XXX_DiscardUnknown() {
-	xxx_messageInfo_Params.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Params proto.InternalMessageInfo
-
 func init() {
+	proto.RegisterType((*Metadata)(nil), "bitsong.fantoken.v1beta1.Metadata")
 	proto.RegisterType((*FanToken)(nil), "bitsong.fantoken.v1beta1.FanToken")
-	proto.RegisterType((*Params)(nil), "bitsong.fantoken.v1beta1.Params")
 }
 
 func init() {
@@ -114,60 +122,86 @@ func init() {
 }
 
 var fileDescriptor_af4dfaf3dfee0855 = []byte{
-	// 432 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x92, 0xbf, 0x6f, 0xd3, 0x40,
-	0x14, 0xc7, 0xed, 0xd2, 0x56, 0xce, 0x65, 0x81, 0x53, 0x07, 0x13, 0x89, 0x73, 0xe4, 0x01, 0xb2,
-	0xd4, 0x56, 0x8b, 0xc4, 0x90, 0x31, 0x45, 0x48, 0x0c, 0x48, 0x95, 0x89, 0x18, 0x58, 0xa2, 0x67,
-	0xf7, 0x62, 0x8e, 0xe4, 0xee, 0xac, 0xdc, 0x05, 0x92, 0xff, 0x80, 0x91, 0x81, 0x81, 0x31, 0x7f,
-	0x4e, 0xc6, 0x8e, 0x88, 0x21, 0x82, 0x64, 0x61, 0xee, 0x5f, 0x80, 0xee, 0x7c, 0x71, 0x32, 0xf9,
-	0xfb, 0x7d, 0x3f, 0xfc, 0x79, 0x7e, 0x7e, 0xe8, 0x45, 0xce, 0xb4, 0x92, 0xa2, 0x4c, 0xc7, 0x20,
-	0xb4, 0x9c, 0x50, 0x91, 0x7e, 0xb9, 0xca, 0xa9, 0x86, 0xab, 0x26, 0x90, 0x54, 0x33, 0xa9, 0x25,
-	0x0e, 0x5d, 0x61, 0xd2, 0xc4, 0x5d, 0x61, 0x87, 0x14, 0x52, 0x71, 0xa9, 0xd2, 0x1c, 0x14, 0x6d,
-	0xba, 0x0b, 0xc9, 0x5c, 0xe7, 0x51, 0x5e, 0x4c, 0x9a, 0xbc, 0x31, 0x2e, 0x7f, 0x51, 0xca, 0x52,
-	0x5a, 0x99, 0x1a, 0x55, 0x47, 0xe3, 0x1f, 0x27, 0x28, 0x78, 0x03, 0x62, 0x68, 0x50, 0x18, 0xa3,
-	0x53, 0x01, 0x9c, 0x86, 0x7e, 0xd7, 0xef, 0xb5, 0x32, 0xab, 0x71, 0x8e, 0x10, 0x87, 0xc5, 0x48,
-	0xcd, 0xab, 0x6a, 0xba, 0x0c, 0x4f, 0x4c, 0x66, 0x70, 0xb3, 0xde, 0x44, 0xde, 0xef, 0x4d, 0xf4,
-	0xbc, 0x64, 0xfa, 0xd3, 0x3c, 0x4f, 0x0a, 0xc9, 0x53, 0x47, 0xaf, 0x1f, 0x97, 0xea, 0x6e, 0x92,
-	0xea, 0x65, 0x45, 0x55, 0xf2, 0x56, 0xe8, 0x87, 0x4d, 0xf4, 0x64, 0x09, 0x7c, 0xda, 0x8f, 0x0f,
-	0x6f, 0x8a, 0xb3, 0x16, 0x87, 0xc5, 0x7b, 0xab, 0x71, 0x07, 0x05, 0x9c, 0x09, 0x0d, 0xf9, 0x94,
-	0x86, 0x8f, 0xba, 0x7e, 0x2f, 0xc8, 0x1a, 0x8f, 0x2f, 0xd0, 0x99, 0xfc, 0x2a, 0xe8, 0x2c, 0x3c,
-	0xb5, 0x43, 0xd5, 0x06, 0x0f, 0x51, 0x8b, 0x53, 0x0d, 0xa3, 0x3b, 0xd0, 0x10, 0x9e, 0x75, 0xfd,
-	0x5e, 0xfb, 0xfa, 0x59, 0x52, 0xb3, 0x13, 0xfb, 0xcd, 0x6e, 0x01, 0xc9, 0x3b, 0xaa, 0xc1, 0x14,
-	0x0d, 0x42, 0x33, 0xf3, 0xc3, 0x26, 0x7a, 0xec, 0x26, 0xd9, 0x77, 0xc7, 0x59, 0x60, 0xf4, 0x6b,
-	0xd0, 0xd0, 0x0f, 0xbe, 0xad, 0x22, 0xef, 0xe7, 0x2a, 0xf2, 0xe2, 0xcf, 0xe8, 0xfc, 0x16, 0x66,
-	0xc0, 0x15, 0xfe, 0x80, 0xda, 0x4c, 0xa9, 0x39, 0x1d, 0x55, 0x33, 0x56, 0xd4, 0xab, 0x69, 0x5f,
-	0x3f, 0x3d, 0xb0, 0x14, 0x6d, 0x58, 0x37, 0x92, 0x89, 0x41, 0xc7, 0x71, 0x70, 0xcd, 0x39, 0xea,
-	0x8d, 0x33, 0x64, 0xdd, 0xad, 0x31, 0xfd, 0xc0, 0x70, 0xfe, 0xad, 0x22, 0x7f, 0x30, 0x5c, 0xff,
-	0x25, 0xde, 0x7a, 0x4b, 0xfc, 0xfb, 0x2d, 0xf1, 0xff, 0x6c, 0x89, 0xff, 0x7d, 0x47, 0xbc, 0xfb,
-	0x1d, 0xf1, 0x7e, 0xed, 0x88, 0xf7, 0xf1, 0xd5, 0xd1, 0x8e, 0xdd, 0x6d, 0xc8, 0xf1, 0x98, 0x15,
-	0x0c, 0xa6, 0x69, 0x29, 0x2f, 0xf7, 0x77, 0xb5, 0x38, 0x5c, 0x96, 0xdd, 0x7b, 0x7e, 0x6e, 0xff,
-	0xef, 0xcb, 0xff, 0x01, 0x00, 0x00, 0xff, 0xff, 0x19, 0x5d, 0x7d, 0x34, 0x7a, 0x02, 0x00, 0x00,
+	// 407 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x52, 0xb1, 0x6e, 0xd4, 0x40,
+	0x10, 0xb5, 0x73, 0x21, 0xdc, 0x2d, 0x0d, 0xac, 0x22, 0x64, 0x22, 0xb4, 0x46, 0x2e, 0x80, 0x26,
+	0xb6, 0x02, 0x12, 0x45, 0xca, 0x03, 0x21, 0xa5, 0xa0, 0x31, 0xa1, 0x80, 0x26, 0x1a, 0xdf, 0xed,
+	0x39, 0xab, 0xdc, 0xee, 0x9c, 0xbc, 0x6b, 0x74, 0x2e, 0xe9, 0x28, 0x29, 0x29, 0xf3, 0x39, 0x57,
+	0xa6, 0x44, 0x14, 0x16, 0xf8, 0xfe, 0x20, 0x5f, 0x80, 0x76, 0xbd, 0x77, 0x47, 0x93, 0x6a, 0xdf,
+	0x3c, 0xcd, 0xcc, 0x9b, 0x37, 0x3b, 0xe4, 0x45, 0x21, 0x8c, 0x46, 0x55, 0x66, 0x33, 0x50, 0x06,
+	0xaf, 0xb8, 0xca, 0xbe, 0x9e, 0x14, 0xdc, 0xc0, 0xc9, 0x96, 0x48, 0x17, 0x15, 0x1a, 0xa4, 0x91,
+	0x4f, 0x4c, 0xb7, 0xbc, 0x4f, 0x3c, 0x62, 0x13, 0xd4, 0x12, 0x75, 0x56, 0x80, 0xe6, 0xdb, 0xea,
+	0x09, 0x0a, 0x5f, 0x79, 0x74, 0x58, 0x62, 0x89, 0x0e, 0x66, 0x16, 0xf5, 0x6c, 0x82, 0x64, 0xf8,
+	0x81, 0x1b, 0x98, 0x82, 0x01, 0x4a, 0xc9, 0xbe, 0x02, 0xc9, 0xa3, 0xf0, 0x59, 0xf8, 0x72, 0x94,
+	0x3b, 0x4c, 0x1f, 0x93, 0x03, 0xdd, 0xc8, 0x02, 0xe7, 0xd1, 0x9e, 0x63, 0x7d, 0x44, 0x9f, 0x90,
+	0x41, 0x5d, 0x89, 0x68, 0x60, 0xc9, 0xf1, 0xfd, 0xae, 0x8d, 0x07, 0x9f, 0xf2, 0xb3, 0xdc, 0x72,
+	0xf4, 0x29, 0x19, 0x41, 0x6d, 0x2e, 0xb1, 0x12, 0xa6, 0x89, 0xf6, 0x5d, 0xd5, 0x8e, 0x48, 0xbe,
+	0xed, 0x91, 0xe1, 0x7b, 0x50, 0xe7, 0x76, 0x76, 0x7a, 0x48, 0xee, 0x4d, 0xb9, 0x42, 0xe9, 0x25,
+	0xfb, 0x80, 0x16, 0x84, 0x48, 0x58, 0x5e, 0xe8, 0x7a, 0xb1, 0x98, 0x37, 0xbd, 0xee, 0xf8, 0xed,
+	0xaa, 0x8d, 0x83, 0xdf, 0x6d, 0xfc, 0xbc, 0x14, 0xe6, 0xb2, 0x2e, 0xd2, 0x09, 0xca, 0xcc, 0x1b,
+	0xee, 0x9f, 0x63, 0x3d, 0xbd, 0xca, 0x4c, 0xb3, 0xe0, 0x3a, 0x3d, 0x53, 0xe6, 0xb6, 0x8d, 0x1f,
+	0x35, 0x20, 0xe7, 0xa7, 0xc9, 0xae, 0x53, 0x92, 0x8f, 0x24, 0x2c, 0x3f, 0x3a, 0x6c, 0x7d, 0x49,
+	0xa1, 0x0c, 0xaf, 0x7a, 0x0b, 0xb9, 0x8f, 0xe8, 0x67, 0x32, 0x92, 0xdc, 0xc0, 0x85, 0x5d, 0x88,
+	0x1b, 0xfe, 0xc1, 0xab, 0x24, 0xbd, 0x6b, 0xe7, 0xe9, 0x66, 0x75, 0xe3, 0xc8, 0x8e, 0x77, 0xdb,
+	0xc6, 0x0f, 0xbd, 0xe8, 0xa6, 0x45, 0x92, 0x0f, 0x2d, 0x7e, 0x07, 0x06, 0x4e, 0x87, 0xdf, 0xaf,
+	0xe3, 0xe0, 0xe7, 0x75, 0x1c, 0x8c, 0xcf, 0x57, 0x7f, 0x59, 0xb0, 0xea, 0x58, 0x78, 0xd3, 0xb1,
+	0xf0, 0x4f, 0xc7, 0xc2, 0x1f, 0x6b, 0x16, 0xdc, 0xac, 0x59, 0xf0, 0x6b, 0xcd, 0x82, 0x2f, 0x6f,
+	0xfe, 0xb3, 0xe8, 0x95, 0x71, 0x36, 0x13, 0x13, 0x01, 0xf3, 0xac, 0xc4, 0xe3, 0xcd, 0xa5, 0x2c,
+	0x77, 0xb7, 0xe2, 0x6c, 0x17, 0x07, 0xee, 0x47, 0x5f, 0xff, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x08,
+	0x4f, 0x41, 0xe8, 0x4c, 0x02, 0x00, 0x00,
 }
 
-func (this *Params) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
+func (m *Metadata) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
 	}
-
-	that1, ok := that.(*Params)
-	if !ok {
-		that2, ok := that.(Params)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.IssuePrice.Equal(&that1.IssuePrice) {
-		return false
-	}
-	return true
+	return dAtA[:n], nil
 }
+
+func (m *Metadata) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Metadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.URI) > 0 {
+		i -= len(m.URI)
+		copy(dAtA[i:], m.URI)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.URI)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Symbol) > 0 {
+		i -= len(m.Symbol)
+		copy(dAtA[i:], m.Symbol)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Symbol)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *FanToken) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -197,23 +231,13 @@ func (m *FanToken) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintFantoken(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x2a
-	if len(m.Owner) > 0 {
-		i -= len(m.Owner)
-		copy(dAtA[i:], m.Owner)
-		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Owner)))
+	dAtA[i] = 0x22
+	if len(m.Minter) > 0 {
+		i -= len(m.Minter)
+		copy(dAtA[i:], m.Minter)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Minter)))
 		i--
-		dAtA[i] = 0x22
-	}
-	if m.Mintable {
-		i--
-		if m.Mintable {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x1a
 	}
 	{
 		size := m.MaxSupply.Size()
@@ -225,46 +249,13 @@ func (m *FanToken) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	if len(m.Name) > 0 {
-		i -= len(m.Name)
-		copy(dAtA[i:], m.Name)
-		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Name)))
+	if len(m.Denom) > 0 {
+		i -= len(m.Denom)
+		copy(dAtA[i:], m.Denom)
+		i = encodeVarintFantoken(dAtA, i, uint64(len(m.Denom)))
 		i--
 		dAtA[i] = 0xa
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Params) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Params) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.IssuePrice.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintFantoken(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -279,7 +270,7 @@ func encodeVarintFantoken(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *FanToken) Size() (n int) {
+func (m *Metadata) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -289,27 +280,38 @@ func (m *FanToken) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFantoken(uint64(l))
 	}
-	l = m.MaxSupply.Size()
-	n += 1 + l + sovFantoken(uint64(l))
-	if m.Mintable {
-		n += 2
-	}
-	l = len(m.Owner)
+	l = len(m.Symbol)
 	if l > 0 {
 		n += 1 + l + sovFantoken(uint64(l))
 	}
-	l = m.MetaData.Size()
-	n += 1 + l + sovFantoken(uint64(l))
+	l = len(m.URI)
+	if l > 0 {
+		n += 1 + l + sovFantoken(uint64(l))
+	}
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovFantoken(uint64(l))
+	}
 	return n
 }
 
-func (m *Params) Size() (n int) {
+func (m *FanToken) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.IssuePrice.Size()
+	l = len(m.Denom)
+	if l > 0 {
+		n += 1 + l + sovFantoken(uint64(l))
+	}
+	l = m.MaxSupply.Size()
+	n += 1 + l + sovFantoken(uint64(l))
+	l = len(m.Minter)
+	if l > 0 {
+		n += 1 + l + sovFantoken(uint64(l))
+	}
+	l = m.MetaData.Size()
 	n += 1 + l + sovFantoken(uint64(l))
 	return n
 }
@@ -320,7 +322,7 @@ func sovFantoken(x uint64) (n int) {
 func sozFantoken(x uint64) (n int) {
 	return sovFantoken(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *FanToken) Unmarshal(dAtA []byte) error {
+func (m *Metadata) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -343,10 +345,10 @@ func (m *FanToken) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: FanToken: wiretype end group for non-group")
+			return fmt.Errorf("proto: Metadata: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: FanToken: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Metadata: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -383,6 +385,184 @@ func (m *FanToken) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Symbol", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFantoken
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Symbol = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field URI", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFantoken
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.URI = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFantoken
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFantoken(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *FanToken) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFantoken
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: FanToken: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: FanToken: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFantoken
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFantoken
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Denom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MaxSupply", wireType)
 			}
 			var stringLen uint64
@@ -416,28 +596,8 @@ func (m *FanToken) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Mintable", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFantoken
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Mintable = bool(v != 0)
-		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Minter", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -465,9 +625,9 @@ func (m *FanToken) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Owner = string(dAtA[iNdEx:postIndex])
+			m.Minter = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field MetaData", wireType)
 			}
@@ -497,89 +657,6 @@ func (m *FanToken) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.MetaData.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFantoken(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFantoken
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Params) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFantoken
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Params: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IssuePrice", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFantoken
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFantoken
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFantoken
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.IssuePrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

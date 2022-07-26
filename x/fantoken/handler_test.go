@@ -1,161 +1,107 @@
 package fantoken_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-
+	"fmt"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
-	tokenmodule "github.com/bitsongofficial/go-bitsong/x/fantoken"
-	tokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
-	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/bitsongofficial/go-bitsong/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"testing"
 )
 
-const (
-	isCheckTx = false
-)
-
-var (
-	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
-	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
-)
-
-func TestHandlerSuite(t *testing.T) {
-	suite.Run(t, new(HandlerSuite))
-}
-
-type HandlerSuite struct {
+type HandlerTestSuite struct {
 	suite.Suite
 
-	cdc    codec.JSONCodec
-	ctx    sdk.Context
-	keeper tokenkeeper.Keeper
-	bk     bankkeeper.Keeper
+	app        *simapp.BitsongApp
+	ctx        sdk.Context
+	govHandler govtypes.Handler
 }
 
-func (suite *HandlerSuite) SetupTest() {
-	app := simapp.Setup(isCheckTx)
-
-	suite.cdc = codec.NewAminoCodec(app.LegacyAmino())
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
-	suite.keeper = app.FanTokenKeeper
-	suite.bk = app.BankKeeper
-
-	// set params
-	suite.keeper.SetParamSet(suite.ctx, tokentypes.DefaultParams())
-
-	// init tokens to addr
-	err := suite.bk.MintCoins(suite.ctx, tokentypes.ModuleName, initCoin)
-	suite.NoError(err)
-	err = suite.bk.SendCoinsFromModuleToAccount(suite.ctx, tokentypes.ModuleName, owner, initCoin)
-	suite.NoError(err)
+func (suite *HandlerTestSuite) SetupTest() {
+	suite.app = simapp.Setup(false)
+	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.govHandler = params.NewParamChangeProposalHandler(suite.app.ParamsKeeper)
 }
 
-func (suite *HandlerSuite) issueFanToken(token tokentypes.FanToken) {
-	err := suite.keeper.AddFanToken(suite.ctx, token)
-	suite.NoError(err)
+func TestHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(HandlerTestSuite))
+}
 
-	mintCoins := sdk.NewCoins(
-		sdk.NewCoin(
-			token.GetDenom(),
-			sdk.ZeroInt(),
+func testProposal(changes ...proposal.ParamChange) *proposal.ParameterChangeProposal {
+	return proposal.NewParameterChangeProposal("title", "description", changes)
+}
+
+func (suite *HandlerTestSuite) TestParamChangeProposal() {
+	tp := testProposal(
+		proposal.NewParamChange(
+			fantokentypes.ModuleName,
+			string(fantokentypes.KeyMintFee),
+			"{\"denom\":\"utsg\",\"amount\":\"0\"}",
 		),
 	)
 
-	err = suite.bk.MintCoins(suite.ctx, tokentypes.ModuleName, mintCoins)
-	suite.NoError(err)
+	fmt.Println(tp.String())
 
-	err = suite.bk.SendCoinsFromModuleToAccount(suite.ctx, tokentypes.ModuleName, owner, mintCoins)
-	suite.NoError(err)
+	err := suite.govHandler(suite.ctx, tp)
+	suite.Require().NoError(err)
 }
 
-func (suite *HandlerSuite) TestIssueFanToken() {
-	h := tokenmodule.NewHandler(suite.keeper)
+func TestProposalHandlerPassed(t *testing.T) {
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
-	issueFee := sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000))
+	params := app.FanTokenKeeper.GetParamSet(ctx)
+	require.Equal(t, params, fantokentypes.DefaultParams())
 
-	nativeTokenAmt1 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
+	newIssueFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))
+	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2))
+	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(3))
 
-	msg := tokentypes.NewMsgIssueFanToken("btc", "satoshi", sdk.NewInt(21000000), "test", owner.String(), issueFee)
-	denom := tokentypes.GetFantokenDenom(owner, msg.Symbol, msg.Name)
+	proposal := fantokentypes.NewUpdateFeesProposal(
+		"Test",
+		"description",
+		newIssueFee,
+		newMintFee,
+		newBurnFee,
+	)
 
-	_, err := h(suite.ctx, msg)
-	suite.NoError(err)
+	h := fantoken.NewProposalHandler(app.FanTokenKeeper)
+	require.NoError(t, h(ctx, proposal))
 
-	nativeTokenAmt2 := suite.bk.GetBalance(suite.ctx, owner, types.BondDenom).Amount
-
-	suite.Equal(nativeTokenAmt1.Sub(issueFee.Amount), nativeTokenAmt2)
-
-	nativeTokenAmt3 := suite.bk.GetBalance(suite.ctx, owner, denom).Amount
-	suite.Equal(nativeTokenAmt3, sdk.ZeroInt())
+	params = app.FanTokenKeeper.GetParamSet(ctx)
+	require.Equal(t, newIssueFee, params.IssueFee)
+	require.Equal(t, newMintFee, params.MintFee)
+	require.Equal(t, newBurnFee, params.BurnFee)
 }
 
-func (suite *HandlerSuite) TestMintFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ftbtc",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ftbtc", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
+func TestProposalHandlerFailed(t *testing.T) {
+	app := simapp.Setup(false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+
+	params := app.FanTokenKeeper.GetParamSet(ctx)
+	require.Equal(t, params, fantokentypes.DefaultParams())
+
+	newIssueFee := sdk.Coin{
+		Denom:  sdk.DefaultBondDenom,
+		Amount: sdk.NewInt(-1),
 	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
-	suite.issueFanToken(token)
+	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
+	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
 
-	beginBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	suite.Equal(sdk.ZeroInt(), beginBtcAmt)
+	proposal := fantokentypes.NewUpdateFeesProposal(
+		"Test",
+		"description",
+		newIssueFee,
+		newMintFee,
+		newBurnFee,
+	)
 
-	h := tokenmodule.NewHandler(suite.keeper)
-
-	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetDenom(), token.Owner, sdk.NewInt(1000))
-	_, err := h(suite.ctx, msgMintFanToken)
-	suite.NoError(err)
-
-	endBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	mintBtcAmt := msgMintFanToken.Amount
-	suite.Equal(beginBtcAmt.Add(mintBtcAmt), endBtcAmt)
-}
-
-func (suite *HandlerSuite) TestBurnFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ftbtc",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ftbtc", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
-	suite.issueFanToken(token)
-
-	h := tokenmodule.NewHandler(suite.keeper)
-
-	msgMintFanToken := tokentypes.NewMsgMintFanToken("", token.GetDenom(), token.Owner, sdk.NewInt(1000))
-	_, err := h(suite.ctx, msgMintFanToken)
-	suite.NoError(err)
-
-	beginBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	suite.Equal(sdk.NewInt(1000), beginBtcAmt)
-
-	msgBurnFanToken := tokentypes.NewMsgBurnFanToken(token.GetDenom(), token.Owner, sdk.NewInt(200))
-	_, err = h(suite.ctx, msgBurnFanToken)
-	suite.NoError(err)
-
-	endBtcAmt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom()).Amount
-	burnBtcAmt := msgBurnFanToken.Amount
-
-	suite.Equal(beginBtcAmt.Sub(burnBtcAmt), endBtcAmt)
+	h := fantoken.NewProposalHandler(app.FanTokenKeeper)
+	require.Error(t, h(ctx, proposal))
 }

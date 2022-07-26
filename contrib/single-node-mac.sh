@@ -7,8 +7,8 @@ set -o errexit -o nounset
 # Build genesis file incl account for passed address
 bitsongd init --chain-id test test
 bitsongd keys add validator --keyring-backend="test"
-bitsongd add-genesis-account $(bitsongd keys show validator -a --keyring-backend="test") 100000000000000ubtsg
-bitsongd gentx validator 100000000ubtsg --keyring-backend="test" --chain-id test
+bitsongd add-genesis-account $(bitsongd keys show validator -a --keyring-backend="test") 100000000000000stake
+bitsongd gentx validator 100000000stake --keyring-backend="test" --chain-id test
 bitsongd collect-gentxs
 
 # Set proper defaults and change ports

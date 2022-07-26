@@ -1,32 +1,34 @@
 package types
 
-// NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params, tokens []FanToken) GenesisState {
-	return GenesisState{
-		Params: params,
-		Tokens: tokens,
+// DefaultGenesisState returns the default genesis state for testing
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
+		Params:    DefaultParams(),
+		FanTokens: []FanToken{},
 	}
 }
 
-// ValidateGenesis validates the provided token genesis state to ensure the
+// NewGenesisState creates a new genesis state.
+func NewGenesisState(params Params, fantokens []FanToken) GenesisState {
+	return GenesisState{
+		Params:    params,
+		FanTokens: fantokens,
+	}
+}
+
+// Validate validates the provided token genesis state to ensure the
 // expected invariants holds.
-func ValidateGenesis(data GenesisState) error {
-	if err := ValidateParams(data.Params); err != nil {
+func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
 
-	// validate token
-	for _, token := range data.Tokens {
-		if err := ValidateToken(token); err != nil {
+	// validate fantoken
+	for _, fantoken := range gs.FanTokens {
+		if err := fantoken.ValidateWithDenom(); err != nil {
 			return err
 		}
 	}
 
-	// validate token
-	for _, coin := range data.BurnedCoins {
-		if err := coin.Validate(); err != nil {
-			return err
-		}
-	}
 	return nil
 }
