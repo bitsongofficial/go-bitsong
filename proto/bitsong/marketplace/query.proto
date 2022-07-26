@@ -1,0 +1,60 @@
+syntax = "proto3";
+package bitsong.marketplace.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/marketplace/auction.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+
+// Query creates service with marketplace as RPC
+service Query {
+  rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/auctions/{state}/{authority}";
+  }
+  rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/auction/{id}";
+  }
+  rpc BidsByAuction(QueryBidsByAuctionRequest) returns (QueryBidsByAuctionResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/bids_by_auction/{id}";
+  }
+  rpc BidsByBidder(QueryBidsByBidderRequest) returns (QueryBidsByBidderResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/bids_by_bidder/{bidder}";
+  }
+  rpc BidderMetadata(QueryBidderMetadataRequest) returns (QueryBidderMetadataResponse) {
+    option (google.api.http).get = "/bitsong/marketplace/bidder_metadata/{bidder}";
+  }
+}
+
+message QueryAuctionsRequest {
+  bitsong.marketplace.v1beta1.AuctionState state = 1;
+  string authority = 2;
+}
+
+message QueryAuctionsResponse {
+  repeated bitsong.marketplace.v1beta1.Auction auctions = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryAuctionRequest { uint64 id = 1; }
+
+message QueryAuctionResponse {
+  bitsong.marketplace.v1beta1.Auction auction = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryBidsByAuctionRequest { uint64 id = 1; }
+message QueryBidsByAuctionResponse {
+  repeated bitsong.marketplace.v1beta1.Bid bids = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryBidsByBidderRequest { string bidder = 1; }
+message QueryBidsByBidderResponse {
+  repeated bitsong.marketplace.v1beta1.Bid bids = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryBidderMetadataRequest { string bidder = 1; }
+message QueryBidderMetadataResponse {
+  bitsong.marketplace.v1beta1.BidderMetadata bidder_metadata = 1
+      [ (gogoproto.nullable) = false ];
+}

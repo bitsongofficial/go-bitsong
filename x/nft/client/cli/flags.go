@@ -5,24 +5,21 @@ import (
 )
 
 const (
-	FlagName                 = "name"
-	FlagSymbol               = "symbol"
-	FlagUri                  = "uri"
-	FlagSellerFeeBasisPoints = "seller-fee-basis-points"
-	FlagCreators             = "creators"
-	FlagCreatorShares        = "creator-shares"
-	FlagMutable              = "mutable"
-	FlagUpdateAuthority      = "update-authority"
-
-	FlagNftId    = "nft-id"
-	FlagNewOwner = "new-owner"
-
-	FlagMetadataId      = "metadata-id"
-	FlagPresaleHappened = "presale-happened"
-
-	FlagNewAuthority = "new-authority"
-
-	FlagCollectionId = "collection-id"
+	FlagName                   = "name"
+	FlagSymbol                 = "symbol"
+	FlagUri                    = "uri"
+	FlagSellerFeeBasisPoints   = "seller-fee-basis-points"
+	FlagCreators               = "creators"
+	FlagCreatorShares          = "creator-shares"
+	FlagMutable                = "mutable"
+	FlagUpdateAuthority        = "update-authority"
+	FlagMasterEditionMaxSupply = "master-edition-max-supply"
+	FlagNftId                  = "nft-id"
+	FlagNewOwner               = "new-owner"
+	FlagMetadataId             = "metadata-id"
+	FlagNewAuthority           = "new-authority"
+	FlagCollectionId           = "collection-id"
+	FlagOwner                  = "owner"
 )
 
 func FlagCreateNFT() *flag.FlagSet {
@@ -32,10 +29,22 @@ func FlagCreateNFT() *flag.FlagSet {
 	fs.String(FlagSymbol, "", "Symbol of the nft")
 	fs.String(FlagUri, "", "Uri of the nft")
 	fs.Uint32(FlagSellerFeeBasisPoints, 0, "Seller fee basis points of the nft")
+	fs.Uint64(FlagCollectionId, 0, "collection id for the nft")
 	fs.String(FlagCreators, "", "Creators of nft")
 	fs.String(FlagCreatorShares, "", "Shares between creators for seller fee")
 	fs.Bool(FlagMutable, false, "mutability of the nft")
 	fs.String(FlagUpdateAuthority, "", "update authority of the nft")
+	fs.Uint64(FlagMasterEditionMaxSupply, 0, "master edition max supply")
+
+	return fs
+}
+
+func FlagPrintEdition() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.Uint64(FlagCollectionId, 0, "collection id for the nft")
+	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to print")
+	fs.String(FlagOwner, "", "Owner of printed edition")
 
 	return fs
 }
@@ -43,7 +52,7 @@ func FlagCreateNFT() *flag.FlagSet {
 func FlagTransferNFT() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.Uint64(FlagNftId, 0, "Id of the nft to transfer")
+	fs.String(FlagNftId, "", "Id of the nft to transfer")
 	fs.String(FlagNewOwner, "", "New owner of the nft")
 
 	return fs
@@ -67,7 +76,6 @@ func FlagUpdateMetadata() *flag.FlagSet {
 	fs.Uint32(FlagSellerFeeBasisPoints, 0, "Seller fee basis points of the nft")
 	fs.String(FlagCreators, "", "Creators of nft")
 	fs.String(FlagCreatorShares, "", "Shares between creators for seller fee")
-	fs.Bool(FlagPresaleHappened, false, "Presale happened flag")
 
 	return fs
 }
@@ -84,9 +92,11 @@ func FlagUpdateMetadataAuthority() *flag.FlagSet {
 func FlagCreateCollection() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.String(FlagSymbol, "", "Symbol of the collection")
 	fs.String(FlagName, "", "Name of the collection")
 	fs.String(FlagUri, "", "Uri of the collection")
 	fs.String(FlagUpdateAuthority, "", "Update authority of the collection")
+	fs.Bool(FlagMutable, false, "mutability of the collection")
 
 	return fs
 }
@@ -95,7 +105,7 @@ func FlagVerifyCollection() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.Uint64(FlagCollectionId, 0, "Id of the collection to verify")
-	fs.Uint64(FlagNftId, 0, "Id of the nft to be verififed")
+	fs.String(FlagNftId, "", "Id of the nft to be verififed")
 
 	return fs
 }

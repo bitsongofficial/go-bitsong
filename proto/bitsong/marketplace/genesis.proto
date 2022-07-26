@@ -1,0 +1,18 @@
+syntax = "proto3";
+package bitsong.marketplace.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/bank/v1beta1/bank.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/marketplace/auction.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the auction module's genesis state
+message GenesisState {
+  bitsong.marketplace.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+  repeated bitsong.marketplace.v1beta1.Auction auctions = 2 [ (gogoproto.nullable) = false ];
+  repeated bitsong.marketplace.v1beta1.Bid bids = 4 [ (gogoproto.nullable) = false ];
+  repeated bitsong.marketplace.v1beta1.BidderMetadata bidder_metadata = 5 [ (gogoproto.nullable) = false ];
+}

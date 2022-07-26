@@ -1,0 +1,86 @@
+syntax = "proto3";
+package bitsong.marketplace;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/marketplace/auction.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/marketplace/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the Msg service
+service Msg {
+  rpc CreateAuction(MsgCreateAuction) returns (MsgCreateAuctionResponse);
+  rpc SetAuctionAuthority(MsgSetAuctionAuthority) returns (MsgSetAuctionAuthorityResponse);
+  rpc StartAuction(MsgStartAuction) returns (MsgStartAuctionResponse);
+  rpc EndAuction(MsgEndAuction) returns (MsgEndAuctionResponse);
+  rpc PlaceBid(MsgPlaceBid) returns (MsgPlaceBidResponse);
+  rpc CancelBid(MsgCancelBid) returns (MsgCancelBidResponse);
+  rpc ClaimBid(MsgClaimBid) returns (MsgClaimBidResponse);
+}
+
+message MsgCreateAuction {
+  string sender = 1;
+  // NFT being used to bid
+  string nft_id = 2;
+  // Describes transfering nft ownership only or metadata ownership as well
+  bitsong.marketplace.v1beta1.AuctionPrizeType prize_type = 3;
+  // Denom to be used on bids
+  string bid_denom = 4;
+  // Duration of the auction
+  google.protobuf.Duration duration = 5
+      [ (gogoproto.stdduration) = true, (gogoproto.nullable) = false ];
+  // Minimum price for any bid to meet.
+  uint64 price_floor = 6;
+  // Instant sale price
+  uint64 instant_sale_price = 7;
+  // Tick size - how much higher the next bid must be to beat out the previous bid.
+  uint64 tick_size = 8;
+  // Edition limitation for limited edition auction
+  uint64 edition_limit = 9;
+}
+message MsgCreateAuctionResponse {
+  uint64 id = 1;
+}
+
+message MsgSetAuctionAuthority {
+  string sender = 1;
+  uint64 auction_id = 2;
+  string new_authority = 3;
+}
+message MsgSetAuctionAuthorityResponse {}
+
+message MsgStartAuction {
+  string sender = 1;
+  uint64 auction_id = 2;
+}
+message MsgStartAuctionResponse {}
+
+message MsgEndAuction {
+  string sender = 1;
+  uint64 auction_id = 2;
+}
+message MsgEndAuctionResponse {}
+
+message MsgPlaceBid {
+  string sender = 1;
+  uint64 auction_id = 2;
+  cosmos.base.v1beta1.Coin amount = 3 [ (gogoproto.nullable) = false ];
+}
+message MsgPlaceBidResponse {}
+
+message MsgCancelBid {
+  string sender = 1;
+  uint64 auction_id = 2;
+}
+
+message MsgCancelBidResponse {}
+
+message MsgClaimBid {
+  string sender = 1;
+  uint64 auction_id = 2;
+}
+
+message MsgClaimBidResponse {}

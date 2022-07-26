@@ -22,6 +22,24 @@ The nft module emits the following events:
 | transfer                                  | sender        | {sender}                  |
 | transfer                                  | amount        | {amount}                  |
 
+## MsgPrintEdition
+
+| Type                                  | Attribute Key | Attribute Value              |
+| :------------------------------------ | :------------ | :--------------------------- |
+| bitsong.nft.v1beta1.EventPrintEdition | printer       | {printer}                    |
+| bitsong.nft.v1beta1.EventPrintEdition | metadata_id   | {metadataId}                 |
+| burn                                  | burner        | {burner}                     |
+| burn                                  | amount        | {amount}                     |
+| coin_received                         | receiver      | {receiver}                   |
+| coin_received                         | amount        | {amount}                     |
+| coin_spent[]                          | spender       | {spender}                    |
+| coin_spent[]                          | amount        | {amount}                     |
+| message                               | action        | /bitsong.nft.MsgPrintEdition |
+| message                               | sender        | {sender}                     |
+| transfer                              | recipient     | {recipient}                  |
+| transfer                              | sender        | {sender}                     |
+| transfer                              | amount        | {amount}                     |
+
 ## MsgTransferNFT
 
 | Type                                 | Attribute Key | Attribute Value                       |
@@ -54,6 +72,14 @@ The nft module emits the following events:
 | bitsong.nft.v1beta1.EventMetadataAuthorityUpdate | metadata_id   | {metadata_id}                           |
 | bitsong.nft.v1beta1.EventMetadataAuthorityUpdate | new_authority | {new_authority}                         |
 | message                                          | action        | /bitsong.nft.MsgUpdateMetadataAuthority |
+
+## MsgUpdateMintAuthority
+
+| Type                                         | Attribute Key | Attribute Value                     |
+| :------------------------------------------- | :------------ | :---------------------------------- |
+| bitsong.nft.v1beta1.EventMintAuthorityUpdate | metadata_id   | {metadata_id}                       |
+| bitsong.nft.v1beta1.EventMintAuthorityUpdate | new_authority | {new_authority}                     |
+| message                                      | action        | /bitsong.nft.MsgUpdateMintAuthority |
 
 ## MsgCreateCollection
 

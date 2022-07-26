@@ -13,6 +13,9 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/marketplace"
+	marketplacekeeper "github.com/bitsongofficial/go-bitsong/x/marketplace/keeper"
+	marketplacetypes "github.com/bitsongofficial/go-bitsong/x/marketplace/types"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	merkledropkeeper "github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
 	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
@@ -163,6 +166,7 @@ var (
 		router.AppModuleBasic{},
 		fantoken.AppModuleBasic{},
 		nft.AppModuleBasic{},
+		marketplace.AppModuleBasic{},
 		merkledrop.AppModuleBasic{},
 	)
 
@@ -177,6 +181,7 @@ var (
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
+		marketplacetypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		merkledroptypes.ModuleName:     nil,
 	}
 )
@@ -235,9 +240,10 @@ type BitsongApp struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	NFTKeeper        nftkeeper.Keeper
-	FanTokenKeeper   fantokenkeeper.Keeper
-	MerkledropKeeper merkledropkeeper.Keeper
+	NFTKeeper         nftkeeper.Keeper
+	MarketplaceKeeper marketplacekeeper.Keeper
+	FanTokenKeeper    fantokenkeeper.Keeper
+	MerkledropKeeper  merkledropkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -269,7 +275,7 @@ func NewBitsongApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, merkledroptypes.StoreKey,
-		nfttypes.StoreKey,
+		nfttypes.StoreKey, marketplacetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -414,6 +420,7 @@ func NewBitsongApp(
 	app.EvidenceKeeper = *evidenceKeeper
 
 	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.GetSubspace(nfttypes.ModuleName), app.BankKeeper)
+	app.MarketplaceKeeper = marketplacekeeper.NewKeeper(appCodec, keys[marketplacetypes.StoreKey], app.GetSubspace(marketplacetypes.ModuleName), app.BankKeeper, app.NFTKeeper, app.AccountKeeper)
 
 	var skipGenesisInvariants = cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 
@@ -441,6 +448,7 @@ func NewBitsongApp(
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
+		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
@@ -458,6 +466,7 @@ func NewBitsongApp(
 		authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
 		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		nfttypes.ModuleName, marketplacetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -465,6 +474,7 @@ func NewBitsongApp(
 		routertypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName,
 		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		nfttypes.ModuleName, marketplacetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -487,6 +497,7 @@ func NewBitsongApp(
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
 		nfttypes.ModuleName,
+		marketplacetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
@@ -524,6 +535,7 @@ func NewBitsongApp(
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
+		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 	)
@@ -767,6 +779,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(nfttypes.ModuleName)
+	paramsKeeper.Subspace(marketplacetypes.ModuleName)
 	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
