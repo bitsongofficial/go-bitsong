@@ -15,20 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Go 🧰
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16
+          go-version: 1.18
 
       - name: Unshallow
         run: git fetch --prune --unshallow --tags --force
 
       - name: Create release 📜
-        uses: goreleaser/goreleaser-action@v2.7.0
+        uses: goreleaser/goreleaser-action@v3.0.0
         with:
-          args: release --rm-dist --release-notes ./RELEASE_CHANGELOG.md
+          args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -37,7 +37,7 @@ jobs:
     runs-on: macos-10.15
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Unshallow
         run: git fetch --prune --unshallow --tags --force
@@ -46,16 +46,16 @@ jobs:
         run: |
           echo "VERSION=$(git describe --always | sed 's/^v//')" >> $GITHUB_ENV
       - name: Setup Go 🧰
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16
+          go-version: 1.18
 
       - name: Build the binary 🏭
         run: |
           LEDGER_ENABLED=true make build
           mv build/bitsongd "build/bitsongd-$VERSION-darwin-amd64"
       - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "darwin-amd64"
           path: "build/*darwin*amd64*"
@@ -68,7 +68,7 @@ jobs:
         go-arch: ["amd64", "arm64"]
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Fetch tags
         run: git fetch --prune --unshallow --tags --force
@@ -77,12 +77,12 @@ jobs:
         run: |
           echo "VERSION=$(git describe --always | sed 's/^v//')" >> $GITHUB_ENV
       - name: Setup Go 🧰
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16
+          go-version: 1.18
 
       - name: Compute diff 📜
-        uses: technote-space/get-diff-action@v5.0.1
+        uses: technote-space/get-diff-action@v6.1.0
         id: git_diff
         with:
           PATTERNS: |
@@ -94,13 +94,13 @@ jobs:
           GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=true make build
           mv build/bitsongd "build/bitsongd-$VERSION-linux-${{ matrix.go-arch }}"
       - name: Upload the linux/amd64 artifact 📤
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "linux-amd64"
           path: "build/*linux*amd64*"
 
       - name: Upload the linux/arm64 artifact 📤
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "linux-arm64"
           path: "build/*linux*arm64*"
@@ -113,7 +113,7 @@ jobs:
         run: |
           choco install make
       - name: Checkout 🛎️
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Fetch tags
         run: git fetch --prune --unshallow --tags --force
@@ -122,9 +122,9 @@ jobs:
         run: |
           Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$(git describe --always | sed 's/^v//')"
       - name: Setup Go 🧰
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.16
+          go-version: 1.18
 
       - name: Build the binary 🏭
         run: |
@@ -132,7 +132,7 @@ jobs:
           echo "build/bitsongd-$env:VERSION-$env:COMMIT-windows-amd64.exe"
           mv build/bitsongd.exe "build/bitsongd-$env:VERSION-windows-amd64.exe"
       - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "windows-amd64"
           path: "build/*windows*amd64*"

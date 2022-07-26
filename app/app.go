@@ -8,18 +8,23 @@ import (
 	"os"
 	"path/filepath"
 
+	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
+	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/bitsongofficial/go-bitsong/x/marketplace"
 	marketplacekeeper "github.com/bitsongofficial/go-bitsong/x/marketplace/keeper"
 	marketplacetypes "github.com/bitsongofficial/go-bitsong/x/marketplace/types"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
+	merkledropkeeper "github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
+	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/bitsongofficial/go-bitsong/x/nft"
 	nftkeeper "github.com/bitsongofficial/go-bitsong/x/nft/keeper"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 
-	btsgtypes "github.com/bitsongofficial/go-bitsong/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
@@ -27,13 +32,13 @@ import (
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	ibcclientclient "github.com/cosmos/ibc-go/v2/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
+	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/router/types"
+	"github.com/strangelove-ventures/packet-forward-middleware/v2/router"
+	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v2/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -43,6 +48,9 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
+
+	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
+	merkledropclient "github.com/bitsongofficial/go-bitsong/x/merkledrop/client"
 
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
 
@@ -103,15 +111,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-go/v2/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v2/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v2/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v2/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v2/modules/core/02-client"
-	porttypes "github.com/cosmos/ibc-go/v2/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v2/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v2/modules/core/keeper"
-	"github.com/strangelove-ventures/packet-forward-middleware/router"
+	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
+
 	tmjson "github.com/tendermint/tendermint/libs/json"
 
 	// unnamed import of statik for swagger UI support
@@ -119,9 +127,6 @@ import (
 )
 
 const appName = "BitsongApp"
-const upgradeName = "v010"
-const cassiniMultiSig = "bitsong12r2d9hhnd2ez4kgk63ar8m40vhaje8yaa94h8w"
-const cassiniMintAmount = 9_656_879_130_000
 
 var (
 	// DefaultNodeHome default home directories for the application daemon
@@ -145,6 +150,8 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			fantokenclient.ProposalHandler,
+			merkledropclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -160,6 +167,7 @@ var (
 		fantoken.AppModuleBasic{},
 		nft.AppModuleBasic{},
 		marketplace.AppModuleBasic{},
+		merkledrop.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -174,12 +182,13 @@ var (
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		marketplacetypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		merkledroptypes.ModuleName:     nil,
 	}
 )
 
 var (
-	_ CosmosApp               = (*Bitsong)(nil)
-	_ servertypes.Application = (*Bitsong)(nil)
+	_ CosmosApp               = (*BitsongApp)(nil)
+	_ servertypes.Application = (*BitsongApp)(nil)
 )
 
 func init() {
@@ -191,10 +200,10 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, ".bitsongd")
 }
 
-// App extends an ABCI application, but with most of its parameters exported.
+// BitsongApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
-type Bitsong struct {
+type BitsongApp struct {
 	*baseapp.BaseApp
 
 	legacyAmino       *codec.LegacyAmino
@@ -231,9 +240,10 @@ type Bitsong struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	FanTokenKeeper    fantokenkeeper.Keeper
 	NFTKeeper         nftkeeper.Keeper
 	MarketplaceKeeper marketplacekeeper.Keeper
+	FanTokenKeeper    fantokenkeeper.Keeper
+	MerkledropKeeper  merkledropkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -243,13 +253,12 @@ type Bitsong struct {
 	configurator module.Configurator
 }
 
-// New returns a reference to an initialized Gaia.
-// NewSimApp returns a reference to an initialized SimApp.
-func New(
+// NewBitsongApp returns a reference to an initialized BitsongApp.
+func NewBitsongApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool, skipUpgradeHeights map[int64]bool,
 	homePath string, invCheckPeriod uint, encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions, baseAppOptions ...func(*baseapp.BaseApp),
-) *Bitsong {
+) *BitsongApp {
 
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
@@ -265,13 +274,13 @@ func New(
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
-		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey,
+		feegrant.StoreKey, authzkeeper.StoreKey, routertypes.StoreKey, fantokentypes.StoreKey, merkledroptypes.StoreKey,
 		nfttypes.StoreKey, marketplacetypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
-	app := &Bitsong{
+	app := &BitsongApp{
 		BaseApp:           bApp,
 		legacyAmino:       legacyAmino,
 		appCodec:          appCodec,
@@ -342,6 +351,27 @@ func New(
 		appCodec, keys[ibchost.StoreKey], app.GetSubspace(ibchost.ModuleName), app.StakingKeeper, app.UpgradeKeeper, scopedIBCKeeper,
 	)
 
+	// Create Fantoken Keeper
+	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		app.GetSubspace(fantokentypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.ModuleAccountAddrs(),
+	)
+
+	// Create Merkledrop Keeper
+	app.MerkledropKeeper = merkledropkeeper.NewKeeper(
+		appCodec,
+		keys[merkledroptypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper,
+		app.GetSubspace(merkledroptypes.ModuleName),
+	)
+
 	// register the proposal types
 	govRouter := govtypes.NewRouter()
 	govRouter.
@@ -349,7 +379,9 @@ func New(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(app.FanTokenKeeper)).
+		AddRoute(merkledroptypes.RouterKey, merkledrop.NewProposalHandler(app.MerkledropKeeper))
 
 	app.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -364,19 +396,20 @@ func New(
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
 
 	app.RouterKeeper = routerkeeper.NewKeeper(
 		appCodec, keys[routertypes.StoreKey], app.GetSubspace(routertypes.ModuleName), app.TransferKeeper, app.DistrKeeper,
 	)
 
-	routerModule := router.NewAppModule(app.RouterKeeper, transferModule)
+	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule)
 	// create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, routerModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
@@ -385,15 +418,6 @@ func New(
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	app.EvidenceKeeper = *evidenceKeeper
-
-	app.FanTokenKeeper = fantokenkeeper.NewKeeper(
-		appCodec,
-		keys[fantokentypes.StoreKey],
-		app.GetSubspace(fantokentypes.ModuleName),
-		app.BankKeeper,
-		app.ModuleAccountAddrs(),
-		authtypes.FeeCollectorName,
-	)
 
 	app.NFTKeeper = nftkeeper.NewKeeper(appCodec, keys[nfttypes.StoreKey], app.GetSubspace(nfttypes.ModuleName), app.BankKeeper)
 	app.MarketplaceKeeper = marketplacekeeper.NewKeeper(appCodec, keys[marketplacetypes.StoreKey], app.GetSubspace(marketplacetypes.ModuleName), app.BankKeeper, app.NFTKeeper, app.AccountKeeper)
@@ -421,14 +445,15 @@ func New(
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		routerModule,
+		merkledrop.NewAppModule(appCodec, app.MerkledropKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -436,14 +461,20 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
-		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, distrtypes.ModuleName,
-		slashingtypes.ModuleName, evidencetypes.ModuleName, stakingtypes.ModuleName, ibchost.ModuleName,
-		routertypes.ModuleName, marketplacetypes.ModuleName,
+		upgradetypes.ModuleName, capabilitytypes.ModuleName, crisistypes.ModuleName, govtypes.ModuleName,
+		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName, routertypes.ModuleName,
+		authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
+		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		nfttypes.ModuleName, marketplacetypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
-		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, feegrant.ModuleName, authz.ModuleName,
-		marketplacetypes.ModuleName,
+		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibchost.ModuleName,
+		routertypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
+		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		nfttypes.ModuleName, marketplacetypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -455,22 +486,28 @@ func New(
 		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
+		fantokentypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
+		ibctransfertypes.ModuleName,
 		ibchost.ModuleName,
-		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
-		fantokentypes.ModuleName,
 		nfttypes.ModuleName,
 		marketplacetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
+		authtypes.ModuleName,
+		genutiltypes.ModuleName,
 		routertypes.ModuleName,
+		paramstypes.ModuleName,
+		upgradetypes.ModuleName,
+		vestingtypes.ModuleName,
+		merkledroptypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -486,6 +523,7 @@ func New(
 	app.sm = module.NewSimulationManager(
 		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
+		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
@@ -496,7 +534,6 @@ func New(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
 		nft.NewAppModule(appCodec, app.NFTKeeper, app.AccountKeeper, app.BankKeeper),
 		marketplace.NewAppModule(appCodec, app.MarketplaceKeeper, app.AccountKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
@@ -519,7 +556,7 @@ func New(
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			IBCChannelkeeper: app.IBCKeeper.ChannelKeeper,
+			IBCkeeper: app.IBCKeeper,
 		},
 	)
 	if err != nil {
@@ -533,87 +570,8 @@ func New(
 	app.SetEndBlocker(app.EndBlocker)
 
 	// upgrade info
-	app.UpgradeKeeper.SetUpgradeHandler(
-		upgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, _ module.VersionMap) (module.VersionMap, error) {
-			// Upgrade from v0.42.x to v0.44.5
-			app.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
-
-			fromVM := make(map[string]uint64)
-			for moduleName := range app.mm.Modules {
-				fromVM[moduleName] = 1
-			}
-			// delete new modules from the map, for _new_ modules as to not skip InitGenesis
-			delete(fromVM, authz.ModuleName)
-			delete(fromVM, feegrant.ModuleName)
-			delete(fromVM, routertypes.ModuleName)
-
-			// make fromVM[authtypes.ModuleName] = 2 to skip the first RunMigrations for auth (because from version 2 to migration version 2 will not migrate)
-			fromVM[authtypes.ModuleName] = 2
-
-			// the first RunMigrations, which will migrate all the old modules except auth module
-			newVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			if err != nil {
-				return nil, err
-			}
-			// now update auth version back to 1, to make the second RunMigrations includes only auth
-			newVM[authtypes.ModuleName] = 1
-
-			// Proposal #5
-			// Force an update of validator min commission
-			validators := app.StakingKeeper.GetAllValidators(ctx)
-			minCommissionRate := sdk.NewDecWithPrec(5, 2)
-			for _, v := range validators {
-				if v.Commission.Rate.LT(minCommissionRate) {
-					if v.Commission.MaxRate.LT(minCommissionRate) {
-						v.Commission.MaxRate = minCommissionRate
-					}
-
-					v.Commission.Rate = minCommissionRate
-					v.Commission.UpdateTime = ctx.BlockHeader().Time
-
-					// call the before-modification hook since we're about to update the commission
-					app.StakingKeeper.BeforeValidatorModified(ctx, v.GetOperator())
-
-					app.StakingKeeper.SetValidator(ctx, v)
-				}
-			}
-
-			// Proposal #6
-			// Mint BTSGs for Cassini-Bridge
-			multisigWallet, err := sdk.AccAddressFromBech32(cassiniMultiSig)
-			if err != nil {
-				return nil, err
-			}
-			mintCoins := sdk.NewCoins(sdk.NewCoin(btsgtypes.BondDenom, sdk.NewInt(cassiniMintAmount)))
-
-			// mint coins
-			if err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
-				return nil, err
-			}
-
-			if err := app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, multisigWallet, mintCoins); err != nil {
-				return nil, err
-			}
-
-			// RunMigrations twice is just a way to make auth module's migrates after staking
-			return app.mm.RunMigrations(ctx, app.configurator, newVM)
-		},
-	)
-
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
-	}
-
-	if upgradeInfo.Name == "v010" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := store.StoreUpgrades{
-			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
+	app.setupUpgradeHandlers()
+	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -628,20 +586,20 @@ func New(
 }
 
 // Name returns the name of the App
-func (app *Bitsong) Name() string { return app.BaseApp.Name() }
+func (app *BitsongApp) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
-func (app *Bitsong) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+func (app *BitsongApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
 	return app.mm.BeginBlock(ctx, req)
 }
 
 // EndBlocker application updates every end block
-func (app *Bitsong) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+func (app *BitsongApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	return app.mm.EndBlock(ctx, req)
 }
 
 // InitChainer application update at chain initialization
-func (app *Bitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *BitsongApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -653,12 +611,12 @@ func (app *Bitsong) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci
 }
 
 // LoadHeight loads a particular height
-func (app *Bitsong) LoadHeight(height int64) error {
+func (app *BitsongApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *Bitsong) ModuleAccountAddrs() map[string]bool {
+func (app *BitsongApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -671,7 +629,7 @@ func (app *Bitsong) ModuleAccountAddrs() map[string]bool {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Bitsong) LegacyAmino() *codec.LegacyAmino {
+func (app *BitsongApp) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
@@ -679,52 +637,52 @@ func (app *Bitsong) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *Bitsong) AppCodec() codec.Codec {
+func (app *BitsongApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns Gaia's InterfaceRegistry
-func (app *Bitsong) InterfaceRegistry() types.InterfaceRegistry {
+func (app *BitsongApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Bitsong) GetKey(storeKey string) *sdk.KVStoreKey {
+func (app *BitsongApp) GetKey(storeKey string) *sdk.KVStoreKey {
 	return app.keys[storeKey]
 }
 
 // GetTKey returns the TransientStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Bitsong) GetTKey(storeKey string) *sdk.TransientStoreKey {
+func (app *BitsongApp) GetTKey(storeKey string) *sdk.TransientStoreKey {
 	return app.tkeys[storeKey]
 }
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
 // NOTE: This is solely used for testing purposes.
-func (app *Bitsong) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
+func (app *BitsongApp) GetMemKey(storeKey string) *sdk.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
 
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *Bitsong) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *BitsongApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // SimulationManager implements the SimulationApp interface
-func (app *Bitsong) SimulationManager() *module.SimulationManager {
+func (app *BitsongApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *Bitsong) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
+func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	// Register legacy tx routes.
@@ -745,13 +703,52 @@ func (app *Bitsong) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICo
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (app *Bitsong) RegisterTxService(clientCtx client.Context) {
+func (app *BitsongApp) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *Bitsong) RegisterTendermintService(clientCtx client.Context) {
+func (app *BitsongApp) RegisterTendermintService(clientCtx client.Context) {
 	tmservice.RegisterTendermintService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.interfaceRegistry)
+}
+
+func (app *BitsongApp) setupUpgradeStoreLoaders() {
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
+	}
+
+	// v10 Upgrade
+	if upgradeInfo.Name == v010.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{authz.ModuleName, feegrant.ModuleName, routertypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// v11 Upgrade
+	if upgradeInfo.Name == v011.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{fantokentypes.ModuleName, merkledroptypes.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+func (app *BitsongApp) setupUpgradeHandlers() {
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v010.UpgradeName,
+		v010.CreateUpgradeHandler(app.mm, app.configurator, app.BankKeeper, app.IBCKeeper, &app.StakingKeeper),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v011.UpgradeName,
+		v011.CreateUpgradeHandler(app.mm, app.configurator, &app.FanTokenKeeper, &app.MerkledropKeeper),
+	)
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
@@ -763,15 +760,6 @@ func RegisterSwaggerAPI(ctx client.Context, rtr *mux.Router) {
 
 	staticServer := http.FileServer(statikFS)
 	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
-}
-
-// GetMaccPerms returns a copy of the module account permissions
-func GetMaccPerms() map[string][]string {
-	dupMaccPerms := make(map[string][]string)
-	for k, v := range maccPerms {
-		dupMaccPerms[k] = v
-	}
-	return dupMaccPerms
 }
 
 // initParamsKeeper init params keeper and its subspaces
@@ -792,6 +780,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 	paramsKeeper.Subspace(nfttypes.ModuleName)
 	paramsKeeper.Subspace(marketplacetypes.ModuleName)
+	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
 }

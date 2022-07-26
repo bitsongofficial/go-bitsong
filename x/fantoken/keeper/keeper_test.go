@@ -1,32 +1,30 @@
 package keeper_test
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/suite"
-
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
+	simapp "github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	simapp "github.com/bitsongofficial/go-bitsong/app"
-	"github.com/bitsongofficial/go-bitsong/types"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
-	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-)
-
-const (
-	isCheckTx = false
+	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"testing"
 )
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
+	uri      = "ipfs://"
 	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
-	initCoin = sdk.Coins{sdk.NewCoin(types.BondDenom, initAmt)}
+	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
+	symbol   = "btc"
+	name     = "Bitcoin Network"
+
+	maxSupply = sdk.NewInt(200000000)
+	mintable  = true
+	height    = int64(1)
 )
 
 type KeeperTestSuite struct {
@@ -36,25 +34,25 @@ type KeeperTestSuite struct {
 	ctx         sdk.Context
 	keeper      keeper.Keeper
 	bk          bankkeeper.Keeper
-	app         *simapp.Bitsong
+	app         *simapp.BitsongApp
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := simapp.Setup(isCheckTx)
+	app := simapp.Setup(false)
 
 	suite.legacyAmino = app.LegacyAmino()
-	suite.ctx = app.BaseApp.NewContext(isCheckTx, tmproto.Header{})
+	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
 	suite.keeper = app.FanTokenKeeper
 	suite.bk = app.BankKeeper
 	suite.app = app
 
 	// set params
-	suite.keeper.SetParamSet(suite.ctx, tokentypes.DefaultParams())
+	suite.keeper.SetParamSet(suite.ctx, fantokentypes.DefaultParams())
 
 	// init tokens to addr
-	err := suite.bk.MintCoins(suite.ctx, tokentypes.ModuleName, initCoin)
+	err := suite.bk.MintCoins(suite.ctx, fantokentypes.ModuleName, initCoin)
 	suite.NoError(err)
-	err = suite.bk.SendCoinsFromModuleToAccount(suite.ctx, tokentypes.ModuleName, owner, initCoin)
+	err = suite.bk.SendCoinsFromModuleToAccount(suite.ctx, fantokentypes.ModuleName, owner, initCoin)
 	suite.NoError(err)
 }
 
@@ -62,167 +60,158 @@ func TestKeeperSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-func (suite *KeeperTestSuite) setFanToken(token tokentypes.FanToken) {
-	err := suite.keeper.AddFanToken(suite.ctx, token)
+func (suite *KeeperTestSuite) TestIssue() {
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
 	suite.NoError(err)
+	suite.True(suite.keeper.HasFanToken(suite.ctx, denom))
+
+	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	suite.NoError(err)
+
+	suite.Equal(denom, issuedToken.GetDenom())
+	suite.Equal(name, issuedToken.GetName())
+	suite.Equal(symbol, issuedToken.GetSymbol())
+	suite.Equal(uri, issuedToken.GetURI())
+	suite.Equal(maxSupply, issuedToken.GetMaxSupply())
+	suite.Equal(owner, issuedToken.GetAuthority())
+	suite.Equal(owner, issuedToken.GetMinter())
 }
 
-func (suite *KeeperTestSuite) issueFanToken(token tokentypes.FanToken) {
-	suite.setFanToken(token)
+func (suite *KeeperTestSuite) TestMint() {
+	// issue a new fantoken
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
+	suite.NoError(err)
+
+	// check actual fantoken balance
+	balance := suite.bk.GetBalance(suite.ctx, owner, denom)
+	suite.Equal(sdk.ZeroInt(), balance.Amount)
+	suite.NotEqual(sdk.NewInt(2), balance.Amount)
+
+	// check the fantoken supply
+	supply := suite.bk.GetSupply(suite.ctx, denom)
+	suite.Equal(sdk.ZeroInt(), supply.Amount)
+	suite.Equal(denom, supply.Denom)
+
+	// mint some token
+	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, sdk.NewInt(10)))
+
+	// check the fantoken balance once a time
+	balance = suite.bk.GetBalance(suite.ctx, owner, denom)
+	suite.Equal(sdk.NewInt(10), balance.Amount)
+	suite.NotEqual(sdk.ZeroInt(), balance.Amount)
+
+	// check the fantoken supply once a time
+	supply = suite.bk.GetSupply(suite.ctx, denom)
+	suite.Equal(sdk.NewInt(10), supply.Amount)
+	suite.Equal(denom, supply.Denom)
 }
 
-func (suite *KeeperTestSuite) TestIssueFanToken() {
-	symbol := "btc"
-	name := "Bitcoin Network"
-	denom := tokentypes.GetFantokenDenom(owner, symbol, name)
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        denom,
-		Display:     symbol,
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: denom, Exponent: 0},
-			{Denom: symbol, Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken(name, sdk.NewInt(21000000), owner, denomMetaData)
-
-	_, err := suite.keeper.IssueFanToken(
-		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(999999)),
-	)
-	suite.Error(err, "the issue fee is less than the standard")
-
-	_, err = suite.keeper.IssueFanToken(
-		suite.ctx, token.GetSymbol(), token.Name,
-		token.MaxSupply, token.MetaData.Description, token.GetOwner(), sdk.NewCoin(types.BondDenom, sdk.NewInt(1000000)),
-	)
+func (suite *KeeperTestSuite) TestBurn() {
+	// issue a new fantoken
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
 	suite.NoError(err)
 
-	suite.True(suite.keeper.HasFanToken(suite.ctx, token.GetDenom()))
+	// mint some token
+	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, sdk.NewInt(10)))
 
-	issuedToken, err := suite.keeper.GetFanToken(suite.ctx, token.GetDenom())
-	suite.NoError(err)
+	// burn some token
+	suite.keeper.Burn(suite.ctx, sdk.NewCoin(denom, sdk.NewInt(6)), owner)
 
-	suite.Equal(token.Owner, issuedToken.GetOwner().String())
+	// check the fantoken balance
+	balance := suite.bk.GetBalance(suite.ctx, owner, denom)
+	suite.Equal(sdk.NewInt(4), balance.Amount)
+	suite.NotEqual(sdk.ZeroInt(), balance.Amount)
 
-	suite.EqualValues(&token, issuedToken.(*tokentypes.FanToken))
+	// check the fantoken supply once a time
+	supply := suite.bk.GetSupply(suite.ctx, denom)
+	suite.Equal(sdk.NewInt(4), supply.Amount)
+	suite.Equal(denom, supply.Denom)
 }
 
-func (suite *KeeperTestSuite) TestEditFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
-	suite.setFanToken(token)
-
-	denom := "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b"
-	mintable := false
-
-	err := suite.keeper.EditFanToken(suite.ctx, denom, mintable, owner)
+func (suite *KeeperTestSuite) TestSetMinter() {
+	// issue a new fantoken
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	// set the new minter
+	err = suite.keeper.SetMinter(suite.ctx, denom, owner, owner)
 	suite.NoError(err)
 
-	expToken := tokentypes.FanToken{
-		Name:      "Bitcoin Network",
-		MaxSupply: sdk.ZeroInt(),
-		Mintable:  false,
-		Owner:     owner.String(),
-		MetaData:  denomMetaData,
-	}
+	// set an empty oldMinter
+	err = suite.keeper.SetMinter(suite.ctx, denom, sdk.AccAddress{}, sdk.AccAddress{})
+	suite.Error(err)
 
-	suite.EqualValues(newToken.(*tokentypes.FanToken), &expToken)
+	// set an empty minter
+	err = suite.keeper.SetMinter(suite.ctx, denom, owner, sdk.AccAddress{})
+	suite.NoError(err)
+
+	// after an empty minter, you cannot change the minter again
+	err = suite.keeper.SetMinter(suite.ctx, denom, owner, sdk.AccAddress{})
+	suite.Error(err)
+
+	err = suite.keeper.SetMinter(suite.ctx, denom, sdk.AccAddress{}, sdk.AccAddress{})
+	suite.Error(err)
 }
 
-func (suite *KeeperTestSuite) TestMintFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
-	suite.issueFanToken(token)
-
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
-	suite.Equal("0ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
-
-	mintAmount := sdk.NewInt(1000)
-	recipient := sdk.AccAddress{}
-
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.GetDenom(), mintAmount, token.GetOwner())
+func (suite *KeeperTestSuite) TestSetAuthority() {
+	// issue a new fantoken
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
 	suite.NoError(err)
 
-	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
-	suite.Equal("1000ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
+	// set the new authority
+	err = suite.keeper.SetAuthority(suite.ctx, denom, owner, owner)
+	suite.NoError(err)
 
-	// mint token without owner
+	// set an empty oldAuthority
+	err = suite.keeper.SetAuthority(suite.ctx, denom, sdk.AccAddress{}, sdk.AccAddress{})
+	suite.Error(err)
 
-	err = suite.keeper.MintFanToken(suite.ctx, owner, token.GetDenom(), mintAmount, sdk.AccAddress{})
-	suite.Error(err, "can not mint token without owner when the owner exists")
+	// set an empty authority
+	err = suite.keeper.SetAuthority(suite.ctx, denom, owner, sdk.AccAddress{})
+	suite.NoError(err)
+
+	// after an empty authority, you cannot change the authority again
+	err = suite.keeper.SetAuthority(suite.ctx, denom, owner, sdk.AccAddress{})
+	suite.Error(err)
+
+	err = suite.keeper.SetAuthority(suite.ctx, denom, sdk.AccAddress{}, sdk.AccAddress{})
+	suite.Error(err)
 }
 
-func (suite *KeeperTestSuite) TestBurnFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(2000), owner, denomMetaData)
-	suite.issueFanToken(token)
-
-	amt := suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
-	suite.Equal("0ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
-
-	mintAmount := sdk.NewInt(1000)
-	recipient := sdk.AccAddress{}
-
-	err := suite.keeper.MintFanToken(suite.ctx, recipient, token.GetDenom(), mintAmount, token.GetOwner())
+func (suite *KeeperTestSuite) TestSetUri() {
+	// issue a new fantoken
+	denom, err := suite.keeper.Issue(suite.ctx, name, symbol, uri, maxSupply, owner, owner)
 	suite.NoError(err)
 
-	burnedAmount := sdk.NewInt(200)
+	newUri := "ipfs://newUri"
 
-	err = suite.keeper.BurnFanToken(suite.ctx, token.GetDenom(), burnedAmount, token.GetOwner())
+	// set the new uri
+	err = suite.keeper.SetUri(suite.ctx, denom, newUri, owner)
 	suite.NoError(err)
 
-	amt = suite.bk.GetBalance(suite.ctx, token.GetOwner(), token.GetDenom())
-	suite.Equal("800ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", amt.String())
-}
+	// get fantoken
+	fantoken, err := suite.keeper.GetFanToken(suite.ctx, denom)
+	suite.NoError(err)
+	suite.Equal(newUri, fantoken.GetURI())
 
-func (suite *KeeperTestSuite) TestTransferFanToken() {
-	denomMetaData := banktypes.Metadata{
-		Description: "test",
-		Base:        "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b",
-		Display:     "btc",
-		DenomUnits: []*banktypes.DenomUnit{
-			{Denom: "ft73676a7961793266743066347032627463426974636f696e204e6574776f726b", Exponent: 0},
-			{Denom: "btc", Exponent: tokentypes.FanTokenDecimal},
-		},
-	}
-	token := tokentypes.NewFanToken("Bitcoin Network", sdk.NewInt(21000000), owner, denomMetaData)
-	suite.setFanToken(token)
-
-	dstOwner := sdk.AccAddress(tmhash.SumTruncated([]byte("TokenDstOwner")))
-
-	err := suite.keeper.TransferFanTokenOwner(suite.ctx, token.GetDenom(), token.GetOwner(), dstOwner)
+	emptyUri := ""
+	// set the new uri
+	err = suite.keeper.SetUri(suite.ctx, denom, emptyUri, owner)
 	suite.NoError(err)
 
-	newToken, err := suite.keeper.GetFanToken(suite.ctx, token.GetDenom())
+	// check fantoken again
+	fantoken, err = suite.keeper.GetFanToken(suite.ctx, denom)
 	suite.NoError(err)
+	suite.Equal(emptyUri, fantoken.GetURI())
 
-	suite.Equal(dstOwner, newToken.GetOwner())
+	malformedUri := "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+		"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+		"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+		"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+		"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789" +
+		"0123456789012"
+
+	// set the new uri
+	err = suite.keeper.SetUri(suite.ctx, denom, malformedUri, owner)
+	suite.Error(err)
 }

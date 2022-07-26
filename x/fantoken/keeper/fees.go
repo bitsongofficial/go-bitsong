@@ -3,21 +3,43 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
-// DeductIssueTokenFee performs fee handling for issuing token
-func (k Keeper) DeductIssueFanTokenFee(ctx sdk.Context, owner sdk.AccAddress, issueFee sdk.Coin, symbol string) error {
-	burnCoins := sdk.NewCoins(issueFee)
+// deductIssueFee performs fee handling for issuing token
+func (k Keeper) deductIssueFee(ctx sdk.Context, authority sdk.AccAddress) error {
+	params := k.GetParamSet(ctx)
 
-	// send all fees to module account
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(
-		ctx, owner, types.ModuleName, sdk.NewCoins(issueFee),
-	); err != nil {
-		return err
+	// check if amount is zero
+	if params.IssueFee.Amount.IsZero() || params.IssueFee.Amount.IsNegative() {
+		return nil
 	}
 
-	// burn burnedCoin
-	return k.bankKeeper.BurnCoins(ctx, types.ModuleName, burnCoins)
+	// send issue fantoken fee to community pool
+	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.IssueFee}, authority)
+}
+
+// deductMintFee performs fee handling for minting token
+func (k Keeper) deductMintFee(ctx sdk.Context, authority sdk.AccAddress) error {
+	params := k.GetParamSet(ctx)
+
+	// check if amount is zero
+	if params.MintFee.Amount.IsZero() || params.MintFee.Amount.IsNegative() {
+		return nil
+	}
+
+	// send Mint fantoken fee to community pool
+	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.MintFee}, authority)
+}
+
+// deductBurnFee performs fee handling for burning token
+func (k Keeper) deductBurnFee(ctx sdk.Context, authority sdk.AccAddress) error {
+	params := k.GetParamSet(ctx)
+
+	// check if amount is zero
+	if params.BurnFee.Amount.IsZero() || params.BurnFee.Amount.IsNegative() {
+		return nil
+	}
+
+	// send Burn fantoken fee to community pool
+	return k.distrKeeper.FundCommunityPool(ctx, sdk.Coins{params.BurnFee}, authority)
 }

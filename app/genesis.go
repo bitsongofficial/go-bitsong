@@ -2,14 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/bitsongofficial/go-bitsong/types"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 // The genesis state of the blockchain is represented here as a map of raw json
@@ -22,7 +14,12 @@ import (
 type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
-func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
+func NewDefaultGenesisState() GenesisState {
+	encCfg := MakeEncodingConfig()
+	return ModuleBasics.DefaultGenesis(encCfg.Marshaler)
+}
+
+/*func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 	genesis := ModuleBasics.DefaultGenesis(cdc)
 	mintGenesis := mintGenesisState()
 	stakingGenesis := stakingGenesisState()
@@ -73,3 +70,4 @@ func mintGenesisState() *minttypes.GenesisState {
 		),
 	}
 }
+*/
