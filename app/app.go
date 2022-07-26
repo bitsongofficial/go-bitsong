@@ -22,7 +22,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/nft"
 	nftkeeper "github.com/bitsongofficial/go-bitsong/x/nft/keeper"
 	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
-
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -498,7 +497,6 @@ func NewBitsongApp(
 		evidencetypes.ModuleName,
 		nfttypes.ModuleName,
 		marketplacetypes.ModuleName,
-		ibctransfertypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
 		authtypes.ModuleName,

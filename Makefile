@@ -103,7 +103,7 @@ install: go.sum
 ###                                Localnet                                 ###
 ###############################################################################
 
-build-docker-bitsongdnode:
+build-docker-go-bitsong:
 	$(MAKE) -C contrib/localnet
 
 # Run a 4-node testnet locally

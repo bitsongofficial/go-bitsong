@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,7 +43,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams return the default params
 func DefaultParams() Params {
 	return Params{
-		IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)),
+		IssueFee: sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000)),
 		MintFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 		BurnFee:  sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()),
 	}

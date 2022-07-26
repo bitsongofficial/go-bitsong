@@ -1,6 +1,6 @@
 <p><img src="banner.png"></p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-yellow.svg)](https://github.com/BitSongOfficial/go-bitsong/blob/master/LICENSE)
 
 # Introduction
 
