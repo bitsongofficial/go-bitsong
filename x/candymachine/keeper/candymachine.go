@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -218,15 +219,18 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		Sender: moduleAddr.String(),
 		CollId: msg.CollectionId,
 		Metadata: nfttypes.Metadata{
-			Name:                 "Name",
-			Uri:                  machine.MetadataBaseUrl,
-			SellerFeeBasisPoints: 0,
+			Name:                 msg.Name,
+			Uri:                  fmt.Sprintf("%s/%d", machine.MetadataBaseUrl, machine.Minted+1),
+			SellerFeeBasisPoints: machine.SellerFeeBasisPoints,
 			PrimarySaleHappened:  true,
 			IsMutable:            machine.Mutable,
-			Creators:             []nfttypes.Creator{},
+			Creators:             machine.Creators,
 			MetadataAuthority:    msg.Sender,
 			MintAuthority:        msg.Sender,
-			MasterEdition:        &nfttypes.MasterEdition{},
+			MasterEdition: &nfttypes.MasterEdition{
+				Supply:    1,
+				MaxSupply: 1,
+			},
 		},
 	})
 	if err != nil {
@@ -242,6 +246,9 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	if err != nil {
 		return err
 	}
+
+	machine.Minted++
+	k.SetCandyMachine(ctx, machine)
 
 	// Emit event for candy machine close
 	ctx.EventManager().EmitTypedEvent(&types.EventMintNFT{

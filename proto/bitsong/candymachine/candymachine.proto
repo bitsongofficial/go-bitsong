@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "bitsong/nft/v1beta1/nft.proto";
 
 option go_package = "github.com/bitsongofficial/go-bitsong/x/candymachine/types";
 
@@ -21,14 +22,18 @@ message CandyMachine {
     string go_live_date = 5;
     // condition to check when candy machine ends
     EndSettings end_settings = 6 [ (gogoproto.nullable) = false ];
-    // all metadata url is generated from metadata_base_url
-    string metadata_base_url = 7;
-    // mutability of the minted nfts
-    bool mutable = 8;
     // minted amount
-    uint64 minted = 9;
+    uint64 minted = 7;
     // owner of candy machine
-    string authority = 10;
+    string authority = 8;
+    // all metadata url is generated from metadata_base_url
+    string metadata_base_url = 9;
+    // mutability of the minted nfts
+    bool mutable = 10;
+    // Royalty basis points that goes to creators in secondary sales (0-10000)
+    uint32 seller_fee_basis_points = 11;
+    // Creators of metadata
+    repeated bitsong.nft.v1beta1.Creator creators = 12 [ (gogoproto.nullable) = false ];
 }
 
 enum EndSettingType {

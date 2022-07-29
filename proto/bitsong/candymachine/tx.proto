@@ -40,5 +40,6 @@ message MsgCloseCandyMachineResponse {}
 message MsgMintNFT {
   string sender = 1;
   uint64 collection_id = 2;
+  string name = 3;
 }
 message MsgMintNFTResponse {}
