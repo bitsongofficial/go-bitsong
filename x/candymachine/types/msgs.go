@@ -14,10 +14,11 @@ const (
 
 var _ sdk.Msg = &MsgCreateCandyMachine{}
 
-func NewMsgCreateCandyMachine(sender sdk.AccAddress,
+func NewMsgCreateCandyMachine(sender sdk.AccAddress, machine CandyMachine,
 ) *MsgCreateCandyMachine {
 	return &MsgCreateCandyMachine{
-		Sender: sender.String(),
+		Sender:  sender.String(),
+		Machine: machine,
 	}
 }
 
@@ -54,10 +55,11 @@ func (msg MsgCreateCandyMachine) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateCandyMachine{}
 
-func NewMsgUpdateCandyMachine(sender sdk.AccAddress,
+func NewMsgUpdateCandyMachine(sender sdk.AccAddress, machine CandyMachine,
 ) *MsgUpdateCandyMachine {
 	return &MsgUpdateCandyMachine{
-		Sender: sender.String(),
+		Sender:  sender.String(),
+		Machine: machine,
 	}
 }
 
@@ -94,10 +96,11 @@ func (msg MsgUpdateCandyMachine) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgCloseCandyMachine{}
 
-func NewMsgCloseCandyMachine(sender sdk.AccAddress,
+func NewMsgCloseCandyMachine(sender sdk.AccAddress, collId uint64,
 ) *MsgCloseCandyMachine {
 	return &MsgCloseCandyMachine{
 		Sender: sender.String(),
+		CollId: collId,
 	}
 }
 
@@ -134,10 +137,12 @@ func (msg MsgCloseCandyMachine) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgMintNFT{}
 
-func NewMsgMintNFT(sender sdk.AccAddress,
+func NewMsgMintNFT(sender sdk.AccAddress, collId uint64, name string,
 ) *MsgMintNFT {
 	return &MsgMintNFT{
-		Sender: sender.String(),
+		Sender:       sender.String(),
+		CollectionId: collId,
+		Name:         name,
 	}
 }
 

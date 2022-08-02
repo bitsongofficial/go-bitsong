@@ -15,7 +15,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			continue
 		}
 		cacheCtx, write := ctx.CacheContext()
-		err = k.CloseCandyMachine(cacheCtx, types.NewMsgCloseCandyMachine(authority))
+		err = k.CloseCandyMachine(cacheCtx, types.NewMsgCloseCandyMachine(authority, machine.CollId))
 		if err == nil {
 			write()
 		}

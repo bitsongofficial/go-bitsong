@@ -71,7 +71,7 @@ func (k Keeper) DeleteCandyMachine(ctx sdk.Context, machine types.CandyMachine) 
 func (k Keeper) GetCandyMachinesToEndByTime(ctx sdk.Context) []types.CandyMachine {
 	store := ctx.KVStore(k.storeKey)
 	timeKey := getTimeKey(uint64(ctx.BlockTime().Unix()))
-	it := store.Iterator(types.PrefixCandyMachine, storetypes.InclusiveEndBytes(timeKey))
+	it := store.Iterator(types.PrefixCandyMachineByEndTime, storetypes.InclusiveEndBytes(timeKey))
 	defer it.Close()
 
 	machines := []types.CandyMachine{}
@@ -136,9 +136,7 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 	collection.UpdateAuthority = moduleAddr.String()
 	k.nftKeeper.SetCollection(ctx, collection)
 
-	machine := types.CandyMachine{
-		Authority: msg.Sender,
-	}
+	machine := msg.Machine
 	k.SetCandyMachine(ctx, machine)
 
 	// Emit event for auction creation

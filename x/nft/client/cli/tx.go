@@ -456,6 +456,38 @@ func GetCmdUpdateCollectionAuthority() *cobra.Command {
 	return cmd
 }
 
+func CollectCreatorsData(cmd *cobra.Command) ([]types.Creator, error) {
+	creators := []types.Creator{}
+	creatorAccsStr, err := cmd.Flags().GetString(FlagCreators)
+	if err != nil {
+		return creators, err
+	}
+	creatorAccs := []string{}
+	if creatorAccsStr != "" {
+		creatorAccs = strings.Split(creatorAccsStr, ",")
+	}
+	creatorSharesStr, err := cmd.Flags().GetString(FlagCreatorShares)
+	if err != nil {
+		return creators, err
+	}
+	creatorShareStrs := []string{}
+	if creatorSharesStr != "" {
+		creatorShareStrs = strings.Split(creatorSharesStr, ",")
+	}
+	for index, creatorAcc := range creatorAccs {
+		shareStr := creatorShareStrs[index]
+		share, err := strconv.Atoi(shareStr)
+		if err != nil {
+			return creators, err
+		}
+		creators = append(creators, types.Creator{
+			Address: creatorAcc,
+			Share:   uint32(share),
+		})
+	}
+	return creators, nil
+}
+
 func collectNftData(cmd *cobra.Command) (types.Metadata, error) {
 	name, err := cmd.Flags().GetString(FlagName)
 	if err != nil {
@@ -470,33 +502,9 @@ func collectNftData(cmd *cobra.Command) (types.Metadata, error) {
 		return types.Metadata{}, err
 	}
 
-	creatorAccsStr, err := cmd.Flags().GetString(FlagCreators)
+	creators, err := CollectCreatorsData(cmd)
 	if err != nil {
 		return types.Metadata{}, err
-	}
-	creatorAccs := []string{}
-	if creatorAccsStr != "" {
-		creatorAccs = strings.Split(creatorAccsStr, ",")
-	}
-	creatorSharesStr, err := cmd.Flags().GetString(FlagCreatorShares)
-	if err != nil {
-		return types.Metadata{}, err
-	}
-	creatorShareStrs := []string{}
-	if creatorSharesStr != "" {
-		creatorShareStrs = strings.Split(creatorSharesStr, ",")
-	}
-	creators := []types.Creator{}
-	for index, creatorAcc := range creatorAccs {
-		shareStr := creatorShareStrs[index]
-		share, err := strconv.Atoi(shareStr)
-		if err != nil {
-			return types.Metadata{}, err
-		}
-		creators = append(creators, types.Creator{
-			Address: creatorAcc,
-			Share:   uint32(share),
-		})
 	}
 
 	return types.Metadata{
