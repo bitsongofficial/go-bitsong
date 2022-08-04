@@ -74,7 +74,7 @@ func GetCmdCreateCandyMachine() *cobra.Command {
 				return err
 			}
 
-			goLiveDate, err := cmd.Flags().GetString(FlagGoLiveDate)
+			goLiveDate, err := cmd.Flags().GetUint64(FlagGoLiveDate)
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,7 @@ func GetCmdUpdateCandyMachine() *cobra.Command {
 				return err
 			}
 
-			goLiveDate, err := cmd.Flags().GetString(FlagGoLiveDate)
+			goLiveDate, err := cmd.Flags().GetUint64(FlagGoLiveDate)
 			if err != nil {
 				return err
 			}

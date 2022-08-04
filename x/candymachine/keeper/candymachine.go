@@ -210,9 +210,12 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		return err
 	}
 
+	if machine.GoLiveDate > uint64(ctx.BlockTime().Unix()) {
+		return types.ErrCandyMachineNotLiveTime
+	}
+
 	// mint nft by module account
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-	// TODO: update metadata initialization
 	_, nftId, err := k.nftKeeper.CreateNFT(ctx, &nfttypes.MsgCreateNFT{
 		Sender: moduleAddr.String(),
 		CollId: msg.CollectionId,

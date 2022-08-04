@@ -25,7 +25,7 @@ func FlagCreateCandyMachine() *flag.FlagSet {
 	fs.String(FlagEndSettingsType, "", "end settings type")
 	fs.Uint64(FlagEndSettingsValue, 0, "end settings value")
 	fs.String(FlagMetadataBaseUrl, "", "metadata base url")
-	fs.String(FlagGoLiveDate, "", "go live date")
+	fs.Uint64(FlagGoLiveDate, 0, "go live date")
 
 	fs.Uint64(nftcli.FlagCollectionId, 0, "collection id for the nft")
 	fs.String(nftcli.FlagCreators, "", "Creators of nft")

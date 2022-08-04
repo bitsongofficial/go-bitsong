@@ -19,7 +19,7 @@ message CandyMachine {
     // denom for the auction
     string denom = 4;
     // Timestamp when minting is allowed
-    string go_live_date = 5;
+    uint64 go_live_date = 5;
     // condition to check when candy machine ends
     EndSettings end_settings = 6 [ (gogoproto.nullable) = false ];
     // minted amount
