@@ -1,4 +1,4 @@
-# NFT module specification
+# `candymachine` module specification
 
 ## Abstract
 
