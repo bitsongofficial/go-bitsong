@@ -72,3 +72,10 @@ message EndSettings {
 
 - `BY_TIME` end settings describes candymachine automatically ends when `value` timestamp pass.
 - `BY_MINT` end settings describes candymachine automatically ends when `value` number of nfts are minted.
+
+Store:
+
+- Candymachine: `0x01 | format(collection_id) | bidder -> Bid`
+- Candymachine by EndTime: `0x02 | format(EndTime) | format(collection_id) -> Bid`
+
+Notes: Candymachine by EndTime queue is only set for `BY_TIME` end settings candy machine.
