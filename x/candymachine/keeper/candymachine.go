@@ -249,7 +249,12 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	}
 
 	machine.Minted++
-	k.SetCandyMachine(ctx, machine)
+
+	if machine.EndSettings.EndType == types.EndSettingType_Mint && machine.Minted >= machine.EndSettings.Value {
+		k.DeleteCandyMachine(ctx, machine)
+	} else {
+		k.SetCandyMachine(ctx, machine)
+	}
 
 	// Emit event for candy machine close
 	ctx.EventManager().EmitTypedEvent(&types.EventMintNFT{
