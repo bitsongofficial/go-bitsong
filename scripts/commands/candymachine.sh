@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
+bitsongd query candymachine params
 bitsongd query candymachine candymachines
+bitsongd query candymachine candymachine 1
 
 bitsongd tx nft create-collection --name="punk-collection" --uri="https://punk.com" --update-authority=$(bitsongd keys show -a validator --keyring-backend=test) --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block
 

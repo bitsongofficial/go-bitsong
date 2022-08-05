@@ -11,6 +11,9 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/candymachine/types"
 
 // Query creates service with candymachine as RPC
 service Query {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bitsong/candymachine/params";
+  }
   rpc CandyMachines(QueryCandyMachinesRequest) returns (QueryCandyMachinesResponse) {
     option (google.api.http).get = "/bitsong/candymachine/candymachines";
   }
@@ -32,4 +35,12 @@ message QueryCandyMachineRequest {
 
 message QueryCandyMachineResponse {
   bitsong.candymachine.v1beta1.CandyMachine machine = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryParamsRequest { 
+  uint64 coll_id = 1; 
+}
+
+message QueryParamsResponse {
+  bitsong.candymachine.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
 }

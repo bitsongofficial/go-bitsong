@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -21,10 +22,43 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	queryCmd.AddCommand(
+		GetCmdQueryParams(),
 		GetCmdQueryCandyMachines(),
+		GetCmdQueryCandyMachine(),
 	)
 
 	return queryCmd
+}
+
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "params [flags]",
+		Long: "Query params.",
+		Example: fmt.Sprintf(
+			`$ %s query candymachine params`, version.AppName),
+		Args: cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 func GetCmdQueryCandyMachines() *cobra.Command {
@@ -44,6 +78,43 @@ func GetCmdQueryCandyMachines() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.CandyMachines(context.Background(), &types.QueryCandyMachinesRequest{})
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryCandyMachine() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "candymachine [collection_id] [flags]",
+		Long: "Query a candymachine by collection id.",
+		Example: fmt.Sprintf(
+			`$ %s query candymachine candymachine 1`, version.AppName),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			collId, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.CandyMachine(context.Background(), &types.QueryCandyMachineRequest{
+				CollId: uint64(collId),
+			})
 
 			if err != nil {
 				return err

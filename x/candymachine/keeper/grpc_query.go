@@ -9,6 +9,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryParamsResponse{
+		Params: k.GetParamSet(ctx),
+	}, nil
+}
+
 func (k Keeper) CandyMachines(c context.Context, req *types.QueryCandyMachinesRequest) (*types.QueryCandyMachinesResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
