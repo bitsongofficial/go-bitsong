@@ -14,3 +14,4 @@ Candy machine frontend codebase is open source and NFT project owners can host t
 2. **[Messages](02_messages.md)**
 3. **[Events](03_events.md)**
 4. **[Parameters](04_params.md)**
+5. **[Client](05_client.md)**
