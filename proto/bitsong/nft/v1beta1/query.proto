@@ -62,5 +62,5 @@ message QueryCollectionRequest { uint64 id = 1; }
 // QueryCollectionResponse is response type for the Query/Collection RPC method
 message QueryCollectionResponse {
   bitsong.nft.v1beta1.Collection collection = 1 [ (gogoproto.nullable) = false ];
-  repeated string nft_ids = 2;
+  repeated bitsong.nft.v1beta1.NFT nfts = 2 [ (gogoproto.nullable) = false ];
 }

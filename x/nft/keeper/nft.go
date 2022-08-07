@@ -26,25 +26,16 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	return nfts
 }
 
-func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
+func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
 	store := ctx.KVStore(k.storeKey)
 
-	nftIds := []string{}
+	nfts := []types.NFT{}
 	it := sdk.KVStorePrefixIterator(store, append(types.PrefixNFT, sdk.Uint64ToBigEndian(collectionId)...))
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
-		id := string(it.Value())
-		nftIds = append(nftIds, id)
-	}
-	return nftIds
-}
-
-func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
-	nfts := []types.NFT{}
-	nftIds := k.GetCollectionNftIds(ctx, collectionId)
-	for _, nftId := range nftIds {
-		nft, _ := k.GetNFTById(ctx, nftId)
+		nft := types.NFT{}
+		k.cdc.MustUnmarshal(it.Value(), &nft)
 		nfts = append(nfts, nft)
 	}
 	return nfts
