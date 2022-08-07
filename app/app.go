@@ -185,7 +185,7 @@ var (
 		fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		nfttypes.ModuleName:            {authtypes.Minter, authtypes.Burner},
 		marketplacetypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		candymachinetypes.ModuleName:   {},
+		candymachinetypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
 		merkledroptypes.ModuleName:     nil,
 	}
 )

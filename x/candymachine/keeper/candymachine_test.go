@@ -8,11 +8,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
-// TODO: test CreateCandyMachine
-// TODO: test UpdateCandyMachine
-// TODO: test CloseCandyMachine
-// TODO: test MintNFT
-
 func (suite *KeeperTestSuite) TestCandyMachineGetSetDelete() {
 	addr := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	now := time.Now().UTC()
