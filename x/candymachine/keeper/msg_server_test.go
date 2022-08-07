@@ -197,3 +197,88 @@ func (suite *KeeperTestSuite) TestMsgServerUpdateCandyMachine() {
 		}
 	}
 }
+
+func (suite *KeeperTestSuite) TestMsgServerCloseCandyMachine() {
+	addr1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+	addr2 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase         string
+		sender           sdk.AccAddress
+		machineAuthority sdk.AccAddress
+		collectionId     uint64
+		expectPass       bool
+	}{
+		{
+			"when candy machine is not available case",
+			addr1,
+			addr1,
+			0,
+			false,
+		},
+		{
+			"when sender is not the authority",
+			addr1,
+			addr2,
+			1,
+			false,
+		},
+		{
+			"successful candymachine close",
+			addr1,
+			addr1,
+			1,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		msgServer := keeper.NewMsgServerImpl(suite.app.CandyMachineKeeper)
+		machine := types.CandyMachine{
+			CollId:     1,
+			Price:      0,
+			Treasury:   tc.machineAuthority.String(),
+			Denom:      "ubtsg",
+			GoLiveDate: 1659870342,
+			EndSettings: types.EndSettings{
+				EndType: types.EndSettingType_Mint,
+				Value:   1000,
+			},
+			Minted:               0,
+			Authority:            tc.machineAuthority.String(),
+			MetadataBaseUrl:      "https://punk.com/metadata",
+			Mutable:              true,
+			SellerFeeBasisPoints: 100,
+			Creators:             []nfttypes.Creator(nil),
+		}
+
+		if tc.collectionId > 0 {
+			moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+			suite.app.NFTKeeper.SetCollection(suite.ctx, nfttypes.Collection{
+				Id:              tc.collectionId,
+				Symbol:          "PUNK",
+				UpdateAuthority: moduleAddr.String(),
+			})
+			suite.app.CandyMachineKeeper.SetCandyMachine(suite.ctx, machine)
+		}
+
+		machine.MetadataBaseUrl = "https://punk.com/newmeatadata"
+		_, err := msgServer.CloseCandyMachine(sdk.WrapSDKContext(suite.ctx), types.NewMsgCloseCandyMachine(
+			tc.sender, tc.collectionId,
+		))
+		if tc.expectPass {
+			suite.Require().NoError(err)
+
+			// check candy machine deleted
+			_, err := suite.app.CandyMachineKeeper.GetCandyMachineByCollId(suite.ctx, machine.CollId)
+			suite.Require().Error(err)
+
+			// check collection ownership transferred
+			collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, tc.collectionId)
+			suite.Require().NoError(err)
+			suite.Require().Equal(collection.UpdateAuthority, tc.sender.String())
+		} else {
+			suite.Require().Error(err)
+		}
+	}
+}
