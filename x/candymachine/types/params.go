@@ -36,7 +36,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // DefaultParams return the default params
 func DefaultParams() Params {
-	return Params{}
+	return Params{
+		CandymachineCreationPrice: sdk.NewInt64Coin("ubtsg", 0),
+	}
 }
 
 // String returns a human readable string representation of the parameters.
