@@ -26,25 +26,16 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	return nfts
 }
 
-func (k Keeper) GetCollectionNftIds(ctx sdk.Context, collectionId uint64) []string {
+func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
 	store := ctx.KVStore(k.storeKey)
 
-	nftIds := []string{}
+	nfts := []types.NFT{}
 	it := sdk.KVStorePrefixIterator(store, append(types.PrefixNFT, sdk.Uint64ToBigEndian(collectionId)...))
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
-		id := string(it.Value())
-		nftIds = append(nftIds, id)
-	}
-	return nftIds
-}
-
-func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
-	nfts := []types.NFT{}
-	nftIds := k.GetCollectionNftIds(ctx, collectionId)
-	for _, nftId := range nftIds {
-		nft, _ := k.GetNFTById(ctx, nftId)
+		nft := types.NFT{}
+		k.cdc.MustUnmarshal(it.Value(), &nft)
 		nfts = append(nfts, nft)
 	}
 	return nfts
@@ -126,6 +117,61 @@ func (k Keeper) PayNftIssueFee(ctx sdk.Context, sender sdk.AccAddress) error {
 		}
 	}
 	return nil
+}
+
+func (k Keeper) CreateNFT(ctx sdk.Context, msg *types.MsgCreateNFT) (uint64, string, error) {
+
+	collection, err := k.GetCollectionById(ctx, msg.CollId)
+	if err != nil {
+		return 0, "", err
+	}
+
+	if collection.UpdateAuthority != msg.Sender {
+		return 0, "", types.ErrNotEnoughPermission
+	}
+
+	// create metadata
+	metadataId := k.GetLastMetadataId(ctx) + 1
+	k.SetLastMetadataId(ctx, metadataId)
+	msg.Metadata.Id = metadataId
+	for index := range msg.Metadata.Creators {
+		msg.Metadata.Creators[index].Verified = false
+	}
+	if msg.Metadata.MasterEdition != nil {
+		msg.Metadata.MasterEdition.Supply = 1
+		if msg.Metadata.MasterEdition.MaxSupply < 1 {
+			msg.Metadata.MasterEdition.MaxSupply = 1
+		}
+	}
+	k.SetMetadata(ctx, msg.Metadata)
+	ctx.EventManager().EmitTypedEvent(&types.EventMetadataCreation{
+		Creator:    msg.Sender,
+		MetadataId: msg.Metadata.Id,
+	})
+
+	// burn fees before minting an nft
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return 0, "", err
+	}
+	err = k.PayNftIssueFee(ctx, sender)
+	if err != nil {
+		return 0, "", err
+	}
+
+	// create nft
+	nft := types.NFT{
+		Owner:      msg.Sender,
+		CollId:     msg.CollId,
+		MetadataId: metadataId,
+		Seq:        0,
+	}
+	k.SetNFT(ctx, nft)
+	ctx.EventManager().EmitTypedEvent(&types.EventNFTCreation{
+		Creator: msg.Sender,
+		NftId:   nft.Id(),
+	})
+	return metadataId, nft.Id(), nil
 }
 
 func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (string, error) {

@@ -1,0 +1,46 @@
+syntax = "proto3";
+package bitsong.candymachine.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/candymachine/candymachine.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/candymachine/types";
+
+// Query creates service with candymachine as RPC
+service Query {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bitsong/candymachine/params";
+  }
+  rpc CandyMachines(QueryCandyMachinesRequest) returns (QueryCandyMachinesResponse) {
+    option (google.api.http).get = "/bitsong/candymachine/candymachines";
+  }
+  rpc CandyMachine(QueryCandyMachineRequest) returns (QueryCandyMachineResponse) {
+    option (google.api.http).get = "/bitsong/candymachine/candymachine/{coll_id}";
+  }
+}
+
+message QueryCandyMachinesRequest {
+}
+
+message QueryCandyMachinesResponse {
+  repeated bitsong.candymachine.v1beta1.CandyMachine machines = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryCandyMachineRequest { 
+  uint64 coll_id = 1; 
+}
+
+message QueryCandyMachineResponse {
+  bitsong.candymachine.v1beta1.CandyMachine machine = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryParamsRequest { 
+  uint64 coll_id = 1; 
+}
+
+message QueryParamsResponse {
+  bitsong.candymachine.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+}

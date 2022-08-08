@@ -1,0 +1,78 @@
+syntax = "proto3";
+package bitsong.candymachine.v1beta1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/candymachine/types";
+
+message CandyMachine {
+    // id of the collection
+    uint64 coll_id = 1;
+    // mint price
+    uint64 price = 2;
+    // wallet to receive payments
+    string treasury = 3;
+    // denom for the auction
+    string denom = 4;
+    // Timestamp when minting is allowed
+    uint64 go_live_date = 5;
+    // condition to check when candy machine ends
+    EndSettings end_settings = 6 [ (gogoproto.nullable) = false ];
+    // minted amount
+    uint64 minted = 7;
+    // owner of candy machine
+    string authority = 8;
+    // all metadata url is generated from metadata_base_url
+    string metadata_base_url = 9;
+    // mutability of the minted nfts
+    bool mutable = 10;
+    // Royalty basis points that goes to creators in secondary sales (0-10000)
+    uint32 seller_fee_basis_points = 11;
+    // Creators of metadata
+    repeated bitsong.nft.v1beta1.Creator creators = 12 [ (gogoproto.nullable) = false ];
+}
+
+enum EndSettingType {
+  BY_TIME = 0 [ (gogoproto.enumvalue_customname) = "Time" ];
+  BY_MINT = 1 [ (gogoproto.enumvalue_customname) = "Mint" ];
+}
+
+message EndSettings {
+    EndSettingType end_type = 1;
+    uint64 value = 2; // Value to test the end condition. timestamp or number of mints based on end setting type.
+}
+
+// Params defines candymachine module's parameters
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin candymachine_creation_price = 1 [
+    (gogoproto.moretags) = "yaml:\"candymachine_creation_price\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventCreateCandyMachine {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventUpdateCandyMachine {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventCloseCandyMachine {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventMintNFT {
+  uint64 collection_id = 1;
+  string nft_id = 2;
+}

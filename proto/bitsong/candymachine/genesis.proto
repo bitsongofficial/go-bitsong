@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bitsong.candymachine.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/candymachine/candymachine.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/candymachine/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// GenesisState defines the auction module's genesis state
+message GenesisState {
+  bitsong.candymachine.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+  repeated bitsong.candymachine.v1beta1.CandyMachine candymachines = 2 [ (gogoproto.nullable) = false ];
+}

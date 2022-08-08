@@ -39,6 +39,12 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	val := s.network.Validators[0]
 	clientCtx := val.ClientCtx
+	_, err = nfttestutil.CreateCollection(clientCtx, val.Address.String(), s.cfg.BondDenom)
+	s.Require().NoError(err)
+
+	_, err = s.network.WaitForHeight(1)
+	s.Require().NoError(err)
+
 	_, err = nfttestutil.CreateNFT(clientCtx, val.Address.String(), s.cfg.BondDenom)
 	s.Require().NoError(err)
 
