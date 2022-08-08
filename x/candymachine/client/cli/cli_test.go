@@ -147,3 +147,66 @@ func (s *IntegrationTestSuite) TestGetCmdCreateCandyMachine() {
 	})
 	s.Require().NoError(err)
 }
+
+func (s *IntegrationTestSuite) TestGetCmdUpdateCandyMachine() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := candymachinecli.GetCmdUpdateCandyMachine()
+
+	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("--%s=%d", nftcli.FlagCollectionId, 1),
+		fmt.Sprintf("--%s=1000", candymachinecli.FlagPrice),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagDenom, "utbsg"),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagMetadataBaseUrl, "https://punk.com/metadata"),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagEndSettingsType, "BY_MINT"),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagEndSettingsValue, "10"),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagTreasury, val.Address.String()),
+		fmt.Sprintf("--%s=%s", candymachinecli.FlagGoLiveDate, "1659404536"),
+		fmt.Sprintf("--%s=%s", nftcli.FlagCreators, val.Address.String()),
+		fmt.Sprintf("--%s=%s", nftcli.FlagCreatorShares, "10"),
+		fmt.Sprintf("--%s=true", nftcli.FlagMutable),
+		fmt.Sprintf("--%s=%d", nftcli.FlagSellerFeeBasisPoints, 100),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(100))).String()),
+	})
+	s.Require().NoError(err)
+}
+
+func (s *IntegrationTestSuite) TestGetCmdMintNFT() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := candymachinecli.GetCmdMintNFT()
+
+	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("1"),
+		fmt.Sprintf("MyPunk"),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(100))).String()),
+	})
+	s.Require().NoError(err)
+}
+
+func (s *IntegrationTestSuite) TestGetCmdCloseCandyMachine() {
+	val := s.network.Validators[0]
+	clientCtx := val.ClientCtx
+
+	cmd := candymachinecli.GetCmdCloseCandyMachine()
+
+	_, err := clitestutil.ExecTestCLICmd(clientCtx, cmd, []string{
+		fmt.Sprintf("1"),
+		fmt.Sprintf("--%s=%s", flags.FlagFrom, val.Address.String()),
+
+		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(100))).String()),
+	})
+	s.Require().NoError(err)
+}
