@@ -4,6 +4,8 @@
 
 ### collection
 
+Query collection by id
+
 ```
 bitsongd query nft collection <collection_id>
 bitsongd query nft collection 1
@@ -14,7 +16,7 @@ bitsongd query nft collection 1
 Query metadata by Id
 
 ```
-bitsongd query nft collection <metadata_id>
+bitsongd query nft metadata <metadata_id>
 bitsongd query nft metadata 1
 ```
 
@@ -24,13 +26,15 @@ Query nft info by Id
 
 ```
 # Note: nft id is expressed as <collection_id>:<metadata_id>:<sequence>
-bitsongd query nft collection <nft_id>
+bitsongd query nft nft-info <nft_id>
 bitsongd query nft nft-info 1:1:0
 ```
 
 Query nfts by owner
 
 ```
+bitsongd query nft nfts-by-owner <nft_owner>
+
 bitsongd query nft nfts-by-owner $(bitsongd keys show -a validator --keyring-backend=test)
 ```
 
