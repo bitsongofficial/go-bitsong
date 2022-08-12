@@ -16,3 +16,4 @@ The NFT marketplace and auction, candy machine will be built as part of other mo
 2. **[Messages](02_messages.md)**
 3. **[Events](03_events.md)**
 4. **[Parameters](04_params.md)**
+5. **[Client](05_client.md)**
