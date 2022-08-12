@@ -3,27 +3,29 @@ package types
 import (
 	"fmt"
 
+	"gopkg.in/yaml.v2"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"gopkg.in/yaml.v2"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
+// parameter keys
 var (
-	KeyCreationFee = []byte("CreationFee")
+	KeyIssuePrice = []byte("IssuePrice")
 )
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyCreationFee, &p.CreationFee, validateCreationFee),
+		paramtypes.NewParamSetPair(KeyIssuePrice, &p.AuctionCreationPrice, validateIssuePrice),
 	}
 }
 
 // NewParams constructs a new Params instance
-func NewParams(creationFee sdk.Coin) Params {
+func NewParams(AuctionCreationPrice sdk.Coin) Params {
 	return Params{
-		CreationFee: creationFee,
+		AuctionCreationPrice: AuctionCreationPrice,
 	}
 }
 
@@ -34,9 +36,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // DefaultParams return the default params
 func DefaultParams() Params {
-	return Params{
-		CreationFee: sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000),
-	}
+	return Params{}
 }
 
 // String returns a human readable string representation of the parameters.
@@ -45,24 +45,22 @@ func (p Params) String() string {
 	return string(out)
 }
 
-// Validate validates the given params
-func (p Params) Validate() error {
-	if err := validateCreationFee(p.CreationFee); err != nil {
+// ValidateParams validates the given params
+func ValidateParams(p Params) error {
+	if err := validateIssuePrice(p.AuctionCreationPrice); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validateCreationFee(i interface{}) error {
+func validateIssuePrice(i interface{}) error {
 	v, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-
-	if v.Validate() != nil {
-		return fmt.Errorf("invalid creation fee: %+v", i)
+	if v.IsNegative() {
+		return fmt.Errorf("issue price should not be negative")
 	}
-
 	return nil
 }

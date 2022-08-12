@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
