@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	FlagPrice            = "price"
-	FlagTreasury         = "treasury"
-	FlagDenom            = "denom"
-	FlagGoLiveDate       = "go-live-date"
-	FlagEndSettingsType  = "end-settings-type"
-	FlagEndSettingsValue = "end-settings-value"
-	FlagMetadataBaseUrl  = "metadata-baseurl"
+	FlagPrice           = "price"
+	FlagTreasury        = "treasury"
+	FlagDenom           = "denom"
+	FlagGoLiveDate      = "go-live-date"
+	FlagEndTimestamp    = "end-timestamp"
+	FlagMaxMint         = "max-mint"
+	FlagMetadataBaseUrl = "metadata-baseurl"
 )
 
 func FlagCreateCandyMachine() *flag.FlagSet {
@@ -22,8 +22,8 @@ func FlagCreateCandyMachine() *flag.FlagSet {
 	fs.Uint64(FlagPrice, 0, "price of candymachine nft")
 	fs.String(FlagTreasury, "", "treasury to receive payment for nft minting")
 	fs.String(FlagDenom, "", "denom to be spent for candymachine nft minting price")
-	fs.String(FlagEndSettingsType, "", "end settings type")
-	fs.Uint64(FlagEndSettingsValue, 0, "end settings value")
+	fs.Uint64(FlagEndTimestamp, 0, "end timestamp")
+	fs.Uint64(FlagMaxMint, 0, "max mint")
 	fs.String(FlagMetadataBaseUrl, "", "metadata base url")
 	fs.Uint64(FlagGoLiveDate, 0, "go live date")
 

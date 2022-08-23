@@ -53,8 +53,8 @@ func (k Keeper) SetCandyMachine(ctx sdk.Context, machine types.CandyMachine) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(append(types.PrefixCandyMachine, idBz...), bz)
 
-	if machine.EndSettings.EndType == types.EndSettingType_Time {
-		store.Set(append(getTimeKey(machine.EndSettings.Value), idBz...), idBz)
+	if machine.EndTimestamp != 0 {
+		store.Set(append(getTimeKey(machine.EndTimestamp), idBz...), idBz)
 	}
 }
 
@@ -63,8 +63,8 @@ func (k Keeper) DeleteCandyMachine(ctx sdk.Context, machine types.CandyMachine) 
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(append(types.PrefixCandyMachine, idBz...))
 
-	if machine.EndSettings.EndType == types.EndSettingType_Time {
-		store.Delete(append(getTimeKey(machine.EndSettings.Value), idBz...))
+	if machine.EndTimestamp != 0 {
+		store.Delete(append(getTimeKey(machine.EndTimestamp), idBz...))
 	}
 }
 
@@ -253,7 +253,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 
 	machine.Minted++
 
-	if machine.EndSettings.EndType == types.EndSettingType_Mint && machine.Minted >= machine.EndSettings.Value {
+	if machine.Minted >= machine.MaxMint {
 		k.DeleteCandyMachine(ctx, machine)
 	} else {
 		k.SetCandyMachine(ctx, machine)
@@ -266,4 +266,12 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	})
 
 	return nil
+}
+
+func (k Keeper) MintableMetadataIds(ctx sdk.Context, collId uint64) []uint64 {
+	return []uint64{}
+}
+
+func (k Keeper) AllMintableMetadataIds(ctx sdk.Context) []types.MintableMetadataIds {
+	return []types.MintableMetadataIds{}
 }

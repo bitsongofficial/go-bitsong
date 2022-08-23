@@ -65,11 +65,11 @@ func GetCmdCreateCandyMachine() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			endSettingsTypeStr, err := cmd.Flags().GetString(FlagEndSettingsType)
+			endTimestamp, err := cmd.Flags().GetUint64(FlagEndTimestamp)
 			if err != nil {
 				return err
 			}
-			endSettingsValue, err := cmd.Flags().GetUint64(FlagEndSettingsValue)
+			maxMint, err := cmd.Flags().GetUint64(FlagMaxMint)
 			if err != nil {
 				return err
 			}
@@ -101,15 +101,13 @@ func GetCmdCreateCandyMachine() *cobra.Command {
 			msg := types.NewMsgCreateCandyMachine(
 				clientCtx.GetFromAddress(),
 				types.CandyMachine{
-					CollId:     collId,
-					Price:      price,
-					Treasury:   treasury,
-					Denom:      denom,
-					GoLiveDate: goLiveDate,
-					EndSettings: types.EndSettings{
-						EndType: types.EndSettingType(types.EndSettingType_value[endSettingsTypeStr]),
-						Value:   endSettingsValue,
-					},
+					CollId:               collId,
+					Price:                price,
+					Treasury:             treasury,
+					Denom:                denom,
+					GoLiveDate:           goLiveDate,
+					EndTimestamp:         endTimestamp,
+					MaxMint:              maxMint,
 					Authority:            clientCtx.GetFromAddress().String(),
 					MetadataBaseUrl:      metadataBaseUrl,
 					Mutable:              mutable,
@@ -163,11 +161,12 @@ func GetCmdUpdateCandyMachine() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			endSettingsTypeStr, err := cmd.Flags().GetString(FlagEndSettingsType)
+
+			endTimestamp, err := cmd.Flags().GetUint64(FlagEndTimestamp)
 			if err != nil {
 				return err
 			}
-			endSettingsValue, err := cmd.Flags().GetUint64(FlagEndSettingsValue)
+			maxMint, err := cmd.Flags().GetUint64(FlagMaxMint)
 			if err != nil {
 				return err
 			}
@@ -199,15 +198,13 @@ func GetCmdUpdateCandyMachine() *cobra.Command {
 			msg := types.NewMsgUpdateCandyMachine(
 				clientCtx.GetFromAddress(),
 				types.CandyMachine{
-					CollId:     collId,
-					Price:      price,
-					Treasury:   treasury,
-					Denom:      denom,
-					GoLiveDate: goLiveDate,
-					EndSettings: types.EndSettings{
-						EndType: types.EndSettingType(types.EndSettingType_value[endSettingsTypeStr]),
-						Value:   endSettingsValue,
-					},
+					CollId:               collId,
+					Price:                price,
+					Treasury:             treasury,
+					Denom:                denom,
+					GoLiveDate:           goLiveDate,
+					EndTimestamp:         endTimestamp,
+					MaxMint:              maxMint,
 					Authority:            clientCtx.GetFromAddress().String(),
 					MetadataBaseUrl:      metadataBaseUrl,
 					Mutable:              mutable,

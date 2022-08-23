@@ -17,15 +17,13 @@ func (suite *KeeperTestSuite) TestInitExportGenesis() {
 
 	genState.Candymachines = []types.CandyMachine{
 		{
-			CollId:     1,
-			Price:      0,
-			Treasury:   addr1.String(),
-			Denom:      "ubtsg",
-			GoLiveDate: 1659870342,
-			EndSettings: types.EndSettings{
-				EndType: types.EndSettingType_Mint,
-				Value:   1000,
-			},
+			CollId:               1,
+			Price:                0,
+			Treasury:             addr1.String(),
+			Denom:                "ubtsg",
+			GoLiveDate:           1659870342,
+			EndTimestamp:         0,
+			MaxMint:              1000,
 			Minted:               0,
 			Authority:            addr1.String(),
 			MetadataBaseUrl:      "https://punk.com/metadata",
