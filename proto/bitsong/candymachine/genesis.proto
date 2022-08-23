@@ -12,4 +12,5 @@ option (gogoproto.goproto_getters_all) = false;
 message GenesisState {
   bitsong.candymachine.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
   repeated bitsong.candymachine.v1beta1.CandyMachine candymachines = 2 [ (gogoproto.nullable) = false ];
+  repeated bitsong.candymachine.v1beta1.MintableMetadataIds mintable_metadata_ids = 3 [ (gogoproto.nullable) = false ];
 }

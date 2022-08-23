@@ -214,6 +214,9 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		return types.ErrCandyMachineNotLiveTime
 	}
 
+	// TODO: metadata should be dynamically created on candymachine module with dynamic id
+	// TODO: set nft directly here
+
 	// mint nft by module account
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
 	_, nftId, err := k.nftKeeper.CreateNFT(ctx, &nfttypes.MsgCreateNFT{
