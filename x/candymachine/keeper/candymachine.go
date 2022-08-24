@@ -273,5 +273,15 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 }
 
 func (k Keeper) AllMintableMetadataIds(ctx sdk.Context) []types.MintableMetadataIds {
-	return []types.MintableMetadataIds{}
+	candymachines := k.GetAllCandyMachines(ctx)
+
+	mintableMetadataIds := []types.MintableMetadataIds{}
+	for _, machine := range candymachines {
+		ids := k.GetMintableMetadataIds(ctx, machine.CollId)
+		mintableMetadataIds = append(mintableMetadataIds, types.MintableMetadataIds{
+			CollectionId:        machine.CollId,
+			MintableMetadataIds: ids,
+		})
+	}
+	return mintableMetadataIds
 }

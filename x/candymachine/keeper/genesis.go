@@ -13,12 +13,17 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data types.GenesisState) {
 	for _, machine := range data.Candymachines {
 		k.SetCandyMachine(ctx, machine)
 	}
+
+	for _, m := range data.MintableMetadataIds {
+		k.SetMintableMetadataIds(ctx, m.CollectionId, m.MintableMetadataIds)
+	}
 }
 
 // ExportGenesis outputs the genesis state
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
-		Params:        k.GetParamSet(ctx),
-		Candymachines: k.GetAllCandyMachines(ctx),
+		Params:              k.GetParamSet(ctx),
+		Candymachines:       k.GetAllCandyMachines(ctx),
+		MintableMetadataIds: k.AllMintableMetadataIds(ctx),
 	}
 }

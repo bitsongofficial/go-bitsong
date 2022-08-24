@@ -21,7 +21,8 @@ func ValidateGenesis(data GenesisState) error {
 
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:        DefaultParams(),
-		Candymachines: []CandyMachine{},
+		Params:              DefaultParams(),
+		Candymachines:       []CandyMachine{},
+		MintableMetadataIds: []MintableMetadataIds{},
 	}
 }

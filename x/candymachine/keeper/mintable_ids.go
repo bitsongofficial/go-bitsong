@@ -62,7 +62,7 @@ func (k Keeper) GetMintableMetadataIds(ctx sdk.Context, collId uint64) []uint64 
 		metadataIds = append(metadataIds, sdk.BigEndianToUint64(it.Value()))
 	}
 
-	return []uint64{}
+	return metadataIds
 }
 
 func RandomList(ctx sdk.Context, items []uint64) []uint64 {
