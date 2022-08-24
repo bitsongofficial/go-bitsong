@@ -136,6 +136,16 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 	collection.UpdateAuthority = moduleAddr.String()
 	k.nftKeeper.SetCollection(ctx, collection)
 
+	mintableMetadataIds := []uint64{}
+	lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx)
+	for i := uint64(0); i < msg.Machine.MaxMint; i++ {
+		mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
+	}
+	k.nftKeeper.SetLastMetadataId(ctx, lastMetadataId+msg.Machine.MaxMint)
+	mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+	k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
+
+	// TODO: add MaxMint value limitation
 	machine := msg.Machine
 	k.SetCandyMachine(ctx, machine)
 
@@ -160,6 +170,7 @@ func (k Keeper) UpdateCandyMachine(ctx sdk.Context, msg *types.MsgUpdateCandyMac
 	}
 
 	// TODO: make changes on machine from previous status
+	// TODO: check changes on MaxMint value
 	k.SetCandyMachine(ctx, msg.Machine)
 
 	// Emit event for auction creation
@@ -184,6 +195,8 @@ func (k Keeper) CloseCandyMachine(ctx sdk.Context, msg *types.MsgCloseCandyMachi
 
 	// delete candy machine
 	k.DeleteCandyMachine(ctx, machine)
+	// remove mintable metadata ids
+	k.DeleteMintableMetadataIds(ctx, machine.CollId)
 
 	// transfer ownership of collection to the sender
 	collection, err := k.nftKeeper.GetCollectionById(ctx, msg.CollId)
@@ -214,42 +227,33 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		return types.ErrCandyMachineNotLiveTime
 	}
 
-	// TODO: metadata should be dynamically created on candymachine module with dynamic id
-	// TODO: set nft directly here
+	shuffledId := k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)
 
-	// mint nft by module account
-	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
-	_, nftId, err := k.nftKeeper.CreateNFT(ctx, &nfttypes.MsgCreateNFT{
-		Sender: moduleAddr.String(),
-		CollId: msg.CollectionId,
-		Metadata: nfttypes.Metadata{
-			Name:                 msg.Name,
-			Uri:                  fmt.Sprintf("%s/%d", machine.MetadataBaseUrl, machine.Minted+1),
-			SellerFeeBasisPoints: machine.SellerFeeBasisPoints,
-			PrimarySaleHappened:  true,
-			IsMutable:            machine.Mutable,
-			Creators:             machine.Creators,
-			MetadataAuthority:    msg.Sender,
-			MintAuthority:        msg.Sender,
-			MasterEdition: &nfttypes.MasterEdition{
-				Supply:    1,
-				MaxSupply: 1,
-			},
+	// metadata should be dynamically created on candymachine with shuffled id
+	k.nftKeeper.SetMetadata(ctx, nfttypes.Metadata{
+		Id:                   shuffledId,
+		Name:                 msg.Name,
+		Uri:                  fmt.Sprintf("%s/%d", machine.MetadataBaseUrl, machine.Minted+1),
+		SellerFeeBasisPoints: machine.SellerFeeBasisPoints,
+		PrimarySaleHappened:  true,
+		IsMutable:            machine.Mutable,
+		Creators:             machine.Creators,
+		MetadataAuthority:    msg.Sender,
+		MintAuthority:        msg.Sender,
+		MasterEdition: &nfttypes.MasterEdition{
+			Supply:    1,
+			MaxSupply: 1,
 		},
 	})
-	if err != nil {
-		return err
-	}
 
-	// transfer nft to msg.Sender
-	err = k.nftKeeper.TransferNFT(ctx, &nfttypes.MsgTransferNFT{
-		Sender:   moduleAddr.String(),
-		Id:       nftId,
-		NewOwner: msg.Sender,
-	})
-	if err != nil {
-		return err
+	// create nft
+	nft := nfttypes.NFT{
+		Owner:      msg.Sender,
+		CollId:     msg.CollectionId,
+		MetadataId: shuffledId,
+		Seq:        0,
 	}
+	k.nftKeeper.SetNFT(ctx, nft)
 
 	machine.Minted++
 
@@ -262,14 +266,10 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	// Emit event for candy machine close
 	ctx.EventManager().EmitTypedEvent(&types.EventMintNFT{
 		CollectionId: msg.CollectionId,
-		NftId:        nftId,
+		NftId:        nft.Id(),
 	})
 
 	return nil
-}
-
-func (k Keeper) MintableMetadataIds(ctx sdk.Context, collId uint64) []uint64 {
-	return []uint64{}
 }
 
 func (k Keeper) AllMintableMetadataIds(ctx sdk.Context) []types.MintableMetadataIds {

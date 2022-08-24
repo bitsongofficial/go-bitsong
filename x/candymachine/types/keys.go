@@ -17,4 +17,5 @@ const (
 var (
 	PrefixCandyMachine          = []byte{0x01}
 	PrefixCandyMachineByEndTime = []byte{0x02}
+	PrefixMintableMetadataIds   = []byte{0x03}
 )

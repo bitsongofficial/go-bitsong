@@ -7,9 +7,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
-// TODO: test InitGenesis
-// TODO: test ExportGenesis
-
 func (suite *KeeperTestSuite) TestInitExportGenesis() {
 	addr1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	genState := suite.app.CandyMachineKeeper.ExportGenesis(suite.ctx)

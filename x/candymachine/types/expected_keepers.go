@@ -43,4 +43,8 @@ type NftKeeper interface {
 	SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
 	PrintEdition(ctx sdk.Context, msg *nfttypes.MsgPrintEdition) (string, error)
 	CreateNFT(ctx sdk.Context, msg *nfttypes.MsgCreateNFT) (uint64, string, error)
+	SetMetadata(ctx sdk.Context, metadata nfttypes.Metadata)
+	SetNFT(ctx sdk.Context, nft nfttypes.NFT)
+	GetLastMetadataId(ctx sdk.Context) uint64
+	SetLastMetadataId(ctx sdk.Context, id uint64)
 }
