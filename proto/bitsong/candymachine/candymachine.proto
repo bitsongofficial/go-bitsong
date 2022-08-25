@@ -52,6 +52,7 @@ message Params {
     (gogoproto.moretags) = "yaml:\"candymachine_creation_price\"",
     (gogoproto.nullable) = false
   ];
+  uint64 candymachine_max_mint = 2;
 }
 
 message EventCreateCandyMachine {

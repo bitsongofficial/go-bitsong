@@ -14,18 +14,21 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 // parameter keys
 var (
 	KeyCandyMachineCreationPrice = []byte("CandyMachineCreationPrice")
+	KeyCandymachineMaxMint       = []byte("CandyMachineMaxMint")
 )
 
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyCandyMachineCreationPrice, &p.CandymachineCreationPrice, validateCandyMachineCreationPrice),
+		paramtypes.NewParamSetPair(KeyCandymachineMaxMint, &p.CandymachineMaxMint, validateCandyMachineMaxMint),
 	}
 }
 
 // NewParams constructs a new Params instance
-func NewParams(candymachineCreationPrice sdk.Coin) Params {
+func NewParams(candymachineCreationPrice sdk.Coin, candymachineMaxMint uint64) Params {
 	return Params{
 		CandymachineCreationPrice: candymachineCreationPrice,
+		CandymachineMaxMint:       candymachineMaxMint,
 	}
 }
 
@@ -38,6 +41,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 func DefaultParams() Params {
 	return Params{
 		CandymachineCreationPrice: sdk.NewInt64Coin("ubtsg", 0),
+		CandymachineMaxMint:       10000,
 	}
 }
 
@@ -63,6 +67,17 @@ func validateCandyMachineCreationPrice(i interface{}) error {
 	}
 	if v.IsNegative() {
 		return fmt.Errorf("issue price should not be negative")
+	}
+	return nil
+}
+
+func validateCandyMachineMaxMint(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v == 0 {
+		return fmt.Errorf("max mint should be positive value")
 	}
 	return nil
 }

@@ -132,6 +132,12 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 		return types.ErrNotCollectionAuthority
 	}
 
+	// max mint value limitation check
+	params := k.GetParamSet(ctx)
+	if msg.Machine.MaxMint > params.CandymachineMaxMint {
+		return types.ErrCannotExceedMaxMintParameter
+	}
+
 	moduleAddr := k.accKeeper.GetModuleAddress(types.ModuleName)
 	collection.UpdateAuthority = moduleAddr.String()
 	k.nftKeeper.SetCollection(ctx, collection)
@@ -145,7 +151,6 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 	mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
 	k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
 
-	// TODO: add MaxMint value limitation
 	machine := msg.Machine
 	k.SetCandyMachine(ctx, machine)
 
@@ -170,7 +175,24 @@ func (k Keeper) UpdateCandyMachine(ctx sdk.Context, msg *types.MsgUpdateCandyMac
 	}
 
 	// TODO: make changes on machine from previous status
-	// TODO: check changes on MaxMint value
+
+	params := k.GetParamSet(ctx)
+	if msg.Machine.MaxMint > params.CandymachineMaxMint {
+		return types.ErrCannotExceedMaxMintParameter
+	}
+
+	// if max value is increased allocate more metadata ids
+	if machine.MaxMint < msg.Machine.MaxMint {
+		mintableMetadataIds := k.GetMintableMetadataIds(ctx, msg.Machine.CollId)
+		lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx)
+		for i := uint64(0); i < msg.Machine.MaxMint-machine.MaxMint; i++ {
+			mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
+		}
+		k.nftKeeper.SetLastMetadataId(ctx, lastMetadataId+msg.Machine.MaxMint)
+		mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+		k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
+	}
+
 	k.SetCandyMachine(ctx, msg.Machine)
 
 	// Emit event for auction creation
