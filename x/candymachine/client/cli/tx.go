@@ -303,3 +303,47 @@ func GetCmdMintNFT() *cobra.Command {
 
 	return cmd
 }
+
+func GetCmdMintNFTs() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "mint-nfts [collection_id] [nft_count] [flags]",
+		Long: "Mint nft from provided params",
+		Args: cobra.ExactArgs(2),
+		Example: fmt.Sprintf(
+			`$ %s tx candymachine close-candymachine 1 2`,
+			version.AppName,
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			collId, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			nftCount, err := strconv.Atoi(args[1])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMintNFTs(
+				clientCtx.GetFromAddress(),
+				uint64(collId),
+				uint64(nftCount),
+			)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}

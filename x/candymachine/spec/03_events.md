@@ -36,7 +36,16 @@
 | bitsong.candymachine.v1beta1.EventMetadataCreation | creator       | {creator}                       |
 | bitsong.candymachine.v1beta1.EventNFTCreation      | creator       | {creator}                       |
 | bitsong.candymachine.v1beta1.EventNFTCreation      | nft_id        | {nft_id}                        |
-| bitsong.candymachine.v1beta1.EventNFTTransfer      | nft_id        | {nft_id}                        |
-| bitsong.candymachine.v1beta1.EventNFTTransfer      | sender        | {sender}                        |
-| bitsong.candymachine.v1beta1.EventNFTTransfer      | receiver      | {receiver}                      |
 | message                                            | action        | /bitsong.marketplace.MsgMintNFT |
+
+## MsgMintNFTs
+
+| Type                                               | Attribute Key | Attribute Value                  |
+| :------------------------------------------------- | :------------ | :------------------------------- |
+| bitsong.candymachine.v1beta1.EventMintNFT          | collection_id | {collection_id}                  |
+| bitsong.candymachine.v1beta1.EventMintNFT          | nft_id        | {nft_id}                         |
+| bitsong.candymachine.v1beta1.EventMetadataCreation | metadata_id   | {metadata_id}                    |
+| bitsong.candymachine.v1beta1.EventMetadataCreation | creator       | {creator}                        |
+| bitsong.candymachine.v1beta1.EventNFTCreation      | creator       | {creator}                        |
+| bitsong.candymachine.v1beta1.EventNFTCreation      | nft_id        | {nft_id}                         |
+| message                                            | action        | /bitsong.marketplace.MsgMintNFTs |

@@ -52,9 +52,23 @@ func (m msgServer) CloseCandyMachine(goCtx context.Context, msg *types.MsgCloseC
 func (m msgServer) MintNFT(goCtx context.Context, msg *types.MsgMintNFT) (*types.MsgMintNFTResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	err := m.Keeper.MintNFT(ctx, msg)
+	nftId, err := m.Keeper.MintNFT(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
-	return &types.MsgMintNFTResponse{}, nil
+	return &types.MsgMintNFTResponse{
+		NftId: nftId,
+	}, nil
+}
+
+func (m msgServer) MintNFTs(goCtx context.Context, msg *types.MsgMintNFTs) (*types.MsgMintNFTsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	nftIds, err := m.Keeper.MintNFTs(ctx, msg)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgMintNFTsResponse{
+		NftIds: nftIds,
+	}, nil
 }

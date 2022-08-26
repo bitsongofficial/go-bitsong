@@ -79,3 +79,22 @@ Steps:
 7. If minted count pass the threshold value `MaxMint`, close candymachine
 8. Otherwise, store updated candymachine into the storage
 9. Emit event for minting nft via candymachine
+10. Collect nft id and return
+
+## MsgMintNFTs
+
+```protobuf
+message MsgMintNFTs {
+  string sender = 1;
+  uint64 collection_id = 2;
+  string number = 3;
+}
+```
+
+`MsgMintNFTs` is the message to mint multiple nfts on a single message.
+
+Steps:
+
+1. Iterate `number` times
+2. Execute single `MsgMintNft` message
+3. Collect nft ids and return

@@ -10,6 +10,7 @@ const (
 	TypeMsgUpdateCandyMachine = "update_candymachine"
 	TypeMsgCloseCandyMachine  = "close_candymachine"
 	TypeMsgMintNFT            = "mint_nft"
+	TypeMsgMintNFTs           = "mint_nfts"
 )
 
 var _ sdk.Msg = &MsgCreateCandyMachine{}
@@ -170,6 +171,48 @@ func (msg MsgMintNFT) GetSignBytes() []byte {
 
 // GetSigners Implements Msg.
 func (msg MsgMintNFT) GetSigners() []sdk.AccAddress {
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
+}
+
+var _ sdk.Msg = &MsgMintNFTs{}
+
+func NewMsgMintNFTs(sender sdk.AccAddress, collId uint64, number uint64,
+) *MsgMintNFTs {
+	return &MsgMintNFTs{
+		Sender:       sender.String(),
+		CollectionId: collId,
+		Number:       number,
+	}
+}
+
+func (msg MsgMintNFTs) Route() string { return RouterKey }
+
+func (msg MsgMintNFTs) Type() string { return TypeMsgMintNFTs }
+
+func (msg MsgMintNFTs) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
+	}
+
+	return nil
+}
+
+// GetSignBytes Implements Msg.
+func (msg MsgMintNFTs) GetSignBytes() []byte {
+	b, err := ModuleCdc.MarshalJSON(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return sdk.MustSortJSON(b)
+}
+
+// GetSigners Implements Msg.
+func (msg MsgMintNFTs) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)

@@ -28,6 +28,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgMintNFT:
 			res, err := msgServer.MintNFT(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgMintNFTs:
+			res, err := msgServer.MintNFTs(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized candymachine message type: %T", msg)

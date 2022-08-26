@@ -24,6 +24,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateCandyMachine{}, "go-bitsong/candymachine/MsgUpdateCandyMachine", nil)
 	cdc.RegisterConcrete(&MsgCloseCandyMachine{}, "go-bitsong/candymachine/MsgCloseCandyMachine", nil)
 	cdc.RegisterConcrete(&MsgMintNFT{}, "go-bitsong/candymachine/MsgMintNFT", nil)
+	cdc.RegisterConcrete(&MsgMintNFTs{}, "go-bitsong/candymachine/MsgMintNFTs", nil)
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
@@ -32,6 +33,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateCandyMachine{},
 		&MsgCloseCandyMachine{},
 		&MsgMintNFT{},
+		&MsgMintNFTs{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)

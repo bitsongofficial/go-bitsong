@@ -253,25 +253,25 @@ func (k Keeper) PayCandyMachineFee(ctx sdk.Context, sender sdk.AccAddress, machi
 	return nil
 }
 
-func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
+func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) (string, error) {
 	// Ensure candy machine is owned by the sender
 	machine, err := k.GetCandyMachineByCollId(ctx, msg.CollectionId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if machine.GoLiveDate > uint64(ctx.BlockTime().Unix()) {
-		return types.ErrCandyMachineNotLiveTime
+		return "", types.ErrCandyMachineNotLiveTime
 	}
 
 	// make payment
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = k.PayCandyMachineFee(ctx, sender, machine)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	shuffledId := k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)
@@ -307,11 +307,11 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	if machine.Minted >= machine.MaxMint {
 		authority, err := sdk.AccAddressFromBech32(machine.Authority)
 		if err != nil {
-			return err
+			return "", err
 		}
 		err = k.CloseCandyMachine(ctx, types.NewMsgCloseCandyMachine(authority, machine.CollId))
 		if err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		k.SetCandyMachine(ctx, machine)
@@ -323,7 +323,29 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 		NftId:        nft.Id(),
 	})
 
-	return nil
+	return nft.Id(), nil
+}
+
+func (k Keeper) MintNFTs(ctx sdk.Context, msg *types.MsgMintNFTs) ([]string, error) {
+	collection, err := k.nftKeeper.GetCollectionById(ctx, msg.CollectionId)
+	if err != nil {
+		return []string{}, err
+	}
+
+	nftIds := []string{}
+	for i := uint64(1); i <= msg.Number; i++ {
+		nftId, err := k.MintNFT(ctx, &types.MsgMintNFT{
+			Sender:       msg.Sender,
+			CollectionId: msg.CollectionId,
+			Name:         fmt.Sprintf("%s #%s", collection.Name, i),
+		})
+		if err != nil {
+			return []string{}, err
+		}
+
+		nftIds = append(nftIds, nftId)
+	}
+	return nftIds, nil
 }
 
 func (k Keeper) AllMintableMetadataIds(ctx sdk.Context) []types.MintableMetadataIds {

@@ -16,6 +16,7 @@ service Msg {
   rpc UpdateCandyMachine(MsgUpdateCandyMachine) returns (MsgUpdateCandyMachineResponse);
   rpc CloseCandyMachine(MsgCloseCandyMachine) returns (MsgCloseCandyMachineResponse);
   rpc MintNFT(MsgMintNFT) returns (MsgMintNFTResponse);
+  rpc MintNFTs(MsgMintNFTs) returns (MsgMintNFTsResponse);
 }
 
 message MsgCreateCandyMachine {
@@ -42,4 +43,15 @@ message MsgMintNFT {
   uint64 collection_id = 2;
   string name = 3;
 }
-message MsgMintNFTResponse {}
+message MsgMintNFTResponse {
+  string nft_id = 1;
+}
+
+message MsgMintNFTs {
+  string sender = 1;
+  uint64 collection_id = 2;
+  uint64 number = 3;
+}
+message MsgMintNFTsResponse {
+  repeated string nft_ids = 2;
+}
