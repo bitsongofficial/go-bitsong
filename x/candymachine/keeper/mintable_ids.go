@@ -32,7 +32,9 @@ func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, 
 		it.Next()
 	}
 
-	return sdk.BigEndianToUint64(it.Value())
+	value := sdk.BigEndianToUint64(it.Value())
+	store.Delete(it.Key())
+	return value
 }
 
 func (k Keeper) DeleteMintableMetadataIds(ctx sdk.Context, collId uint64) {
