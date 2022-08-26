@@ -4,41 +4,44 @@
 
 ```protobuf
 message CandyMachine {
-    // id of the collection
-    uint64 coll_id = 1;
-    // mint price
-    uint64 price = 2;
-    // wallet to receive payments
-    string treasury = 3;
-    // denom for the auction
-    string denom = 4;
-    // Timestamp when minting is allowed
-    uint64 go_live_date = 5;
-    // condition to check when candy machine ends
-    EndSettings end_settings = 6 [ (gogoproto.nullable) = false ];
-    // minted amount
-    uint64 minted = 7;
-    // owner of candy machine
-    string authority = 8;
-    // all metadata url is generated from metadata_base_url
-    string metadata_base_url = 9;
-    // mutability of the minted nfts
-    bool mutable = 10;
-    // Royalty basis points that goes to creators in secondary sales (0-10000)
-    uint32 seller_fee_basis_points = 11;
-    // Creators of metadata
-    repeated bitsong.nft.v1beta1.Creator creators = 12 [ (gogoproto.nullable) = false ];
+  // id of the collection
+  uint64 coll_id = 1;
+  // mint price
+  uint64 price = 2;
+  // wallet to receive payments
+  string treasury = 3;
+  // denom for the auction
+  string denom = 4;
+  // Timestamp when minting is allowed
+  uint64 go_live_date = 5;
+  // mint end timestamp - not considered when set as 0
+  uint64 end_timestamp = 6;
+  // max mintable amount
+  uint64 max_mint = 7;
+  // minted amount
+  uint64 minted = 8;
+  // owner of candy machine
+  string authority = 9;
+  // all metadata url is generated from metadata_base_url
+  string metadata_base_url = 10;
+  // mutability of the minted nfts
+  bool mutable = 11;
+  // Royalty basis points that goes to creators in secondary sales (0-10000)
+  uint32 seller_fee_basis_points = 12;
+  // Creators of metadata
+  repeated bitsong.nft.v1beta1.Creator creators = 13 [ (gogoproto.nullable) = false ];
 }
 ```
 
 | Parameter            | Description                                                       |
 | :------------------- | :---------------------------------------------------------------- |
-| collectionId         | Id of collection to mint                                          |
+| collId               | Id of collection to mint                                          |
 | price                | price of nft to pay for minting an nft                            |
 | treasury             | wallet to receive payments                                        |
 | denom                | denom to be used for payment                                      |
 | goLiveDate           | Timestamp when minting is allowed                                 |
-| endSettings          | Describes mint end condition - by time or by minted count         |
+| endTimestamp         | Describes automatically ending timestamp                          |
+| maxMint              | Describes maximum number of nfts that can be minted               |
 | metadataBaseUrl      | Base url of metadata for the collection                           |
 | mutable              | Mutability of the nft items minted via candymachine               |
 | authority            | Authority of the candymachine with update and close permission    |
@@ -46,7 +49,7 @@ message CandyMachine {
 | sellerFeeBasisPoints | Seller fee basis points of the nft items minted via candymachine. |
 | creators             | Creators of the nft. Collection nfts share the same creators.     |
 
-When a collection owner creates candy machine, ownership of collection is sent to candy machine, and it can be returned only after candy machine end condition meets.
+When a collection owner creates candy machine, ownership of collection is sent to candy machine, and it can be returned only after candy machine ends.
 
 The tokens spent on minting nfts, is sent to the treasury account.
 

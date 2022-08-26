@@ -280,7 +280,14 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	machine.Minted++
 
 	if machine.Minted >= machine.MaxMint {
-		k.DeleteCandyMachine(ctx, machine)
+		authority, err := sdk.AccAddressFromBech32(machine.Authority)
+		if err != nil {
+			return err
+		}
+		err = k.CloseCandyMachine(ctx, types.NewMsgCloseCandyMachine(authority, machine.CollId))
+		if err != nil {
+			return err
+		}
 	} else {
 		k.SetCandyMachine(ctx, machine)
 	}
