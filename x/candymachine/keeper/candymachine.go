@@ -238,6 +238,21 @@ func (k Keeper) CloseCandyMachine(ctx sdk.Context, msg *types.MsgCloseCandyMachi
 	return nil
 }
 
+func (k Keeper) PayCandyMachineFee(ctx sdk.Context, sender sdk.AccAddress, machine types.CandyMachine) error {
+	if machine.Price > 0 {
+		feeCoins := sdk.Coins{sdk.NewInt64Coin(machine.Denom, int64(machine.Price))}
+		authority, err := sdk.AccAddressFromBech32(machine.Authority)
+		if err != nil {
+			return err
+		}
+		err = k.bankKeeper.SendCoins(ctx, sender, authority, feeCoins)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 	// Ensure candy machine is owned by the sender
 	machine, err := k.GetCandyMachineByCollId(ctx, msg.CollectionId)
@@ -247,6 +262,16 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) error {
 
 	if machine.GoLiveDate > uint64(ctx.BlockTime().Unix()) {
 		return types.ErrCandyMachineNotLiveTime
+	}
+
+	// make payment
+	sender, err := sdk.AccAddressFromBech32(msg.Sender)
+	if err != nil {
+		return err
+	}
+	err = k.PayCandyMachineFee(ctx, sender, machine)
+	if err != nil {
+		return err
 	}
 
 	shuffledId := k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)

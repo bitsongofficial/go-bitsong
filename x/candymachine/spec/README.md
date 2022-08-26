@@ -2,11 +2,8 @@
 
 ## Abstract
 
-Candy machine is a fully on-chain generative NFT distribution program, provides many improvements over its predecessor.
-
-NFTs are not minted by owner directly, but the nfts metadata, mint rules and price information set on candy machine, and users mint NFTs based on configuration on candy machine.
-
-Candy machine frontend codebase is open source and NFT project owners can host the candy machine codebase, configure candy machine after preparing the metadata and execute nft sale campaign.
+Candy machine is a module for collection owners to launch nft collections and do initial sale to users.
+To prevent users from estimating what nft will be allocated for him, randomness is applied to the minted nft metadata id.
 
 ## Contents
 

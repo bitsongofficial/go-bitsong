@@ -17,7 +17,8 @@ Steps:
 2. Ensure collection is owned by `msg.Sender`
 3. Transfer ownership of collection to module account
 4. Create candymachine object from provided params
-5. Emit event for candymachine creation
+5. Allocate mintable metadata ids after shuffle operation
+6. Emit event for candymachine creation
 
 ## MsgUpdateCandyMachine
 
@@ -51,10 +52,11 @@ Steps:
 
 1. Ensure `msg.Sender` is candymachine authority
 2. Delete candymachine object from the store
-3. Update authority of collection to `msg.Sender`
-4. Emit event for candymachine close
+3. Remove mintable metadata ids allocated for the candy machine
+4. Update authority of collection to `msg.Sender`
+5. Emit event for candymachine close
 
-## MsgMintNFTResponse
+## MsgMintNFT
 
 ```protobuf
 message MsgMintNFT {
@@ -70,9 +72,10 @@ Steps:
 
 1. Ensure collection is put on candymachine
 2. Ensure candymachine passed live date
-3. Mint nft from module account with candymachine parameters and nft name passed as `msg.Name`
-4. Transfer ownership of nft to `msg.Sender`
-5. Increase the number of nfts minted by the machine
-6. If end settings is by minted count and if minted count pass the threshold value on EndSettings, close candymachine
-7. Otherwise, store updated candymachine into the storage
-8. Emit event for minting nft via candymachine
+3. Pay nft mint fee via candy machine
+4. Get shuffled metadata id and create new metadata
+5. Add new nft with new metadata
+6. Increase the number of nfts minted by the machine
+7. If minted count pass the threshold value `MaxMint`, close candymachine
+8. Otherwise, store updated candymachine into the storage
+9. Emit event for minting nft via candymachine

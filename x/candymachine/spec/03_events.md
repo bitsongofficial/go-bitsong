@@ -26,7 +26,7 @@
 | bitsong.candymachine.v1beta1.EventCloseCandyMachine | collection_id | {collection_id}                           |
 | message                                             | action        | /bitsong.marketplace.MsgCloseCandyMachine |
 
-## MsgMintNFTResponse
+## MsgMintNFT
 
 | Type                                               | Attribute Key | Attribute Value                 |
 | :------------------------------------------------- | :------------ | :------------------------------ |

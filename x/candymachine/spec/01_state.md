@@ -55,30 +55,12 @@ The tokens spent on minting nfts, is sent to the treasury account.
 
 Note: How do we handle rare nfts on the collection with different price?
 
-### EndSettings
-
-```protobuf
-enum EndSettingType {
-  BY_TIME = 0 [ (gogoproto.enumvalue_customname) = "Time" ];
-  BY_MINT = 1 [ (gogoproto.enumvalue_customname) = "Mint" ];
-}
-
-message EndSettings {
-    EndSettingType end_type = 1;
-    uint64 value = 2; // Value to test the end condition. timestamp or number of mints based on end setting type.
-}
-```
-
-`EndSettings` describes end condition for the candy machine.
-
-`end_type` involves `BY_TIME` and `BY_MINT`.
-
-- `BY_TIME` end settings describes candymachine automatically ends when `value` timestamp pass.
-- `BY_MINT` end settings describes candymachine automatically ends when `value` number of nfts are minted.
+- `endTimestamp` describes candymachine automatically ends when that time comes.
+- `maxMint` describes candymachine automatically ends when that number of nfts are minted.
 
 Store:
 
 - Candymachine: `0x01 | format(collection_id) | bidder -> Bid`
 - Candymachine by EndTime: `0x02 | format(EndTime) | format(collection_id) -> Bid`
 
-Notes: Candymachine by EndTime queue is only set for `BY_TIME` end settings candy machine.
+Notes: Candymachine by EndTime queue is only set when `endTimestamp` is not `0`.
