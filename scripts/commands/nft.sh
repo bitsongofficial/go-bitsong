@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-bitsongd query nft metadata 1
+bitsongd query nft metadata 1 1
 bitsongd query nft nft-info 1:1:0
 bitsongd query nft collection 1
 bitsongd query nft nfts-by-owner $(bitsongd keys show -a validator --keyring-backend=test)

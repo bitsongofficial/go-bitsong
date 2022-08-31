@@ -17,6 +17,16 @@ func (k Keeper) SetMintableMetadataIds(ctx sdk.Context, collId uint64, metadataI
 	}
 }
 
+func (k Keeper) TakeOutFirstMintableMetadataId(ctx sdk.Context, collId uint64) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	it := store.Iterator(append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...), nil)
+	defer it.Close()
+
+	value := sdk.BigEndianToUint64(it.Value())
+	store.Delete(it.Key())
+	return value
+}
+
 func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, maxRound uint64) uint64 {
 	rand.Seed(ctx.BlockTime().UnixNano())
 	round := rand.Uint64() % maxRound

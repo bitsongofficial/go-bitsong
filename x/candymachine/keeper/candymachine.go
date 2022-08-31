@@ -278,12 +278,17 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) (string, error) 
 		return "", err
 	}
 
-	shuffledId := k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)
+	metadataId := uint64(0)
+	if !machine.Shuffle {
+		metadataId = k.TakeOutFirstMintableMetadataId(ctx, machine.CollId)
+	} else {
+		metadataId = k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)
+	}
 
 	// metadata should be dynamically created on candymachine with shuffled id
 	k.nftKeeper.SetMetadata(ctx, nfttypes.Metadata{
 		CollId:               msg.CollectionId,
-		Id:                   shuffledId,
+		Id:                   metadataId,
 		Name:                 msg.Name,
 		Uri:                  fmt.Sprintf("%s/%d", machine.MetadataBaseUrl, machine.Minted+1),
 		SellerFeeBasisPoints: machine.SellerFeeBasisPoints,
@@ -302,7 +307,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) (string, error) 
 	nft := nfttypes.NFT{
 		Owner:      msg.Sender,
 		CollId:     msg.CollectionId,
-		MetadataId: shuffledId,
+		MetadataId: metadataId,
 		Seq:        0,
 	}
 	k.nftKeeper.SetNFT(ctx, nft)

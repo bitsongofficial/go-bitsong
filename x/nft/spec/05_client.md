@@ -16,8 +16,8 @@ bitsongd query nft collection 1
 Query metadata by Id
 
 ```
-bitsongd query nft metadata <metadata_id>
-bitsongd query nft metadata 1
+bitsongd query nft metadata <coll_id> <metadata_id>
+bitsongd query nft metadata 1 1
 ```
 
 ### nft
