@@ -148,7 +148,9 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 		mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
 	}
 	k.nftKeeper.SetLastMetadataId(ctx, msg.Machine.CollId, lastMetadataId+msg.Machine.MaxMint)
-	mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+	if msg.Machine.Shuffle {
+		mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+	}
 	k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
 
 	machine := msg.Machine
@@ -189,7 +191,9 @@ func (k Keeper) UpdateCandyMachine(ctx sdk.Context, msg *types.MsgUpdateCandyMac
 			mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
 		}
 		k.nftKeeper.SetLastMetadataId(ctx, msg.Machine.CollId, lastMetadataId+msg.Machine.MaxMint)
-		mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+		if msg.Machine.Shuffle {
+			mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
+		}
 		k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
 	}
 

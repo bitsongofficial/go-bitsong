@@ -93,6 +93,11 @@ func GetCmdCreateCandyMachine() *cobra.Command {
 				return err
 			}
 
+			shuffle, err := cmd.Flags().GetBool(FlagShuffle)
+			if err != nil {
+				return err
+			}
+
 			creators, err := nftcli.CollectCreatorsData(cmd)
 			if err != nil {
 				return err
@@ -113,6 +118,7 @@ func GetCmdCreateCandyMachine() *cobra.Command {
 					Mutable:              mutable,
 					SellerFeeBasisPoints: sellerFeeBasisPoints,
 					Creators:             creators,
+					Shuffle:              shuffle,
 				},
 			)
 
@@ -190,6 +196,11 @@ func GetCmdUpdateCandyMachine() *cobra.Command {
 				return err
 			}
 
+			shuffle, err := cmd.Flags().GetBool(FlagShuffle)
+			if err != nil {
+				return err
+			}
+
 			creators, err := nftcli.CollectCreatorsData(cmd)
 			if err != nil {
 				return err
@@ -210,6 +221,7 @@ func GetCmdUpdateCandyMachine() *cobra.Command {
 					Mutable:              mutable,
 					SellerFeeBasisPoints: sellerFeeBasisPoints,
 					Creators:             creators,
+					Shuffle:              shuffle,
 				},
 			)
 

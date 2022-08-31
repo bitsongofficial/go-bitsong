@@ -36,6 +36,8 @@ message CandyMachine {
   uint32 seller_fee_basis_points = 12;
   // Creators of metadata
   repeated bitsong.nft.v1beta1.Creator creators = 13 [ (gogoproto.nullable) = false ];
+  // shows if ids are minted in sequence or shuffled
+  bool shuffle = 14;
 }
 
 message MintableMetadataIds {

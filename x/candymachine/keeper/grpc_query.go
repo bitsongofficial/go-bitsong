@@ -46,3 +46,19 @@ func (k Keeper) CandyMachine(c context.Context, req *types.QueryCandyMachineRequ
 		Machine: machine,
 	}, nil
 }
+
+func (k Keeper) MintableMetadataIds(c context.Context, req *types.QueryMintableMetadataIdsRequest) (*types.QueryMintableMetadataIdsResponse, error) {
+	if req == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	metadataIds := k.GetMintableMetadataIds(ctx, req.CollId)
+
+	return &types.QueryMintableMetadataIdsResponse{
+		Info: types.MintableMetadataIds{
+			CollectionId:        req.CollId,
+			MintableMetadataIds: metadataIds,
+		},
+	}, nil
+}

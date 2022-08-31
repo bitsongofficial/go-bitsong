@@ -25,6 +25,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryParams(),
 		GetCmdQueryCandyMachines(),
 		GetCmdQueryCandyMachine(),
+		GetCmdQueryMintableMetadataIds(),
 	)
 
 	return queryCmd
@@ -121,6 +122,43 @@ func GetCmdQueryCandyMachine() *cobra.Command {
 			}
 
 			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func GetCmdQueryMintableMetadataIds() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "mintabe-metadata-ids [collection_id] [flags]",
+		Long: "Query mintable metadata ids by collection id.",
+		Example: fmt.Sprintf(
+			`$ %s query candymachine mintabe-metadata-ids 1`, version.AppName),
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			collId, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			res, err := queryClient.MintableMetadataIds(context.Background(), &types.QueryMintableMetadataIdsRequest{
+				CollId: uint64(collId),
+			})
+
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Info)
 		},
 	}
 

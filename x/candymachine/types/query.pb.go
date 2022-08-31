@@ -200,7 +200,6 @@ func (m *QueryCandyMachineResponse) GetMachine() CandyMachine {
 }
 
 type QueryParamsRequest struct {
-	CollId uint64 `protobuf:"varint,1,opt,name=coll_id,json=collId,proto3" json:"coll_id,omitempty"`
 }
 
 func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
@@ -235,13 +234,6 @@ func (m *QueryParamsRequest) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
-
-func (m *QueryParamsRequest) GetCollId() uint64 {
-	if m != nil {
-		return m.CollId
-	}
-	return 0
-}
 
 type QueryParamsResponse struct {
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
@@ -287,6 +279,94 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+type QueryMintableMetadataIdsRequest struct {
+	CollId uint64 `protobuf:"varint,1,opt,name=coll_id,json=collId,proto3" json:"coll_id,omitempty"`
+}
+
+func (m *QueryMintableMetadataIdsRequest) Reset()         { *m = QueryMintableMetadataIdsRequest{} }
+func (m *QueryMintableMetadataIdsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryMintableMetadataIdsRequest) ProtoMessage()    {}
+func (*QueryMintableMetadataIdsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d71ca7aa0e1f6c00, []int{6}
+}
+func (m *QueryMintableMetadataIdsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryMintableMetadataIdsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryMintableMetadataIdsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryMintableMetadataIdsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryMintableMetadataIdsRequest.Merge(m, src)
+}
+func (m *QueryMintableMetadataIdsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryMintableMetadataIdsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryMintableMetadataIdsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryMintableMetadataIdsRequest proto.InternalMessageInfo
+
+func (m *QueryMintableMetadataIdsRequest) GetCollId() uint64 {
+	if m != nil {
+		return m.CollId
+	}
+	return 0
+}
+
+type QueryMintableMetadataIdsResponse struct {
+	Info MintableMetadataIds `protobuf:"bytes,1,opt,name=info,proto3" json:"info"`
+}
+
+func (m *QueryMintableMetadataIdsResponse) Reset()         { *m = QueryMintableMetadataIdsResponse{} }
+func (m *QueryMintableMetadataIdsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryMintableMetadataIdsResponse) ProtoMessage()    {}
+func (*QueryMintableMetadataIdsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d71ca7aa0e1f6c00, []int{7}
+}
+func (m *QueryMintableMetadataIdsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryMintableMetadataIdsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryMintableMetadataIdsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryMintableMetadataIdsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryMintableMetadataIdsResponse.Merge(m, src)
+}
+func (m *QueryMintableMetadataIdsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryMintableMetadataIdsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryMintableMetadataIdsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryMintableMetadataIdsResponse proto.InternalMessageInfo
+
+func (m *QueryMintableMetadataIdsResponse) GetInfo() MintableMetadataIds {
+	if m != nil {
+		return m.Info
+	}
+	return MintableMetadataIds{}
+}
+
 func init() {
 	proto.RegisterType((*QueryCandyMachinesRequest)(nil), "bitsong.candymachine.v1beta1.QueryCandyMachinesRequest")
 	proto.RegisterType((*QueryCandyMachinesResponse)(nil), "bitsong.candymachine.v1beta1.QueryCandyMachinesResponse")
@@ -294,42 +374,50 @@ func init() {
 	proto.RegisterType((*QueryCandyMachineResponse)(nil), "bitsong.candymachine.v1beta1.QueryCandyMachineResponse")
 	proto.RegisterType((*QueryParamsRequest)(nil), "bitsong.candymachine.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "bitsong.candymachine.v1beta1.QueryParamsResponse")
+	proto.RegisterType((*QueryMintableMetadataIdsRequest)(nil), "bitsong.candymachine.v1beta1.QueryMintableMetadataIdsRequest")
+	proto.RegisterType((*QueryMintableMetadataIdsResponse)(nil), "bitsong.candymachine.v1beta1.QueryMintableMetadataIdsResponse")
 }
 
 func init() { proto.RegisterFile("bitsong/candymachine/query.proto", fileDescriptor_d71ca7aa0e1f6c00) }
 
 var fileDescriptor_d71ca7aa0e1f6c00 = []byte{
-	// 478 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x4d, 0x8b, 0x13, 0x31,
-	0x18, 0xc7, 0x1b, 0xad, 0x5d, 0x89, 0x7a, 0x89, 0x82, 0x75, 0x2c, 0xb1, 0x8c, 0x2b, 0x2e, 0xab,
-	0x3b, 0xb1, 0xbb, 0xe2, 0x8a, 0xc7, 0x7a, 0x52, 0x14, 0xb4, 0x78, 0xd1, 0x8b, 0x64, 0xa6, 0xd9,
-	0x6c, 0xa4, 0xcd, 0x33, 0xdb, 0xa4, 0x62, 0x11, 0x2f, 0x5e, 0xbc, 0x0a, 0xfb, 0x41, 0x3c, 0xf9,
-	0x1d, 0xf6, 0xb8, 0xe0, 0xc5, 0x93, 0x48, 0xeb, 0x07, 0x91, 0x66, 0x32, 0xa5, 0xa5, 0x43, 0xeb,
-	0x78, 0xcb, 0xe4, 0xf9, 0xbf, 0xfc, 0x18, 0x9e, 0x19, 0xdc, 0x8c, 0x95, 0x35, 0xa0, 0x25, 0x4b,
-	0xb8, 0xee, 0x8e, 0xfa, 0x3c, 0x39, 0x54, 0x5a, 0xb0, 0xa3, 0xa1, 0x18, 0x8c, 0xa2, 0x74, 0x00,
-	0x16, 0x48, 0xc3, 0x2b, 0xa2, 0x79, 0x45, 0xf4, 0xbe, 0x15, 0x0b, 0xcb, 0x5b, 0x01, 0x4d, 0xc0,
-	0xf4, 0xc1, 0xb0, 0x98, 0x1b, 0xc1, 0xfc, 0x25, 0x4b, 0x40, 0xe9, 0xcc, 0x1d, 0x6c, 0xcf, 0xcf,
-	0x5d, 0xec, 0x4c, 0x95, 0x72, 0xa9, 0x34, 0xb7, 0x0a, 0x72, 0xed, 0x15, 0x09, 0x12, 0xdc, 0x91,
-	0x4d, 0x4f, 0xfe, 0xb6, 0x21, 0x01, 0x64, 0x4f, 0x30, 0x9e, 0x2a, 0xc6, 0xb5, 0x06, 0xeb, 0x2c,
-	0xc6, 0x4f, 0x6f, 0x17, 0xf2, 0x2f, 0xa0, 0x3a, 0x61, 0x78, 0x1d, 0x5f, 0x7b, 0x39, 0xad, 0x7f,
-	0x3c, 0x1d, 0x3d, 0xcf, 0x46, 0xa6, 0x23, 0x8e, 0x86, 0xc2, 0xd8, 0xf0, 0x1d, 0x0e, 0x8a, 0x86,
-	0x26, 0x05, 0x6d, 0x04, 0x79, 0x86, 0xcf, 0xfb, 0x2c, 0x53, 0x47, 0xcd, 0xb3, 0x5b, 0x17, 0x76,
-	0xb7, 0xa3, 0x55, 0x2f, 0x25, 0x9a, 0x8f, 0x69, 0x57, 0x4f, 0x7e, 0xdd, 0xa8, 0x74, 0x66, 0x09,
-	0xe1, 0x1e, 0xae, 0x2f, 0x75, 0x79, 0x0e, 0x72, 0x15, 0x6f, 0x24, 0xd0, 0xeb, 0xbd, 0x55, 0xdd,
-	0x3a, 0x6a, 0xa2, 0xad, 0x6a, 0xa7, 0x36, 0x7d, 0x7c, 0xd2, 0x0d, 0x65, 0x01, 0xfd, 0x8c, 0xef,
-	0x29, 0xde, 0xf0, 0xe9, 0xce, 0xf5, 0x3f, 0x78, 0x79, 0x40, 0xb8, 0x83, 0x89, 0x2b, 0x7a, 0xc1,
-	0x07, 0xbc, 0x6f, 0xd6, 0x72, 0xbd, 0xc6, 0x97, 0x17, 0xe4, 0x9e, 0xa8, 0x8d, 0x6b, 0xa9, 0xbb,
-	0xf1, 0x40, 0x9b, 0xab, 0x81, 0x32, 0xb7, 0x47, 0xf1, 0xce, 0xdd, 0x2f, 0x55, 0x7c, 0xce, 0x65,
-	0x93, 0x63, 0x84, 0x6b, 0x99, 0x84, 0xdc, 0x5b, 0x1d, 0xb4, 0x8c, 0x1e, 0xb4, 0x4a, 0x38, 0x32,
-	0xfa, 0x70, 0xf3, 0xf3, 0x8f, 0x3f, 0xc7, 0x67, 0x28, 0x69, 0xb0, 0xc2, 0xe5, 0xca, 0xf8, 0xc8,
-	0x37, 0x84, 0x2f, 0x2d, 0xec, 0x0b, 0xd9, 0xff, 0x87, 0xaa, 0xa2, 0xf5, 0x0b, 0x1e, 0x96, 0x37,
-	0x7a, 0xd4, 0x3b, 0x0e, 0xf5, 0x16, 0xb9, 0xc9, 0xd6, 0x7e, 0x07, 0x86, 0x7c, 0x47, 0xf8, 0xe2,
-	0x7c, 0x0c, 0x79, 0x50, 0xb2, 0x37, 0xe7, 0xdd, 0x2f, 0xed, 0xf3, 0xb8, 0xf7, 0x1d, 0x6e, 0x44,
-	0xee, 0xae, 0xc7, 0x65, 0x1f, 0xfd, 0xc6, 0x7d, 0x6a, 0xbf, 0x3a, 0x19, 0x53, 0x74, 0x3a, 0xa6,
-	0xe8, 0xf7, 0x98, 0xa2, 0xaf, 0x13, 0x5a, 0x39, 0x9d, 0xd0, 0xca, 0xcf, 0x09, 0xad, 0xbc, 0x79,
-	0x24, 0x95, 0x3d, 0x1c, 0xc6, 0x51, 0x02, 0xfd, 0x3c, 0x11, 0x0e, 0x0e, 0x54, 0xa2, 0x78, 0x8f,
-	0x49, 0xd8, 0xc9, 0x4b, 0x3e, 0x2c, 0x26, 0xdb, 0x51, 0x2a, 0x4c, 0x5c, 0x73, 0xff, 0x85, 0xbd,
-	0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xe7, 0xb4, 0xe3, 0x4b, 0x02, 0x05, 0x00, 0x00,
+	// 565 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x41, 0x6f, 0x12, 0x41,
+	0x14, 0xc7, 0x59, 0xa5, 0xd4, 0x8c, 0x7a, 0x99, 0x36, 0x11, 0x57, 0xb2, 0x25, 0x6b, 0x8d, 0x4d,
+	0xd5, 0x1d, 0x69, 0x55, 0x4c, 0x93, 0x7a, 0xc0, 0x53, 0x55, 0x12, 0x25, 0x5e, 0xf4, 0x42, 0x66,
+	0x77, 0x87, 0xed, 0x18, 0x76, 0x66, 0xcb, 0x0c, 0x46, 0x62, 0xbc, 0xf8, 0x09, 0x4c, 0xfa, 0x41,
+	0x3c, 0xf9, 0x1d, 0x7a, 0x6c, 0xd2, 0x8b, 0x17, 0x8d, 0x01, 0x3f, 0x88, 0x61, 0xf6, 0x81, 0x90,
+	0x6e, 0xa1, 0xf4, 0xb6, 0xcc, 0xbc, 0xff, 0xff, 0xff, 0x7b, 0x2f, 0x6f, 0x40, 0x65, 0x9f, 0x6b,
+	0x25, 0x45, 0x44, 0x02, 0x2a, 0xc2, 0x5e, 0x4c, 0x83, 0x7d, 0x2e, 0x18, 0x39, 0xe8, 0xb2, 0x4e,
+	0xcf, 0x4b, 0x3a, 0x52, 0x4b, 0x5c, 0x82, 0x0a, 0x6f, 0xb2, 0xc2, 0xfb, 0x58, 0xf1, 0x99, 0xa6,
+	0x15, 0xdb, 0x09, 0xa4, 0x8a, 0xa5, 0x22, 0x3e, 0x55, 0x8c, 0xc0, 0x21, 0x09, 0x24, 0x17, 0xa9,
+	0xda, 0xde, 0x9c, 0xbc, 0x37, 0xb6, 0xe3, 0xaa, 0x84, 0x46, 0x5c, 0x50, 0xcd, 0xe5, 0xa8, 0x76,
+	0x35, 0x92, 0x91, 0x34, 0x9f, 0x64, 0xf8, 0x05, 0xa7, 0xa5, 0x48, 0xca, 0xa8, 0xcd, 0x08, 0x4d,
+	0x38, 0xa1, 0x42, 0x48, 0x6d, 0x24, 0x0a, 0x6e, 0xef, 0x66, 0xf2, 0x4f, 0xa1, 0x9a, 0x42, 0xf7,
+	0x16, 0xba, 0xf9, 0x66, 0x18, 0xff, 0x7c, 0x78, 0x55, 0x4f, 0xaf, 0x54, 0x83, 0x1d, 0x74, 0x99,
+	0xd2, 0xee, 0x07, 0x64, 0x67, 0x5d, 0xaa, 0x44, 0x0a, 0xc5, 0xf0, 0x2b, 0x74, 0x05, 0xbc, 0x54,
+	0xd1, 0x2a, 0x5f, 0xde, 0xb8, 0xba, 0xb5, 0xe9, 0xcd, 0x1a, 0x8a, 0x37, 0x69, 0x53, 0xcb, 0x1f,
+	0xfd, 0x5e, 0xcb, 0x35, 0xc6, 0x0e, 0xee, 0x36, 0x2a, 0x9e, 0xca, 0x02, 0x0e, 0x7c, 0x03, 0x2d,
+	0x07, 0xb2, 0xdd, 0x6e, 0xf2, 0xb0, 0x68, 0x95, 0xad, 0x8d, 0x7c, 0xa3, 0x30, 0xfc, 0xb9, 0x17,
+	0xba, 0x51, 0x06, 0xfd, 0x98, 0xef, 0x05, 0x5a, 0x06, 0x77, 0xa3, 0xba, 0x08, 0xde, 0xc8, 0xc0,
+	0x5d, 0x45, 0xd8, 0x04, 0xbd, 0xa6, 0x1d, 0x1a, 0x8f, 0xe7, 0xf3, 0x0e, 0xad, 0x4c, 0x9d, 0x42,
+	0x70, 0x0d, 0x15, 0x12, 0x73, 0x02, 0xb9, 0xeb, 0xb3, 0x73, 0x53, 0x35, 0x24, 0x82, 0xd2, 0xdd,
+	0x41, 0x6b, 0xc6, 0xba, 0xce, 0x85, 0xa6, 0x7e, 0x9b, 0xd5, 0x99, 0xa6, 0x21, 0xd5, 0x74, 0x2f,
+	0x54, 0x73, 0xa7, 0x22, 0x51, 0xf9, 0x6c, 0x2d, 0x30, 0xbe, 0x44, 0x79, 0x2e, 0x5a, 0x12, 0x08,
+	0x2b, 0xb3, 0x09, 0x33, 0x8c, 0x00, 0xd7, 0x98, 0x6c, 0xfd, 0x5a, 0x42, 0x4b, 0x26, 0x11, 0x1f,
+	0x5a, 0xa8, 0x90, 0xf6, 0x83, 0x1f, 0xce, 0xf6, 0x3c, 0x3d, 0x4e, 0xbb, 0xb2, 0x80, 0x22, 0x6d,
+	0xc3, 0x5d, 0xff, 0x7a, 0xf2, 0xf7, 0xf0, 0x92, 0x83, 0x4b, 0x24, 0x73, 0xe1, 0xd3, 0x61, 0xe2,
+	0xef, 0x16, 0xba, 0x3e, 0xb5, 0xc3, 0xb8, 0x7a, 0x8e, 0xa8, 0xac, 0x27, 0x61, 0x3f, 0x5d, 0x5c,
+	0x08, 0xa8, 0xf7, 0x0c, 0xea, 0x1d, 0x7c, 0x9b, 0xcc, 0x7d, 0x9b, 0x0a, 0xff, 0xb0, 0xd0, 0xb5,
+	0x49, 0x1b, 0xfc, 0x64, 0xc1, 0xdc, 0x11, 0x6f, 0x75, 0x61, 0x1d, 0xe0, 0x3e, 0x32, 0xb8, 0x1e,
+	0xbe, 0x3f, 0x1f, 0x97, 0x7c, 0x86, 0x3d, 0xfc, 0x82, 0x4f, 0x2c, 0xb4, 0x92, 0xb1, 0x2d, 0x78,
+	0xf7, 0x1c, 0x18, 0x67, 0xaf, 0xba, 0xfd, 0xec, 0xa2, 0x72, 0x68, 0x66, 0xd7, 0x34, 0x53, 0xc5,
+	0x8f, 0xb3, 0x9b, 0x89, 0x41, 0xda, 0x8c, 0x41, 0xdb, 0xe4, 0xa1, 0xfa, 0xdf, 0x55, 0xed, 0xed,
+	0x51, 0xdf, 0xb1, 0x8e, 0xfb, 0x8e, 0xf5, 0xa7, 0xef, 0x58, 0xdf, 0x06, 0x4e, 0xee, 0x78, 0xe0,
+	0xe4, 0x7e, 0x0e, 0x9c, 0xdc, 0xfb, 0x9d, 0x88, 0xeb, 0xfd, 0xae, 0xef, 0x05, 0x32, 0x1e, 0x59,
+	0xcb, 0x56, 0x8b, 0x07, 0x9c, 0xb6, 0x49, 0x24, 0x1f, 0x8c, 0xd2, 0x3e, 0x4d, 0xe7, 0xe9, 0x5e,
+	0xc2, 0x94, 0x5f, 0x30, 0xff, 0xc0, 0xdb, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0x04, 0x60, 0x3e,
+	0xaa, 0x6c, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -347,6 +435,7 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	CandyMachines(ctx context.Context, in *QueryCandyMachinesRequest, opts ...grpc.CallOption) (*QueryCandyMachinesResponse, error)
 	CandyMachine(ctx context.Context, in *QueryCandyMachineRequest, opts ...grpc.CallOption) (*QueryCandyMachineResponse, error)
+	MintableMetadataIds(ctx context.Context, in *QueryMintableMetadataIdsRequest, opts ...grpc.CallOption) (*QueryMintableMetadataIdsResponse, error)
 }
 
 type queryClient struct {
@@ -384,11 +473,21 @@ func (c *queryClient) CandyMachine(ctx context.Context, in *QueryCandyMachineReq
 	return out, nil
 }
 
+func (c *queryClient) MintableMetadataIds(ctx context.Context, in *QueryMintableMetadataIdsRequest, opts ...grpc.CallOption) (*QueryMintableMetadataIdsResponse, error) {
+	out := new(QueryMintableMetadataIdsResponse)
+	err := c.cc.Invoke(ctx, "/bitsong.candymachine.v1beta1.Query/MintableMetadataIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	CandyMachines(context.Context, *QueryCandyMachinesRequest) (*QueryCandyMachinesResponse, error)
 	CandyMachine(context.Context, *QueryCandyMachineRequest) (*QueryCandyMachineResponse, error)
+	MintableMetadataIds(context.Context, *QueryMintableMetadataIdsRequest) (*QueryMintableMetadataIdsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -403,6 +502,9 @@ func (*UnimplementedQueryServer) CandyMachines(ctx context.Context, req *QueryCa
 }
 func (*UnimplementedQueryServer) CandyMachine(ctx context.Context, req *QueryCandyMachineRequest) (*QueryCandyMachineResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CandyMachine not implemented")
+}
+func (*UnimplementedQueryServer) MintableMetadataIds(ctx context.Context, req *QueryMintableMetadataIdsRequest) (*QueryMintableMetadataIdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MintableMetadataIds not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -463,6 +565,24 @@ func _Query_CandyMachine_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_MintableMetadataIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryMintableMetadataIdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).MintableMetadataIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bitsong.candymachine.v1beta1.Query/MintableMetadataIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).MintableMetadataIds(ctx, req.(*QueryMintableMetadataIdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "bitsong.candymachine.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -478,6 +598,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CandyMachine",
 			Handler:    _Query_CandyMachine_Handler,
+		},
+		{
+			MethodName: "MintableMetadataIds",
+			Handler:    _Query_MintableMetadataIds_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -625,11 +749,6 @@ func (m *QueryParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.CollId != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.CollId))
-		i--
-		dAtA[i] = 0x8
-	}
 	return len(dAtA) - i, nil
 }
 
@@ -655,6 +774,67 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = l
 	{
 		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryMintableMetadataIdsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryMintableMetadataIdsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryMintableMetadataIdsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.CollId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.CollId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryMintableMetadataIdsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryMintableMetadataIdsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryMintableMetadataIdsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Info.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -730,9 +910,6 @@ func (m *QueryParamsRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.CollId != 0 {
-		n += 1 + sovQuery(uint64(m.CollId))
-	}
 	return n
 }
 
@@ -743,6 +920,29 @@ func (m *QueryParamsResponse) Size() (n int) {
 	var l int
 	_ = l
 	l = m.Params.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryMintableMetadataIdsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CollId != 0 {
+		n += 1 + sovQuery(uint64(m.CollId))
+	}
+	return n
+}
+
+func (m *QueryMintableMetadataIdsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Info.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
@@ -1068,25 +1268,6 @@ func (m *QueryParamsRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: QueryParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CollId", wireType)
-			}
-			m.CollId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CollId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1167,6 +1348,158 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryMintableMetadataIdsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryMintableMetadataIdsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryMintableMetadataIdsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CollId", wireType)
+			}
+			m.CollId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CollId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryMintableMetadataIdsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryMintableMetadataIdsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryMintableMetadataIdsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Info", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Info.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -14,6 +14,7 @@ const (
 	FlagEndTimestamp    = "end-timestamp"
 	FlagMaxMint         = "max-mint"
 	FlagMetadataBaseUrl = "metadata-baseurl"
+	FlagShuffle         = "shuffle"
 )
 
 func FlagCreateCandyMachine() *flag.FlagSet {
@@ -26,6 +27,7 @@ func FlagCreateCandyMachine() *flag.FlagSet {
 	fs.Uint64(FlagMaxMint, 0, "max mint")
 	fs.String(FlagMetadataBaseUrl, "", "metadata base url")
 	fs.Uint64(FlagGoLiveDate, 0, "go live date")
+	fs.Bool(FlagShuffle, true, "Flag if shuffle metadata ids or not")
 
 	fs.Uint64(nftcli.FlagCollectionId, 0, "collection id for the nft")
 	fs.String(nftcli.FlagCreators, "", "Creators of nft")

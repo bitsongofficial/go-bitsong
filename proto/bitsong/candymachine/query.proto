@@ -20,6 +20,9 @@ service Query {
   rpc CandyMachine(QueryCandyMachineRequest) returns (QueryCandyMachineResponse) {
     option (google.api.http).get = "/bitsong/candymachine/candymachine/{coll_id}";
   }
+  rpc MintableMetadataIds(QueryMintableMetadataIdsRequest) returns (QueryMintableMetadataIdsResponse) {
+    option (google.api.http).get = "/bitsong/candymachine/mintable_metadata_ids/{coll_id}";
+  }
 }
 
 message QueryCandyMachinesRequest {
@@ -38,9 +41,16 @@ message QueryCandyMachineResponse {
 }
 
 message QueryParamsRequest { 
-  uint64 coll_id = 1; 
 }
 
 message QueryParamsResponse {
   bitsong.candymachine.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryMintableMetadataIdsRequest {
+  uint64 coll_id = 1; 
+}
+
+message QueryMintableMetadataIdsResponse {
+  MintableMetadataIds info = 1 [ (gogoproto.nullable) = false ];
 }
