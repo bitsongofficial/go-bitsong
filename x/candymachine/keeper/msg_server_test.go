@@ -19,6 +19,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 		collectionOwner sdk.AccAddress
 		collectionFee   sdk.Coin
 		collectionId    uint64
+		shuffle         bool
 		expectPass      bool
 	}{
 		{
@@ -28,6 +29,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			sdk.NewInt64Coin("ubtsg", 0),
 			0,
 			false,
+			false,
 		},
 		{
 			"when collection is not owned by the sender",
@@ -36,6 +38,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			sdk.NewInt64Coin("ubtsg", 0),
 			1,
 			false,
+			false,
 		},
 		{
 			"successful candymachine creation when fee is positive",
@@ -43,6 +46,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 1000),
 			1,
+			false,
 			true,
 		},
 		{
@@ -51,6 +55,16 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 0),
 			1,
+			false,
+			true,
+		},
+		{
+			"successful candymachine creation with shuffle",
+			addr1,
+			addr1,
+			sdk.NewInt64Coin("ubtsg", 0),
+			1,
+			false,
 			true,
 		},
 	}
@@ -88,6 +102,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			Mutable:              true,
 			SellerFeeBasisPoints: 100,
 			Creators:             []nfttypes.Creator(nil),
+			Shuffle:              tc.shuffle,
 		}
 
 		oldSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
@@ -111,6 +126,20 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			// check fee spent when it is positive
 			newSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
 			suite.Require().Equal(newSenderBalance.Add(tc.collectionFee), oldSenderBalance)
+
+			metadataIds := suite.app.CandyMachineKeeper.GetMintableMetadataIds(suite.ctx, tc.collectionId)
+			suite.Require().Len(metadataIds, int(machine.MaxMint))
+
+			// check if not ordered if not shuffle
+			ordered := true
+			for i, metadataId := range metadataIds {
+				if i > 0 && metadataId < metadataIds[i-1] {
+					ordered = false
+				}
+			}
+			if !machine.Shuffle {
+				suite.Require().True(ordered)
+			}
 		} else {
 			suite.Require().Error(err)
 		}
