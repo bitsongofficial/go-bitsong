@@ -285,7 +285,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) (string, error) 
 		metadataId = k.TakeOutRandomMintableMetadataId(ctx, machine.CollId, machine.MaxMint-machine.Minted)
 	}
 
-	// metadata should be dynamically created on candymachine with shuffled id
+	// metadata should be dynamically created on candymachine with selected metadata id
 	k.nftKeeper.SetMetadata(ctx, nfttypes.Metadata{
 		CollId:               msg.CollectionId,
 		Id:                   metadataId,
@@ -340,6 +340,11 @@ func (k Keeper) MintNFTs(ctx sdk.Context, msg *types.MsgMintNFTs) ([]string, err
 	collection, err := k.nftKeeper.GetCollectionById(ctx, msg.CollectionId)
 	if err != nil {
 		return []string{}, err
+	}
+
+	mintabeMetadataIds := k.GetMintableMetadataIds(ctx, msg.CollectionId)
+	if len(mintabeMetadataIds) < int(msg.Number) {
+		return []string{}, types.ErrInsufficientMintableNftsRemaining
 	}
 
 	nftIds := []string{}

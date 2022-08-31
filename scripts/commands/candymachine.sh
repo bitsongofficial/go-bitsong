@@ -28,6 +28,10 @@ bitsongd tx candymachine mint-nft 1 punk9 --from=validator --chain-id=test --key
 bitsongd tx candymachine mint-nft 1 punk10 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block
 bitsongd tx candymachine mint-nft 1 punk11 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block
 
+# mint multiple nfts at a single time
+bitsongd tx candymachine mint-nfts 1 10 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block --gas=1000000
+bitsongd tx candymachine mint-nfts 1 3 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block --gas=1000000
+
 bitsongd query nft nfts-by-owner  $(bitsongd keys show -a validator --keyring-backend=test)
 bitsongd query nft metadata 1 1
 bitsongd query nft metadata 1 2

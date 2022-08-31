@@ -29,6 +29,7 @@ func NewTxCmd() *cobra.Command {
 		GetCmdUpdateCandyMachine(),
 		GetCmdCloseCandyMachine(),
 		GetCmdMintNFT(),
+		GetCmdMintNFTs(),
 	)
 
 	return txCmd

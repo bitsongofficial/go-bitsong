@@ -18,12 +18,12 @@ func (k Keeper) SetMintableMetadataIds(ctx sdk.Context, collId uint64, metadataI
 }
 
 func (k Keeper) TakeOutFirstMintableMetadataId(ctx sdk.Context, collId uint64) uint64 {
-	store := ctx.KVStore(k.storeKey)
-	it := store.Iterator(append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...), nil)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 
 	value := sdk.BigEndianToUint64(it.Value())
-	store.Delete(it.Key())
+	prefixStore.Delete(it.Key())
 	return value
 }
 
@@ -31,8 +31,8 @@ func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, 
 	rand.Seed(ctx.BlockTime().UnixNano())
 	round := rand.Uint64() % maxRound
 
-	store := ctx.KVStore(k.storeKey)
-	it := store.Iterator(append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...), nil)
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 
 	for i := uint64(0); i < round; i++ {
@@ -43,7 +43,7 @@ func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, 
 	}
 
 	value := sdk.BigEndianToUint64(it.Value())
-	store.Delete(it.Key())
+	prefixStore.Delete(it.Key())
 	return value
 }
 
