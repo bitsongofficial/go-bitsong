@@ -19,6 +19,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 		collectionOwner sdk.AccAddress
 		collectionFee   sdk.Coin
 		collectionId    uint64
+		maxMint         uint64
 		shuffle         bool
 		expectPass      bool
 	}{
@@ -28,6 +29,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 0),
 			0,
+			1000,
 			false,
 			false,
 		},
@@ -37,6 +39,17 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr2,
 			sdk.NewInt64Coin("ubtsg", 0),
 			1,
+			1000,
+			false,
+			false,
+		},
+		{
+			"when max mint is bigger than max mint params",
+			addr1,
+			addr2,
+			sdk.NewInt64Coin("ubtsg", 0),
+			1,
+			10000000000,
 			false,
 			false,
 		},
@@ -46,6 +59,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 1000),
 			1,
+			1000,
 			false,
 			true,
 		},
@@ -55,6 +69,7 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 0),
 			1,
+			1000,
 			false,
 			true,
 		},
@@ -64,85 +79,88 @@ func (suite *KeeperTestSuite) TestMsgServerCreateCandyMachine() {
 			addr1,
 			sdk.NewInt64Coin("ubtsg", 0),
 			1,
+			1000,
 			false,
 			true,
 		},
 	}
 
 	for _, tc := range tests {
-		err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(tc.collectionFee))
-		suite.Require().NoError(err)
-		err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, tc.sender, sdk.NewCoins(tc.collectionFee))
-		suite.Require().NoError(err)
-
-		if tc.collectionId > 0 {
-			suite.app.NFTKeeper.SetCollection(suite.ctx, nfttypes.Collection{
-				Id:              tc.collectionId,
-				Symbol:          "PUNK",
-				UpdateAuthority: tc.collectionOwner.String(),
-			})
-		}
-
-		params := suite.app.CandyMachineKeeper.GetParamSet(suite.ctx)
-		params.CandymachineCreationPrice = tc.collectionFee
-		suite.app.CandyMachineKeeper.SetParamSet(suite.ctx, params)
-
-		msgServer := keeper.NewMsgServerImpl(suite.app.CandyMachineKeeper)
-		machine := types.CandyMachine{
-			CollId:               tc.collectionId,
-			Price:                0,
-			Treasury:             addr1.String(),
-			Denom:                "ubtsg",
-			GoLiveDate:           1659870342,
-			EndTimestamp:         0,
-			MaxMint:              1000,
-			Minted:               0,
-			Authority:            tc.sender.String(),
-			MetadataBaseUrl:      "https://punk.com/metadata",
-			Mutable:              true,
-			SellerFeeBasisPoints: 100,
-			Creators:             []nfttypes.Creator(nil),
-			Shuffle:              tc.shuffle,
-		}
-
-		oldSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
-		_, err = msgServer.CreateCandyMachine(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateCandyMachine(
-			tc.sender, machine,
-		))
-		if tc.expectPass {
+		suite.Run(tc.testCase, func() {
+			err := suite.app.BankKeeper.MintCoins(suite.ctx, minttypes.ModuleName, sdk.NewCoins(tc.collectionFee))
+			suite.Require().NoError(err)
+			err = suite.app.BankKeeper.SendCoinsFromModuleToAccount(suite.ctx, minttypes.ModuleName, tc.sender, sdk.NewCoins(tc.collectionFee))
 			suite.Require().NoError(err)
 
-			// check collection authority is upgraded
-			moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
-			collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, tc.collectionId)
-			suite.Require().NoError(err)
-			suite.Require().Equal(collection.UpdateAuthority, moduleAddr.String())
+			if tc.collectionId > 0 {
+				suite.app.NFTKeeper.SetCollection(suite.ctx, nfttypes.Collection{
+					Id:              tc.collectionId,
+					Symbol:          "PUNK",
+					UpdateAuthority: tc.collectionOwner.String(),
+				})
+			}
 
-			// check candymachine object is created from params
-			savedMachine, err := suite.app.CandyMachineKeeper.GetCandyMachineByCollId(suite.ctx, tc.collectionId)
-			suite.Require().NoError(err)
-			suite.Require().Equal(machine, savedMachine)
+			params := suite.app.CandyMachineKeeper.GetParamSet(suite.ctx)
+			params.CandymachineCreationPrice = tc.collectionFee
+			suite.app.CandyMachineKeeper.SetParamSet(suite.ctx, params)
 
-			// check fee spent when it is positive
-			newSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
-			suite.Require().Equal(newSenderBalance.Add(tc.collectionFee), oldSenderBalance)
+			msgServer := keeper.NewMsgServerImpl(suite.app.CandyMachineKeeper)
+			machine := types.CandyMachine{
+				CollId:               tc.collectionId,
+				Price:                0,
+				Treasury:             addr1.String(),
+				Denom:                "ubtsg",
+				GoLiveDate:           1659870342,
+				EndTimestamp:         0,
+				MaxMint:              1000,
+				Minted:               0,
+				Authority:            tc.sender.String(),
+				MetadataBaseUrl:      "https://punk.com/metadata",
+				Mutable:              true,
+				SellerFeeBasisPoints: 100,
+				Creators:             []nfttypes.Creator(nil),
+				Shuffle:              tc.shuffle,
+			}
 
-			metadataIds := suite.app.CandyMachineKeeper.GetMintableMetadataIds(suite.ctx, tc.collectionId)
-			suite.Require().Len(metadataIds, int(machine.MaxMint))
+			oldSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
+			_, err = msgServer.CreateCandyMachine(sdk.WrapSDKContext(suite.ctx), types.NewMsgCreateCandyMachine(
+				tc.sender, machine,
+			))
+			if tc.expectPass {
+				suite.Require().NoError(err)
 
-			// check if not ordered if not shuffle
-			ordered := true
-			for i, metadataId := range metadataIds {
-				if i > 0 && metadataId < metadataIds[i-1] {
-					ordered = false
+				// check collection authority is upgraded
+				moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
+				collection, err := suite.app.NFTKeeper.GetCollectionById(suite.ctx, tc.collectionId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(collection.UpdateAuthority, moduleAddr.String())
+
+				// check candymachine object is created from params
+				savedMachine, err := suite.app.CandyMachineKeeper.GetCandyMachineByCollId(suite.ctx, tc.collectionId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(machine, savedMachine)
+
+				// check fee spent when it is positive
+				newSenderBalance := suite.app.BankKeeper.GetBalance(suite.ctx, tc.sender, "ubtsg")
+				suite.Require().Equal(newSenderBalance.Add(tc.collectionFee), oldSenderBalance)
+
+				metadataIds := suite.app.CandyMachineKeeper.GetMintableMetadataIds(suite.ctx, tc.collectionId)
+				suite.Require().Len(metadataIds, int(machine.MaxMint))
+
+				// check if not ordered if not shuffle
+				ordered := true
+				for i, metadataId := range metadataIds {
+					if i > 0 && metadataId < metadataIds[i-1] {
+						ordered = false
+					}
 				}
+				if !machine.Shuffle {
+					suite.Require().True(ordered)
+				}
+			} else {
+				suite.Require().Error(err)
 			}
-			if !machine.Shuffle {
-				suite.Require().True(ordered)
-			}
-		} else {
-			suite.Require().Error(err)
-		}
+		})
 	}
 }
 
