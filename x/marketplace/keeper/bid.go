@@ -379,7 +379,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	if err != nil {
 		return err
 	}
-	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.CollId, nft.MetadataId)
 	if err != nil {
 		return err
 	}
@@ -392,7 +392,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		}
 	} else {
 		// Set `primary_sale_happened` as true if it was not set already
-		err := k.nftKeeper.SetPrimarySaleHappened(ctx, nft.MetadataId)
+		err := k.nftKeeper.SetPrimarySaleHappened(ctx, nft.CollId, nft.MetadataId)
 		if err != nil {
 			return err
 		}
@@ -403,11 +403,13 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	case types.AuctionPrizeType_FullRightsTransfer:
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
 		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
@@ -419,12 +421,14 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	case types.AuctionPrizeType_MintAuthorityTransfer:
 		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
 	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})

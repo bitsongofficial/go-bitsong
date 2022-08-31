@@ -6,26 +6,48 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func (k Keeper) GetLastMetadataId(ctx sdk.Context) uint64 {
+func (k Keeper) GetAllLastMetadataIds(ctx sdk.Context) []types.LastMetadataIdInfo {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyLastMetadataId)
+	it := sdk.KVStorePrefixIterator(store, types.KeyPrefixLastMetadataId)
+	defer it.Close()
+
+	infos := []types.LastMetadataIdInfo{}
+	for ; it.Valid(); it.Next() {
+		var info types.LastMetadataIdInfo
+		k.cdc.MustUnmarshal(it.Value(), &info)
+
+		infos = append(infos, info)
+	}
+	return infos
+}
+
+func (k Keeper) GetLastMetadataId(ctx sdk.Context, collId uint64) uint64 {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.LastMetadataId(collId))
 	if bz == nil {
 		return 0
 	}
-	return sdk.BigEndianToUint64(bz)
+
+	var info types.LastMetadataIdInfo
+	k.cdc.MustUnmarshal(bz, &info)
+	return info.LastMetadataId
 }
 
-func (k Keeper) SetLastMetadataId(ctx sdk.Context, id uint64) {
-	idBz := sdk.Uint64ToBigEndian(id)
+func (k Keeper) SetLastMetadataId(ctx sdk.Context, collId, id uint64) {
+	info := types.LastMetadataIdInfo{
+		CollId:         collId,
+		LastMetadataId: id,
+	}
+	bz := k.cdc.MustMarshal(&info)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.KeyLastMetadataId, idBz)
+	store.Set(types.LastMetadataId(collId), bz)
 }
 
-func (k Keeper) GetMetadataById(ctx sdk.Context, id uint64) (types.Metadata, error) {
+func (k Keeper) GetMetadataById(ctx sdk.Context, collId, id uint64) (types.Metadata, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixMetadata, sdk.Uint64ToBigEndian(id)...))
+	bz := store.Get(types.MetadataId(collId, id))
 	if bz == nil {
-		return types.Metadata{}, sdkerrors.Wrapf(types.ErrMetadataDoesNotExist, "metadata: %d does not exist", id)
+		return types.Metadata{}, sdkerrors.Wrapf(types.ErrMetadataDoesNotExist, "metadata: %d/%d does not exist", collId, id)
 	}
 	metadata := types.Metadata{}
 	k.cdc.MustUnmarshal(bz, &metadata)
@@ -33,10 +55,9 @@ func (k Keeper) GetMetadataById(ctx sdk.Context, id uint64) (types.Metadata, err
 }
 
 func (k Keeper) SetMetadata(ctx sdk.Context, metadata types.Metadata) {
-	idBz := sdk.Uint64ToBigEndian(metadata.Id)
 	bz := k.cdc.MustMarshal(&metadata)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixMetadata, idBz...), bz)
+	store.Set(types.MetadataId(metadata.CollId, metadata.Id), bz)
 }
 
 func (k Keeper) GetAllMetadata(ctx sdk.Context) []types.Metadata {
@@ -55,8 +76,8 @@ func (k Keeper) GetAllMetadata(ctx sdk.Context) []types.Metadata {
 	return allMetadata
 }
 
-func (k Keeper) SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error {
-	metadata, err := k.GetMetadataById(ctx, metadataId)
+func (k Keeper) SetPrimarySaleHappened(ctx sdk.Context, collId, metadataId uint64) error {
+	metadata, err := k.GetMetadataById(ctx, collId, metadataId)
 	if err != nil {
 		return err
 	}
@@ -71,7 +92,7 @@ func (k Keeper) SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
 }
 
 func (k Keeper) UpdateMetadataAuthority(ctx sdk.Context, msg *types.MsgUpdateMetadataAuthority) error {
-	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	metadata, err := k.GetMetadataById(ctx, msg.CollId, msg.MetadataId)
 	if err != nil {
 		return err
 	}
@@ -90,7 +111,7 @@ func (k Keeper) UpdateMetadataAuthority(ctx sdk.Context, msg *types.MsgUpdateMet
 }
 
 func (k Keeper) UpdateMintAuthority(ctx sdk.Context, msg *types.MsgUpdateMintAuthority) error {
-	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	metadata, err := k.GetMetadataById(ctx, msg.CollId, msg.MetadataId)
 	if err != nil {
 		return err
 	}

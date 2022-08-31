@@ -61,6 +61,7 @@ func FlagTransferNFT() *flag.FlagSet {
 func FlagSignMetadata() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.Uint64(FlagCollectionId, 0, "Id of the collection to sign")
 	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to sign")
 
 	return fs
@@ -69,6 +70,7 @@ func FlagSignMetadata() *flag.FlagSet {
 func FlagUpdateMetadata() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.Uint64(FlagCollectionId, 0, "Id of the collection to sign")
 	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to update")
 	fs.String(FlagName, "", "Name of the nft")
 	fs.String(FlagSymbol, "", "Symbol of the nft")
@@ -83,6 +85,7 @@ func FlagUpdateMetadata() *flag.FlagSet {
 func FlagUpdateMetadataAuthority() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
+	fs.Uint64(FlagCollectionId, 0, "Id of the collection to sign")
 	fs.Uint64(FlagMetadataId, 0, "Id of the metadata to sign")
 	fs.String(FlagNewAuthority, "", "New update authority of the metadata")
 

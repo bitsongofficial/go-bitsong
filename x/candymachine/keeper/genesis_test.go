@@ -12,6 +12,12 @@ func (suite *KeeperTestSuite) TestInitExportGenesis() {
 	genState := suite.app.CandyMachineKeeper.ExportGenesis(suite.ctx)
 	suite.Require().Equal(genState, types.DefaultGenesisState())
 
+	genState.MintableMetadataIds = []types.MintableMetadataIds{
+		{
+			CollectionId:        1,
+			MintableMetadataIds: []uint64{1, 2, 3, 4, 5},
+		},
+	}
 	genState.Candymachines = []types.CandyMachine{
 		{
 			CollId:               1,
@@ -20,7 +26,7 @@ func (suite *KeeperTestSuite) TestInitExportGenesis() {
 			Denom:                "ubtsg",
 			GoLiveDate:           1659870342,
 			EndTimestamp:         0,
-			MaxMint:              1000,
+			MaxMint:              5,
 			Minted:               0,
 			Authority:            addr1.String(),
 			MetadataBaseUrl:      "https://punk.com/metadata",

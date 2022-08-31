@@ -10,7 +10,7 @@ func DefaultGenesisState() *types.GenesisState {
 	return &types.GenesisState{
 		Params:           types.DefaultParams(),
 		Metadata:         []types.Metadata{},
-		LastMetadataId:   0,
+		LastMetadataIds:  []types.LastMetadataIdInfo{},
 		Nfts:             []types.NFT{},
 		Collections:      []types.Collection{},
 		LastCollectionId: 0,
@@ -26,7 +26,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, data types.GenesisState) {
 	for _, metadata := range data.Metadata {
 		k.SetMetadata(ctx, metadata)
 	}
-	k.SetLastMetadataId(ctx, data.LastMetadataId)
+
+	// initialize last metadata ids
+	for _, info := range data.LastMetadataIds {
+		k.SetLastMetadataId(ctx, info.CollId, info.LastMetadataId)
+	}
 
 	// initialize nfts
 	for _, nft := range data.Nfts {
@@ -45,7 +49,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
 		Params:           k.GetParamSet(ctx),
 		Metadata:         k.GetAllMetadata(ctx),
-		LastMetadataId:   k.GetLastMetadataId(ctx),
+		LastMetadataIds:  k.GetAllLastMetadataIds(ctx),
 		Nfts:             k.GetAllNFTs(ctx),
 		Collections:      k.GetAllCollections(ctx),
 		LastCollectionId: k.GetLastCollectionId(ctx),

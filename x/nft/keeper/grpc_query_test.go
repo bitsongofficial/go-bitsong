@@ -132,6 +132,7 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 
 	tests := []struct {
 		testCase          string
+		collId            uint64
 		id                uint64
 		expectPass        bool
 		expectedAuthority string
@@ -139,17 +140,20 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 		{
 			"not existing id",
 			0,
+			0,
 			false,
 			"",
 		},
 		{
 			"metadata1",
+			nftInfo1.CollId,
 			nftInfo1.MetadataId,
 			true,
 			creator1.String(),
 		},
 		{
 			"metadata2",
+			nftInfo2.CollId,
 			nftInfo2.MetadataId,
 			true,
 			creator2.String(),
@@ -157,15 +161,18 @@ func (suite *KeeperTestSuite) TestGRPCMetadata() {
 	}
 
 	for _, tc := range tests {
-		resp, err := suite.app.NFTKeeper.Metadata(sdk.WrapSDKContext(suite.ctx), &types.QueryMetadataRequest{
-			Id: tc.id,
+		suite.Run(tc.testCase, func() {
+			resp, err := suite.app.NFTKeeper.Metadata(sdk.WrapSDKContext(suite.ctx), &types.QueryMetadataRequest{
+				CollId: tc.collId,
+				Id:     tc.id,
+			})
+			if tc.expectPass {
+				suite.Require().NoError(err)
+				suite.Require().Equal(resp.Metadata.MetadataAuthority, tc.expectedAuthority)
+			} else {
+				suite.Require().Error(err)
+			}
 		})
-		if tc.expectPass {
-			suite.Require().NoError(err)
-			suite.Require().Equal(resp.Metadata.MetadataAuthority, tc.expectedAuthority)
-		} else {
-			suite.Require().Error(err)
-		}
 	}
 }
 
@@ -214,7 +221,7 @@ func (suite *KeeperTestSuite) TestGRPCCollection() {
 		if tc.expectPass {
 			suite.Require().NoError(err)
 			suite.Require().Equal(resp.Collection.UpdateAuthority, tc.expectedAuthority)
-			suite.Require().Equal(len(resp.NftIds), tc.expectedNftsCount)
+			suite.Require().Equal(len(resp.Nfts), tc.expectedNftsCount)
 		} else {
 			suite.Require().Error(err)
 		}

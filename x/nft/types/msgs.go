@@ -33,8 +33,8 @@ func NewMsgCreateNFT(sender sdk.AccAddress,
 ) *MsgCreateNFT {
 	return &MsgCreateNFT{
 		Sender: sender.String(),
-		CollId: collId,
 		Metadata: Metadata{
+			CollId:               collId,
 			MetadataAuthority:    updateAuthority,
 			MintAuthority:        sender.String(),
 			Name:                 name,
@@ -179,9 +179,10 @@ func (msg MsgTransferNFT) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgSignMetadata{}
 
-func NewMsgSignMetadata(sender sdk.AccAddress, metadataId uint64) *MsgSignMetadata {
+func NewMsgSignMetadata(sender sdk.AccAddress, collId, metadataId uint64) *MsgSignMetadata {
 	return &MsgSignMetadata{
 		Sender:     sender.String(),
+		CollId:     collId,
 		MetadataId: metadataId,
 	}
 }
@@ -221,13 +222,14 @@ var _ sdk.Msg = &MsgUpdateMetadata{}
 
 func NewMsgUpdateMetadata(
 	sender sdk.AccAddress,
-	metadataId uint64,
+	collId, metadataId uint64,
 	name, uri string,
 	sellerFeeBasisPoints uint32,
 	creators []Creator,
 ) *MsgUpdateMetadata {
 	return &MsgUpdateMetadata{
 		Sender:               sender.String(),
+		CollId:               collId,
 		MetadataId:           metadataId,
 		Name:                 name,
 		Uri:                  uri,
@@ -273,9 +275,10 @@ func (msg MsgUpdateMetadata) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMetadataAuthority{}
 
-func NewMsgUpdateMetadataAuthority(sender sdk.AccAddress, metadataId uint64, newAuthority string) *MsgUpdateMetadataAuthority {
+func NewMsgUpdateMetadataAuthority(sender sdk.AccAddress, collId, metadataId uint64, newAuthority string) *MsgUpdateMetadataAuthority {
 	return &MsgUpdateMetadataAuthority{
 		Sender:       sender.String(),
+		CollId:       collId,
 		MetadataId:   metadataId,
 		NewAuthority: newAuthority,
 	}
@@ -314,9 +317,10 @@ func (msg MsgUpdateMetadataAuthority) GetSigners() []sdk.AccAddress {
 
 var _ sdk.Msg = &MsgUpdateMintAuthority{}
 
-func NewMsgUpdateMintAuthority(sender sdk.AccAddress, metadataId uint64, newAuthority string) *MsgUpdateMintAuthority {
+func NewMsgUpdateMintAuthority(sender sdk.AccAddress, collId, metadataId uint64, newAuthority string) *MsgUpdateMintAuthority {
 	return &MsgUpdateMintAuthority{
 		Sender:       sender.String(),
+		CollId:       collId,
 		MetadataId:   metadataId,
 		NewAuthority: newAuthority,
 	}

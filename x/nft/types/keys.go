@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "nft"
@@ -15,10 +17,18 @@ const (
 )
 
 var (
-	PrefixNFT           = []byte{0x01}
-	PrefixNFTByOwner    = []byte{0x02}
-	PrefixMetadata      = []byte{0x03}
-	PrefixCollection    = []byte{0x04}
-	KeyLastMetadataId   = []byte{0x05}
-	KeyLastCollectionId = []byte{0x06}
+	PrefixNFT               = []byte{0x01}
+	PrefixNFTByOwner        = []byte{0x02}
+	PrefixMetadata          = []byte{0x03}
+	PrefixCollection        = []byte{0x04}
+	KeyPrefixLastMetadataId = []byte{0x05}
+	KeyLastCollectionId     = []byte{0x06}
 )
+
+func LastMetadataId(collId uint64) []byte {
+	return append(KeyPrefixLastMetadataId, sdk.Uint64ToBigEndian(collId)...)
+}
+
+func MetadataId(collId, metadataId uint64) []byte {
+	return append(append(PrefixMetadata, sdk.Uint64ToBigEndian(collId)...), sdk.Uint64ToBigEndian(metadataId)...)
+}

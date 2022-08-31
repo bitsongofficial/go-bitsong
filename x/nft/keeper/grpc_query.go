@@ -24,7 +24,7 @@ func (k Keeper) NFTInfo(c context.Context, req *types.QueryNFTInfoRequest) (*typ
 	if err != nil {
 		return nil, err
 	}
-	metadata, err := k.GetMetadataById(ctx, nft.MetadataId)
+	metadata, err := k.GetMetadataById(ctx, nft.CollId, nft.MetadataId)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (k Keeper) NFTsByOwner(c context.Context, req *types.QueryNFTsByOwnerReques
 
 	metadata := []types.Metadata{}
 	for _, nft := range nfts {
-		meta, err := k.GetMetadataById(ctx, nft.MetadataId)
+		meta, err := k.GetMetadataById(ctx, nft.CollId, nft.MetadataId)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func (k Keeper) Metadata(c context.Context, req *types.QueryMetadataRequest) (*t
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	metadata, err := k.GetMetadataById(ctx, req.Id)
+	metadata, err := k.GetMetadataById(ctx, req.CollId, req.Id)
 	if err != nil {
 		return nil, err
 	}

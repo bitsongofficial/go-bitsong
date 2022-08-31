@@ -194,7 +194,7 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		}
 	}
 
-	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.CollId, nft.MetadataId)
 	if err != nil {
 		return 0, err
 	}
@@ -223,6 +223,7 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		}
 		err = k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       msg.Sender,
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: moduleAddr.String(),
 		})
@@ -245,6 +246,7 @@ func (k Keeper) CreateAuction(ctx sdk.Context, msg *types.MsgCreateAuction) (uin
 		}
 		err = k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       msg.Sender,
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: moduleAddr.String(),
 		})
@@ -366,11 +368,13 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 			})
 			k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 				Sender:       moduleAddr.String(),
+				CollId:       nft.CollId,
 				MetadataId:   nft.MetadataId,
 				NewAuthority: auction.Authority,
 			})
 			k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 				Sender:       moduleAddr.String(),
+				CollId:       nft.CollId,
 				MetadataId:   nft.MetadataId,
 				NewAuthority: auction.Authority,
 			})
@@ -379,6 +383,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 		if auction.LastBidAmount == 0 {
 			k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 				Sender:       moduleAddr.String(),
+				CollId:       nft.CollId,
 				MetadataId:   nft.MetadataId,
 				NewAuthority: auction.Authority,
 			})
@@ -387,6 +392,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 		if auction.LastBidAmount == 0 {
 			k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 				Sender:       moduleAddr.String(),
+				CollId:       nft.CollId,
 				MetadataId:   nft.MetadataId,
 				NewAuthority: auction.Authority,
 			})
@@ -408,6 +414,7 @@ func (k Keeper) EndAuction(ctx sdk.Context, msg *types.MsgEndAuction) error {
 		}
 		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: auction.Authority,
 		})

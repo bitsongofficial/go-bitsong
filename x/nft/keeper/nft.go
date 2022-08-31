@@ -121,7 +121,7 @@ func (k Keeper) PayNftIssueFee(ctx sdk.Context, sender sdk.AccAddress) error {
 
 func (k Keeper) CreateNFT(ctx sdk.Context, msg *types.MsgCreateNFT) (uint64, string, error) {
 
-	collection, err := k.GetCollectionById(ctx, msg.CollId)
+	collection, err := k.GetCollectionById(ctx, msg.Metadata.CollId)
 	if err != nil {
 		return 0, "", err
 	}
@@ -131,8 +131,8 @@ func (k Keeper) CreateNFT(ctx sdk.Context, msg *types.MsgCreateNFT) (uint64, str
 	}
 
 	// create metadata
-	metadataId := k.GetLastMetadataId(ctx) + 1
-	k.SetLastMetadataId(ctx, metadataId)
+	metadataId := k.GetLastMetadataId(ctx, msg.Metadata.CollId) + 1
+	k.SetLastMetadataId(ctx, msg.Metadata.CollId, metadataId)
 	msg.Metadata.Id = metadataId
 	for index := range msg.Metadata.Creators {
 		msg.Metadata.Creators[index].Verified = false
@@ -162,7 +162,7 @@ func (k Keeper) CreateNFT(ctx sdk.Context, msg *types.MsgCreateNFT) (uint64, str
 	// create nft
 	nft := types.NFT{
 		Owner:      msg.Sender,
-		CollId:     msg.CollId,
+		CollId:     msg.Metadata.CollId,
 		MetadataId: metadataId,
 		Seq:        0,
 	}
@@ -175,7 +175,7 @@ func (k Keeper) CreateNFT(ctx sdk.Context, msg *types.MsgCreateNFT) (uint64, str
 }
 
 func (k Keeper) PrintEdition(ctx sdk.Context, msg *types.MsgPrintEdition) (string, error) {
-	metadata, err := k.GetMetadataById(ctx, msg.MetadataId)
+	metadata, err := k.GetMetadataById(ctx, msg.CollId, msg.MetadataId)
 	if err != nil {
 		return "", err
 	}

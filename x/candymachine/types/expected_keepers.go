@@ -36,15 +36,15 @@ type NftKeeper interface {
 	GetCollectionById(ctx sdk.Context, id uint64) (nfttypes.Collection, error)
 	SetCollection(ctx sdk.Context, collection nfttypes.Collection)
 	GetNFTById(ctx sdk.Context, id string) (nfttypes.NFT, error)
-	GetMetadataById(ctx sdk.Context, id uint64) (nfttypes.Metadata, error)
+	GetMetadataById(ctx sdk.Context, collId, id uint64) (nfttypes.Metadata, error)
 	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
 	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error
 	UpdateMintAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMintAuthority) error
-	SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
+	SetPrimarySaleHappened(ctx sdk.Context, collId, metadataId uint64) error
 	PrintEdition(ctx sdk.Context, msg *nfttypes.MsgPrintEdition) (string, error)
 	CreateNFT(ctx sdk.Context, msg *nfttypes.MsgCreateNFT) (uint64, string, error)
 	SetMetadata(ctx sdk.Context, metadata nfttypes.Metadata)
 	SetNFT(ctx sdk.Context, nft nfttypes.NFT)
-	GetLastMetadataId(ctx sdk.Context) uint64
-	SetLastMetadataId(ctx sdk.Context, id uint64)
+	GetLastMetadataId(ctx sdk.Context, collId uint64) uint64
+	SetLastMetadataId(ctx sdk.Context, collId, id uint64)
 }

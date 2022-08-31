@@ -5,14 +5,14 @@ import "fmt"
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(
 	params Params,
-	metadata []Metadata, lastMetadataId uint64,
+	metadata []Metadata, lastMetadataIds []LastMetadataIdInfo,
 	nfts []NFT, lastNftId uint64,
 	collections []Collection, lastCollectionId uint64,
 ) GenesisState {
 	return GenesisState{
 		Params:           params,
 		Metadata:         metadata,
-		LastMetadataId:   lastMetadataId,
+		LastMetadataIds:  lastMetadataIds,
 		Nfts:             nfts,
 		Collections:      collections,
 		LastCollectionId: lastCollectionId,
@@ -26,14 +26,19 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
+	lastMetadataIdMapping := make(map[uint64]uint64)
+	for _, info := range data.LastMetadataIds {
+		lastMetadataIdMapping[info.CollId] = info.LastMetadataId
+	}
+
 	for _, meta := range data.Metadata {
-		if meta.Id > data.LastMetadataId {
+		if meta.Id > lastMetadataIdMapping[meta.CollId] {
 			return fmt.Errorf("invalid metadata id: %d", meta.Id)
 		}
 	}
 
 	for _, nft := range data.Nfts {
-		if nft.MetadataId > data.LastMetadataId {
+		if nft.MetadataId > lastMetadataIdMapping[nft.CollId] {
 			return fmt.Errorf("invalid metadata id: %d", nft.MetadataId)
 		}
 	}

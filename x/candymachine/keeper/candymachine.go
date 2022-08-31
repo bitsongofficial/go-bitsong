@@ -143,11 +143,11 @@ func (k Keeper) CreateCandyMachine(ctx sdk.Context, msg *types.MsgCreateCandyMac
 	k.nftKeeper.SetCollection(ctx, collection)
 
 	mintableMetadataIds := []uint64{}
-	lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx)
+	lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx, msg.Machine.CollId)
 	for i := uint64(0); i < msg.Machine.MaxMint; i++ {
 		mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
 	}
-	k.nftKeeper.SetLastMetadataId(ctx, lastMetadataId+msg.Machine.MaxMint)
+	k.nftKeeper.SetLastMetadataId(ctx, msg.Machine.CollId, lastMetadataId+msg.Machine.MaxMint)
 	mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
 	k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
 
@@ -184,11 +184,11 @@ func (k Keeper) UpdateCandyMachine(ctx sdk.Context, msg *types.MsgUpdateCandyMac
 	// if max value is increased allocate more metadata ids
 	if machine.MaxMint < msg.Machine.MaxMint {
 		mintableMetadataIds := k.GetMintableMetadataIds(ctx, msg.Machine.CollId)
-		lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx)
+		lastMetadataId := k.nftKeeper.GetLastMetadataId(ctx, msg.Machine.CollId)
 		for i := uint64(0); i < msg.Machine.MaxMint-machine.MaxMint; i++ {
 			mintableMetadataIds = append(mintableMetadataIds, lastMetadataId+1+i)
 		}
-		k.nftKeeper.SetLastMetadataId(ctx, lastMetadataId+msg.Machine.MaxMint)
+		k.nftKeeper.SetLastMetadataId(ctx, msg.Machine.CollId, lastMetadataId+msg.Machine.MaxMint)
 		mintableMetadataIds = RandomList(ctx, mintableMetadataIds)
 		k.SetMintableMetadataIds(ctx, msg.Machine.CollId, mintableMetadataIds)
 	}
@@ -278,6 +278,7 @@ func (k Keeper) MintNFT(ctx sdk.Context, msg *types.MsgMintNFT) (string, error) 
 
 	// metadata should be dynamically created on candymachine with shuffled id
 	k.nftKeeper.SetMetadata(ctx, nfttypes.Metadata{
+		CollId:               msg.CollectionId,
 		Id:                   shuffledId,
 		Name:                 msg.Name,
 		Uri:                  fmt.Sprintf("%s/%d", machine.MetadataBaseUrl, machine.Minted+1),
@@ -337,7 +338,7 @@ func (k Keeper) MintNFTs(ctx sdk.Context, msg *types.MsgMintNFTs) ([]string, err
 		nftId, err := k.MintNFT(ctx, &types.MsgMintNFT{
 			Sender:       msg.Sender,
 			CollectionId: msg.CollectionId,
-			Name:         fmt.Sprintf("%s #%s", collection.Name, i),
+			Name:         fmt.Sprintf("%s #%d", collection.Name, i),
 		})
 		if err != nil {
 			return []string{}, err

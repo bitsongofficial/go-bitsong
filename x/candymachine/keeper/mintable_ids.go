@@ -56,7 +56,8 @@ func (k Keeper) ShuffleMintableMetadataIds(ctx sdk.Context, collId uint64) {
 
 func (k Keeper) GetMintableMetadataIds(ctx sdk.Context, collId uint64) []uint64 {
 	store := ctx.KVStore(k.storeKey)
-	it := store.Iterator(append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...), nil)
+	prefixStore := prefix.NewStore(store, append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 
 	metadataIds := []uint64{}

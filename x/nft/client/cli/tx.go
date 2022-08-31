@@ -205,12 +205,17 @@ func GetCmdSignMetadata() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSignMetadata(clientCtx.GetFromAddress(), metadataId)
+			msg := types.NewMsgSignMetadata(clientCtx.GetFromAddress(), collId, metadataId)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -246,6 +251,11 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -256,7 +266,7 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, data.Name, data.Uri, data.SellerFeeBasisPoints, data.Creators)
+			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), collId, metadataId, data.Name, data.Uri, data.SellerFeeBasisPoints, data.Creators)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -288,6 +298,11 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -298,7 +313,7 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadataAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+			msg := types.NewMsgUpdateMetadataAuthority(clientCtx.GetFromAddress(), collId, metadataId, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -330,6 +345,11 @@ func GetCmdUpdateMintAuthority() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -340,7 +360,7 @@ func GetCmdUpdateMintAuthority() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), collId, metadataId, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
