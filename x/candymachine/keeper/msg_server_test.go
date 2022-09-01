@@ -362,16 +362,18 @@ func (suite *KeeperTestSuite) TestMsgServerMintNFT() {
 		}
 
 		if tc.collectionId > 0 {
-			moduleAddr := suite.app.AccountKeeper.GetModuleAddress(types.ModuleName)
 			suite.app.NFTKeeper.SetCollection(suite.ctx, nfttypes.Collection{
 				Id:              tc.collectionId,
 				Symbol:          "PUNK",
-				UpdateAuthority: moduleAddr.String(),
+				UpdateAuthority: addr1.String(),
 			})
-			suite.app.CandyMachineKeeper.SetCandyMachine(suite.ctx, machine)
+			err := suite.app.CandyMachineKeeper.CreateCandyMachine(suite.ctx, &types.MsgCreateCandyMachine{
+				Sender:  addr1.String(),
+				Machine: machine,
+			})
+			suite.Require().NoError(err)
 		}
 
-		machine.MetadataBaseUrl = "https://punk.com/newmeatadata"
 		_, err := msgServer.MintNFT(sdk.WrapSDKContext(suite.ctx), types.NewMsgMintNFT(
 			tc.sender, tc.collectionId, "punk1",
 		))
@@ -393,5 +395,88 @@ func (suite *KeeperTestSuite) TestMsgServerMintNFT() {
 		} else {
 			suite.Require().Error(err)
 		}
+	}
+}
+
+func (suite *KeeperTestSuite) TestMsgServerMintNFTs() {
+	addr1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
+
+	tests := []struct {
+		testCase   string
+		sender     sdk.AccAddress
+		maxMint    uint64
+		numMint    uint64
+		expectPass bool
+	}{
+		{
+			"when exceeding total number on candymachine",
+			addr1,
+			10,
+			100,
+			false,
+		},
+		{
+			"successful candymachine mint nft",
+			addr1,
+			10,
+			9,
+			true,
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.testCase, func() {
+			suite.SetupTest()
+			msgServer := keeper.NewMsgServerImpl(suite.app.CandyMachineKeeper)
+			suite.app.NFTKeeper.SetCollection(suite.ctx, nfttypes.Collection{
+				Id:              1,
+				Symbol:          "PUNK",
+				UpdateAuthority: addr1.String(),
+			})
+
+			machine := types.CandyMachine{
+				CollId:               1,
+				Price:                0,
+				Treasury:             addr1.String(),
+				Denom:                "ubtsg",
+				GoLiveDate:           1659870342,
+				EndTimestamp:         0,
+				MaxMint:              tc.maxMint,
+				Minted:               0,
+				Authority:            addr1.String(),
+				MetadataBaseUrl:      "https://punk.com/metadata",
+				Mutable:              true,
+				SellerFeeBasisPoints: 100,
+				Creators:             []nfttypes.Creator(nil),
+			}
+
+			err := suite.app.CandyMachineKeeper.CreateCandyMachine(suite.ctx, &types.MsgCreateCandyMachine{
+				Sender:  addr1.String(),
+				Machine: machine,
+			})
+			suite.Require().NoError(err)
+
+			_, err = msgServer.MintNFTs(sdk.WrapSDKContext(suite.ctx), types.NewMsgMintNFTs(
+				tc.sender, 1, tc.numMint,
+			))
+			if tc.expectPass {
+				suite.Require().NoError(err)
+
+				// check candy machine minted count increased
+				machine, err := suite.app.CandyMachineKeeper.GetCandyMachineByCollId(suite.ctx, machine.CollId)
+				suite.Require().NoError(err)
+				suite.Require().Equal(machine.Minted, uint64(tc.numMint))
+
+				// check nft minted
+				nfts := suite.app.NFTKeeper.GetCollectionNfts(suite.ctx, 1)
+				suite.Require().NoError(err)
+				suite.Require().Len(nfts, int(tc.numMint))
+
+				// check minted nft ownership
+				suite.Require().Equal(nfts[0].Owner, tc.sender.String())
+			} else {
+				suite.Require().Error(err)
+			}
+		})
 	}
 }
