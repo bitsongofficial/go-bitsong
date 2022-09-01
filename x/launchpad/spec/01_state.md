@@ -30,6 +30,8 @@ message LaunchPad {
   uint32 seller_fee_basis_points = 12;
   // Creators of metadata
   repeated bitsong.nft.v1beta1.Creator creators = 13 [ (gogoproto.nullable) = false ];
+  // shows if ids are minted in sequence or shuffled
+  bool shuffle = 14;
 }
 ```
 
@@ -48,6 +50,7 @@ message LaunchPad {
 | minted               | Number of minted nfts via the launchpad.                       |
 | sellerFeeBasisPoints | Seller fee basis points of the nft items minted via launchpad. |
 | creators             | Creators of the nft. Collection nfts share the same creators.  |
+| shuffle              | Show if nft ids are shuffled during mint or not                |
 
 When a collection owner creates launchpad, ownership of collection is sent to launchpad, and it can be returned only after launchpad ends.
 
@@ -64,3 +67,18 @@ Store:
 - Launchpad by EndTime: `0x02 | format(EndTime) | format(collection_id) -> Bid`
 
 Notes: Launchpad by EndTime queue is only set when `endTimestamp` is not `0`.
+
+### MintableMetadataIds
+
+`MintableMetadataIds` track mintable metadata ids for collections that are put on launchpad.
+
+```protobuf
+message MintableMetadataIds {
+  uint64 collection_id = 1;
+  repeated uint64 mintable_metadata_ids = 2;
+}
+```
+
+Store:
+
+- MintableMetadataIds: `0x03 | format(collection_id) | format(id) -> id`

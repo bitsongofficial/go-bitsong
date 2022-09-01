@@ -15,10 +15,11 @@ Steps:
 
 1. Pay launchpad creation fee if fee exists
 2. Ensure collection is owned by `msg.Sender`
-3. Transfer ownership of collection to module account
-4. Create launchpad object from provided params
-5. Allocate mintable metadata ids after shuffle operation
-6. Emit event for launchpad creation
+3. Ensure MaxMint value does not exist `params.LaunchpadMaxMint`
+4. Transfer ownership of collection to module account
+5. Create launchpad object from provided params
+6. Allocate mintable metadata ids after shuffle operation
+7. Emit event for launchpad creation
 
 ## MsgUpdateLaunchPad
 
@@ -34,8 +35,10 @@ message MsgUpdateLaunchPad {
 Steps:
 
 1. Ensure `msg.Sender` is launchpad authority
-2. Update launchpad object from provided params
-3. Emit event for launchpad update
+2. Ensure MaxMint value does not exist `params.LaunchpadMaxMint`
+3. Update launchpad object from provided params
+4. Allocate more mintable metadata ids if max mint value is increased
+5. Emit event for launchpad update
 
 ## MsgCloseLaunchPad
 
@@ -73,13 +76,14 @@ Steps:
 1. Ensure collection is put on launchpad
 2. Ensure launchpad passed live date
 3. Pay nft mint fee via launchpad
-4. Get shuffled metadata id and create new metadata
-5. Add new nft with new metadata
-6. Increase the number of nfts minted by the pad
-7. If minted count pass the threshold value `MaxMint`, close launchpad
-8. Otherwise, store updated launchpad into the storage
-9. Emit event for minting nft via launchpad
-10. Collect nft id and return
+4. Get metadata id from mintable metadata ids based on shuffle flag
+5. create new metadata with selected metadata id
+6. Add new nft with new metadata
+7. Increase the number of nfts minted by the pad
+8. If minted count pass the threshold value `MaxMint`, close launchpad
+9. Otherwise, store updated launchpad into the storage
+10. Emit event for minting nft via launchpad
+11. Collect nft id and return
 
 ## MsgMintNFTs
 

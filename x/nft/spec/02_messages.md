@@ -10,12 +10,12 @@ After execution, it returns nft and metadata ids.
 ```protobuf
 message MsgCreateNFT {
   string sender = 1;
-  uint64 coll_id = 2;
-  bitsong.nft.v1beta1.Metadata metadata = 3 [ (gogoproto.nullable) = false ];
+  bitsong.nft.v1beta1.Metadata metadata = 2  [ (gogoproto.nullable) = false ];
 }
 message MsgCreateNFTResponse {
   string id = 1;
-  uint64 metadata_id = 2;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
 }
 ```
 
@@ -48,7 +48,8 @@ message MsgPrintEdition {
 }
 message MsgPrintEditionResponse {
   string id = 1;
-  uint64 metadata_id = 2;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
 }
 ```
 
@@ -94,7 +95,8 @@ Once it is executed, it set the `Verified` field of creators on metadata as true
 ```protobuf
 message MsgSignMetadata {
   string sender = 1;
-  uint64 metadata_id = 2;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
 }
 ```
 
@@ -114,15 +116,16 @@ Steps:
 ```protobuf
 message MsgUpdateMetadata {
   string sender = 1;
-  uint64 metadata_id = 2;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
   // The name of the asset
-  string name = 3;
+  string name = 4;
   // URI pointing to JSON representing the asset
-  string uri = 4;
+  string uri = 5;
   // Royalty basis points that goes to creators in secondary sales (0-10000)
-  uint32 seller_fee_basis_points = 5;
+  uint32 seller_fee_basis_points = 6;
   // Array of creators, optional
-  repeated bitsong.nft.v1beta1.Creator creators = 6
+  repeated bitsong.nft.v1beta1.Creator creators = 7
       [ (gogoproto.nullable) = false ];
 }
 ```
@@ -144,8 +147,9 @@ Steps:
 ```protobuf
 message MsgUpdateMetadataAuthority {
   string sender = 1;
-  uint64 metadata_id = 2;
-  string new_authority = 3;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
+  string new_authority = 4;
 }
 ```
 
@@ -164,8 +168,9 @@ Steps:
 ```protobuf
 message MsgUpdateMintAuthority {
   string sender = 1;
-  uint64 metadata_id = 2;
-  string new_authority = 3;
+  uint64 coll_id = 2;
+  uint64 metadata_id = 3;
+  string new_authority = 4;
 }
 ```
 
