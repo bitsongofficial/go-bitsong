@@ -1,0 +1,78 @@
+syntax = "proto3";
+package bitsong.launchpad.v1beta1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/launchpad/types";
+
+message LaunchPad {
+  // id of the collection
+  uint64 coll_id = 1;
+  // mint price
+  uint64 price = 2;
+  // wallet to receive payments
+  string treasury = 3;
+  // denom for the auction
+  string denom = 4;
+  // Timestamp when minting is allowed
+  uint64 go_live_date = 5;
+  // mint end timestamp - not considered when set as 0
+  uint64 end_timestamp = 6;
+  // max mintable amount
+  uint64 max_mint = 7;
+  // minted amount
+  uint64 minted = 8;
+  // owner of launchpad
+  string authority = 9;
+  // all metadata url is generated from metadata_base_url
+  string metadata_base_url = 10;
+  // mutability of the minted nfts
+  bool mutable = 11;
+  // Royalty basis points that goes to creators in secondary sales (0-10000)
+  uint32 seller_fee_basis_points = 12;
+  // Creators of metadata
+  repeated bitsong.nft.v1beta1.Creator creators = 13 [ (gogoproto.nullable) = false ];
+  // shows if ids are minted in sequence or shuffled
+  bool shuffle = 14;
+}
+
+message MintableMetadataIds {
+  uint64 collection_id = 1;
+  repeated uint64 mintable_metadata_ids = 2;
+}
+
+// Params defines launchpad module's parameters
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin launchpad_creation_price = 1 [
+    (gogoproto.moretags) = "yaml:\"launchpad_creation_price\"",
+    (gogoproto.nullable) = false
+  ];
+  uint64 launchpad_max_mint = 2;
+}
+
+message EventCreateLaunchPad {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventUpdateLaunchPad {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventCloseLaunchPad {
+  string creator = 1;
+  uint64 collection_id = 2;
+}
+
+message EventMintNFT {
+  uint64 collection_id = 1;
+  string nft_id = 2;
+}

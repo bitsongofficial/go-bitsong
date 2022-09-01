@@ -8,7 +8,7 @@ The structs are derived from [metaplex documentation](https://docs.metaplex.com/
 
 Users can create NFT with custom metadata and create collections and add the available nfts into it.
 
-The NFT marketplace and auction, candy machine will be built as part of other modules.
+The NFT marketplace and auction, launchpad will be built as part of other modules.
 
 ## Contents
 
