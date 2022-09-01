@@ -109,10 +109,11 @@ Sign the metadata creators field by creator account configured on metadata on me
 
 ```
 bitsongd tx nft sign-metadata \
+--collection-id=<collection_id> \
 --metadata-id=<metadata_id> \
 --from=<signer> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
 
-bitsongd tx nft sign-metadata --metadata-id=1 --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
+bitsongd tx nft sign-metadata --collection-id=1 --metadata-id=1 --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
 ```
 
 ### TransferNft
@@ -134,6 +135,7 @@ Update metadata with new name, symbol, uri, seller fee basis points, creators an
 
 ```
 bitsongd tx nft update-metadata \
+--collection-id=<collection_id> \
 --metadata-id=<metadata_id> \
 --name=<name> \
 --symbol=<symbol> \
@@ -143,7 +145,7 @@ bitsongd tx nft update-metadata \
 --creator-shares=<shares_list_separated_by_comma> \
 --from=<sender> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
 
-bitsongd tx nft update-metadata --metadata-id=1 --name="Punk11" --symbol="PUNK" --uri="https://punk.com/10" --seller-fee-basis-points=100 --creators=$(bitsongd keys show -a validator --keyring-backend=test) --creator-shares="10" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
+bitsongd tx nft update-metadata --collection-id=1 --metadata-id=1 --name="Punk11" --symbol="PUNK" --uri="https://punk.com/10" --seller-fee-basis-points=100 --creators=$(bitsongd keys show -a validator --keyring-backend=test) --creator-shares="10" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
 ```
 
 ### UpdateMetadataAuthority
@@ -152,11 +154,12 @@ Update metadata authority by previous metadata authority
 
 ```
 bitsongd tx nft update-metadata-authority \
+--collection-id=<collection_id> \
 --metadata-id=<metadata_id> \
 --new-authority=<new_authority> \
 --from=<sender> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
 
-bitsongd tx nft update-metadata-authority --metadata-id=1 --new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
+bitsongd tx nft update-metadata-authority --collection-id=1 --metadata-id=1 --new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
 ```
 
 ### UpdateMintAuthority
@@ -165,9 +168,10 @@ Update mint authority by previous mint authority.
 
 ```
 bitsongd tx nft update-mint-authority \
+--collection-id=<collection_id> \
 --metadata-id=<metadata_id> \
 --new-authority=<new_authority> \
 --from=<sender> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
 
-bitsongd tx nft update-mint-authority --metadata-id=1 --new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
+bitsongd tx nft update-mint-authority --collection-id=1 --metadata-id=1 --new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47" --from=validator --chain-id=nft-devnet-1 --keyring-backend=test -y --broadcast-mode=block
 ```

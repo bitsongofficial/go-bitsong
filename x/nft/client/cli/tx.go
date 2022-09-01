@@ -109,6 +109,7 @@ func GetCmdPrintEdition() *cobra.Command {
 		Long: "Print a new edition from master edition metadata",
 		Example: fmt.Sprintf(
 			`$ %s tx nft print-edition
+				--collection-id=1
 				--metadata-id=1`,
 			version.AppName,
 		),
@@ -196,6 +197,7 @@ func GetCmdSignMetadata() *cobra.Command {
 		Long: "Sign metadata and verify the address on creators field",
 		Example: fmt.Sprintf(
 			`$ %s tx nft sign-metadata
+				--collection-id=1
 				--metadata-id=1`,
 			version.AppName,
 		),
@@ -236,6 +238,7 @@ func GetCmdUpdateMetadata() *cobra.Command {
 		Long: "Update metadata by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-metadata
+				--collection-id=1
 				--metadata-id=1
 				--name="Punk10"
 				--symbol="PUNK"
@@ -288,6 +291,7 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 		Long: "Update metadata by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-metadata-authority
+				--collection-id=1
 				--metadata-id=1
 				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
 			version.AppName,
@@ -335,6 +339,7 @@ func GetCmdUpdateMintAuthority() *cobra.Command {
 		Long: "Update mint authority by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-mint-authority
+				--collection-id=1
 				--metadata-id=1
 				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
 			version.AppName,

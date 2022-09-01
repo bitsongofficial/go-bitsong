@@ -27,6 +27,15 @@ Query all candy machines
 bitsongd query candymachine machines
 ```
 
+### Mintable metadata ids
+
+Query all mintable metadata ids for a collection put on candymachine.
+
+```
+bitsongd query candymachine mintabe-metadata-ids [collection_id]
+bitsongd query candymachine mintabe-metadata-ids 1
+```
+
 ## Messages
 
 ### CreateCandyMachine
@@ -93,4 +102,14 @@ Mint nft from collection id put on candy machine, and custom name.
 bitsongd tx candymachine mint-nft <collection_id> <nft_name> --from=<sender> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
 
 bitsongd tx candymachine mint-nft 1 punk1 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block
+```
+
+### MintNFTs
+
+Mint multiple nfts at a single time. The nft name is determined as `collection_name #{metadataId}`.
+
+```
+bitsongd tx candymachine mint-nfts <collection_id> <mint_count> --from=<sender> --chain-id=<chain_id> --keyring-backend=<keyring> -y --broadcast-mode=block
+
+bitsongd tx candymachine mint-nfts 1 3 --from=validator --chain-id=test --keyring-backend=test -y --broadcast-mode=block --gas=1000000
 ```
