@@ -44,11 +44,12 @@ func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.
 func (k Keeper) GetNFTById(ctx sdk.Context, id string) (types.NFT, error) {
 	store := ctx.KVStore(k.storeKey)
 
-	if !types.IsValidNftId(id) {
+	nftIdBz, err := types.NftIdToBytes(id)
+	if err != nil {
 		return types.NFT{}, types.ErrInvalidNftId
 	}
 
-	bz := store.Get(append(types.PrefixNFT, types.NftIdToBytes(id)...))
+	bz := store.Get(append(types.PrefixNFT, nftIdBz...))
 	if bz == nil {
 		return types.NFT{}, sdkerrors.Wrapf(types.ErrNFTDoesNotExist, "nft: %s does not exist", id)
 	}

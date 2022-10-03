@@ -150,7 +150,7 @@ func (msg MsgTransferNFT) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if !IsValidNftId(msg.Id) {
+	if _, err = NftIdToBytes(msg.Id); err != nil {
 		return ErrInvalidNftId
 	}
 
