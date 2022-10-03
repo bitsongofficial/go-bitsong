@@ -386,7 +386,7 @@ func (suite *KeeperTestSuite) TestMsgServerMintNFT() {
 			suite.Require().Equal(pad.Minted, uint64(1))
 
 			// check nft minted
-			nfts := suite.app.NFTKeeper.GetCollectionNfts(suite.ctx, tc.collectionId)
+			nfts := suite.app.NFTKeeper.GetNFTsByCollection(suite.ctx, tc.collectionId)
 			suite.Require().NoError(err)
 			suite.Require().Len(nfts, 1)
 
@@ -468,7 +468,7 @@ func (suite *KeeperTestSuite) TestMsgServerMintNFTs() {
 				suite.Require().Equal(pad.Minted, uint64(tc.numMint))
 
 				// check nft minted
-				nfts := suite.app.NFTKeeper.GetCollectionNfts(suite.ctx, 1)
+				nfts := suite.app.NFTKeeper.GetNFTsByCollection(suite.ctx, 1)
 				suite.Require().NoError(err)
 				suite.Require().Len(nfts, int(tc.numMint))
 

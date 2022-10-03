@@ -26,7 +26,7 @@ func (k Keeper) GetNFTsByOwner(ctx sdk.Context, owner sdk.AccAddress) []types.NF
 	return nfts
 }
 
-func (k Keeper) GetCollectionNfts(ctx sdk.Context, collectionId uint64) []types.NFT {
+func (k Keeper) GetNFTsByCollection(ctx sdk.Context, collectionId uint64) []types.NFT {
 	store := ctx.KVStore(k.storeKey)
 
 	nfts := []types.NFT{}
