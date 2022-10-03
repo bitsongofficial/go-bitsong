@@ -14,8 +14,6 @@ const (
 	TypeMsgUpdateMetadataAuthority   = "update_metadata_authority"
 	TypeMsgUpdateMintAuthority       = "update_metadata_authority"
 	TypeMsgCreateCollection          = "create_collection"
-	TypeMsgVerifyCollection          = "verify_collection"
-	TypeMsgUnverifyCollection        = "unverify_collection"
 	TypeMsgUpdateCollectionAuthority = "update_collection_authority"
 )
 
