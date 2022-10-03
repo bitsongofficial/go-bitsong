@@ -1,6 +1,19 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
+
+func DefaultGenesisState() *GenesisState {
+	return &GenesisState{
+		Params:           DefaultParams(),
+		Metadata:         []Metadata{},
+		LastMetadataIds:  []LastMetadataIdInfo{},
+		Nfts:             []NFT{},
+		Collections:      []Collection{},
+		LastCollectionId: 0,
+	}
+}
 
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(
