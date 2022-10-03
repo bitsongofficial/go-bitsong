@@ -8,9 +8,8 @@ import (
 
 func (k Keeper) GetBid(ctx sdk.Context, auctionId uint64, bidder sdk.AccAddress) (types.Bid, error) {
 	bid := types.Bid{}
-	auctionIdBz := sdk.Uint64ToBigEndian(auctionId)
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(append(types.PrefixBid, auctionIdBz...), bidder...))
+	bz := store.Get(types.BidKey(auctionId, bidder))
 	if bz == nil {
 		return bid, types.ErrBidDoesNotExists
 	}
@@ -78,11 +77,10 @@ func (k Keeper) SetBid(ctx sdk.Context, bid types.Bid) {
 		k.DeleteBid(ctx, bid)
 	}
 
-	auctionIdBz := sdk.Uint64ToBigEndian(bid.AuctionId)
 	bz := k.cdc.MustMarshal(&bid)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(append(types.PrefixBid, auctionIdBz...), bidder...), bz)
-	store.Set(append(append(types.PrefixBidByBidder, bidder...), auctionIdBz...), bz)
+	store.Set(types.BidKey(bid.AuctionId, bidder), bz)
+	store.Set(types.BidByBidderKey(bid.AuctionId, bidder), bz)
 }
 
 func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
@@ -90,10 +88,9 @@ func (k Keeper) DeleteBid(ctx sdk.Context, bid types.Bid) {
 	if err != nil {
 		panic(err)
 	}
-	auctionIdBz := sdk.Uint64ToBigEndian(bid.AuctionId)
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(append(append(types.PrefixBid, auctionIdBz...), bidder...))
-	store.Delete(append(append(types.PrefixBidByBidder, bidder...), auctionIdBz...))
+	store.Delete(types.BidKey(bid.AuctionId, bidder))
+	store.Delete(types.BidByBidderKey(bid.AuctionId, bidder))
 }
 
 func (k Keeper) SetBidderMetadata(ctx sdk.Context, bidderdata types.BidderMetadata) {
@@ -104,13 +101,13 @@ func (k Keeper) SetBidderMetadata(ctx sdk.Context, bidderdata types.BidderMetada
 
 	bz := k.cdc.MustMarshal(&bidderdata)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixBidderMetadata, bidder...), bz)
+	store.Set(types.BidderMetadataKey(bidder), bz)
 }
 
 func (k Keeper) GetBidderMetadata(ctx sdk.Context, bidder sdk.AccAddress) (types.BidderMetadata, error) {
 	bidderdata := types.BidderMetadata{}
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixBidderMetadata, bidder...))
+	bz := store.Get(types.BidderMetadataKey(bidder))
 	if bz == nil {
 		return bidderdata, types.ErrBidderMetadataDoesNotExists
 	}
@@ -379,7 +376,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	if err != nil {
 		return err
 	}
-	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.MetadataId)
+	metadata, err := k.nftKeeper.GetMetadataById(ctx, nft.CollId, nft.MetadataId)
 	if err != nil {
 		return err
 	}
@@ -392,7 +389,7 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 		}
 	} else {
 		// Set `primary_sale_happened` as true if it was not set already
-		err := k.nftKeeper.SetPrimarySaleHappened(ctx, nft.MetadataId)
+		err := k.nftKeeper.SetPrimarySaleHappened(ctx, nft.CollId, nft.MetadataId)
 		if err != nil {
 			return err
 		}
@@ -403,11 +400,13 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	case types.AuctionPrizeType_FullRightsTransfer:
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
 		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
@@ -419,12 +418,14 @@ func (k Keeper) ClaimBid(ctx sdk.Context, msg *types.MsgClaimBid) error {
 	case types.AuctionPrizeType_MintAuthorityTransfer:
 		k.nftKeeper.UpdateMintAuthority(ctx, &nfttypes.MsgUpdateMintAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})
 	case types.AuctionPrizeType_MetadataAuthorityTransfer:
 		k.nftKeeper.UpdateMetadataAuthority(ctx, &nfttypes.MsgUpdateMetadataAuthority{
 			Sender:       moduleAddr.String(),
+			CollId:       nft.CollId,
 			MetadataId:   nft.MetadataId,
 			NewAuthority: bidder.String(),
 		})

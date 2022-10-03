@@ -1,0 +1,57 @@
+syntax = "proto3";
+package bitsong.launchpad;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "bitsong/launchpad/launchpad.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/launchpad/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the Msg service
+service Msg {
+  rpc CreateLaunchPad(MsgCreateLaunchPad) returns (MsgCreateLaunchPadResponse);
+  rpc UpdateLaunchPad(MsgUpdateLaunchPad) returns (MsgUpdateLaunchPadResponse);
+  rpc CloseLaunchPad(MsgCloseLaunchPad) returns (MsgCloseLaunchPadResponse);
+  rpc MintNFT(MsgMintNFT) returns (MsgMintNFTResponse);
+  rpc MintNFTs(MsgMintNFTs) returns (MsgMintNFTsResponse);
+}
+
+message MsgCreateLaunchPad {
+  string sender = 1;
+  bitsong.launchpad.v1beta1.LaunchPad pad = 2 [ (gogoproto.nullable) = false ];
+}
+message MsgCreateLaunchPadResponse {
+}
+
+message MsgUpdateLaunchPad {
+  string sender = 1;
+  bitsong.launchpad.v1beta1.LaunchPad pad = 2 [ (gogoproto.nullable) = false ];
+}
+message MsgUpdateLaunchPadResponse {}
+
+message MsgCloseLaunchPad {
+  string sender = 1;
+  uint64 coll_id = 2;
+}
+message MsgCloseLaunchPadResponse {}
+
+message MsgMintNFT {
+  string sender = 1;
+  uint64 collection_id = 2;
+  string name = 3;
+}
+message MsgMintNFTResponse {
+  string nft_id = 1;
+}
+
+message MsgMintNFTs {
+  string sender = 1;
+  uint64 collection_id = 2;
+  uint64 number = 3;
+}
+message MsgMintNFTsResponse {
+  repeated string nft_ids = 2;
+}

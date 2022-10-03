@@ -1,5 +1,7 @@
 package types
 
+import sdk "github.com/cosmos/cosmos-sdk/types"
+
 const (
 	// ModuleName is the name of the module
 	ModuleName = "marketplace"
@@ -23,3 +25,15 @@ var (
 	PrefixBidByBidder        = []byte{0x06}
 	PrefixBidderMetadata     = []byte{0x07}
 )
+
+func BidKey(auctionId uint64, bidder sdk.AccAddress) []byte {
+	return append(append(PrefixBid, sdk.Uint64ToBigEndian(auctionId)...), bidder...)
+}
+
+func BidByBidderKey(auctionId uint64, bidder sdk.AccAddress) []byte {
+	return append(append(PrefixBidByBidder, bidder...), sdk.Uint64ToBigEndian(auctionId)...)
+}
+
+func BidderMetadataKey(bidder sdk.AccAddress) []byte {
+	return append(PrefixBidderMetadata, bidder...)
+}

@@ -12,7 +12,7 @@ option (gogoproto.goproto_getters_all) = false;
 message GenesisState {
   bitsong.nft.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
   repeated bitsong.nft.v1beta1.Metadata metadata = 2 [ (gogoproto.nullable) = false ];
-  uint64 last_metadata_id = 3;
+  repeated LastMetadataIdInfo last_metadata_ids = 3 [ (gogoproto.nullable) = false ];
   repeated bitsong.nft.v1beta1.NFT nfts = 4 [ (gogoproto.nullable) = false ];
   repeated bitsong.nft.v1beta1.Collection collections = 5 [ (gogoproto.nullable) = false ];
   uint64 last_collection_id = 6;

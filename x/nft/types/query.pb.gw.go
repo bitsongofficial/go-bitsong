@@ -150,6 +150,17 @@ func request_Query_Metadata_0(ctx context.Context, marshaler runtime.Marshaler, 
 		_   = err
 	)
 
+	val, ok = pathParams["coll_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "coll_id")
+	}
+
+	protoReq.CollId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "coll_id", err)
+	}
+
 	val, ok = pathParams["id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
@@ -176,6 +187,17 @@ func local_request_Query_Metadata_0(ctx context.Context, marshaler runtime.Marsh
 		err error
 		_   = err
 	)
+
+	val, ok = pathParams["coll_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "coll_id")
+	}
+
+	protoReq.CollId, err = runtime.Uint64(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "coll_id", err)
+	}
 
 	val, ok = pathParams["id"]
 	if !ok {
@@ -462,7 +484,7 @@ var (
 
 	pattern_Query_NFTsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "nfts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Metadata_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "metadata", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Metadata_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bitsong", "nft", "v1beta1", "metadata", "coll_id", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_Collection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "collection", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 )

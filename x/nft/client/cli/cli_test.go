@@ -88,6 +88,7 @@ func (s *IntegrationTestSuite) TestGetCmdQueryMetadata() {
 		cmd,
 		[]string{
 			"1",
+			"1",
 			"--output=json",
 		},
 	)

@@ -21,7 +21,7 @@ service Query {
   }
   // Metadata returns Metadata
   rpc Metadata(QueryMetadataRequest) returns (QueryMetadataResponse) {
-    option (google.api.http).get = "/bitsong/nft/v1beta1/metadata/{id}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/metadata/{coll_id}/{id}";
   }
   // Collection returns collection information
   rpc Collection(QueryCollectionRequest) returns (QueryCollectionResponse) {
@@ -49,7 +49,10 @@ message QueryNFTsByOwnerResponse {
 }
 
 // QueryMetadataRequest is request type for the metadata
-message QueryMetadataRequest { uint64 id = 1; }
+message QueryMetadataRequest {
+  uint64 coll_id = 1;
+  uint64 id = 2;
+}
 
 // QueryMetadataResponse is response type for the Query/Metadata RPC method
 message QueryMetadataResponse {

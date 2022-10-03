@@ -29,6 +29,7 @@ func (m msgServer) CreateNFT(goCtx context.Context, msg *types.MsgCreateNFT) (*t
 
 	return &types.MsgCreateNFTResponse{
 		Id:         nftId,
+		CollId:     msg.Metadata.CollId,
 		MetadataId: metadataId,
 	}, nil
 }
@@ -43,6 +44,7 @@ func (m msgServer) PrintEdition(goCtx context.Context, msg *types.MsgPrintEditio
 
 	return &types.MsgPrintEditionResponse{
 		Id:         nftId,
+		CollId:     msg.CollId,
 		MetadataId: msg.MetadataId,
 	}, nil
 }
@@ -61,7 +63,7 @@ func (m msgServer) TransferNFT(goCtx context.Context, msg *types.MsgTransferNFT)
 func (m msgServer) SignMetadata(goCtx context.Context, msg *types.MsgSignMetadata) (*types.MsgSignMetadataResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	metadata, err := m.Keeper.GetMetadataById(ctx, msg.MetadataId)
+	metadata, err := m.Keeper.GetMetadataById(ctx, msg.CollId, msg.MetadataId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +92,7 @@ func (m msgServer) SignMetadata(goCtx context.Context, msg *types.MsgSignMetadat
 func (m msgServer) UpdateMetadata(goCtx context.Context, msg *types.MsgUpdateMetadata) (*types.MsgUpdateMetadataResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	metadata, err := m.Keeper.GetMetadataById(ctx, msg.MetadataId)
+	metadata, err := m.Keeper.GetMetadataById(ctx, msg.CollId, msg.MetadataId)
 	if err != nil {
 		return nil, err
 	}

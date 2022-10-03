@@ -30,6 +30,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to single creator",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   1,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
@@ -50,6 +51,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to multiple creators",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   2,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
@@ -71,6 +73,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"dust amount distribution cheeck",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   2,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
@@ -92,6 +95,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to no creator",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   3,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
@@ -110,6 +114,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution to invalid metadata - SellerFeeBasisPoints",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   3,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),
@@ -128,6 +133,7 @@ func (suite *KeeperTestSuite) TestProcessRoyalties() {
 		{
 			"distribution by zero balance account",
 			nfttypes.Metadata{
+				CollId:               1,
 				Id:                   3,
 				MetadataAuthority:    owner.String(),
 				MintAuthority:        owner.String(),

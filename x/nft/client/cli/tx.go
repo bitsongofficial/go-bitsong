@@ -109,6 +109,7 @@ func GetCmdPrintEdition() *cobra.Command {
 		Long: "Print a new edition from master edition metadata",
 		Example: fmt.Sprintf(
 			`$ %s tx nft print-edition
+				--collection-id=1
 				--metadata-id=1`,
 			version.AppName,
 		),
@@ -196,6 +197,7 @@ func GetCmdSignMetadata() *cobra.Command {
 		Long: "Sign metadata and verify the address on creators field",
 		Example: fmt.Sprintf(
 			`$ %s tx nft sign-metadata
+				--collection-id=1
 				--metadata-id=1`,
 			version.AppName,
 		),
@@ -205,12 +207,17 @@ func GetCmdSignMetadata() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgSignMetadata(clientCtx.GetFromAddress(), metadataId)
+			msg := types.NewMsgSignMetadata(clientCtx.GetFromAddress(), collId, metadataId)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -231,6 +238,7 @@ func GetCmdUpdateMetadata() *cobra.Command {
 		Long: "Update metadata by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-metadata
+				--collection-id=1
 				--metadata-id=1
 				--name="Punk10"
 				--symbol="PUNK"
@@ -246,6 +254,11 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
+			if err != nil {
+				return err
+			}
+
 			metadataId, err := cmd.Flags().GetUint64(FlagMetadataId)
 			if err != nil {
 				return err
@@ -256,7 +269,7 @@ func GetCmdUpdateMetadata() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), metadataId, data.Name, data.Uri, data.SellerFeeBasisPoints, data.Creators)
+			msg := types.NewMsgUpdateMetadata(clientCtx.GetFromAddress(), collId, metadataId, data.Name, data.Uri, data.SellerFeeBasisPoints, data.Creators)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -278,12 +291,18 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 		Long: "Update metadata by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-metadata-authority
+				--collection-id=1
 				--metadata-id=1
 				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
 			if err != nil {
 				return err
 			}
@@ -298,7 +317,7 @@ func GetCmdUpdateMetadataAuthority() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMetadataAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+			msg := types.NewMsgUpdateMetadataAuthority(clientCtx.GetFromAddress(), collId, metadataId, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -320,12 +339,18 @@ func GetCmdUpdateMintAuthority() *cobra.Command {
 		Long: "Update mint authority by id and params",
 		Example: fmt.Sprintf(
 			`$ %s tx nft update-mint-authority
+				--collection-id=1
 				--metadata-id=1
 				--new-authority="bitsong13m350fvnk3s6y5n8ugxhmka277r0t7cw48ru47"`,
 			version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			collId, err := cmd.Flags().GetUint64(FlagCollectionId)
 			if err != nil {
 				return err
 			}
@@ -340,7 +365,7 @@ func GetCmdUpdateMintAuthority() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), metadataId, newAuthority)
+			msg := types.NewMsgUpdateMintAuthority(clientCtx.GetFromAddress(), collId, metadataId, newAuthority)
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err

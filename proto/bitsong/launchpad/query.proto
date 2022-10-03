@@ -1,0 +1,56 @@
+syntax = "proto3";
+package bitsong.launchpad.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "bitsong/launchpad/launchpad.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/launchpad/types";
+
+// Query creates service with launchpad as RPC
+service Query {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bitsong/launchpad/params";
+  }
+  rpc LaunchPads(QueryLaunchPadsRequest) returns (QueryLaunchPadsResponse) {
+    option (google.api.http).get = "/bitsong/launchpad/launchpads";
+  }
+  rpc LaunchPad(QueryLaunchPadRequest) returns (QueryLaunchPadResponse) {
+    option (google.api.http).get = "/bitsong/launchpad/launchpad/{coll_id}";
+  }
+  rpc MintableMetadataIds(QueryMintableMetadataIdsRequest) returns (QueryMintableMetadataIdsResponse) {
+    option (google.api.http).get = "/bitsong/launchpad/mintable_metadata_ids/{coll_id}";
+  }
+}
+
+message QueryLaunchPadsRequest {
+}
+
+message QueryLaunchPadsResponse {
+  repeated bitsong.launchpad.v1beta1.LaunchPad pads = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryLaunchPadRequest { 
+  uint64 coll_id = 1; 
+}
+
+message QueryLaunchPadResponse {
+  bitsong.launchpad.v1beta1.LaunchPad pad = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryParamsRequest { 
+}
+
+message QueryParamsResponse {
+  bitsong.launchpad.v1beta1.Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryMintableMetadataIdsRequest {
+  uint64 coll_id = 1; 
+}
+
+message QueryMintableMetadataIdsResponse {
+  MintableMetadataIds info = 1 [ (gogoproto.nullable) = false ];
+}

@@ -34,10 +34,10 @@ type AccountKeeper interface {
 
 type NftKeeper interface {
 	GetNFTById(ctx sdk.Context, id string) (nfttypes.NFT, error)
-	GetMetadataById(ctx sdk.Context, id uint64) (nfttypes.Metadata, error)
+	GetMetadataById(ctx sdk.Context, collId, id uint64) (nfttypes.Metadata, error)
 	TransferNFT(ctx sdk.Context, msg *nfttypes.MsgTransferNFT) error
 	UpdateMetadataAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMetadataAuthority) error
 	UpdateMintAuthority(ctx sdk.Context, msg *nfttypes.MsgUpdateMintAuthority) error
-	SetPrimarySaleHappened(ctx sdk.Context, metadataId uint64) error
+	SetPrimarySaleHappened(ctx sdk.Context, collId, metadataId uint64) error
 	PrintEdition(ctx sdk.Context, msg *nfttypes.MsgPrintEdition) (string, error)
 }

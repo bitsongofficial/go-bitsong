@@ -78,7 +78,7 @@ func (suite *KeeperTestSuite) TestCollectionNftsCreationAndQuery() {
 	collectionId := uint64(1)
 
 	// check nft ids by collection id query
-	nftIds := suite.app.NFTKeeper.GetCollectionNfts(suite.ctx, collectionId)
+	nftIds := suite.app.NFTKeeper.GetNFTsByCollection(suite.ctx, collectionId)
 	suite.Require().Len(nftIds, 0)
 
 	// TODO: add further tests on GetCollectionNftIds

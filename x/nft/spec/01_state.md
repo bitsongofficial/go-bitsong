@@ -33,24 +33,25 @@ message MasterEdition {
 
 message Metadata {
   uint64 id = 1;
+  uint64 coll_id = 2;
   // The name of the asset
-  string name = 2;
+  string name = 3;
   // URI pointing to JSON representing the asset
-  string uri = 3;
+  string uri = 4;
   // Royalty basis points that goes to creators in secondary sales (0-10000)
-  uint32 seller_fee_basis_points = 4;
+  uint32 seller_fee_basis_points = 5;
   // Immutable, once flipped, all sales of this metadata are considered
   // secondary.
-  bool primary_sale_happened = 5;
+  bool primary_sale_happened = 6;
   // Whether or not the data struct is mutable, default is not
-  bool is_mutable = 6;
+  bool is_mutable = 7;
   // Array of creators, optional
-  repeated Creator creators = 7 [ (gogoproto.nullable) = false ];
+  repeated Creator creators = 8 [ (gogoproto.nullable) = false ];
   // who can update metadata (if is_mutable is true)
-  string metadata_authority = 8;
+  string metadata_authority = 9;
   // who can mint the editions
-  string mint_authority = 9;
-  MasterEdition master_edition = 10;
+  string mint_authority = 10;
+  MasterEdition master_edition = 11;
 }
 
 message Creator {
@@ -61,8 +62,7 @@ message Creator {
 }
 ```
 
-- Metadata: `0x03 | format(id) -> Metadata`
-- LastMetadataId `0x05 -> id`
+- Metadata: `0x03 | format(coll_id) | format(id) -> Metadata`
 
 ### Edition
 
@@ -70,6 +70,19 @@ Metadata has `MasterEdition` object integrated for print ability.
 It involves `supply` and `max_supply` fields.
 When new print is created, supply is increased and new `NFT` object with unique `edition` is created.
 Print cannot exceed `max_supply`.
+
+### LastMetadataId
+
+`LastMetadataIdInfo` is the record to track last metadata id per collection to avoid duplication in metadata ids.
+
+```protobuf
+message LastMetadataIdInfo {
+  uint64 coll_id = 1;
+  uint64 last_metadata_id = 2;
+}
+```
+
+- LastMetadataId `0x05 | format(coll_id) -> LastMetadataIdInfo`
 
 ## NFT
 

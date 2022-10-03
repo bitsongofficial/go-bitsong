@@ -95,18 +95,22 @@ func GetCmdQueryNFTsByOwner() *cobra.Command {
 
 func GetCmdQueryMetadata() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "metadata [id]",
+		Use:     "metadata [coll_id] [id]",
 		Long:    "Query a metadata information by id.",
-		Example: fmt.Sprintf(`$ %s query nft metadata [id]`, version.AppName),
-		Args:    cobra.ExactArgs(1),
+		Example: fmt.Sprintf(`$ %s query nft metadata [coll_id] [id]`, version.AppName),
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
-
 			if err != nil {
 				return err
 			}
 
-			id, err := strconv.Atoi(args[0])
+			collId, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+
+			id, err := strconv.Atoi(args[1])
 			if err != nil {
 				return err
 			}
@@ -114,7 +118,8 @@ func GetCmdQueryMetadata() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Metadata(context.Background(), &types.QueryMetadataRequest{
-				Id: uint64(id),
+				CollId: uint64(collId),
+				Id:     uint64(id),
 			})
 
 			if err != nil {

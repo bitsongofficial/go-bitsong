@@ -47,7 +47,7 @@ func (msg MsgCreateAuction) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address (%s)", err)
 	}
 
-	if !nfttypes.IsValidNftId(msg.NftId) {
+	if _, err = nfttypes.NftIdToBytes(msg.NftId); err != nil {
 		return ErrInvalidNftId
 	}
 

@@ -112,7 +112,7 @@ func (s *IntegrationTestSuite) TestGetCmdQueryAuction() {
 			"--output=json",
 		},
 	)
-	s.Require().Error(err)
+	s.Require().NoError(err)
 
 	// var resp marketplacetypes.QueryAuctionResponse
 	// clientCtx.JSONCodec.MustUnmarshalJSON(out.Bytes(), &resp)

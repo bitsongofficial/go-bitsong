@@ -332,6 +332,7 @@ func (suite *KeeperTestSuite) TestPlaceBid() {
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
+			CollId:            1,
 			Id:                1,
 			MetadataAuthority: moduleAddr.String(),
 			MintAuthority:     moduleAddr.String(),
@@ -559,6 +560,7 @@ func (suite *KeeperTestSuite) TestCancelBid() {
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
+			CollId:            1,
 			Id:                1,
 			MetadataAuthority: moduleAddr.String(),
 			MintAuthority:     moduleAddr.String(),
@@ -825,6 +827,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 
 		// set metadata with ownership
 		metadata := nfttypes.Metadata{
+			CollId:               1,
 			Id:                   1,
 			MetadataAuthority:    moduleAddr.String(),
 			MintAuthority:        moduleAddr.String(),
@@ -912,7 +915,7 @@ func (suite *KeeperTestSuite) TestClaimBid() {
 			}
 
 			// check presale happened true flag is set
-			newmeta, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, metadata.Id)
+			newmeta, err := suite.app.NFTKeeper.GetMetadataById(suite.ctx, metadata.CollId, metadata.Id)
 			suite.Require().NoError(err)
 			suite.Require().True(newmeta.PrimarySaleHappened)
 
@@ -983,6 +986,7 @@ func (suite *KeeperTestSuite) TestWinnerStateDoesNotChangeAfterWinnerClaim() {
 
 	// set metadata with ownership
 	metadata := nfttypes.Metadata{
+		CollId:               1,
 		Id:                   1,
 		MetadataAuthority:    moduleAddr.String(),
 		MintAuthority:        moduleAddr.String(),
