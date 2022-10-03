@@ -49,7 +49,7 @@ func (k Keeper) GetNFTById(ctx sdk.Context, id string) (types.NFT, error) {
 		return types.NFT{}, types.ErrInvalidNftId
 	}
 
-	bz := store.Get(append(types.PrefixNFT, nftIdBz...))
+	bz := store.Get(types.NftKey(nftIdBz))
 	if bz == nil {
 		return types.NFT{}, sdkerrors.Wrapf(types.ErrNFTDoesNotExist, "nft: %s does not exist", id)
 	}
@@ -67,25 +67,25 @@ func (k Keeper) SetNFT(ctx sdk.Context, nft types.NFT) {
 	idBz := nft.IdBytes()
 	bz := k.cdc.MustMarshal(&nft)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixNFT, idBz...), bz)
+	store.Set(types.NftKey(idBz), bz)
 
 	owner, err := sdk.AccAddressFromBech32(nft.Owner)
 	if err != nil {
 		panic(err)
 	}
-	store.Set(append(append(types.PrefixNFTByOwner, owner...), idBz...), []byte(nft.Id()))
+	store.Set(types.NftByOwnerKey(owner, idBz), []byte(nft.Id()))
 }
 
 func (k Keeper) DeleteNFT(ctx sdk.Context, nft types.NFT) {
 	idBz := nft.IdBytes()
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(append(types.PrefixNFT, idBz...))
+	store.Delete(types.NftKey(idBz))
 
 	owner, err := sdk.AccAddressFromBech32(nft.Owner)
 	if err != nil {
 		panic(err)
 	}
-	store.Delete(append(append(types.PrefixNFTByOwner, owner...), idBz...))
+	store.Delete(types.NftByOwnerKey(owner, idBz))
 }
 
 func (k Keeper) GetAllNFTs(ctx sdk.Context) []types.NFT {

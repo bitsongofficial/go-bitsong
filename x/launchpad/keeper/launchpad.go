@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,32 +13,13 @@ import (
 
 func (k Keeper) GetLaunchPadByCollId(ctx sdk.Context, collId uint64) (types.LaunchPad, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixLaunchPad, sdk.Uint64ToBigEndian(collId)...))
+	bz := store.Get(types.LaunchPadKey(collId))
 	if bz == nil {
 		return types.LaunchPad{}, sdkerrors.Wrapf(types.ErrLaunchPadDoesNotExist, "launchpad: %d does not exist", collId)
 	}
 	launchpad := types.LaunchPad{}
 	k.cdc.MustUnmarshal(bz, &launchpad)
 	return launchpad, nil
-}
-
-func getTimeKey(timestamp uint64) []byte {
-	time := time.Unix(int64(timestamp), 0)
-	timeBz := sdk.FormatTimeBytes(time)
-	timeBzL := len(timeBz)
-	prefixL := len(types.PrefixLaunchPadByEndTime)
-
-	bz := make([]byte, prefixL+8+timeBzL)
-
-	// copy the prefix
-	copy(bz[:prefixL], types.PrefixLaunchPadByEndTime)
-
-	// copy the encoded time bytes length
-	copy(bz[prefixL:prefixL+8], sdk.Uint64ToBigEndian(uint64(timeBzL)))
-
-	// copy the encoded time bytes
-	copy(bz[prefixL+8:prefixL+8+timeBzL], timeBz)
-	return bz
 }
 
 func (k Keeper) SetLaunchPad(ctx sdk.Context, pad types.LaunchPad) {
@@ -51,26 +31,25 @@ func (k Keeper) SetLaunchPad(ctx sdk.Context, pad types.LaunchPad) {
 	idBz := sdk.Uint64ToBigEndian(pad.CollId)
 	bz := k.cdc.MustMarshal(&pad)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixLaunchPad, idBz...), bz)
+	store.Set(types.LaunchPadKey(pad.CollId), bz)
 
 	if pad.EndTimestamp != 0 {
-		store.Set(append(getTimeKey(pad.EndTimestamp), idBz...), idBz)
+		store.Set(types.LaunchPadByEndTimeKey(pad.EndTimestamp, pad.CollId), idBz)
 	}
 }
 
 func (k Keeper) DeleteLaunchPad(ctx sdk.Context, pad types.LaunchPad) {
-	idBz := sdk.Uint64ToBigEndian(pad.CollId)
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(append(types.PrefixLaunchPad, idBz...))
+	store.Delete(types.LaunchPadKey(pad.CollId))
 
 	if pad.EndTimestamp != 0 {
-		store.Delete(append(getTimeKey(pad.EndTimestamp), idBz...))
+		store.Delete(types.LaunchPadByEndTimeKey(pad.EndTimestamp, pad.CollId))
 	}
 }
 
 func (k Keeper) GetLaunchPadsToEndByTime(ctx sdk.Context) []types.LaunchPad {
 	store := ctx.KVStore(k.storeKey)
-	timeKey := getTimeKey(uint64(ctx.BlockTime().Unix()))
+	timeKey := types.GetTimeKey(uint64(ctx.BlockTime().Unix()))
 	it := store.Iterator(types.PrefixLaunchPadByEndTime, storetypes.InclusiveEndBytes(timeKey))
 	defer it.Close()
 

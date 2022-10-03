@@ -23,7 +23,7 @@ func (k Keeper) SetLastCollectionId(ctx sdk.Context, id uint64) {
 
 func (k Keeper) GetCollectionById(ctx sdk.Context, id uint64) (types.Collection, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(append(types.PrefixCollection, sdk.Uint64ToBigEndian(id)...))
+	bz := store.Get(types.CollectionKey(id))
 	if bz == nil {
 		return types.Collection{}, sdkerrors.Wrapf(types.ErrCollectionDoesNotExist, "collection: %d does not exist", id)
 	}
@@ -33,10 +33,9 @@ func (k Keeper) GetCollectionById(ctx sdk.Context, id uint64) (types.Collection,
 }
 
 func (k Keeper) SetCollection(ctx sdk.Context, collection types.Collection) {
-	idBz := sdk.Uint64ToBigEndian(collection.Id)
 	bz := k.cdc.MustMarshal(&collection)
 	store := ctx.KVStore(k.storeKey)
-	store.Set(append(types.PrefixCollection, idBz...), bz)
+	store.Set(types.CollectionKey(collection.Id), bz)
 }
 
 func (k Keeper) GetAllCollections(ctx sdk.Context) []types.Collection {

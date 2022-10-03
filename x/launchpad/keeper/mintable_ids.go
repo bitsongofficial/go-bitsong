@@ -10,7 +10,7 @@ import (
 
 func (k Keeper) SetMintableMetadataIds(ctx sdk.Context, collId uint64, metadataIds []uint64) {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	prefixStore := prefix.NewStore(store, types.CollectionMintableMetadataIdPrefix(collId))
 
 	for index, metadataId := range metadataIds {
 		prefixStore.Set(sdk.Uint64ToBigEndian(uint64(index)), sdk.Uint64ToBigEndian(metadataId))
@@ -18,7 +18,7 @@ func (k Keeper) SetMintableMetadataIds(ctx sdk.Context, collId uint64, metadataI
 }
 
 func (k Keeper) TakeOutFirstMintableMetadataId(ctx sdk.Context, collId uint64) uint64 {
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.CollectionMintableMetadataIdPrefix(collId))
 	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 
@@ -31,7 +31,7 @@ func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, 
 	rand.Seed(ctx.BlockTime().UnixNano())
 	round := rand.Uint64() % maxRound
 
-	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	prefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.CollectionMintableMetadataIdPrefix(collId))
 	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 
@@ -49,7 +49,7 @@ func (k Keeper) TakeOutRandomMintableMetadataId(ctx sdk.Context, collId uint64, 
 
 func (k Keeper) DeleteMintableMetadataIds(ctx sdk.Context, collId uint64) {
 	store := ctx.KVStore(k.storeKey)
-	it := store.Iterator(append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...), nil)
+	it := store.Iterator(types.CollectionMintableMetadataIdPrefix(collId), nil)
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
@@ -66,7 +66,7 @@ func (k Keeper) ShuffleMintableMetadataIds(ctx sdk.Context, collId uint64) {
 
 func (k Keeper) GetMintableMetadataIds(ctx sdk.Context, collId uint64) []uint64 {
 	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, append(types.PrefixMintableMetadataIds, sdk.Uint64ToBigEndian(collId)...))
+	prefixStore := prefix.NewStore(store, types.CollectionMintableMetadataIdPrefix(collId))
 	it := prefixStore.Iterator(nil, nil)
 	defer it.Close()
 

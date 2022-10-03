@@ -25,6 +25,18 @@ var (
 	KeyLastCollectionId     = []byte{0x06}
 )
 
+func CollectionKey(id uint64) []byte {
+	return append(PrefixCollection, sdk.Uint64ToBigEndian(id)...)
+}
+
+func NftKey(idBz []byte) []byte {
+	return append(PrefixNFT, idBz...)
+}
+
+func NftByOwnerKey(owner sdk.AccAddress, idBz []byte) []byte {
+	return append(append(PrefixNFTByOwner, owner...), idBz...)
+}
+
 func LastMetadataId(collId uint64) []byte {
 	return append(KeyPrefixLastMetadataId, sdk.Uint64ToBigEndian(collId)...)
 }
