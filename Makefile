@@ -67,6 +67,11 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=go-bitsong \
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
+ifeq ($(LINK_STATICALLY),true)
+  ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
+endif
+
+ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
@@ -81,7 +86,7 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
+	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
 endif
 
 build-linux: go.sum
