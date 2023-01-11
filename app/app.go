@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	v012 "github.com/bitsongofficial/go-bitsong/app/upgrades/v012"
 	"strings"
 
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
@@ -159,6 +160,8 @@ func GetWasmOpts(appOpts servertypes.AppOptions) []wasm.Option {
 	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
 		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
 	}
+
+	// TODO: should we need to add a custom gas register?
 
 	return wasmOpts
 }
@@ -443,7 +446,7 @@ func NewBitsongApp(
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
-	supportedFeatures := "bitsong,iterator,staking,stargate"
+	supportedFeatures := "iterator,staking,stargate,cosmwasm_1_1"
 	wasmOpts := GetWasmOpts(appOpts)
 	app.wasmKeeper = wasm.NewKeeper(
 		appCodec,
@@ -660,6 +663,15 @@ func NewBitsongApp(
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
+
+		// Initialize and seal the capability keeper so all persistent capabilities
+		// are loaded in-memory and prevent any further modules from creating scoped
+		// sub-keepers.
+		// This must be done during creation of baseapp rather than in InitChain so
+		// that in-memory capabilities get regenerated on app restart.
+		// Note that since this reads from the store, we can only perform it when
+		// `loadLatest` is set to true.
+		app.CapabilityKeeper.Seal()
 	}
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
@@ -821,6 +833,16 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
+
+	// v12 Upgrade
+	if upgradeInfo.Name == v012.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{
+			Added: []string{wasm.ModuleName},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 }
 
 func (app *BitsongApp) setupUpgradeHandlers() {
@@ -832,6 +854,11 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v011.UpgradeName,
 		v011.CreateUpgradeHandler(app.mm, app.configurator, &app.FanTokenKeeper, &app.MerkledropKeeper),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v012.UpgradeName,
+		v012.CreateUpgradeHandler(app.mm, app.configurator, &app.wasmKeeper),
 	)
 }
 
