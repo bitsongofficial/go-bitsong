@@ -49,3 +49,4 @@ contract_tests/*
 buf-stamp
 
 data
+state_export.json
