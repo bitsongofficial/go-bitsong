@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	v012 "github.com/bitsongofficial/go-bitsong/app/upgrades/v012"
+	v012 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
 	"strings"
 
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
