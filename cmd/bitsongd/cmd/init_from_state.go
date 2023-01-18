@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -36,6 +37,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -263,6 +265,19 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	if newAccount == nil {
 		return nil, fmt.Errorf("couldn't find key %s", params.KeyName)
 	}
+
+	// Update the pub_key
+	str := fmt.Sprintf(`"address"\s*:\s*"(%s)".*?"key"\s*:\s*"(.*?)"`, params.OldAccountAddress)
+	re := regexp.MustCompile(str)
+	match := re.FindStringSubmatch(string(stateBz))
+	if len(match) > 1 {
+		oldPubKey := match[2]
+		newPubKey := base64.StdEncoding.EncodeToString(newAccount.GetPubKey().Bytes())
+		stateBz = bytes.Replace(stateBz, []byte(oldPubKey), []byte(newPubKey), -1)
+	} else {
+		panic("pub_key not found")
+	}
+	// Update address
 	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(newAccount.GetAddress().String()), -1)
 
 	genDoc := tmtypes.GenesisDoc{}
