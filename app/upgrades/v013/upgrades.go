@@ -19,7 +19,10 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 
 		ctx.Logger().Info("Initialize wasm params...")
 		params := wasmKeeper.GetParams(ctx)
-		params.CodeUploadAccess = wasmtypes.AllowNobody
+		params.CodeUploadAccess = wasmtypes.AccessConfig{
+			Permission: wasmtypes.AccessTypeAnyOfAddresses,
+			Addresses:  []string{""},
+		}
 		params.InstantiateDefaultPermission = wasmtypes.AccessTypeEverybody
 		wasmKeeper.SetParams(ctx, params)
 
