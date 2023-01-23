@@ -34,6 +34,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.13.0] - 2023-01-23
+- Updated Cosmos-sdk to v0.45.11 for improved stability and security
+- Upgraded ibc-go to v3.3.1 for enhanced interoperability between different blockchain networks
+- Tendermint upgraded to v0.34.24 for better performance and bug fixes
+- Integrated Cosmwasm v0.29.2 for advanced smart contract functionality
+- Added new command init-from-state which allows for easy initialization of private validator, p2p, genesis, and application configuration, as well as replacement of exported state.
+
 ## [v0.11.0] -2022-07-01
 
 * (fantoken) introduce the [fantoken module](./x/fantoken/spec)
