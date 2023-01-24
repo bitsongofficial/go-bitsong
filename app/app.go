@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	v012 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
+	v013 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
 	"strings"
 
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
@@ -834,8 +834,8 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 
-	// v12 Upgrade
-	if upgradeInfo.Name == v012.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	// v13 Upgrade
+	if upgradeInfo.Name == v013.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := store.StoreUpgrades{
 			Added: []string{wasm.ModuleName},
 		}
@@ -857,8 +857,8 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 	)
 
 	app.UpgradeKeeper.SetUpgradeHandler(
-		v012.UpgradeName,
-		v012.CreateUpgradeHandler(app.mm, app.configurator, &app.wasmKeeper),
+		v013.UpgradeName,
+		v013.CreateUpgradeHandler(app.mm, app.configurator, &app.wasmKeeper),
 	)
 }
 

@@ -86,7 +86,7 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
 else
-	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
 endif
 
 build-linux: go.sum
