@@ -3,9 +3,9 @@
 ##
 ## Input parameters
 ##
-BINARY=/bitsongd/${BINARY:-bitsongd}
+BINARY=/go-bitsong/${BINARY:-bitsongd}
 ID=${ID:-0}
-LOG=${LOG:-bitsongd.log}
+LOG=${LOG:-go-bitsong.log}
 
 ##
 ## Assert linux binary
@@ -23,10 +23,10 @@ fi
 ##
 ## Run binary with all parameters
 ##
-export BITSONGDHOME="/bitsongd/node${ID}/bitsongd"
+export GOBITSONGHOME="/go-bitsong/node${ID}/bitsongd"
 
-if [ -d "$(dirname "${BITSONGDHOME}"/"${LOG}")" ]; then
-  "${BINARY}" --home "${BITSONGDHOME}" "$@" | tee "${BITSONGDHOME}/${LOG}"
+if [ -d "$(dirname "${GOBITSONGHOME}"/"${LOG}")" ]; then
+  "${BINARY}" --home "${GOBITSONGHOME}" "$@" | tee "${GOBITSONGHOME}/${LOG}"
 else
-  "${BINARY}" --home "${BITSONGDHOME}" "$@"
+  "${BINARY}" --home "${GOBITSONGHOME}" "$@"
 fi
