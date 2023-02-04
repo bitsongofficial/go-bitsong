@@ -28,8 +28,8 @@ type MinValCommissionDecorator struct {
 	cdc codec.BinaryCodec
 }
 
-func NewMinValCommissionDecorator() MinValCommissionDecorator {
-	return MinValCommissionDecorator{}
+func NewMinValCommissionDecorator(cdc codec.BinaryCodec) MinValCommissionDecorator {
+	return MinValCommissionDecorator{cdc}
 }
 
 func (min MinValCommissionDecorator) AnteHandle(
@@ -114,7 +114,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),
-		NewMinValCommissionDecorator(),
+		NewMinValCommissionDecorator(options.Cdc),
 		wasmkeeper.NewLimitSimulationGasDecorator(options.WasmConfig.SimulationGasLimit),
 		wasmkeeper.NewCountTXDecorator(options.TxCounterStoreKey),
 		ante.NewRejectExtensionOptionsDecorator(),
