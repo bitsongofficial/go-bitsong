@@ -34,6 +34,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.14.0] - 2023-02-07
+- fix(authz): Add Binary Codec support to MinValCommissionDecorator
+- fix(authz): Add MinValCommissionDecorator test
+
 ## [v0.13.0] - 2023-01-23
 - Updated Cosmos-sdk to v0.45.11 for improved stability and security
 - Upgraded ibc-go to v3.3.1 for enhanced interoperability between different blockchain networks
