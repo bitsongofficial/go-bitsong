@@ -34,6 +34,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.15.0] - 2024-03-06
+- Updated Cosmos-sdk to v0.45.16 for improved stability and security
+- Upgraded ibc-go to v4.4.2 for enhanced interoperability between different blockchain networks
+- Replaced Tendermint with CometBFT
+- Upgraded Cosmwasm to v0.33.0 for advanced smart contract functionality
+- Replaced strangelove-ventures/packet-forward-middleware with cosmos/ibc-apps/middleware/packet-forward-middleware
+
 ## [v0.14.0] - 2023-02-07
 - fix(authz): Add Binary Codec support to MinValCommissionDecorator
 - fix(authz): Add MinValCommissionDecorator test
