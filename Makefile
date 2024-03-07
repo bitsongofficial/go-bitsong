@@ -77,22 +77,22 @@ ldflags := $(strip $(ldflags))
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 
-all: install tools lint
+all: check-go-version install tools lint
 
 # The below include contains the tools.
 include contrib/devtools/Makefile
 
-build: go.sum
+build: check-go-version go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
 else
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
 endif
 
-build-linux: go.sum
+build-linux: check-go-version go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
-install: go.sum
+install: check-go-version go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
 #update-swagger-docs: statik
@@ -108,7 +108,7 @@ install: go.sum
 ###                                Localnet                                 ###
 ###############################################################################
 
-build-docker-go-bitsong:
+build-docker-go-bitsong: check-go-version
 	$(MAKE) -C contrib/localnet
 
 # Run a 4-node testnet locally
@@ -122,7 +122,7 @@ localnet-start: build-linux build-docker-bitsongdnode
 localnet-stop:
 	docker-compose down
 
-test-docker:
+test-docker: check-go-version
 	@docker build -f contrib/Dockerfile.test -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) .
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
@@ -165,7 +165,7 @@ containerProtoGen=cosmos-sdk-proto-gen-$(containerProtoVer)
 containerProtoGenSwagger=cosmos-sdk-proto-gen-swagger-$(containerProtoVer)
 containerProtoFmt=cosmos-sdk-proto-fmt-$(containerProtoVer)
 
-proto-all: proto-format proto-lint proto-gen
+proto-all: check-go-version proto-format proto-lint proto-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
@@ -232,22 +232,29 @@ proto-update-deps:
 test: test-unit
 test-all: test-race test-cover
 
-test-unit:
+test-unit: check-go-version
 	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags '$(ldflags)' ${PACKAGES_UNITTEST}
 
-test-race:
+test-race: check-go-version
 	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
-test-cover:
+test-cover: check-go-version
 	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
 
-lint: golangci-lint
+lint: check-go-version golangci-lint
 	golangci-lint run
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./swagger/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
 	go mod verify
 
 benchmark:
 	@go test -mod=readonly -bench=. ./...
+
+# Add check to make sure we are using the proper Go version before proceeding with anything
+check-go-version:
+	@if ! go version | grep -q "go1.19"; then \
+		echo "\033[0;31mERROR:\033[0m Go version 1.19 is required for compiling bitsongd. It looks like you are using" "$(shell go version) \nThere are potential consensus-breaking changes that can occur when running binaries compiled with different versions of Go. Please download Go version 1.19 and retry. Thank you!"; \
+		exit 1; \
+	fi
 
 # include simulations
 # include sims.mk
