@@ -3,6 +3,8 @@ package cli_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -14,7 +16,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/cli"
-	"testing"
 
 	tokencli "github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
 )
@@ -421,7 +422,7 @@ func (s *IntegrationTestSuite) TestCmdQueryParams() {
 	resp, err := clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdQueryParams(), args)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &params))
-	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000)), params.IssueFee)
+	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000)), params.IssueFee)
 	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()), params.MintFee)
 	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()), params.BurnFee)
 }
