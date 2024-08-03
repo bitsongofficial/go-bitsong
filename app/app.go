@@ -825,7 +825,7 @@ func (app *BitsongApp) RegisterTendermintService(clientCtx client.Context) {
 }
 
 // RegisterNodeService implements the Application.RegisterNodeService method.
-func (app *BitsongApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+func (app *BitsongApp) RegisterNodeService(clientCtx client.Context) {
 	nodeservice.RegisterNodeService(clientCtx, app.BaseApp.GRPCQueryRouter())
 }
 
