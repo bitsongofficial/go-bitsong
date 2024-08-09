@@ -5,6 +5,7 @@ import (
 	v013 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
 	v014 "github.com/bitsongofficial/go-bitsong/app/upgrades/v014"
 	v015 "github.com/bitsongofficial/go-bitsong/app/upgrades/v015"
+	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
 	"strings"
 
 	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
@@ -890,6 +891,14 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
 
+	// v16 Upgrade
+	if upgradeInfo.Name == v016.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := store.StoreUpgrades{}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
 }
 
 func (app *BitsongApp) setupUpgradeHandlers() {
@@ -916,6 +925,11 @@ func (app *BitsongApp) setupUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		v015.UpgradeName,
 		v015.CreateUpgradeHandler(app.mm, app.configurator),
+	)
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		v016.UpgradeName,
+		v016.CreateUpgradeHandler(app.mm, app.configurator),
 	)
 }
 
