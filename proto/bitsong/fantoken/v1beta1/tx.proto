@@ -53,7 +53,9 @@ message MsgIssue {
 }
 
 // MsgIssueResponse defines the MsgIssue response type
-message MsgIssueResponse {}
+message MsgIssueResponse {
+  string denom = 1 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
+}
 
 // MsgDisableMint defines a message for disable the mint function
 message MsgDisableMint {

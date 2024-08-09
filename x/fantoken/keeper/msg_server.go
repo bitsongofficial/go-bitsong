@@ -45,7 +45,9 @@ func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.Msg
 		Denom: denom,
 	})
 
-	return &types.MsgIssueResponse{}, nil
+	return &types.MsgIssueResponse{
+		Denom: denom,
+	}, nil
 }
 
 func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMintResponse, error) {
