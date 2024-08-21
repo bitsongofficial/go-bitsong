@@ -442,8 +442,7 @@ func NewBitsongApp(
 		app.IBCKeeper.ChannelKeeper,
 		app.DistrKeeper,
 		app.BankKeeper,
-		// The ICS4Wrapper is replaced by the IBCFeeKeeper instead of the channel so that sending can be overridden by the middleware
-		&app.IBCFeeKeeper,
+		app.IBCKeeper.ChannelKeeper,
 	)
 
 	// Create Transfer Keepers
