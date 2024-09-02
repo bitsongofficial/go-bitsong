@@ -47,12 +47,12 @@ func TestExpiredMerkledropHeight(t *testing.T) {
 	owner2 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	owner3 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	initCoins := sdk.Coins{
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000)),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000)),
 	}
 	accs := make(map[string]string, 2)
-	accs[owner1.String()] = "1000"
-	accs[owner2.String()] = "2000"
-	accs[owner3.String()] = "3000"
+	accs[owner1.String()] = "10000"
+	accs[owner2.String()] = "20000"
+	accs[owner3.String()] = "30000"
 
 	// mint coins for owner1
 	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
@@ -193,7 +193,7 @@ func TestExpiredMerkledrop(t *testing.T) {
 
 	owner := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	initCoins := sdk.Coins{
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000)),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000000000)),
 	}
 	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
 	require.NoError(t, err)
@@ -224,7 +224,7 @@ func TestExpiredMerkledrop(t *testing.T) {
 	require.NotNil(t, res)
 
 	balance = app.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
-	creationFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100_000_000))
+	creationFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000))
 	expectedAmt := initCoins.AmountOf(sdk.DefaultBondDenom).Sub(creationFee.Amount).Sub(airdropCoin.Amount)
 	require.Equal(t, expectedAmt, balance.Amount)
 

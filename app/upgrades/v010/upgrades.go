@@ -11,9 +11,9 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v2/router/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v4/modules/core/03-connection/types"
+	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v4/packetforward/types"
 )
 
 func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
@@ -31,7 +31,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 		// delete new modules from the map, for _new_ modules as to not skip InitGenesis
 		delete(fromVM, authz.ModuleName)
 		delete(fromVM, feegrant.ModuleName)
-		delete(fromVM, routertypes.ModuleName)
+		delete(fromVM, packetforwardtypes.ModuleName)
 
 		// make fromVM[authtypes.ModuleName] = 2 to skip the first RunMigrations for auth (because from version 2 to migration version 2 will not migrate)
 		fromVM[authtypes.ModuleName] = 2

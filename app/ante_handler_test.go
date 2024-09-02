@@ -106,7 +106,7 @@ func TestCreateAndEditValidatorAnteHandler(t *testing.T) {
 
 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
 	txGen := simapp.MakeEncodingConfig().TxConfig
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{9}, []uint64{0}, true, true, priv1)
+	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{8}, []uint64{0}, true, true, priv1)
 	require.NoError(t, err)
 	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin.Sub(bondCoin)})
 
@@ -126,7 +126,7 @@ func TestCreateAndEditValidatorAnteHandler(t *testing.T) {
 	editValidatorMsg := types.NewMsgEditValidator(sdk.ValAddress(addr1), description, nil, nil)
 
 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{9}, []uint64{1}, true, true, priv1)
+	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, true, true, priv1)
 	require.NoError(t, err)
 
 	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
@@ -138,7 +138,7 @@ func TestCreateAndEditValidatorAnteHandler(t *testing.T) {
 	editValidatorMsg = types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &zeroDec, nil)
 
 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{9}, []uint64{1}, false, false, priv1)
+	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, false, false, priv1)
 	require.Error(t, err)
 	require.EqualError(t, err, "commission can't be lower than 5%: unauthorized")
 }
@@ -197,7 +197,7 @@ func TestMinCommissionAuthzAnteHandler(t *testing.T) {
 	txGen := encoding.TxConfig
 
 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{msg1, msg2}, "",
-		[]uint64{9}, []uint64{0}, true, true, priv1)
+		[]uint64{8}, []uint64{0}, true, true, priv1)
 	require.NoError(t, err)
 
 	// create 2 authorization
@@ -228,7 +228,7 @@ func TestMinCommissionAuthzAnteHandler(t *testing.T) {
 
 	// wrapped tx
 	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{createValidatorMsg})
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{10}, []uint64{0}, true, true, priv2)
+	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{0}, true, true, priv2)
 	require.NoError(t, err)
 	validator := checkValidator(t, app, sdk.ValAddress(addr1), true)
 	require.Equal(t, description, validator.Description)
@@ -259,7 +259,7 @@ func TestMinCommissionAuthzAnteHandler(t *testing.T) {
 
 	// wrapped tx
 	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{editValidatorMsg})
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{10}, []uint64{1}, false, true, priv2)
+	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{1}, false, true, priv2)
 	require.NoError(t, err)
 
 	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
