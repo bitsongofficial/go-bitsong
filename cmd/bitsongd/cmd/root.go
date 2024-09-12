@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	cmtcfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,6 +17,9 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
 	dbm "github.com/cometbft/cometbft-db"
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
+
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/spf13/cast"
@@ -36,6 +40,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bitsong "github.com/bitsongofficial/go-bitsong/app"
 )
 
@@ -72,7 +77,10 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 				return err
 			}
 
-			return server.InterceptConfigsPreRunHandler(cmd, "", nil)
+			customAppTemplate, customAppConfig := initAppConfig()
+			customCMTConfig := initCometBFTConfig()
+
+			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customCMTConfig)
 		},
 		SilenceUsage: true,
 	}
@@ -184,7 +192,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 	}
 
 	snapshotDir := filepath.Join(cast.ToString(appOpts.Get(flags.FlagHome)), "data", "snapshots")
-	snapshotDB, err := sdk.NewLevelDB("metadata", snapshotDir)
+	snapshotDB, err := dbm.NewGoLevelDB("metadata", snapshotDir)
 	if err != nil {
 		panic(err)
 	}
@@ -207,9 +215,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 		baseapp.SetInterBlockCache(cache),
 		baseapp.SetTrace(cast.ToBool(appOpts.Get(server.FlagTrace))),
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
-		baseapp.SetSnapshotStore(snapshotStore),
-		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval))),
-		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent))),
+		baseapp.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}),
 	)
 }
 
@@ -276,4 +282,55 @@ func genesisCommand(encodingConfig params.EncodingConfig, cmds ...*cobra.Command
 		cmd.AddCommand(subCmd)
 	}
 	return cmd
+}
+
+// return cmtcfg.DefaultConfig if no custom configuration is required for the application.
+func initCometBFTConfig() *cmtcfg.Config {
+	cfg := cmtcfg.DefaultConfig()
+
+	// these values put a higher strain on node memory
+	// cfg.P2P.MaxNumInboundPeers = 100
+	// cfg.P2P.MaxNumOutboundPeers = 40
+
+	return cfg
+}
+
+// initAppConfig helps to override default appConfig template and configs.
+// return "", nil if no custom configuration is required for the application.
+func initAppConfig() (string, interface{}) {
+	// The following code snippet is just for reference.
+
+	type CustomAppConfig struct {
+		serverconfig.Config
+
+		Wasm wasmtypes.WasmConfig `mapstructure:"wasm"`
+	}
+
+	// Optionally allow the chain developer to overwrite the SDK's default
+	// server config.
+	srvCfg := serverconfig.DefaultConfig()
+	// The SDK's default minimum gas price is set to "" (empty value) inside
+	// app.toml. If left empty by validators, the node will halt on startup.
+	// However, the chain developer can set a default app.toml value for their
+	// validators here.
+	//
+	// In summary:
+	// - if you leave srvCfg.MinGasPrices = "", all validators MUST tweak their
+	//   own app.toml config,
+	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
+	//   own app.toml to override, or use this default value.
+	//
+	// In simapp, we set the min gas prices to 0.
+	srvCfg.MinGasPrices = "0stake"
+	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
+
+	customAppConfig := CustomAppConfig{
+		Config: *srvCfg,
+		Wasm:   wasmtypes.DefaultWasmConfig(),
+	}
+
+	customAppTemplate := serverconfig.DefaultConfigTemplate +
+		wasmtypes.DefaultConfigTemplate()
+
+	return customAppTemplate, customAppConfig
 }

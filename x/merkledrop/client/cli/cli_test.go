@@ -3,6 +3,10 @@ package cli_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"testing"
+
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/client/cli"
@@ -14,9 +18,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"os"
-	"strings"
-	"testing"
 )
 
 type IntegrationTestSuite struct {
@@ -31,7 +32,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 
 	s.cfg = app.DefaultConfig()
 
-	s.network = network.New(s.T(), s.cfg)
+	s.network, _ = network.New(s.T(), "", s.cfg)
 
 	_, err := s.network.WaitForHeight(1)
 	s.Require().NoError(err)
@@ -80,7 +81,7 @@ func addCommonFlags(args []string, from sdk.AccAddress) []string {
 	args = append(args, []string{
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFrom, from.String()),
 		fmt.Sprintf("--%s=true", sdkflags.FlagSkipConfirmation),
-		fmt.Sprintf("--%s=%s", sdkflags.FlagBroadcastMode, sdkflags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", sdkflags.FlagBroadcastMode, sdkflags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", sdkflags.FlagFees, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10))).String()),
 	}...)
 

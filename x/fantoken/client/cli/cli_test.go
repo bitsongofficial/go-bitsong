@@ -41,7 +41,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	cfg.NumValidators = 2
 
 	s.cfg = cfg
-	s.network, = network.New(s.T(), cfg)
+	s.network, _ = network.New(s.T(), "test_data", cfg)
 
 	_, err := s.network.WaitForHeight(1)
 	s.Require().NoError(err)
@@ -65,7 +65,7 @@ func issueCmd(s *IntegrationTestSuite, ctx client.Context, name, symbol string, 
 		fmt.Sprintf("--%s=%s", tokencli.FlagURI, uri),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -89,7 +89,7 @@ func mintCmd(s *IntegrationTestSuite, ctx client.Context, coin string, rcpt, fro
 		fmt.Sprintf("--%s=%s", tokencli.FlagRecipient, rcpt),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -109,7 +109,7 @@ func burnCmd(s *IntegrationTestSuite, ctx client.Context, coin string, from sdk.
 		coin,
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -130,7 +130,7 @@ func setAuthorityCmd(s *IntegrationTestSuite, ctx client.Context, denom, new, ol
 		fmt.Sprintf("--%s=%s", tokencli.FlagNewAuthority, new),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, old),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -152,7 +152,7 @@ func setMinterCmd(s *IntegrationTestSuite, ctx client.Context, denom, new, old s
 		fmt.Sprintf("--%s=%s", tokencli.FlagNewMinter, new),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, old),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -173,7 +173,7 @@ func disableMintCmd(s *IntegrationTestSuite, ctx client.Context, denom, from str
 		denom,
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
@@ -195,7 +195,7 @@ func setUriCmd(s *IntegrationTestSuite, ctx client.Context, denom, uri, from str
 		fmt.Sprintf("--%s=%s", tokencli.FlagURI, uri),
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
-		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
+		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
 		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}

@@ -2,10 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"os"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/spf13/cobra"
 
@@ -441,7 +442,7 @@ Where proposal.json contains:
 
 			content := fantokentypes.NewUpdateFeesProposal(proposal.Title, proposal.Description, issueFee, mintFee, burnFee)
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			msg, err := v1beta1.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}

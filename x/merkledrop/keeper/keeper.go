@@ -6,13 +6,14 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 type Keeper struct {
-	storeKey      sdk.StoreKey
+	storeKey      store.StoreKey
 	cdc           codec.Codec
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
@@ -23,7 +24,7 @@ type Keeper struct {
 
 func NewKeeper(
 	cdc codec.Codec,
-	key sdk.StoreKey,
+	key store.StoreKey,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	dk types.DistrKeeper,

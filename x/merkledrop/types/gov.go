@@ -2,21 +2,22 @@ package types
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const ProposalTypeUpdateFees = "UpdateMerkledropFeesProposal"
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeUpdateFees)
-	govtypes.RegisterProposalTypeCodec(&UpdateFeesProposal{}, "go-bitsong/merkledrop/UpdateFeesProposal")
+	v1beta1.RegisterProposalType(ProposalTypeUpdateFees)
+	// v1beta1.RegisterProposalTypeCodec(&UpdateFeesProposal{}, "go-bitsong/merkledrop/UpdateFeesProposal")
 }
 
-var _ govtypes.Content = &UpdateFeesProposal{}
+var _ v1beta1.Content = &UpdateFeesProposal{}
 
-func NewUpdateFeesProposal(title, description string, creationFee sdk.Coin) govtypes.Content {
+func NewUpdateFeesProposal(title, description string, creationFee sdk.Coin) v1beta1.Content {
 	return &UpdateFeesProposal{
 		Title:       title,
 		Description: description,
@@ -33,7 +34,7 @@ func (p *UpdateFeesProposal) ProposalRoute() string { return RouterKey }
 func (p *UpdateFeesProposal) ProposalType() string { return ProposalTypeUpdateFees }
 
 func (p *UpdateFeesProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(p)
+	err := v1beta1.ValidateAbstract(p)
 	if err != nil {
 		return err
 	}

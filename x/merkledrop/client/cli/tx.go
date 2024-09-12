@@ -3,6 +3,11 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -10,13 +15,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"strings"
 )
 
 // NewTxCmd returns the transaction commands for the merkledrop module.
@@ -287,7 +288,7 @@ Where proposal.json contains:
 
 			content := types.NewUpdateFeesProposal(proposal.Title, proposal.Description, creationFee)
 
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
+			msg, err := v1beta1.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}

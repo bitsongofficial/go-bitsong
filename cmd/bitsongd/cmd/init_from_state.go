@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/libs/cli"
@@ -33,7 +34,6 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/go-bip39"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -68,7 +68,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			config.P2P.MaxNumOutboundPeers = 50
 			config.Mempool.Size = 10000
 			config.StateSync.TrustPeriod = 112 * time.Hour
-			config.FastSync.Version = "v0"
+			config.BlockSync.Version = "v0"
 
 			config.SetRoot(clientCtx.HomeDir)
 
@@ -112,7 +112,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			increaseCoinAmount, _ := cmd.Flags().GetInt64(FlagIncreaseCoinAmount)
 
 			// attempt to lookup address from Keybase if no address was provided
-			kb, err := keyring.New(sdk.KeyringServiceName(), "test", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()))
+			kb, err := keyring.New(sdk.KeyringServiceName(), "test", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()), clientCtx.Codec)
 			if err != nil {
 				return fmt.Errorf("failed to open keyring: %w", err)
 			}
@@ -174,7 +174,7 @@ func initNodeFromState(config *tmcfg.Config, cliCtx client.Context, genParams St
 		return fmt.Errorf("failed to export gensis file: %s", err.Error())
 	}
 
-	config.FastSyncMode = false
+	config.BlockSyncMode = false
 	tmcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
 	fmt.Println("State imported successfully")
@@ -262,8 +262,8 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	}
 
 	// replace account
-	newAccount, _ := fetchKey(clientCtx.Keyring, params.KeyName)
-	if newAccount == nil {
+	newAccount, err := fetchKey(clientCtx.Keyring, params.KeyName)
+	if err != nil {
 		return nil, fmt.Errorf("couldn't find key %s", params.KeyName)
 	}
 
@@ -273,13 +273,15 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	match := re.FindStringSubmatch(string(stateBz))
 	if len(match) > 1 {
 		oldPubKey := match[2]
-		newPubKey := base64.StdEncoding.EncodeToString(newAccount.GetPubKey().Bytes())
+		pubkey, _ := newAccount.GetPubKey()
+		newPubKey := base64.StdEncoding.EncodeToString(pubkey.Bytes())
 		stateBz = bytes.Replace(stateBz, []byte(oldPubKey), []byte(newPubKey), -1)
 	} else {
 		panic("pub_key not found")
 	}
 	// Update address
-	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(newAccount.GetAddress().String()), -1)
+	addr, _ := newAccount.GetAddress()
+	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(addr.String()), -1)
 
 	genDoc := tmtypes.GenesisDoc{}
 	err = tmjson.Unmarshal(stateBz, &genDoc)
@@ -302,14 +304,14 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	genDoc.ChainID = params.ChainID
 
 	// Update gov module
-	var govGenState govtypes.GenesisState
-	clientCtx.Codec.MustUnmarshalJSON(appState[govtypes.ModuleName], &govGenState)
-	govGenState.VotingParams.VotingPeriod = params.VotingPeriod
-	govGenStateBz, err := clientCtx.Codec.MarshalJSON(&govGenState)
+	// var govGenState = gov.ExportGenesis(clientCtx, Govkeeper)
+	// clientCtx.Codec.MustUnmarshalJSON(appState[govtypes.ModuleName], &govGenState)
+	// govGenState.VotingParams.VotingPeriod = params.VotingPeriod
+	// govGenStateBz, err := clientCtx.Codec.MarshalJSON(&govGenState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
 	}
-	appState[govtypes.ModuleName] = govGenStateBz
+	// appState[govtypes.ModuleName] = govGenStateBz
 
 	// Prune IBC
 	if params.PruneIBC {
@@ -393,7 +395,11 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	// Update self delegation on operator address
 	for i, _ := range stakingGenState.Delegations {
 		delegation := &stakingGenState.Delegations[i]
-		if delegation.DelegatorAddress == newAccount.GetAddress().String() {
+		new_account, err := newAccount.GetAddress()
+		if err != nil {
+			return nil, fmt.Errorf("failed: %w", err)
+		}
+		if delegation.DelegatorAddress == new_account.String() {
 			delegation.Shares = delegation.Shares.Add(sdk.NewDec(params.IncreaseCoinAmount))
 		}
 	}
@@ -409,7 +415,11 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	clientCtx.Codec.MustUnmarshalJSON(appState[distrtypes.ModuleName], &distrGenState)
 	for i, _ := range distrGenState.DelegatorStartingInfos {
 		delegatorStartingInfo := &distrGenState.DelegatorStartingInfos[i]
-		if delegatorStartingInfo.DelegatorAddress == newAccount.GetAddress().String() {
+		new_account, err := newAccount.GetAddress()
+		if err != nil {
+			return nil, fmt.Errorf("failed: %w", err)
+		}
+		if delegatorStartingInfo.DelegatorAddress == new_account.String() {
 			delegatorStartingInfo.StartingInfo.Stake = delegatorStartingInfo.StartingInfo.Stake.Add(sdk.NewDec(params.IncreaseCoinAmount))
 		}
 	}
@@ -466,21 +476,21 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	return &genDoc, nil
 }
 
-func fetchKey(kb keyring.Keyring, keyref string) (keyring.Info, error) {
+func fetchKey(kb keyring.Keyring, keyref string) (keyring.Record, error) {
 	// firstly check if the keyref is a key name of a key registered in a keyring.
 	k, err := kb.Key(keyref)
 	// if the key is not there or if we have a problem with a keyring itself then we move to a
 	// fallback: searching for key by address.
 
-	if err == nil || !sdkerr.IsOf(err, sdkerr.ErrIO, sdkerr.ErrKeyNotFound) {
-		return k, err
+	if err == nil || !errorsmod.IsOf(err, sdkerr.ErrIO, sdkerr.ErrKeyNotFound) {
+		return *k, err
 	}
 
 	accAddr, err := sdk.AccAddressFromBech32(keyref)
 	if err != nil {
-		return k, err
+		return *k, err
 	}
 
 	k, err = kb.KeyByAddress(accAddr)
-	return k, sdkerr.Wrap(err, "Invalid key")
+	return *k, errorsmod.Wrap(err, "Invalid key")
 }
