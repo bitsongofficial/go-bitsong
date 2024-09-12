@@ -7,20 +7,22 @@ import (
 
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -29,7 +31,7 @@ import (
 
 type GenesisParams struct {
 	GenesisTime     time.Time
-	ConsensusParams *tmproto.ConsensusParams
+	ConsensusParams *tmtypes.ConsensusParams
 	NativeCoin      []banktypes.Metadata
 
 	StakingParams      stakingtypes.Params
@@ -74,7 +76,7 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.StakingParams.MaxValidators = 100
 	genParams.StakingParams.BondDenom = appparams.MicroCoinUnit
 
-	genParams.ConsensusParams = simtestutil.DefaultConsensusParams
+	genParams.ConsensusParams = &tmtypes.ConsensusParams{}
 	genParams.ConsensusParams.Block.MaxBytes = 20 * 1024 * 1024 // 20MB
 	genParams.ConsensusParams.Block.MaxGas = 200_000_000        // 200.000.000 units
 	genParams.ConsensusParams.Evidence.MaxAgeDuration = genParams.StakingParams.UnbondingTime
@@ -139,82 +141,82 @@ func TestnetGenesisParams() GenesisParams {
 	return genParams
 }
 
-// func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *tmtypes.GenesisDoc, error) {
-// 	depCdc := clientCtx.Codec
-// 	cdc := depCdc.(codec.Codec)
+func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *tmtypes.GenesisDoc, error) {
+	depCdc := clientCtx.Codec
+	cdc := depCdc.(codec.Codec)
 
-// 	genDoc.ChainID = chainID
-// 	genDoc.GenesisTime = genesisParams.GenesisTime
-// 	genDoc.ConsensusParams = genesisParams.ConsensusParams
+	genDoc.ChainID = chainID
+	genDoc.GenesisTime = genesisParams.GenesisTime
+	genDoc.ConsensusParams = genesisParams.ConsensusParams
 
-// 	stakingGenState := stakingtypes.GetGenesisStateFromAppState(depCdc, appState)
-// 	stakingGenState.Params = genesisParams.StakingParams
-// 	stakingGenStateBz, err := cdc.MarshalJSON(stakingGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal staking genesis state: %w", err)
-// 	}
-// 	appState[stakingtypes.ModuleName] = stakingGenStateBz
+	stakingGenState := stakingtypes.GetGenesisStateFromAppState(depCdc, appState)
+	stakingGenState.Params = genesisParams.StakingParams
+	stakingGenStateBz, err := cdc.MarshalJSON(stakingGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal staking genesis state: %w", err)
+	}
+	appState[stakingtypes.ModuleName] = stakingGenStateBz
 
-// 	mintGenState := minttypes.DefaultGenesisState()
-// 	mintGenState.Params = genesisParams.MintParams
-// 	mintGenStateBz, err := cdc.MarshalJSON(mintGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal mint genesis state: %w", err)
-// 	}
-// 	appState[minttypes.ModuleName] = mintGenStateBz
+	mintGenState := minttypes.DefaultGenesisState()
+	mintGenState.Params = genesisParams.MintParams
+	mintGenStateBz, err := cdc.MarshalJSON(mintGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal mint genesis state: %w", err)
+	}
+	appState[minttypes.ModuleName] = mintGenStateBz
 
-// 	distributionGenState := distributiontypes.DefaultGenesisState()
-// 	distributionGenState.Params = genesisParams.DistributionParams
-// 	distributionGenStateBz, err := cdc.MarshalJSON(distributionGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal distribution genesis state: %w", err)
-// 	}
-// 	appState[distributiontypes.ModuleName] = distributionGenStateBz
+	distributionGenState := distributiontypes.DefaultGenesisState()
+	distributionGenState.Params = genesisParams.DistributionParams
+	distributionGenStateBz, err := cdc.MarshalJSON(distributionGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal distribution genesis state: %w", err)
+	}
+	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
-// 	// govGenState := govtypes.DefaultGenesisState()
-// 	// govGenState.DepositParams = genesisParams.GovParams.DepositParams
-// 	// govGenState.TallyParams = genesisParams.GovParams.TallyParams
-// 	// govGenState.VotingParams = genesisParams.GovParams.VotingParams
-// 	// govGenStateBz, err := cdc.MarshalJSON(govGenState)
-// 	// if err != nil {
-// 	// 	return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-// 	// }
-// 	// appState[govtypes.ModuleName] = govGenStateBz
+	// govGenState := govtypes.DefaultGenesisState()
+	// govGenState.DepositParams = genesisParams.GovParams.DepositParams
+	// govGenState.TallyParams = genesisParams.GovParams.TallyParams
+	// govGenState.VotingParams = genesisParams.GovParams.VotingParams
+	// govGenStateBz, err := cdc.MarshalJSON(govGenState)
+	// if err != nil {
+	// 	return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	// }
+	// appState[govtypes.ModuleName] = govGenStateBz
 
-// 	crisisGenState := crisistypes.DefaultGenesisState()
-// 	crisisGenState.ConstantFee = genesisParams.CrisisConstantFee
-// 	crisisGenStateBz, err := cdc.MarshalJSON(crisisGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
-// 	}
-// 	appState[crisistypes.ModuleName] = crisisGenStateBz
+	crisisGenState := crisistypes.DefaultGenesisState()
+	crisisGenState.ConstantFee = genesisParams.CrisisConstantFee
+	crisisGenStateBz, err := cdc.MarshalJSON(crisisGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
+	}
+	appState[crisistypes.ModuleName] = crisisGenStateBz
 
-// 	slashingGenState := slashingtypes.DefaultGenesisState()
-// 	slashingGenState.Params = genesisParams.SlashingParams
-// 	slashingGenStateBz, err := cdc.MarshalJSON(slashingGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
-// 	}
-// 	appState[slashingtypes.ModuleName] = slashingGenStateBz
+	slashingGenState := slashingtypes.DefaultGenesisState()
+	slashingGenState.Params = genesisParams.SlashingParams
+	slashingGenStateBz, err := cdc.MarshalJSON(slashingGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
+	}
+	appState[slashingtypes.ModuleName] = slashingGenStateBz
 
-// 	fantokenGenState := fantokentypes.DefaultGenesisState()
-// 	fantokenGenState.Params = genesisParams.FantokenParams
-// 	fantokenGenStateBz, err := cdc.MarshalJSON(fantokenGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
-// 	}
-// 	appState[fantokentypes.ModuleName] = fantokenGenStateBz
+	fantokenGenState := fantokentypes.DefaultGenesisState()
+	fantokenGenState.Params = genesisParams.FantokenParams
+	fantokenGenStateBz, err := cdc.MarshalJSON(fantokenGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
+	}
+	appState[fantokentypes.ModuleName] = fantokenGenStateBz
 
-// 	merkledropGenState := merkledrop.DefaultGenesisState()
-// 	merkledropGenState.Params = genesisParams.MerkledropParams
-// 	merkledropGenStateBz, err := cdc.MarshalJSON(merkledropGenState)
-// 	if err != nil {
-// 		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
-// 	}
-// 	appState[merkledroptypes.ModuleName] = merkledropGenStateBz
+	merkledropGenState := merkledrop.DefaultGenesisState()
+	merkledropGenState.Params = genesisParams.MerkledropParams
+	merkledropGenStateBz, err := cdc.MarshalJSON(merkledropGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
+	}
+	appState[merkledroptypes.ModuleName] = merkledropGenStateBz
 
-// 	return appState, genDoc, nil
-// }
+	return appState, genDoc, nil
+}
 
 func PrepareGenesisCmd(defaultNodeHome string, mbm module.BasicManager) *cobra.Command {
 	cmd := &cobra.Command{
