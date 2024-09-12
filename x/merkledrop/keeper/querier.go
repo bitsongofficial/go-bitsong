@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // NewQuerier returns a new sdk.Keeper instance.

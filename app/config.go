@@ -15,7 +15,7 @@ package app
 // 	"github.com/cosmos/cosmos-sdk/testutil/network"
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
 // 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-// 	dbm "github.com/tendermint/tm-db"
+// 	dbm "github.com/cometbft/cometbft-db"
 // )
 
 // DefaultConfig returns a default configuration suitable for nearly all

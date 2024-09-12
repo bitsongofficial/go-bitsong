@@ -2,17 +2,18 @@ package fantoken_test
 
 import (
 	"fmt"
+	"testing"
+
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
 )
 
 type HandlerTestSuite struct {
@@ -20,7 +21,7 @@ type HandlerTestSuite struct {
 
 	app        *simapp.BitsongApp
 	ctx        sdk.Context
-	govHandler govtypes.Handler
+	govHandler govv1beta1.Handler
 }
 
 func (suite *HandlerTestSuite) SetupTest() {

@@ -58,7 +58,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 				v.Commission.UpdateTime = ctx.BlockHeader().Time
 
 				// call the before-modification hook since we're about to update the commission
-				staking.BeforeValidatorModified(ctx, v.GetOperator())
+				// staking.BeforeValidatorModified(ctx, v.GetOperator())
 
 				staking.SetValidator(ctx, v)
 			}

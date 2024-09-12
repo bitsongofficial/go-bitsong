@@ -2,18 +2,19 @@ package merkledrop_test
 
 import (
 	"fmt"
+	"testing"
+
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/client/cli"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
 )
 
 func generateMerkledrop(owner sdk.AccAddress, accs map[string]string) (*types.MsgCreate, map[string]cli.ClaimInfo) {

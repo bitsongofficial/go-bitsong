@@ -19,8 +19,8 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	github.com/tendermint/tendermint v0.34.27
-	github.com/tendermint/tm-db v0.6.7
+	github.com/cometbft/cometbft v0.37.4
+	github.com/cometbft/cometbft-db v0.8.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231212172506-995d672761c0
 	google.golang.org/grpc v1.60.1
 	google.golang.org/protobuf v1.32.0
@@ -193,7 +193,6 @@ replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// Comet
-	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 
 // google.golang.org/grpc => google.golang.org/grpc v1.33.2
 

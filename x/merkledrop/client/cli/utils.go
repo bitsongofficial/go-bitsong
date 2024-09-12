@@ -3,11 +3,12 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
 	"os"
 	"sort"
 	"strconv"
+
+	"github.com/cometbft/cometbft/crypto"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type Account struct {

@@ -7,6 +7,7 @@ import (
 
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
@@ -15,7 +16,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/libs/cli"
 
 	tokencli "github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
 )
@@ -41,7 +41,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	cfg.NumValidators = 2
 
 	s.cfg = cfg
-	s.network = network.New(s.T(), cfg)
+	s.network, = network.New(s.T(), cfg)
 
 	_, err := s.network.WaitForHeight(1)
 	s.Require().NoError(err)

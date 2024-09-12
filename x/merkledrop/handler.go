@@ -5,7 +5,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // NewHandler handles all messages.
@@ -30,8 +30,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
-func NewProposalHandler(k keeper.Keeper) govtypes.Handler {
-	return func(ctx sdk.Context, content govtypes.Content) error {
+func NewProposalHandler(k keeper.Keeper) govv1beta1.Handler {
+	return func(ctx sdk.Context, content govv1beta1.Content) error {
 		switch c := content.(type) {
 		case *types.UpdateFeesProposal:
 			return handleUpdateFeesProposal(ctx, k, c)
