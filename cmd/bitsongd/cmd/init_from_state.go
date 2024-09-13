@@ -13,6 +13,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/libs/cli"
@@ -304,14 +305,14 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	genDoc.ChainID = params.ChainID
 
 	// Update gov module
-	// var govGenState = gov.ExportGenesis(clientCtx, Govkeeper)
-	// clientCtx.Codec.MustUnmarshalJSON(appState[govtypes.ModuleName], &govGenState)
+	// var govGenState = gov.ExportGenesis(clientCtx)
+	// clientCtx.Codec.MustUnmarshalJSON(appState["gov"], &govGenState)
 	// govGenState.VotingParams.VotingPeriod = params.VotingPeriod
 	// govGenStateBz, err := clientCtx.Codec.MarshalJSON(&govGenState)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-	}
-	// appState[govtypes.ModuleName] = govGenStateBz
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	// }
+	// appState["gov"] = govGenStateBz
 
 	// Prune IBC
 	if params.PruneIBC {

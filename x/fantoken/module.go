@@ -34,11 +34,6 @@ type AppModuleBasic struct {
 // Name returns the fantoken module's name.
 func (AppModuleBasic) Name() string { return types.ModuleName }
 
-// RegisterLegacyAminoCodec registers the fantoken module's types on the LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
-
 // DefaultGenesis returns default genesis state as raw bytes for the fantoken module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 	return cdc.MustMarshalJSON(types.DefaultGenesisState())
@@ -72,6 +67,11 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd returns no root query command for the fantoken module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
+}
+
+// RegisterLegacyAminoCodec registers the fantoken module's types on the LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the fantoken module.

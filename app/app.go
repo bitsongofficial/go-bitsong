@@ -818,7 +818,7 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// Register legacy and grpc-gateway routes for all modules.
 
-	// ModuleBasics.RegisterRESTRoutes(clientCtx, apiSvr.Router)
+	ModuleBasics.RegisterLegacyAminoCodec(clientCtx.LegacyAmino)
 
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
@@ -826,9 +826,6 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
 		panic(err)
 	}
-	// register app's OpenAPI routes.
-	// apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Docs)))
-	// apiSvr.Router.HandleFunc("/", openapiconsole.Handler(appName, "/static/openapi.yml"))
 
 }
 

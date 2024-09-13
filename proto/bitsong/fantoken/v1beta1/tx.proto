@@ -29,13 +29,16 @@ service Msg {
 // MsgIssue defines a message for issuing a new fan token
 message MsgIssue {
 
-  // symbol which corresponds to the symbol of the fan token. It is a string and cannot change for the whole life of the fan token
+  // symbol which corresponds to the symbol of the fan token. It is a string and
+  // cannot change for the whole life of the fan token
   string symbol = 1;
 
-  // name which corresponds to the name of the fan token. It is a string and cannot change for the whole life of the fan token
+  // name which corresponds to the name of the fan token. It is a string and
+  // cannot change for the whole life of the fan token
   string name = 2;
 
-  // max_supply that represents the maximum number of possible mintable tokens. It is an integer number, expressed in micro unit 10^6
+  // max_supply that represents the maximum number of possible mintable tokens.
+  // It is an integer number, expressed in micro unit 10^6
   string max_supply = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"max_supply\"",
@@ -45,10 +48,12 @@ message MsgIssue {
   // authority which is who can set a new uri metadata
   string authority = 4;
 
-  // minter who is who can mint new fantoken and disable the minter process, the minter key also pay the gas fee
+  // minter who is who can mint new fantoken and disable the minter process, the
+  // minter key also pay the gas fee
   string minter = 5;
 
-  // URI which is the current uri of the fan token. It is a string can change during the fan token lifecycle thanks to the MsgEdit
+  // URI which is the current uri of the fan token. It is a string can change
+  // during the fan token lifecycle thanks to the MsgEdit
   string uri = 6 [ (gogoproto.customname) = "URI" ];
 }
 
@@ -71,10 +76,8 @@ message MsgMint {
   string recipient = 1;
 
   // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
-  cosmos.base.v1beta1.Coin coin = 2 [
-    (gogoproto.moretags) = "yaml:\"coin\"",
-    (gogoproto.nullable) = false
-  ];
+  cosmos.base.v1beta1.Coin coin = 2
+      [ (gogoproto.moretags) = "yaml:\"coin\"", (gogoproto.nullable) = false ];
 
   string minter = 3;
 }
@@ -85,10 +88,8 @@ message MsgMintResponse {}
 // MsgBurn defines a message for burning some fan tokens
 message MsgBurn {
   // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
-  cosmos.base.v1beta1.Coin coin = 1 [
-    (gogoproto.moretags) = "yaml:\"coin\"",
-    (gogoproto.nullable) = false
-  ];
+  cosmos.base.v1beta1.Coin coin = 1
+      [ (gogoproto.moretags) = "yaml:\"coin\"", (gogoproto.nullable) = false ];
 
   string sender = 2;
 }
@@ -134,4 +135,4 @@ message MsgSetUri {
   string uri = 3 [ (gogoproto.customname) = "URI" ];
 }
 
-message MsgSetUriResponse{}
+message MsgSetUriResponse {}

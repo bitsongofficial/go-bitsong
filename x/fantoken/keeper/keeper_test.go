@@ -24,8 +24,8 @@ var (
 	name     = "Bitcoin Network"
 
 	maxSupply = sdk.NewInt(200000000)
-	mintable  = true
-	height    = int64(1)
+	// mintable  = true
+	// height    = int64(1)
 )
 
 type KeeperTestSuite struct {

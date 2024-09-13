@@ -13,13 +13,13 @@ import (
 )
 
 type Keeper struct {
-	storeKey      storetypes.StoreKey
-	cdc           codec.Codec
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
-	distrKeeper   types.DistrKeeper
-	paramSpace    types.ParamSubspace
-	blockedAddrs  map[string]bool
+	storeKey storetypes.StoreKey
+	cdc      codec.Codec
+	// accountKeeper types.AccountKeeper
+	bankKeeper   types.BankKeeper
+	distrKeeper  types.DistrKeeper
+	paramSpace   types.ParamSubspace
+	blockedAddrs map[string]bool
 }
 
 func NewKeeper(

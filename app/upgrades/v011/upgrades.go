@@ -13,7 +13,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 	ftk *fantokenkeeper.Keeper,
 	mk *merkledropkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		newVM, err := mm.RunMigrations(ctx, configurator, vm)
 		if err != nil {
 			return newVM, err

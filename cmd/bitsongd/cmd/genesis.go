@@ -12,7 +12,6 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -53,7 +52,7 @@ func MainnetGenesisParams() GenesisParams {
 
 	genParams.NativeCoin = []banktypes.Metadata{
 		{
-			Description: fmt.Sprintf("The native token of BitSong Network"),
+			Description: "The native token of BitSong Network",
 			DenomUnits: []*banktypes.DenomUnit{
 				{
 					Denom:    appparams.MicroCoinUnit,
@@ -76,7 +75,7 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.StakingParams.MaxValidators = 100
 	genParams.StakingParams.BondDenom = appparams.MicroCoinUnit
 
-	genParams.ConsensusParams = &tmtypes.ConsensusParams{}
+	genParams.ConsensusParams = tmtypes.DefaultConsensusParams()
 	genParams.ConsensusParams.Block.MaxBytes = 20 * 1024 * 1024 // 20MB
 	genParams.ConsensusParams.Block.MaxGas = 200_000_000        // 200.000.000 units
 	genParams.ConsensusParams.Evidence.MaxAgeDuration = genParams.StakingParams.UnbondingTime
@@ -143,7 +142,6 @@ func TestnetGenesisParams() GenesisParams {
 
 func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *tmtypes.GenesisDoc, error) {
 	depCdc := clientCtx.Codec
-	cdc := depCdc.(codec.Codec)
 
 	genDoc.ChainID = chainID
 	genDoc.GenesisTime = genesisParams.GenesisTime
@@ -151,7 +149,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	stakingGenState := stakingtypes.GetGenesisStateFromAppState(depCdc, appState)
 	stakingGenState.Params = genesisParams.StakingParams
-	stakingGenStateBz, err := cdc.MarshalJSON(stakingGenState)
+	stakingGenStateBz, err := depCdc.MarshalJSON(stakingGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal staking genesis state: %w", err)
 	}
@@ -159,7 +157,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	mintGenState := minttypes.DefaultGenesisState()
 	mintGenState.Params = genesisParams.MintParams
-	mintGenStateBz, err := cdc.MarshalJSON(mintGenState)
+	mintGenStateBz, err := depCdc.MarshalJSON(mintGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal mint genesis state: %w", err)
 	}
@@ -167,7 +165,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	distributionGenState := distributiontypes.DefaultGenesisState()
 	distributionGenState.Params = genesisParams.DistributionParams
-	distributionGenStateBz, err := cdc.MarshalJSON(distributionGenState)
+	distributionGenStateBz, err := depCdc.MarshalJSON(distributionGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal distribution genesis state: %w", err)
 	}
@@ -185,7 +183,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	crisisGenState := crisistypes.DefaultGenesisState()
 	crisisGenState.ConstantFee = genesisParams.CrisisConstantFee
-	crisisGenStateBz, err := cdc.MarshalJSON(crisisGenState)
+	crisisGenStateBz, err := depCdc.MarshalJSON(crisisGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
 	}
@@ -193,7 +191,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	slashingGenState := slashingtypes.DefaultGenesisState()
 	slashingGenState.Params = genesisParams.SlashingParams
-	slashingGenStateBz, err := cdc.MarshalJSON(slashingGenState)
+	slashingGenStateBz, err := depCdc.MarshalJSON(slashingGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
 	}
@@ -201,7 +199,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	fantokenGenState := fantokentypes.DefaultGenesisState()
 	fantokenGenState.Params = genesisParams.FantokenParams
-	fantokenGenStateBz, err := cdc.MarshalJSON(fantokenGenState)
+	fantokenGenStateBz, err := depCdc.MarshalJSON(fantokenGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
 	}
@@ -209,7 +207,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	merkledropGenState := merkledrop.DefaultGenesisState()
 	merkledropGenState.Params = genesisParams.MerkledropParams
-	merkledropGenStateBz, err := cdc.MarshalJSON(merkledropGenState)
+	merkledropGenStateBz, err := depCdc.MarshalJSON(merkledropGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
 	}
@@ -235,7 +233,6 @@ Example:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			depCdc := clientCtx.Codec
-			cdc := depCdc.(codec.Codec)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
@@ -247,24 +244,27 @@ Example:
 			}
 
 			// get genesis params
-			// var genesisParams GenesisParams
-			// network := args[0]
-			// if network == "testnet" {
-			// 	genesisParams = TestnetGenesisParams()
-			// } else if network == "mainnet" {
-			// 	genesisParams = MainnetGenesisParams()
-			// } else {
-			// 	return fmt.Errorf("please choose 'mainnet' or 'testnet'")
-			// }
+			var genesisParams GenesisParams
+			network := args[0]
+			if network == "testnet" {
+				genesisParams = TestnetGenesisParams()
+			} else if network == "mainnet" {
+				genesisParams = MainnetGenesisParams()
+			} else {
+				return fmt.Errorf("please choose 'mainnet' or 'testnet'")
+			}
 
 			// get genesis params
-			// chainID := args[1]
+			chainID := args[1]
 
 			// run Prepare Genesis
-			// appState, genDoc, err = PrepareGenesis(clientCtx, appState, genDoc, genesisParams, chainID)
+			appState, genDoc, err = PrepareGenesis(clientCtx, appState, genDoc, genesisParams, chainID)
+			if err != nil {
+				return fmt.Errorf("err, %s", err.Error())
+			}
 
 			// validate genesis state
-			if err = mbm.ValidateGenesis(cdc, clientCtx.TxConfig, appState); err != nil {
+			if err = mbm.ValidateGenesis(depCdc, clientCtx.TxConfig, appState); err != nil {
 				return fmt.Errorf("error validating genesis file: %s", err.Error())
 			}
 

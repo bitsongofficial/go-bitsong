@@ -9,36 +9,36 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/merkledrop/types";
 option (gogoproto.goproto_getters_all) = false;
 
 message Merkledrop {
-	option (gogoproto.goproto_stringer) = false;
-	option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
 
-	// merkledrop id
-	uint64 id = 1;
+  // merkledrop id
+  uint64 id = 1;
 
-	// merkle_root of the merkledrop
-	string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
+  // merkle_root of the merkledrop
+  string merkle_root = 2 [ (gogoproto.moretags) = "yaml:\"merkle_root\"" ];
 
-	// merkledrop start height
-	int64 start_height = 3;
+  // merkledrop start height
+  int64 start_height = 3;
 
-	// merkledrop end height
-	int64 end_height = 4;
+  // merkledrop end height
+  int64 end_height = 4;
 
-	// denom to distribuite
-	string denom = 5;
+  // denom to distribuite
+  string denom = 5;
 
-	// amount to distribuite
-	string amount = 6 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-		(gogoproto.nullable) = false
-	];
+  // amount to distribuite
+  string amount = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 
-	// claimed amount
-	string claimed = 7 [
-		(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-		(gogoproto.nullable) = false
-	];
+  // claimed amount
+  string claimed = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 
-	// merkledrop's owner
-	string owner = 8;
+  // merkledrop's owner
+  string owner = 8;
 }

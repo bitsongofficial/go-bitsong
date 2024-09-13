@@ -25,7 +25,6 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -46,10 +45,14 @@ import (
 
 var ChainID string
 
+type appCreator struct {
+	encCfg params.EncodingConfig
+}
+
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := app.MakeEncodingConfig()
+	encodingConfig := bitsong.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -57,7 +60,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithLegacyAmino(encodingConfig.Amino).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
-		WithHomeDir(app.DefaultNodeHome).
+		WithHomeDir(bitsong.DefaultNodeHome).
 		WithViper("")
 
 	rootCmd := &cobra.Command{
@@ -90,17 +93,20 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		flags.FlagChainID:        ChainID,
 		flags.FlagKeyringBackend: "test",
 	})*/
-
 	return rootCmd, encodingConfig
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
+	ac := appCreator{
+		encCfg: encodingConfig,
+	}
+
 	cfg := sdk.GetConfig()
 	cfg.Seal()
 
 	rootCmd.AddCommand(
-		InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		InitFromStateCmd(app.DefaultNodeHome),
+		InitCmd(bitsong.ModuleBasics, bitsong.DefaultNodeHome),
+		InitFromStateCmd(bitsong.DefaultNodeHome),
 		genesisCommand(encodingConfig),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		testnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
@@ -108,14 +114,14 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		config.Cmd(),
 	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(app.DefaultNodeHome),
+		keys.Commands(bitsong.DefaultNodeHome),
 	)
 }
 
@@ -141,7 +147,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
+	bitsong.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -168,13 +174,13 @@ func txCommand() *cobra.Command {
 		authcmd.GetDecodeCommand(),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
+	bitsong.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
 }
 
-func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+func (ac appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
 	var cache sdk.MultiStorePersistentCache
 
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
@@ -201,11 +207,11 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 		panic(err)
 	}
 
-	return app.NewBitsongApp(
+	return bitsong.NewBitsongApp(
 		logger, db, traceStore, true, skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
-		app.MakeEncodingConfig(),
+		bitsong.MakeEncodingConfig(),
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
@@ -219,9 +225,9 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts serverty
 	)
 }
 
-func appExport(
+func (ac appCreator) appExport(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, height int64, forZeroHeight bool, jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions) (servertypes.ExportedApp, error) {
+	appOpts servertypes.AppOptions, _ []string) (servertypes.ExportedApp, error) {
 
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
@@ -233,10 +239,10 @@ func appExport(
 		loadLatest = true
 	}
 
-	encCfg := app.MakeEncodingConfig()
+	encCfg := bitsong.MakeEncodingConfig()
 	encCfg.Marshaler = codec.NewProtoCodec(encCfg.InterfaceRegistry)
 
-	bApp := app.NewBitsongApp(
+	bApp := bitsong.NewBitsongApp(
 		logger,
 		db,
 		traceStore,
@@ -276,7 +282,7 @@ func appExport(
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
 func genesisCommand(encodingConfig params.EncodingConfig, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, app.ModuleBasics, app.DefaultNodeHome)
+	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, bitsong.ModuleBasics, bitsong.DefaultNodeHome)
 
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
