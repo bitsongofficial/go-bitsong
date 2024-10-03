@@ -3,13 +3,13 @@ package app
 import (
 	"fmt"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 
 	"time"
 
@@ -46,12 +46,10 @@ func DefaultConfig() network.Config {
 	}
 }
 
-func NewAppConstructor(encodingCfg params.EncodingConfig) network.AppConstructor {
+func NewAppConstructor(encodingCfg params.EncodingConfig, opts ...wasmkeeper.Option) network.AppConstructor {
 	return func(val network.ValidatorI) servertypes.Application {
 		return NewBitsongApp(
-			val.GetCtx().Logger, dbm.NewMemDB(), nil, true, make(map[int64]bool), val.GetCtx().Config.RootDir, 0,
-			encodingCfg,
-			simtestutil.EmptyAppOptions{},
+			val.GetCtx().Logger, dbm.NewMemDB(), nil, true, EmptyAppOptions{}, opts,
 			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
 		)
 	}

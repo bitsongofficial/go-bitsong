@@ -43,8 +43,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.legacyAmino = app.LegacyAmino()
 	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.keeper = app.FanTokenKeeper
-	suite.bk = app.BankKeeper
+	suite.keeper = app.AppKeepers.FanTokenKeeper
+	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app
 
 	// set params

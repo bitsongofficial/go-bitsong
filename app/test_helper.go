@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -42,11 +43,11 @@ import (
 // }
 
 // Setup initializes a new BitsongApp
-func Setup(isCheckTx bool) *BitsongApp {
+func Setup(isCheckTx bool, opts ...wasmkeeper.Option) *BitsongApp {
 	db := dbm.NewMemDB()
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig(), simtestutil.EmptyAppOptions{})
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts)
 	if !isCheckTx {
-		genesisState := NewDefaultGenesisState()
+		genesisState := NewDefaultGenesisState(app.appCodec)
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		if err != nil {
 			panic(err)
@@ -73,10 +74,10 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 	return nil
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*BitsongApp, GenesisState) {
+func setup(withGenesis bool, invCheckPeriod uint, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts)
 	if withGenesis {
 		return app, NewDefaultGenesisStateWithCodec(encCdc.Marshaler)
 	}
@@ -175,5 +176,5 @@ func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
 
 func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances sdk.Coins) {
 	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
-	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
+	require.True(t, balances.IsEqual(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }

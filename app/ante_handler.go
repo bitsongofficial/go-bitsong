@@ -9,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
@@ -19,10 +20,13 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
+	GovKeeper         govkeeper.Keeper
 	IBCKeeper         *ibckeeper.Keeper
 	TxCounterStoreKey storetypes.StoreKey
 	WasmConfig        wasmTypes.WasmConfig
 	Cdc               codec.BinaryCodec
+
+	TxEncoder sdk.TxEncoder
 }
 
 type MinValCommissionDecorator struct {

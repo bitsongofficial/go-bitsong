@@ -9,7 +9,7 @@ import (
 func (suite *KeeperTestSuite) TestKeeper_GetAllIndexById() {
 	suite.SetupTest()
 	ctx := suite.Ctx
-	mk := suite.App.MerkledropKeeper
+	mk := suite.App.AppKeepers.MerkledropKeeper
 
 	// set merkledrop
 	merkledropID := uint64(1)

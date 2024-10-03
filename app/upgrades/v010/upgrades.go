@@ -1,28 +1,24 @@
 package v010
 
 import (
+	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
 
-func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
-	bank bankkeeper.Keeper,
-	ibc *ibckeeper.Keeper,
-	staking *stakingkeeper.Keeper,
+func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurator,
+	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		ibc.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+		keepers.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
 
 		fromVM := make(map[string]uint64)
 		for moduleName := range mm.Modules {
@@ -46,7 +42,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 
 		// Proposal #5
 		// Force an update of validator min commission
-		validators := staking.GetAllValidators(ctx)
+		validators := keepers.StakingKeeper.GetAllValidators(ctx)
 		minCommissionRate := sdk.NewDecWithPrec(5, 2)
 		for _, v := range validators {
 			if v.Commission.Rate.LT(minCommissionRate) {
@@ -60,7 +56,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 				// call the before-modification hook since we're about to update the commission
 				// staking.BeforeValidatorModified(ctx, v.GetOperator())
 
-				staking.SetValidator(ctx, v)
+				keepers.StakingKeeper.SetValidator(ctx, v)
 			}
 		}
 
@@ -73,11 +69,11 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator,
 		mintCoins := sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, sdk.NewInt(CassiniMintAmount)))
 
 		// mint coins
-		if err := bank.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
+		if err := keepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {
 			return nil, err
 		}
 
-		if err := bank.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, multisigWallet, mintCoins); err != nil {
+		if err := keepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, multisigWallet, mintCoins); err != nil {
 			return nil, err
 		}
 

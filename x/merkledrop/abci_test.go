@@ -42,7 +42,7 @@ func TestExpiredMerkledropHeight(t *testing.T) {
 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	msgSvr := keeper.NewMsgServerImpl(app.MerkledropKeeper)
+	msgSvr := keeper.NewMsgServerImpl(app.AppKeepers.MerkledropKeeper)
 
 	owner1 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	owner2 := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
@@ -56,43 +56,43 @@ func TestExpiredMerkledropHeight(t *testing.T) {
 	accs[owner3.String()] = "30000"
 
 	// mint coins for owner1
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
+	err := app.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
 	require.NoError(t, err)
 
 	// send coins to owner1
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner1, initCoins)
+	err = app.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner1, initCoins)
 	require.NoError(t, err)
 
 	// mint coins for owner2
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
+	err = app.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
 	require.NoError(t, err)
 
 	// send coins to owner2
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner2, initCoins)
+	err = app.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner2, initCoins)
 	require.NoError(t, err)
 
 	// mint coins for owner3
-	err = app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
+	err = app.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
 	require.NoError(t, err)
 
 	// send coins to owner3
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner3, initCoins)
+	err = app.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner3, initCoins)
 	require.NoError(t, err)
 
 	// merkledrops len should be zero
-	merkledrops := app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops := app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 0)
 
 	// owner1's balance should be initCoins
-	balance := app.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
+	balance := app.AppKeepers.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
 	require.Equal(t, initCoins.AmountOf(sdk.DefaultBondDenom), balance.Amount)
 
 	// owner2's balance should be initCoins
-	balance = app.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
+	balance = app.AppKeepers.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
 	require.Equal(t, initCoins.AmountOf(sdk.DefaultBondDenom), balance.Amount)
 
 	// owner3's balance should be initCoins
-	balance = app.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
+	balance = app.AppKeepers.BankKeeper.GetBalance(ctx, owner1, sdk.DefaultBondDenom)
 	require.Equal(t, initCoins.AmountOf(sdk.DefaultBondDenom), balance.Amount)
 
 	// owner1 create a merkledrop
@@ -114,16 +114,16 @@ func TestExpiredMerkledropHeight(t *testing.T) {
 	require.NotNil(t, res)
 
 	// check merkledrops length, should be 3
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 3)
 
 	// move to block 50
-	merkledrop.EndBlocker(ctx, app.MerkledropKeeper)
+	merkledrop.EndBlocker(ctx, app.AppKeepers.MerkledropKeeper)
 
 	newHeader := ctx.BlockHeader()
 	newHeader.Height = 50
 	ctx = ctx.WithBlockHeader(newHeader)
-	merkledrop.EndBlocker(ctx, app.MerkledropKeeper)
+	merkledrop.EndBlocker(ctx, app.AppKeepers.MerkledropKeeper)
 
 	// claim all balance from merkledrop owner1
 	amt, ok := sdk.NewIntFromString(claimInfo1[owner1.String()].Amount)
@@ -160,27 +160,27 @@ func TestExpiredMerkledropHeight(t *testing.T) {
 	require.NotNil(t, resClaim)
 
 	// check merkledrops len, should be 2
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 2)
 
 	// move to block 100
 	newHeader = ctx.BlockHeader()
 	newHeader.Height = 100
 	ctx = ctx.WithBlockHeader(newHeader)
-	merkledrop.EndBlocker(ctx, app.MerkledropKeeper)
+	merkledrop.EndBlocker(ctx, app.AppKeepers.MerkledropKeeper)
 
 	// check merkledrops len, should be 0
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 0)
 
 	// move to block 110
 	newHeader = ctx.BlockHeader()
 	newHeader.Height = 110
 	ctx = ctx.WithBlockHeader(newHeader)
-	merkledrop.EndBlocker(ctx, app.MerkledropKeeper)
+	merkledrop.EndBlocker(ctx, app.AppKeepers.MerkledropKeeper)
 
 	// check merkledrops len, should be 0
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 0)
 }
 
@@ -190,18 +190,18 @@ func TestExpiredMerkledrop(t *testing.T) {
 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	msgSvr := keeper.NewMsgServerImpl(app.MerkledropKeeper)
+	msgSvr := keeper.NewMsgServerImpl(app.AppKeepers.MerkledropKeeper)
 
 	owner := sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	initCoins := sdk.Coins{
 		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(10000000000)),
 	}
-	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
+	err := app.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, initCoins)
 	require.NoError(t, err)
-	err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner, initCoins)
+	err = app.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, owner, initCoins)
 	require.NoError(t, err)
 
-	merkledrops := app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops := app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 0)
 
 	startHeight := int64(0)
@@ -217,31 +217,31 @@ func TestExpiredMerkledrop(t *testing.T) {
 		airdropCoin,
 	)
 
-	balance := app.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
+	balance := app.AppKeepers.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
 	require.Equal(t, initCoins.AmountOf(sdk.DefaultBondDenom), balance.Amount)
 
 	res, err := msgSvr.Create(sdk.WrapSDKContext(ctx), msg)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	balance = app.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
+	balance = app.AppKeepers.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
 	creationFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1_000_000_000))
 	expectedAmt := initCoins.AmountOf(sdk.DefaultBondDenom).Sub(creationFee.Amount).Sub(airdropCoin.Amount)
 	require.Equal(t, expectedAmt, balance.Amount)
 
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 1)
 
 	newHeader := ctx.BlockHeader()
 	newHeader.Height = endHeight
 	ctx = ctx.WithBlockHeader(newHeader)
 
-	merkledrop.EndBlocker(ctx, app.MerkledropKeeper)
+	merkledrop.EndBlocker(ctx, app.AppKeepers.MerkledropKeeper)
 
-	merkledrops = app.MerkledropKeeper.GetAllMerkleDrops(ctx)
+	merkledrops = app.AppKeepers.MerkledropKeeper.GetAllMerkleDrops(ctx)
 	require.Len(t, merkledrops, 0)
 
-	balance = app.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
+	balance = app.AppKeepers.BankKeeper.GetBalance(ctx, owner, sdk.DefaultBondDenom)
 	expectedAmt = initCoins.AmountOf(sdk.DefaultBondDenom).Sub(creationFee.Amount)
 	require.Equal(t, expectedAmt, balance.Amount)
 }
