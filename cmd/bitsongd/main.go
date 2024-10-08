@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/bitsongofficial/go-bitsong/app/params"
 	"os"
+
+	"cosmossdk.io/log"
+	"github.com/bitsongofficial/go-bitsong/app/params"
 
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/cmd/bitsongd/cmd"
@@ -13,7 +15,8 @@ func main() {
 	params.SetAddressPrefixes()
 
 	rootCmd, _ := cmd.NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, "BITSONGD", app.DefaultNodeHome); err != nil {
+		log.NewLogger(rootCmd.OutOrStderr()).Error("failure when running app", "err", err)
 		os.Exit(1)
 	}
 }

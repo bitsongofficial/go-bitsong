@@ -8,23 +8,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"testing"
+
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/stretchr/testify/suite"
 )
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
-	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
+	initAmt  = sdk.NewIntFromUint64(100)
 	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 	symbol   = "btc"
 	name     = "Bitcoin Network"
 
 	maxSupply = sdk.NewInt(200000000)
-	mintable  = true
-	height    = int64(1)
+	// mintable  = true
+	// height    = int64(1)
 )
 
 type KeeperTestSuite struct {
@@ -42,8 +43,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	suite.legacyAmino = app.LegacyAmino()
 	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.keeper = app.FanTokenKeeper
-	suite.bk = app.BankKeeper
+	suite.keeper = app.AppKeepers.FanTokenKeeper
+	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app
 
 	// set params

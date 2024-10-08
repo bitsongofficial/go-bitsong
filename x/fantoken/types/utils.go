@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
+
+	tmcrypto "github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmcrypto "github.com/tendermint/tendermint/crypto"
 )
 
 func GetFantokenDenom(height int64, minter sdk.AccAddress, symbol, name string) string {

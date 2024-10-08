@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"google.golang.org/grpc/codes"
@@ -63,7 +64,7 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	if owner == nil {
 		fantokenStore := prefix.NewStore(store, types.PrefixFanTokenForDenom)
 
-		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(key []byte, value []byte) error {
+		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(_ []byte, value []byte) error {
 			var fantoken types.FanToken
 			k.cdc.MustUnmarshal(value, &fantoken)
 			fantokens = append(fantokens, &fantoken)
@@ -76,7 +77,7 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	} else {
 		fantokenStore := prefix.NewStore(store, types.KeyFanTokens(owner, ""))
 
-		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(key []byte, value []byte) error {
+		pageRes, err = query.Paginate(fantokenStore, req.Pagination, func(_ []byte, value []byte) error {
 			var denom gogotypes.StringValue
 			k.cdc.MustUnmarshal(value, &denom)
 			fantoken, err := k.GetFanToken(ctx, denom.Value)
@@ -92,9 +93,7 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	}
 
 	var result []*types.FanToken
-	for _, fantoken := range fantokens {
-		result = append(result, fantoken)
-	}
+	result = append(result, fantokens...)
 
 	return &types.QueryFanTokensResponse{Fantokens: result, Pagination: pageRes}, nil
 }
