@@ -2,7 +2,9 @@ package upgrades
 
 import (
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
@@ -24,4 +26,11 @@ type Upgrade struct {
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades store.StoreUpgrades
+}
+
+// BaseAppParamManager defines an interrace that BaseApp is expected to fullfil
+// that allows upgrade handlers to modify BaseApp parameters.
+type BaseAppParamManager interface {
+	GetConsensusParams(ctx sdk.Context) *tmproto.ConsensusParams
+	StoreConsensusParams(ctx sdk.Context, cp *tmproto.ConsensusParams)
 }

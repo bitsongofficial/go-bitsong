@@ -74,7 +74,7 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 	return nil
 }
 
-func setup(withGenesis bool, invCheckPeriod uint, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
+func setup(withGenesis bool, _ uint, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
 	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts)
