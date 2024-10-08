@@ -11,6 +11,7 @@ import (
 	v014 "github.com/bitsongofficial/go-bitsong/app/upgrades/v014"
 	v015 "github.com/bitsongofficial/go-bitsong/app/upgrades/v015"
 	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
+	v017 "github.com/bitsongofficial/go-bitsong/app/upgrades/v017"
 
 	errorsmod "cosmossdk.io/errors"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -94,7 +95,7 @@ var (
 		v014.Upgrade,
 		v015.Upgrade,
 		v016.Upgrade,
-		// v017.Upgrade,
+		v017.Upgrade,
 	}
 )
 
