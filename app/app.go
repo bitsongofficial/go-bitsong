@@ -46,7 +46,6 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
-	merkledropclient "github.com/bitsongofficial/go-bitsong/x/merkledrop/client"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -170,7 +169,6 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
 		fantokenclient.ProposalHandler,
-		merkledropclient.ProposalHandler,
 	)
 
 	return govProposalHandlers

@@ -7,8 +7,6 @@ import (
 
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -41,8 +39,7 @@ type GenesisParams struct {
 
 	CrisisConstantFee sdk.Coin
 
-	FantokenParams   fantokentypes.Params
-	MerkledropParams merkledroptypes.Params
+	FantokenParams fantokentypes.Params
 }
 
 func MainnetGenesisParams() GenesisParams {
@@ -117,8 +114,6 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.FantokenParams.IssueFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(1_000_000_000))
 	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
-
-	genParams.MerkledropParams.CreationFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(500_000_000))
 
 	return genParams
 }
@@ -204,14 +199,6 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
 	}
 	appState[fantokentypes.ModuleName] = fantokenGenStateBz
-
-	merkledropGenState := merkledrop.DefaultGenesisState()
-	merkledropGenState.Params = genesisParams.MerkledropParams
-	merkledropGenStateBz, err := depCdc.MarshalJSON(merkledropGenState)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
-	}
-	appState[merkledroptypes.ModuleName] = merkledropGenStateBz
 
 	return appState, genDoc, nil
 }

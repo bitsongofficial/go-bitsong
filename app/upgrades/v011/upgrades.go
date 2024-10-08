@@ -25,9 +25,9 @@ func CreateV11UpgradeHandler(mm *module.Manager, configurator module.Configurato
 		keepers.FanTokenKeeper.SetParamSet(ctx, ftParams)
 
 		ctx.Logger().Info("Updating merkledrop fees")
-		mParams := keepers.MerkledropKeeper.GetParamSet(ctx)
-		mParams.CreationFee.Denom = appparams.DefaultBondDenom
-		keepers.MerkledropKeeper.SetParamSet(ctx, mParams)
+		// mParams := keepers.MerkledropKeeper.GetParamSet(ctx)
+		// mParams.CreationFee.Denom = appparams.DefaultBondDenom
+		// keepers.MerkledropKeeper.SetParamSet(ctx, mParams)
 
 		return newVM, err
 	}

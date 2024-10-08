@@ -10,7 +10,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -49,11 +48,9 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/spf13/cast"
 
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	merkledropkeeper "github.com/bitsongofficial/go-bitsong/x/merkledrop/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -87,7 +84,6 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:            {authtypes.Burner},
 	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 	fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-	merkledroptypes.ModuleName:     nil,
 	wasmtypes.ModuleName:           {authtypes.Burner},
 }
 
@@ -119,8 +115,7 @@ type AppKeepers struct {
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 
 	// custom module keepers
-	FanTokenKeeper   fantokenkeeper.Keeper
-	MerkledropKeeper merkledropkeeper.Keeper
+	FanTokenKeeper fantokenkeeper.Keeper
 
 	// cosmwasm keepers
 	WasmKeeper wasmkeeper.Keeper
@@ -242,16 +237,6 @@ func NewAppKeepers(
 		BlockedAddrs(),
 	)
 
-	// Create Merkledrop Keeper
-	appKeepers.MerkledropKeeper = merkledropkeeper.NewKeeper(
-		appCodec,
-		keys[merkledroptypes.StoreKey],
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.DistrKeeper,
-		appKeepers.GetSubspace(merkledroptypes.ModuleName),
-	)
-
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		keys[packetforwardtypes.StoreKey],
@@ -293,8 +278,7 @@ func NewAppKeepers(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(appKeepers.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(appKeepers.IBCKeeper.ClientKeeper)).
-		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(appKeepers.FanTokenKeeper)).
-		AddRoute(merkledroptypes.RouterKey, merkledrop.NewProposalHandler(appKeepers.MerkledropKeeper))
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(appKeepers.FanTokenKeeper))
 
 	govConfig := govtypes.DefaultConfig()
 
@@ -378,7 +362,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
-	paramsKeeper.Subspace(merkledroptypes.ModuleName)
 
 	return paramsKeeper
 }

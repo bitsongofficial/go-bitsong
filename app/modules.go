@@ -6,8 +6,6 @@ import (
 	encparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
@@ -76,7 +74,6 @@ var ModuleBasics = module.NewBasicManager(
 	vesting.AppModuleBasic{},
 	packetforward.AppModuleBasic{},
 	fantoken.AppModuleBasic{},
-	merkledrop.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 )
 
@@ -111,7 +108,6 @@ func appModules(
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		packetforward.NewAppModule(app.AppKeepers.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
-		merkledrop.NewAppModule(appCodec, app.AppKeepers.MerkledropKeeper),
 		crisis.NewAppModule(app.AppKeepers.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
 }
@@ -122,7 +118,7 @@ func orderBeginBlockers() []string {
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
 		authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -131,7 +127,7 @@ func orderEndBlockers() []string {
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName,
 		packetforwardtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName, merkledroptypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -159,7 +155,6 @@ func orderInitBlockers() []string {
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		wasmtypes.ModuleName,
-		merkledroptypes.ModuleName,
 	}
 }
 

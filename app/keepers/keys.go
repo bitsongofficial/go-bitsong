@@ -12,7 +12,6 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -46,7 +45,6 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		authzkeeper.StoreKey,
 		packetforwardtypes.StoreKey,
 		fantokentypes.StoreKey,
-		merkledroptypes.StoreKey,
 		ibcexported.StoreKey,
 		ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
