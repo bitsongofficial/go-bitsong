@@ -27,5 +27,6 @@ hl-local-image:
 ifeq (,$(shell which heighliner))
 	echo 'heighliner' binary not found. Consider running `make hl-get`
 else 
-	heighliner build -c bitsong  -o bitsongofficial/go-bitsong --local -f ./chains.yaml -t v0.18.0
+	heighliner build -c bitsong  -o bitsongofficial/go-bitsong --local -f ./chains.yaml
+	# heighliner build -c bitsong  -o bitsongofficial/go-bitsong --local -f ./chains.yaml -t v0.18.0
 endif

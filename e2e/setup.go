@@ -32,24 +32,24 @@ var (
 	}
 
 	// // SDK v47 Genesis
-	// defaultGenesisKV = []cosmos.GenesisKV{
-	// 	{
-	// 		Key:   "app_state.gov.params.voting_period",
-	// 		Value: VotingPeriod,
-	// 	},
-	// 	{
-	// 		Key:   "app_state.gov.params.max_deposit_period",
-	// 		Value: MaxDepositPeriod,
-	// 	},
-	// 	{
-	// 		Key:   "app_state.gov.params.min_deposit.0.denom",
-	// 		Value: Denom,
-	// 	},
-	// 	{
-	// 		Key:   "app_state.feepay.params.enable_feepay",
-	// 		Value: false,
-	// 	},
-	// }
+	defaultGenesisKV = []cosmos.GenesisKV{
+		// {
+		// 	Key:   "app_state.gov.params.voting_period",
+		// 	Value: VotingPeriod,
+		// },
+		// {
+		// 	Key:   "app_state.gov.params.max_deposit_period",
+		// 	Value: MaxDepositPeriod,
+		// },
+		// {
+		// 	Key:   "app_state.gov.params.min_deposit.0.denom",
+		// 	Value: Denom,
+		// },
+		// {
+		// 	Key:   "app_state.feepay.params.enable_feepay",
+		// 	Value: false,
+		// },
+	}
 
 	bitsongCfg = ibc.ChainConfig{
 		Type:                "cosmos",
@@ -67,7 +67,7 @@ var (
 		SkipGenTx:           false,
 		PreGenesis:          nil,
 		EncodingConfig:      bitsongEncoding(),
-		ModifyGenesis:       nil,
+		ModifyGenesis:       cosmos.ModifyGenesis(defaultGenesisKV),
 		ConfigFileOverrides: nil,
 	}
 )
@@ -98,12 +98,12 @@ func CreateThisBranchChain(t *testing.T, numVals, numFull int) []ibc.Chain {
 func CreateChainWithCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:          "bitsong",
-			ChainName:     "bitsong",
-			Version:       config.Images[0].Version,
-			ChainConfig:   config,
-			NumValidators: &numVals,
-			NumFullNodes:  &numFull,
+			Name:        "bitsong",
+			ChainName:   "bitsong",
+			Version:     config.Images[0].Version,
+			ChainConfig: config,
+			// NumValidators: &numVals,
+			// NumFullNodes:  &numFull,
 		},
 	})
 

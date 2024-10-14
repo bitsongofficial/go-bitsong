@@ -4,7 +4,7 @@ go 1.22.2
 
 replace (
 	// For this nested module, you always want to replace the parent reference with the current worktree.
-	github.com/bitsongofficial/go-bitsong => ../
+	github.com/bitsongofficial/go-bitsong v0.17.0 => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/faddat/go-substrate-rpc-client/v4 v4.0.1-0.20240402155230-48db8c110afe
 
@@ -14,7 +14,6 @@ replace (
 
 require (
 	cosmossdk.io/math v1.3.0
-	github.com/bitsongofficial/go-bitsong v0.0.0
 	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/docker/docker v24.0.7+incompatible
