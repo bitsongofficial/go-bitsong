@@ -29,7 +29,7 @@ RUN set -eux; \
 COPY . /code/
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
-# then log output of file /code/bin/bitsongd
+# then log output of file /code/bin/junod
 # then ensure static linking
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build \
   && file /code/bin/bitsongd \
@@ -41,12 +41,13 @@ FROM alpine:3.16
 
 COPY --from=go-builder /code/bin/bitsongd /usr/bin/bitsongd
 
-COPY docker/* /opt/
-RUN chmod +x /opt/*.sh
-
-WORKDIR /opt
+ENV HOME=/bitsongd
+WORKDIR $HOME
 
 # rest server, tendermint p2p, tendermint rpc
 EXPOSE 1317 26656 26657
 
-CMD ["/usr/bin/bitsongd", "version"]
+CMD ["/usr/bin/bitsongd"]
+
+## To use as CLI:
+# alias bsd="docker run --rm -it -v ~/.bitsongd:/root/.bitsongd bitsong:v0.12323 bitsongd"
