@@ -6,7 +6,7 @@ ARG BASE_IMG_TAG=nonroot
 # Build 
 # --------------------------------------------------------
 
-FROM golang:1.18.4-alpine3.15 as build
+FROM golang:1.22.2-alpine3.15 as build
 
 RUN set -eux; apk add --no-cache ca-certificates build-base;
 RUN apk add git
