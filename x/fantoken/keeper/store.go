@@ -2,7 +2,8 @@ package keeper
 
 import (
 	"fmt"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gogotypes "github.com/gogo/protobuf/types"

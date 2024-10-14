@@ -3,7 +3,7 @@ package testing
 import (
 	"time"
 
-	"github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/v018/app"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"

@@ -1,7 +1,7 @@
 package v016
 
 import (
-	"github.com/bitsongofficial/go-bitsong/app/upgrades"
+	"github.com/bitsongofficial/go-bitsong/v018/app/upgrades"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 

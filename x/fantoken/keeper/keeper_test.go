@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	simapp "github.com/bitsongofficial/go-bitsong/app"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/v018/app"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"

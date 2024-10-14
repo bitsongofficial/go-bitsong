@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	appparams "github.com/bitsongofficial/go-bitsong/app/params"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	appparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

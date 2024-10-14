@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 
-	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
