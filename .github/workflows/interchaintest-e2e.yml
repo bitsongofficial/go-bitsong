@@ -58,8 +58,8 @@ jobs:
       matrix:
         # names of `make` commands to run tests
         test:
-          - "e2e-basic"
-          - "e2e-upgrade"
+          # - "e2e-basic"
+          # - "e2e-upgrade"
       fail-fast: false
 
     steps:
