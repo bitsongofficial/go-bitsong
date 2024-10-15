@@ -23,8 +23,10 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
 ## From Source
-1. **Install Go** 
+1. **Install Go & Environment Tooling** 
     ```bash
+	sudo apt update
+	sudo apt install -y curl git jq lz4 build-essential
     wget -q -O - https://git.io/vQhTU | bash -s -- --remove
     wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.19.5
     ```
