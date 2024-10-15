@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

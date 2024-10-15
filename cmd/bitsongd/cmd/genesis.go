@@ -3,13 +3,13 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	appparams "github.com/bitsongofficial/go-bitsong/app/params"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	"github.com/bitsongofficial/go-bitsong/x/merkledrop"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
+	"time"
+
+	appparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -19,30 +19,27 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	"time"
 )
 
 type GenesisParams struct {
 	GenesisTime     time.Time
-	ConsensusParams *tmproto.ConsensusParams
+	ConsensusParams *tmtypes.ConsensusParams
 	NativeCoin      []banktypes.Metadata
 
 	StakingParams      stakingtypes.Params
 	MintParams         minttypes.Params
 	DistributionParams distributiontypes.Params
-	GovParams          govtypes.Params
+	GovParams          govtypes.Config
 	SlashingParams     slashingtypes.Params
 
 	CrisisConstantFee sdk.Coin
 
-	FantokenParams   fantokentypes.Params
-	MerkledropParams merkledroptypes.Params
+	FantokenParams fantokentypes.Params
 }
 
 func MainnetGenesisParams() GenesisParams {
@@ -52,7 +49,7 @@ func MainnetGenesisParams() GenesisParams {
 
 	genParams.NativeCoin = []banktypes.Metadata{
 		{
-			Description: fmt.Sprintf("The native token of BitSong Network"),
+			Description: "The native token of BitSong Network",
 			DenomUnits: []*banktypes.DenomUnit{
 				{
 					Denom:    appparams.MicroCoinUnit,
@@ -93,16 +90,16 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.DistributionParams.CommunityTax = sdk.MustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
-	genParams.GovParams = govtypes.DefaultParams()
-	genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
-	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
-		appparams.MicroCoinUnit,
-		sdk.NewInt(512_000_000),
-	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
-	genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
-	genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
+	genParams.GovParams = govtypes.DefaultConfig()
+	// genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
+	// genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+	// 	appparams.MicroCoinUnit,
+	// 	sdk.NewInt(512_000_000),
+	// ))
+	// genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
+	// genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
+	// genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
+	// genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
 
 	genParams.SlashingParams = slashingtypes.DefaultParams()
 	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                       // 10000 blocks (~13.8 hr at 5 second blocks)
@@ -118,8 +115,6 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
 
-	genParams.MerkledropParams.CreationFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(500_000_000))
-
 	return genParams
 }
 
@@ -130,19 +125,18 @@ func TestnetGenesisParams() GenesisParams {
 
 	genParams.StakingParams.UnbondingTime = time.Hour * 24 * 7 * 2 // 2 weeks
 
-	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
-		appparams.MicroCoinUnit,
-		sdk.NewInt(1000000), // 1 BTSG
-	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
+	// genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+	// 	appparams.MicroCoinUnit,
+	// 	sdk.NewInt(1000000), // 1 BTSG
+	// ))
+	// genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
+	// genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
 
 	return genParams
 }
 
 func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *tmtypes.GenesisDoc, error) {
 	depCdc := clientCtx.Codec
-	cdc := depCdc.(codec.Codec)
 
 	genDoc.ChainID = chainID
 	genDoc.GenesisTime = genesisParams.GenesisTime
@@ -150,7 +144,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	stakingGenState := stakingtypes.GetGenesisStateFromAppState(depCdc, appState)
 	stakingGenState.Params = genesisParams.StakingParams
-	stakingGenStateBz, err := cdc.MarshalJSON(stakingGenState)
+	stakingGenStateBz, err := depCdc.MarshalJSON(stakingGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal staking genesis state: %w", err)
 	}
@@ -158,7 +152,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	mintGenState := minttypes.DefaultGenesisState()
 	mintGenState.Params = genesisParams.MintParams
-	mintGenStateBz, err := cdc.MarshalJSON(mintGenState)
+	mintGenStateBz, err := depCdc.MarshalJSON(mintGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal mint genesis state: %w", err)
 	}
@@ -166,25 +160,25 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	distributionGenState := distributiontypes.DefaultGenesisState()
 	distributionGenState.Params = genesisParams.DistributionParams
-	distributionGenStateBz, err := cdc.MarshalJSON(distributionGenState)
+	distributionGenStateBz, err := depCdc.MarshalJSON(distributionGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal distribution genesis state: %w", err)
 	}
 	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
-	govGenState := govtypes.DefaultGenesisState()
-	govGenState.DepositParams = genesisParams.GovParams.DepositParams
-	govGenState.TallyParams = genesisParams.GovParams.TallyParams
-	govGenState.VotingParams = genesisParams.GovParams.VotingParams
-	govGenStateBz, err := cdc.MarshalJSON(govGenState)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-	}
-	appState[govtypes.ModuleName] = govGenStateBz
+	// govGenState := govtypes.DefaultGenesisState()
+	// govGenState.DepositParams = genesisParams.GovParams.DepositParams
+	// govGenState.TallyParams = genesisParams.GovParams.TallyParams
+	// govGenState.VotingParams = genesisParams.GovParams.VotingParams
+	// govGenStateBz, err := cdc.MarshalJSON(govGenState)
+	// if err != nil {
+	// 	return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	// }
+	// appState[govtypes.ModuleName] = govGenStateBz
 
 	crisisGenState := crisistypes.DefaultGenesisState()
 	crisisGenState.ConstantFee = genesisParams.CrisisConstantFee
-	crisisGenStateBz, err := cdc.MarshalJSON(crisisGenState)
+	crisisGenStateBz, err := depCdc.MarshalJSON(crisisGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal crisis genesis state: %w", err)
 	}
@@ -192,7 +186,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	slashingGenState := slashingtypes.DefaultGenesisState()
 	slashingGenState.Params = genesisParams.SlashingParams
-	slashingGenStateBz, err := cdc.MarshalJSON(slashingGenState)
+	slashingGenStateBz, err := depCdc.MarshalJSON(slashingGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal slashing genesis state: %w", err)
 	}
@@ -200,19 +194,11 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 
 	fantokenGenState := fantokentypes.DefaultGenesisState()
 	fantokenGenState.Params = genesisParams.FantokenParams
-	fantokenGenStateBz, err := cdc.MarshalJSON(fantokenGenState)
+	fantokenGenStateBz, err := depCdc.MarshalJSON(fantokenGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal fantoken genesis state: %w", err)
 	}
 	appState[fantokentypes.ModuleName] = fantokenGenStateBz
-
-	merkledropGenState := merkledrop.DefaultGenesisState()
-	merkledropGenState.Params = genesisParams.MerkledropParams
-	merkledropGenStateBz, err := cdc.MarshalJSON(merkledropGenState)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal merkledrop genesis state: %w", err)
-	}
-	appState[merkledroptypes.ModuleName] = merkledropGenStateBz
 
 	return appState, genDoc, nil
 }
@@ -234,7 +220,6 @@ Example:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			depCdc := clientCtx.Codec
-			cdc := depCdc.(codec.Codec)
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
@@ -261,9 +246,12 @@ Example:
 
 			// run Prepare Genesis
 			appState, genDoc, err = PrepareGenesis(clientCtx, appState, genDoc, genesisParams, chainID)
+			if err != nil {
+				return fmt.Errorf("err, %s", err.Error())
+			}
 
 			// validate genesis state
-			if err = mbm.ValidateGenesis(cdc, clientCtx.TxConfig, appState); err != nil {
+			if err = mbm.ValidateGenesis(depCdc, clientCtx.TxConfig, appState); err != nil {
 				return fmt.Errorf("error validating genesis file: %s", err.Error())
 			}
 

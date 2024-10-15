@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 )
 
 // GetQueryCmd returns the query commands for the fantoken module.

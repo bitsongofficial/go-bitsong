@@ -2,51 +2,52 @@ package app
 
 import (
 	"encoding/json"
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	sdksimapp "github.com/cosmos/cosmos-sdk/simapp"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-	dbm "github.com/tendermint/tm-db"
 	"math/rand"
 	"testing"
 	"time"
+
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	bam "github.com/cosmos/cosmos-sdk/baseapp"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
+
+	dbm "github.com/cometbft/cometbft-db"
+	"github.com/stretchr/testify/require"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // SimApp testing.
-var DefaultConsensusParams = &abci.ConsensusParams{
-	Block: &abci.BlockParams{
-		MaxBytes: 200000,
-		MaxGas:   2000000,
-	},
-	Evidence: &tmproto.EvidenceParams{
-		MaxAgeNumBlocks: 302400,
-		MaxAgeDuration:  504 * time.Hour, // 3 weeks is the max duration
-		MaxBytes:        10000,
-	},
-	Validator: &tmproto.ValidatorParams{
-		PubKeyTypes: []string{
-			tmtypes.ABCIPubKeyTypeEd25519,
-		},
-	},
-}
+// var DefaultConsensusParams = &abci.ConsensusParams{
+// 	Block: &abci.BlockParams{
+// 		MaxBytes: 200000,
+// 		MaxGas:   2000000,
+// 	},
+// 	Evidence: &tmproto.EvidenceParams{
+// 		MaxAgeNumBlocks: 302400,
+// 		MaxAgeDuration:  504 * time.Hour, // 3 weeks is the max duration
+// 		MaxBytes:        10000,
+// 	},
+// 	Validator: &tmproto.ValidatorParams{
+// 		PubKeyTypes: []string{
+// 			tmtypes.ABCIPubKeyTypeEd25519,
+// 		},
+// 	},
+// }
 
 // Setup initializes a new BitsongApp
-func Setup(isCheckTx bool) *BitsongApp {
+func Setup(isCheckTx bool, opts ...wasmkeeper.Option) *BitsongApp {
 	db := dbm.NewMemDB()
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, MakeEncodingConfig(), simapp.EmptyAppOptions{})
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts)
 	if !isCheckTx {
-		genesisState := NewDefaultGenesisState()
+		genesisState := NewDefaultGenesisState(app.appCodec)
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 		if err != nil {
 			panic(err)
@@ -54,8 +55,9 @@ func Setup(isCheckTx bool) *BitsongApp {
 
 		app.InitChain(
 			abci.RequestInitChain{
+				ChainId:         "testing",
 				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: simapp.DefaultConsensusParams,
+				ConsensusParams: simtestutil.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
 			},
 		)
@@ -72,10 +74,10 @@ func (ao EmptyAppOptions) Get(o string) interface{} {
 	return nil
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*BitsongApp, GenesisState) {
+func setup(withGenesis bool, _ uint, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts)
 	if withGenesis {
 		return app, NewDefaultGenesisStateWithCodec(encCdc.Marshaler)
 	}
@@ -94,7 +96,7 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 		totalSupply = totalSupply.Add(b.Coins...)
 	}
 
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{})
+	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -105,7 +107,7 @@ func SetupWithGenesisAccounts(genAccs []authtypes.GenesisAccount, balances ...ba
 	app.InitChain(
 		abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: DefaultConsensusParams,
+			ConsensusParams: simtestutil.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
 		},
 	)
@@ -124,12 +126,12 @@ func SignCheckDeliver(
 	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
-	tx, err := helpers.GenSignedMockTx(
+	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txCfg,
 		msgs,
 		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
-		helpers.DefaultGenTxGas,
+		simtestutil.DefaultGenTxGas,
 		chainID,
 		accNums,
 		accSeqs,
@@ -152,7 +154,7 @@ func SignCheckDeliver(
 
 	// Simulate a sending a transaction and committing a block
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
-	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
+	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
 		require.NoError(t, err)
@@ -169,10 +171,10 @@ func SignCheckDeliver(
 }
 
 func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
-	return sdksimapp.CreateTestPubKeys(numPubKeys)
+	return simtestutil.CreateTestPubKeys(numPubKeys)
 }
 
 func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances sdk.Coins) {
 	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
-	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
+	require.True(t, balances.IsEqual(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }

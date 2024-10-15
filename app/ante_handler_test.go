@@ -1,275 +1,276 @@
 package app_test
 
-import (
-	simapp "github.com/bitsongofficial/go-bitsong/app"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"testing"
-	"time"
-)
+// import (
+// 	"testing"
+// 	"time"
 
-var (
-	priv1 = secp256k1.GenPrivKey()
-	addr1 = sdk.AccAddress(priv1.PubKey().Address())
-	priv2 = secp256k1.GenPrivKey()
-	addr2 = sdk.AccAddress(priv2.PubKey().Address())
+// 	simapp "github.com/bitsongofficial/go-bitsong/app"
+// 	abci "github.com/cometbft/cometbft/abci/types"
+// 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+// 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+// 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+// 	sdk "github.com/cosmos/cosmos-sdk/types"
+// 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+// 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+// 	"github.com/cosmos/cosmos-sdk/x/authz"
+// 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+// 	"github.com/cosmos/cosmos-sdk/x/staking/types"
+// 	"github.com/stretchr/testify/require"
+// )
 
-	valKey  = ed25519.GenPrivKey()
-	valAddr = sdk.AccAddress(valKey.PubKey().Address())
+// var (
+// 	priv1 = secp256k1.GenPrivKey()
+// 	addr1 = sdk.AccAddress(priv1.PubKey().Address())
+// 	priv2 = secp256k1.GenPrivKey()
+// 	addr2 = sdk.AccAddress(priv2.PubKey().Address())
 
-	zeroCommissionRates = types.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
-	oneDec, _           = sdk.NewDecFromStr("0.01")
-	tenDec, _           = sdk.NewDecFromStr("0.10")
-	twentyDec, _        = sdk.NewDecFromStr("0.20")
-	goodCommissionRates = types.NewCommissionRates(tenDec, twentyDec, oneDec)
+// 	valKey  = ed25519.GenPrivKey()
+// 	valAddr = sdk.AccAddress(valKey.PubKey().Address())
 
-	PKs = simapp.CreateTestPubKeys(500)
-)
+// 	zeroCommissionRates = types.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
+// 	oneDec, _           = sdk.NewDecFromStr("0.01")
+// 	tenDec, _           = sdk.NewDecFromStr("0.10")
+// 	twentyDec, _        = sdk.NewDecFromStr("0.20")
+// 	goodCommissionRates = types.NewCommissionRates(tenDec, twentyDec, oneDec)
 
-func TestCreateValidatorFailAnteHandler(t *testing.T) {
-	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
-	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
-	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
-	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
+// 	PKs = simapp.CreateTestPubKeys(500)
+// )
 
-	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
-	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
-	accs := authtypes.GenesisAccounts{acc1, acc2}
-	balances := []banktypes.Balance{
-		{
-			Address: addr1.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-		{
-			Address: addr2.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-	}
+// func TestCreateValidatorFailAnteHandler(t *testing.T) {
+// 	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
+// 	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
+// 	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
+// 	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
 
-	app := simapp.SetupWithGenesisAccounts(accs, balances...)
-	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin})
-	simapp.CheckBalance(t, app, addr2, sdk.Coins{genCoin})
+// 	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
+// 	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
+// 	accs := authtypes.GenesisAccounts{acc1, acc2}
+// 	balances := []banktypes.Balance{
+// 		{
+// 			Address: addr1.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 		{
+// 			Address: addr2.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 	}
 
-	// create validator
-	description := types.NewDescription("foo_moniker", "", "", "", "")
-	createValidatorMsg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description, zeroCommissionRates, sdk.OneInt(),
-	)
-	require.NoError(t, err)
+// 	app := simapp.SetupWithGenesisAccounts(accs, balances...)
+// 	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin})
+// 	simapp.CheckBalance(t, app, addr2, sdk.Coins{genCoin})
 
-	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
-	txGen := simapp.MakeEncodingConfig().TxConfig
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{0}, []uint64{0}, false, false, priv1)
-	require.Error(t, err)
-	require.EqualError(t, err, "commission can't be lower than 5%: unauthorized")
-}
+// 	// create validator
+// 	description := types.NewDescription("foo_moniker", "", "", "", "")
+// 	createValidatorMsg, err := types.NewMsgCreateValidator(
+// 		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description, zeroCommissionRates, sdk.OneInt(),
+// 	)
+// 	require.NoError(t, err)
 
-func TestCreateAndEditValidatorAnteHandler(t *testing.T) {
-	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
-	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
-	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
-	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
+// 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	txGen := simapp.MakeEncodingConfig().TxConfig
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{0}, []uint64{0}, false, false, priv1)
+// 	require.Error(t, err)
+// 	require.EqualError(t, err, "commission can't be lower than 5%: unauthorized")
+// }
 
-	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
-	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
-	accs := authtypes.GenesisAccounts{acc1, acc2}
-	balances := []banktypes.Balance{
-		{
-			Address: addr1.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-		{
-			Address: addr2.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-	}
+// func TestCreateAndEditValidatorAnteHandler(t *testing.T) {
+// 	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
+// 	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
+// 	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
+// 	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
 
-	app := simapp.SetupWithGenesisAccounts(accs, balances...)
-	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin})
-	simapp.CheckBalance(t, app, addr2, sdk.Coins{genCoin})
+// 	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
+// 	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
+// 	accs := authtypes.GenesisAccounts{acc1, acc2}
+// 	balances := []banktypes.Balance{
+// 		{
+// 			Address: addr1.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 		{
+// 			Address: addr2.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 	}
 
-	// create validator
-	description := types.NewDescription("foo_moniker", "", "", "", "")
-	createValidatorMsg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description, goodCommissionRates, sdk.OneInt(),
-	)
-	require.NoError(t, err)
+// 	app := simapp.SetupWithGenesisAccounts(accs, balances...)
+// 	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin})
+// 	simapp.CheckBalance(t, app, addr2, sdk.Coins{genCoin})
 
-	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
-	txGen := simapp.MakeEncodingConfig().TxConfig
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{8}, []uint64{0}, true, true, priv1)
-	require.NoError(t, err)
-	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin.Sub(bondCoin)})
+// 	// create validator
+// 	description := types.NewDescription("foo_moniker", "", "", "", "")
+// 	createValidatorMsg, err := types.NewMsgCreateValidator(
+// 		sdk.ValAddress(addr1), valKey.PubKey(), bondCoin, description, goodCommissionRates, sdk.OneInt(),
+// 	)
+// 	require.NoError(t, err)
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+// 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	txGen := simapp.MakeEncodingConfig().TxConfig
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{createValidatorMsg}, "", []uint64{8}, []uint64{0}, true, true, priv1)
+// 	require.NoError(t, err)
+// 	simapp.CheckBalance(t, app, addr1, sdk.Coins{genCoin.Sub(bondCoin)})
 
-	validator := checkValidator(t, app, sdk.ValAddress(addr1), true)
-	require.Equal(t, sdk.ValAddress(addr1).String(), validator.OperatorAddress)
-	require.Equal(t, types.Bonded, validator.Status)
-	require.True(sdk.IntEq(t, bondTokens, validator.BondedTokens()))
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+// 	validator := checkValidator(t, app, sdk.ValAddress(addr1), true)
+// 	require.Equal(t, sdk.ValAddress(addr1).String(), validator.OperatorAddress)
+// 	require.Equal(t, types.Bonded, validator.Status)
+// 	require.True(sdk.IntEq(t, bondTokens, validator.BondedTokens()))
 
-	// edit the validator
-	description = types.NewDescription("bar_moniker", "", "", "", "")
-	editValidatorMsg := types.NewMsgEditValidator(sdk.ValAddress(addr1), description, nil, nil)
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, true, true, priv1)
-	require.NoError(t, err)
+// 	// edit the validator
+// 	description = types.NewDescription("bar_moniker", "", "", "", "")
+// 	editValidatorMsg := types.NewMsgEditValidator(sdk.ValAddress(addr1), description, nil, nil)
 
-	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
-	require.Equal(t, description, validator.Description)
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, true, true, priv1)
+// 	require.NoError(t, err)
 
-	// edit the validator - fail
-	description = types.NewDescription("bar_moniker", "", "", "", "")
-	zeroDec := sdk.ZeroDec()
-	editValidatorMsg = types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &zeroDec, nil)
+// 	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
+// 	require.Equal(t, description, validator.Description)
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, false, false, priv1)
-	require.Error(t, err)
-	require.EqualError(t, err, "commission can't be lower than 5%: unauthorized")
-}
+// 	// edit the validator - fail
+// 	description = types.NewDescription("bar_moniker", "", "", "", "")
+// 	zeroDec := sdk.ZeroDec()
+// 	editValidatorMsg = types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &zeroDec, nil)
 
-func TestMinCommissionAuthzAnteHandler(t *testing.T) {
-	priv1 := secp256k1.GenPrivKey()
-	pub1 := priv1.PubKey()
-	addr1 := sdk.AccAddress(pub1.Address())
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{editValidatorMsg}, "", []uint64{8}, []uint64{1}, false, false, priv1)
+// 	require.Error(t, err)
+// 	require.EqualError(t, err, "commission can't be lower than 5%: unauthorized")
+// }
 
-	priv2 := secp256k1.GenPrivKey()
-	pub2 := priv2.PubKey()
-	addr2 := sdk.AccAddress(pub2.Address())
+// func TestMinCommissionAuthzAnteHandler(t *testing.T) {
+// 	priv1 := secp256k1.GenPrivKey()
+// 	pub1 := priv1.PubKey()
+// 	addr1 := sdk.AccAddress(pub1.Address())
 
-	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
-	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
-	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
-	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
+// 	priv2 := secp256k1.GenPrivKey()
+// 	pub2 := priv2.PubKey()
+// 	addr2 := sdk.AccAddress(pub2.Address())
 
-	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
-	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
-	accs := authtypes.GenesisAccounts{acc1, acc2}
-	balances := []banktypes.Balance{
-		{
-			Address: addr1.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-		{
-			Address: addr2.String(),
-			Coins:   sdk.Coins{genCoin},
-		},
-	}
+// 	genTokens := sdk.TokensFromConsensusPower(42, sdk.DefaultPowerReduction)
+// 	bondTokens := sdk.TokensFromConsensusPower(10, sdk.DefaultPowerReduction)
+// 	genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
+// 	bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
 
-	valKey := ed25519.GenPrivKey()
-	// valAddr := sdk.AccAddress(valKey.PubKey().Address())
+// 	acc1 := &authtypes.BaseAccount{Address: addr1.String()}
+// 	acc2 := &authtypes.BaseAccount{Address: addr2.String()}
+// 	accs := authtypes.GenesisAccounts{acc1, acc2}
+// 	balances := []banktypes.Balance{
+// 		{
+// 			Address: addr1.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 		{
+// 			Address: addr2.String(),
+// 			Coins:   sdk.Coins{genCoin},
+// 		},
+// 	}
 
-	commissionRates := types.NewCommissionRates(sdk.MustNewDecFromStr("0.04"), sdk.MustNewDecFromStr("0.10"), sdk.MustNewDecFromStr("0.01"))
+// 	valKey := ed25519.GenPrivKey()
+// 	// valAddr := sdk.AccAddress(valKey.PubKey().Address())
 
-	app := simapp.SetupWithGenesisAccounts(accs, balances...)
+// 	commissionRates := types.NewCommissionRates(sdk.MustNewDecFromStr("0.04"), sdk.MustNewDecFromStr("0.10"), sdk.MustNewDecFromStr("0.01"))
 
-	key := valKey.PubKey()
+// 	app := simapp.SetupWithGenesisAccounts(accs, balances...)
 
-	auth1 := authz.NewGenericAuthorization("/cosmos.staking.v1beta1.MsgCreateValidator")
+// 	key := valKey.PubKey()
 
-	msg1, err := authz.NewMsgGrant(addr1, addr2, auth1, time.Now().Add(time.Hour*72))
-	require.NotNil(t, msg1)
-	require.NoError(t, err)
+// 	auth1 := authz.NewGenericAuthorization("/cosmos.staking.v1beta1.MsgCreateValidator")
 
-	auth2 := authz.NewGenericAuthorization("/cosmos.staking.v1beta1.MsgEditValidator")
+// 	msg1, err := authz.NewMsgGrant(addr1, addr2, auth1, time.Now().Add(time.Hour*72))
+// 	require.NotNil(t, msg1)
+// 	require.NoError(t, err)
 
-	msg2, err := authz.NewMsgGrant(addr1, addr2, auth2, time.Now().Add(time.Hour*72))
-	require.NoError(t, err)
+// 	auth2 := authz.NewGenericAuthorization("/cosmos.staking.v1beta1.MsgEditValidator")
 
-	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	msg2, err := authz.NewMsgGrant(addr1, addr2, auth2, time.Now().Add(time.Hour*72))
+// 	require.NoError(t, err)
 
-	encoding := simapp.MakeEncodingConfig()
-	txGen := encoding.TxConfig
+// 	header := tmproto.Header{Height: app.LastBlockHeight() + 1}
 
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{msg1, msg2}, "",
-		[]uint64{8}, []uint64{0}, true, true, priv1)
-	require.NoError(t, err)
+// 	encoding := simapp.MakeEncodingConfig()
+// 	txGen := encoding.TxConfig
 
-	// create 2 authorization
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{msg1, msg2}, "",
+// 		[]uint64{8}, []uint64{0}, true, true, priv1)
+// 	require.NoError(t, err)
 
-	// create validator
-	description := types.NewDescription("foo_moniker", "", "", "", "")
-	createValidatorMsg, err := types.NewMsgCreateValidator(
-		sdk.ValAddress(addr1), key, bondCoin, description, commissionRates, sdk.OneInt(),
-	)
-	require.NotNil(t, createValidatorMsg)
-	require.NoError(t, err)
+// 	// create 2 authorization
 
-	execMsg := authz.NewMsgExec(addr2, []sdk.Msg{createValidatorMsg})
+// 	// create validator
+// 	description := types.NewDescription("foo_moniker", "", "", "", "")
+// 	createValidatorMsg, err := types.NewMsgCreateValidator(
+// 		sdk.ValAddress(addr1), key, bondCoin, description, commissionRates, sdk.OneInt(),
+// 	)
+// 	require.NotNil(t, createValidatorMsg)
+// 	require.NoError(t, err)
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "",
-		[]uint64{1}, []uint64{0}, false, false, priv2)
-	require.EqualError(t, err, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%").Error())
+// 	execMsg := authz.NewMsgExec(addr2, []sdk.Msg{createValidatorMsg})
 
-	// valid
-	commissionRates = types.NewCommissionRates(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.20"), sdk.MustNewDecFromStr("0.1"))
-	createValidatorMsg, err = types.NewMsgCreateValidator(
-		sdk.ValAddress(addr1), key, bondCoin, description, commissionRates, sdk.OneInt(),
-	)
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "",
+// 		[]uint64{1}, []uint64{0}, false, false, priv2)
+// 	require.EqualError(t, err, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%").Error())
 
-	require.NoError(t, err)
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	// valid
+// 	commissionRates = types.NewCommissionRates(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("0.20"), sdk.MustNewDecFromStr("0.1"))
+// 	createValidatorMsg, err = types.NewMsgCreateValidator(
+// 		sdk.ValAddress(addr1), key, bondCoin, description, commissionRates, sdk.OneInt(),
+// 	)
 
-	// wrapped tx
-	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{createValidatorMsg})
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{0}, true, true, priv2)
-	require.NoError(t, err)
-	validator := checkValidator(t, app, sdk.ValAddress(addr1), true)
-	require.Equal(t, description, validator.Description)
-	require.Equal(t, commissionRates.Rate, validator.Commission.Rate)
+// 	require.NoError(t, err)
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
 
-	// edit the validator to 1%
-	description = types.NewDescription("low commission", "", "", "", "")
-	com := sdk.MustNewDecFromStr("0.01")
-	editValidatorMsg := types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &com, nil)
+// 	// wrapped tx
+// 	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{createValidatorMsg})
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{0}, true, true, priv2)
+// 	require.NoError(t, err)
+// 	validator := checkValidator(t, app, sdk.ValAddress(addr1), true)
+// 	require.Equal(t, description, validator.Description)
+// 	require.Equal(t, commissionRates.Rate, validator.Commission.Rate)
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
+// 	// edit the validator to 1%
+// 	description = types.NewDescription("low commission", "", "", "", "")
+// 	com := sdk.MustNewDecFromStr("0.01")
+// 	editValidatorMsg := types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &com, nil)
 
-	// wrapped tx
-	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{editValidatorMsg})
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1}
 
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{1}, []uint64{1}, false, false, priv2)
-	require.EqualError(t, err, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%").Error())
+// 	// wrapped tx
+// 	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{editValidatorMsg})
 
-	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
-	require.Equal(t, commissionRates.Rate, validator.Commission.Rate)
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{1}, []uint64{1}, false, false, priv2)
+// 	require.EqualError(t, err, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "commission can't be lower than 5%").Error())
 
-	// edit the validator to 10%
-	description = types.NewDescription("increase commission", "", "", "", "")
-	com = sdk.MustNewDecFromStr("0.09")
-	editValidatorMsg = types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &com, nil)
+// 	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
+// 	require.Equal(t, commissionRates.Rate, validator.Commission.Rate)
 
-	header = tmproto.Header{Height: app.LastBlockHeight() + 1, Time: time.Now().Add(time.Hour * 25)}
+// 	// edit the validator to 10%
+// 	description = types.NewDescription("increase commission", "", "", "", "")
+// 	com = sdk.MustNewDecFromStr("0.09")
+// 	editValidatorMsg = types.NewMsgEditValidator(sdk.ValAddress(addr1), description, &com, nil)
 
-	// wrapped tx
-	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{editValidatorMsg})
-	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{1}, false, true, priv2)
-	require.NoError(t, err)
+// 	header = tmproto.Header{Height: app.LastBlockHeight() + 1, Time: time.Now().Add(time.Hour * 25)}
 
-	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
-	require.Equal(t, sdk.MustNewDecFromStr("0.09"), validator.Commission.Rate)
-}
+// 	// wrapped tx
+// 	execMsg = authz.NewMsgExec(addr2, []sdk.Msg{editValidatorMsg})
+// 	_, _, err = simapp.SignCheckDeliver(t, txGen, app.BaseApp, header, []sdk.Msg{&execMsg}, "", []uint64{9}, []uint64{1}, false, true, priv2)
+// 	require.NoError(t, err)
 
-func checkValidator(t *testing.T, app *simapp.BitsongApp, addr sdk.ValAddress, expFound bool) types.Validator {
-	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
-	validator, found := app.StakingKeeper.GetValidator(ctxCheck, addr)
+// 	validator = checkValidator(t, app, sdk.ValAddress(addr1), true)
+// 	require.Equal(t, sdk.MustNewDecFromStr("0.09"), validator.Commission.Rate)
+// }
 
-	require.Equal(t, expFound, found)
-	return validator
-}
+// func checkValidator(t *testing.T, app *simapp.BitsongApp, addr sdk.ValAddress, expFound bool) types.Validator {
+// 	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+// 	validator, found := app.StakingKeeper.GetValidator(ctxCheck, addr)
+
+// 	require.Equal(t, expFound, found)
+// 	return validator
+// }

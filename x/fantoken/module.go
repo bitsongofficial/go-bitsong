@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/client/cli"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -32,11 +33,6 @@ type AppModuleBasic struct {
 
 // Name returns the fantoken module's name.
 func (AppModuleBasic) Name() string { return types.ModuleName }
-
-// RegisterLegacyAminoCodec registers the fantoken module's types on the LegacyAmino codec.
-func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	types.RegisterLegacyAminoCodec(cdc)
-}
 
 // DefaultGenesis returns default genesis state as raw bytes for the fantoken module.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
@@ -71,6 +67,11 @@ func (AppModuleBasic) GetTxCmd() *cobra.Command {
 // GetQueryCmd returns no root query command for the fantoken module.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
+}
+
+// RegisterLegacyAminoCodec registers the fantoken module's types on the LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the fantoken module.
@@ -110,19 +111,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the fantoken module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+func (am AppModule) Route() string {
+	return types.RouterKey
 }
 
 // QuerierRoute returns the fantoken module's querier route name.
 func (AppModule) QuerierRoute() string { return types.RouterKey }
-
-// LegacyQuerierHandler returns the fantoken module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return func(sdk.Context, []string, abci.RequestQuery) ([]byte, error) {
-		return nil, fmt.Errorf("legacy querier not supported for the x/%s module", types.ModuleName)
-	}
-}
 
 // InitGenesis performs genesis initialization for the fantoken module. It returns
 // no validator updates.

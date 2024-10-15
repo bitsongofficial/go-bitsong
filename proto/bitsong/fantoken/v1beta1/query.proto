@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 import "bitsong/fantoken/v1beta1/fantoken.proto";
 import "bitsong/fantoken/v1beta1/params.proto";
 
-option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types";
 
 // Query creates service with fantoken as RPC
 service Query {
@@ -33,7 +33,9 @@ service Query {
 message QueryFanTokenRequest { string denom = 1; }
 
 // QueryFanTokenResponse is response type for the Query/FanToken RPC method
-message QueryFanTokenResponse { bitsong.fantoken.v1beta1.FanToken fantoken = 1; }
+message QueryFanTokenResponse {
+  bitsong.fantoken.v1beta1.FanToken fantoken = 1;
+}
 
 // QueryFanTokensRequest is request type for the Query/FanTokens RPC method
 message QueryFanTokensRequest {
