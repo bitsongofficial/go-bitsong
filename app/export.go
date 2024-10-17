@@ -49,7 +49,8 @@ func (app *BitsongApp) ExportAppStateAndValidators(
 
 // prepare for fresh start at zero height
 // NOTE zero height genesis is a temporary feature which will be deprecated
-//      in favour of export at a block height
+//
+//	in favour of export at a block height
 func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
@@ -77,7 +78,7 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		_, err := app.DistrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		if err != nil {
-			panic(err)
+			app.Logger().Error(err.Error(), "ValOperatorAddress", val.GetOperator())
 		}
 		return false
 	})
@@ -94,7 +95,10 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 		if err != nil {
 			panic(err)
 		}
-		_, _ = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		_, err = app.DistrKeeper.WithdrawDelegationRewards(ctx, delAddr, valAddr)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	// clear validator slash events
@@ -162,25 +166,28 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	iter := sdk.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
 	counter := int16(0)
 
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(iter.Key()[1:])
-		validator, found := app.StakingKeeper.GetValidator(ctx, addr)
-		if !found {
-			panic("expected validator, not found")
+	// Closure to ensure iterator doesn't leak.
+	func() {
+		defer iter.Close()
+		for ; iter.Valid(); iter.Next() {
+			addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
+			validator, found := app.StakingKeeper.GetValidator(ctx, addr)
+			if !found {
+				panic("expected validator, not found")
+			}
+
+			validator.UnbondingHeight = 0
+			if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
+				validator.Jailed = true
+			}
+
+			app.StakingKeeper.SetValidator(ctx, validator)
+			counter++
 		}
+	}()
 
-		validator.UnbondingHeight = 0
-		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
-			validator.Jailed = true
-		}
-
-		app.StakingKeeper.SetValidator(ctx, validator)
-		counter++
-	}
-
-	iter.Close()
-
-	if _, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx); err != nil {
+	_, err := app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	if err != nil {
 		panic(err)
 	}
 
