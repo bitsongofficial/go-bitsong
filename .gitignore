@@ -11,10 +11,6 @@
 # Build
 vendor
 build
-tools/bin/*
-examples/build/*
-docs/_build
-docs/tutorial
 dist
 tools-stamp
 
@@ -53,3 +49,5 @@ buf-stamp
 
 data
 state_export.json
+
+heighliner

@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-
+include scripts/makefiles/build.mk
 include scripts/makefiles/e2e.mk
 include scripts/makefiles/hl.mk
 include contrib/devtools/Makefile
