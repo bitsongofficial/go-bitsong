@@ -1,4 +1,4 @@
-package v017
+package v018
 
 import (
 	"github.com/bitsongofficial/go-bitsong/v018/app/upgrades"
