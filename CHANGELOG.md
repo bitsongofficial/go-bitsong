@@ -34,6 +34,31 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.17.0]
+### Features 
+- Interchaintest package support added
+- New CI support to build & release docker image
+- New CI support to run interchain tests
+- New script at `scripts/test_node.sh` that is a basic script to test setting up and starting a node.
+### Improvements 
+- Improved Makefile cli top-level command scripting
+- Replaced tendermint with cometbft
+- Bumped wasmd to `v0.45.0`
+- Bumped Cosmos-SDK to `v0.47.8`
+- Bumped IBC-Go to `v7.4.0`
+- Bumped Paket-Forward-Middleware to `v7.1.3`
+- Reformatted app test suite
+
+### Depreceated
+- remove `x/merkledrop` module
+
+### State Breaking 
+- Bumped required minimum Go version to `v1.22`
+
+## [v0.16.0]
+### Bug fixes 
+- patch for v0.16.0 that fixed Packet Forward Middleware bug.
+
 ## [v0.15.0] - 2024-03-06
 - Updated Cosmos-sdk to v0.45.16 for improved stability and security
 - Upgraded ibc-go to v4.4.2 for enhanced interoperability between different blockchain networks
