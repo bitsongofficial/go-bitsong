@@ -136,7 +136,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: simtestutil.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
-			ChainId:         "testing",
+			ChainId:         SimAppChainID,
 			Time:            time.Now().UTC(),
 			InitialHeight:   1,
 		},
@@ -145,7 +145,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 	// commit genesis changes
 	btsgApp.Commit()
 	btsgApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-		ChainID:            "testing",
+		ChainID:            SimAppChainID,
 		Height:             btsgApp.LastBlockHeight() + 1,
 		AppHash:            btsgApp.LastCommitID().Hash,
 		ValidatorsHash:     valSet.Hash(),
@@ -162,7 +162,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 // returned.
 func SignCheckDeliver(
 	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
-	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+	accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simtestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -170,7 +170,7 @@ func SignCheckDeliver(
 		msgs,
 		sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 0)},
 		simtestutil.DefaultGenTxGas,
-		chainID,
+		SimAppChainID,
 		accNums,
 		accSeqs,
 		priv...,
