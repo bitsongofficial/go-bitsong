@@ -9,12 +9,12 @@ import (
 )
 
 const (
-	UpgradeName = "v0.17.0"
+	UpgradeName = "v0.18.0"
 )
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateV17UpgradeHandler,
+	CreateUpgradeHandler: CreateV18UpgradeHandler,
 	StoreUpgrades: store.StoreUpgrades{
 		Added:   []string{crisistypes.ModuleName, consensustypes.ModuleName},
 		Deleted: []string{merkledroptypes.ModuleName},
