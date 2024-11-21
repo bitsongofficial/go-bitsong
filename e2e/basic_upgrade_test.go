@@ -1,7 +1,12 @@
 package e2e
 
-// notice: upgrade v4 will return error, as headstash accounts in v3 upgrade do not have balance during ictests.
-
+// steps:
+// 1. get:
+// - the current version image being used in production
+// - the docker image to upgrade into
+// 2. config the current image network and start it
+// 3. propose & vote on upgrade
+// 4. once
 import (
 	"context"
 	"fmt"
@@ -10,7 +15,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	// "github.com/bitsongofficial/go-bitsong/e2e/helpers"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/docker/docker/client"
@@ -27,16 +31,9 @@ const (
 	upgradeName        = "v0.18.0" // The upcoming version name - Should match with upgrade handler name. This version needs to be built locally for tests.
 	haltHeightDelta    = int64(9)  // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
-	votingPeriod       = "30s" // Reducing voting period for testing
-)
-
-var (
-	// baseChain is the current version of the chain that will be upgraded from
-	baseChain = ibc.DockerImage{
-		Repository: BitsongMainRepo,
-		Version:    "v0.17.0",
-		UidGid:     "1025:1025",
-	}
+	VotingPeriod       = "30s" // Reducing voting period for testing
+	MaxDepositPeriod   = "10s"
+	Denom              = "ubtsg"
 )
 
 func TestBasicBitsongUpgrade(t *testing.T) {
@@ -54,22 +51,22 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	t.Log(chainName, upgradeBranchVersion, upgradeRepo, upgradeName)
 
 	previousVersionGenesis := []cosmos.GenesisKV{
-		// {
-		// 	Key:   "app_state.gov.params.voting_period",
-		// 	Value: VotingPeriod,
-		// },
-		// {
-		// 	Key:   "app_state.gov.params.max_deposit_period",
-		// 	Value: MaxDepositPeriod,
-		// },
-		// {
-		// 	Key:   "app_state.gov.params.min_deposit.0.denom",
-		// 	Value: Denom,
-		// },
+		{
+			Key:   "app_state.gov.params.voting_period",
+			Value: VotingPeriod,
+		},
+		{
+			Key:   "app_state.gov.params.max_deposit_period",
+			Value: MaxDepositPeriod,
+		},
+		{
+			Key:   "app_state.gov.params.min_deposit.0.denom",
+			Value: Denom,
+		},
 	}
 	cfg := bitsongCfg
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
-	cfg.Images = []ibc.DockerImage{baseChain}
+	cfg.Images = []ibc.DockerImage{UpgradeFromBitsongImage}
 
 	numVals, numNodes := 4, 0
 	chains := CreateChainWithCustomConfig(t, numVals, numNodes, cfg)

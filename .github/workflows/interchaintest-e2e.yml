@@ -55,7 +55,7 @@ jobs:
     needs: build-docker
     runs-on: ubuntu-latest
     strategy:
-      matrix:
+      matrix: 899
         # names of `make` commands to run tests
         test:
           # - "e2e-basic"

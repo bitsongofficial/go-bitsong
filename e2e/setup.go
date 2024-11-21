@@ -23,11 +23,15 @@ var (
 	BitsongE2ERepo  = "ghcr.io/bitsongofficial/go-bitsong-e2e"
 	BitsongMainRepo = "ghcr.io/bitsongofficial/go-bitsong"
 
-	bitsongRepo, bitsongVersion = GetDockerImageInfo()
+	UpgradeFromBitsongImage = ibc.DockerImage{
+		Repository: "bitsong",
+		Version:    "v0.17.0",
+		UidGid:     "1025:1025",
+	}
 
-	BitsongImage = ibc.DockerImage{
-		Repository: bitsongRepo,
-		Version:    bitsongVersion,
+	CurrentBranchBitsongImage = ibc.DockerImage{
+		Repository: "bitsong",
+		Version:    "local",
 		UidGid:     "1025:1025",
 	}
 
@@ -55,7 +59,7 @@ var (
 		Type:                "cosmos",
 		Name:                "bitsong",
 		ChainID:             "bitsong-local-1",
-		Images:              []ibc.DockerImage{BitsongImage},
+		Images:              []ibc.DockerImage{UpgradeFromBitsongImage},
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
 		Denom:               denom,
@@ -83,27 +87,27 @@ func bitsongEncoding() *testutil.TestEncodingConfig {
 	return &cfg
 }
 
-// CreateChain generates a new chain with a custom image (useful for upgrades)
+// generates this branch image
+func CreateThisBranchChain(t *testing.T, numVals, numFull int) []ibc.Chain {
+	return CreateChain(t, numVals, numFull, CurrentBranchBitsongImage)
+}
+
+// generates custom chain version image
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
 	cfg := bitsongCfg
 	cfg.Images = []ibc.DockerImage{img}
 	return CreateChainWithCustomConfig(t, numVals, numFull, cfg)
 }
 
-// CreateThisBranchChain generates this branch's chain (ex: from the commit)
-func CreateThisBranchChain(t *testing.T, numVals, numFull int) []ibc.Chain {
-	return CreateChain(t, numVals, numFull, BitsongImage)
-}
-
 func CreateChainWithCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
-			Name:        "bitsong",
-			ChainName:   "bitsong",
-			Version:     config.Images[0].Version,
-			ChainConfig: config,
-			// NumValidators: &numVals,
-			// NumFullNodes:  &numFull,
+			Name:          "bitsong",
+			ChainName:     "bitsong",
+			Version:       config.Images[0].Version,
+			ChainConfig:   config,
+			NumValidators: &numVals,
+			NumFullNodes:  &numFull,
 		},
 	})
 
