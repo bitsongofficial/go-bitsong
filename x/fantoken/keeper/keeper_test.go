@@ -18,7 +18,7 @@ import (
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
-	initAmt  = sdk.NewIntFromUint64(100)
+	initAmt  = sdk.NewIntFromUint64(1000000000)
 	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 	symbol   = "btc"
 	name     = "Bitcoin Network"
@@ -39,10 +39,10 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T())
 
 	suite.legacyAmino = app.LegacyAmino()
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{ChainID: "testing"})
 	suite.keeper = app.AppKeepers.FanTokenKeeper
 	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app

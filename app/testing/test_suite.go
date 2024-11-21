@@ -8,6 +8,7 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakinghelper "github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -17,19 +18,23 @@ type KeeperTestHelper struct {
 	App         *app.BitsongApp
 	Ctx         sdk.Context
 	QueryHelper *baseapp.QueryServiceTestHelper
+	TestAccs    []sdk.AccAddress
 
-	TestAccs []sdk.AccAddress
+	StakingHelper *stakinghelper.Helper
 }
 
 func (s *KeeperTestHelper) Setup() {
-	s.App = app.Setup(false)
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "bitsong-test-suite-1", Time: time.Now().UTC()})
+	t := s.T()
+	s.App = app.Setup(t)
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "testing", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx,
 	}
 
 	s.TestAccs = CreateRandomAccounts(3)
+	s.StakingHelper = stakinghelper.NewHelper(s.Suite.T(), s.Ctx, s.App.AppKeepers.StakingKeeper)
+	s.StakingHelper.Denom = "ubtsg"
 }
 
 // CreateRandomAccounts is a function return a list of randomly generated AccAddresses
