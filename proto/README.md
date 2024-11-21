@@ -10,7 +10,7 @@ run:
 ```sh
 go install github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar@latest
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v${GOLANG_PROTOBUF_VERSION}
--go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v${GRPC_GATEWAY_VERSION}
+go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway@v${GRPC_GATEWAY_VERSION}
 go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@v${GRPC_GATEWAY_VERSION}
 ```
 then run:
@@ -22,6 +22,7 @@ then run:
 ```
 once installed, in the root of your project
 ```sh
+# requires buf to be installed: https://buf.build/docs/installation/
 cd ../proto
 buf mod update
 cd ..
@@ -30,8 +31,8 @@ buf generate
 
 then, move the generated proto file into the right places:
 ```sh
-cp -r ./github.com/<your-repo-org>/<your-project>/x/* x/
-cp -r ./github.com/<any-other>/<proto-imports>/x/* x/
+cp -r ./github.com/bitsongofficial/go-bitsong/v018/x/* x/
+# cp -r ./github.com/<any-other>/<proto-imports>/x/* x/
 ```
 
 then you can clean the repo:

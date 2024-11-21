@@ -70,7 +70,9 @@ message MsgDisableMint {
 }
 
 // MsgDisableMintResponse defines the MsgDisableMint response type
-message MsgDisableMintResponse {}
+message MsgDisableMintResponse {
+  string denom = 1;
+}
 
 // MsgMint defines a message for minting a new fan token
 message MsgMint {
@@ -84,7 +86,12 @@ message MsgMint {
 }
 
 // MsgMintResponse defines the MsgMint response type
-message MsgMintResponse {}
+message MsgMintResponse {
+  string recipient = 1;
+
+  cosmos.base.v1beta1.Coin coin = 2
+      [ (gogoproto.moretags) = "yaml:\"coin\"", (gogoproto.nullable) = false ];
+}
 
 // MsgBurn defines a message for burning some fan tokens
 message MsgBurn {
@@ -96,7 +103,13 @@ message MsgBurn {
 }
 
 // MsgBurnResponse defines the MsgBurn response type
-message MsgBurnResponse {}
+message MsgBurnResponse {
+  string sender = 1;
+
+  cosmos.base.v1beta1.Coin coin = 2
+      [ (gogoproto.moretags) = "yaml:\"coin\"", (gogoproto.nullable) = false ];
+}
+
 
 // MsgSetMinter defines a message for changing the fan token minter address
 message MsgSetMinter {
@@ -112,7 +125,16 @@ message MsgSetMinter {
 }
 
 // MsgSetMinterResponse defines the MsgTransferAuthority response type
-message MsgSetMinterResponse {}
+message MsgSetMinterResponse {
+  // denom the fan token denom
+  string denom = 1;
+  
+  // old_minter, the actual minter
+  string old_minter = 2 [ (gogoproto.moretags) = "yaml:\"old_minter\"" ];
+
+  // new_minter, the new fan token minter
+  string new_minter = 3 [ (gogoproto.moretags) = "yaml:\"new_minter\"" ];
+}
 
 // MsgSetAuthority defines a message for changing the fan token minter address
 message MsgSetAuthority {
@@ -128,7 +150,16 @@ message MsgSetAuthority {
 }
 
 // MsgSetAuthorityResponse defines the MsgTransferAuthority response type
-message MsgSetAuthorityResponse {}
+message MsgSetAuthorityResponse {
+  // denom the fan token denom
+  string denom = 1;
+
+  // old_authority, the actual metadata authority
+  string old_authority = 2 [ (gogoproto.moretags) = "yaml:\"old_authority\"" ];
+
+  // new_authority, the new fan token metadata authority
+  string new_authority = 3 [ (gogoproto.moretags) = "yaml:\"new_authority\"" ];
+}
 
 message MsgSetUri {
   string authority = 1;
@@ -136,4 +167,6 @@ message MsgSetUri {
   string uri = 3 [ (gogoproto.customname) = "URI" ];
 }
 
-message MsgSetUriResponse {}
+message MsgSetUriResponse {
+  string denom = 1;
+}

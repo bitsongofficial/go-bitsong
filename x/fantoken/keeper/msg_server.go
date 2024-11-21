@@ -42,10 +42,6 @@ func (m msgServer) Issue(goCtx context.Context, msg *types.MsgIssue) (*types.Msg
 
 	m.Logger(ctx).Info(fmt.Sprintf("minted a new fantoken denom: %s", denom))
 
-	ctx.EventManager().EmitTypedEvent(&types.EventIssue{
-		Denom: denom,
-	})
-
 	return &types.MsgIssueResponse{
 		Denom: denom,
 	}, nil
@@ -74,12 +70,10 @@ func (m msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.MsgMi
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventMint{
+	return &types.MsgMintResponse{
 		Recipient: recipient.String(),
-		Coin:      msg.Coin.String(),
-	})
-
-	return &types.MsgMintResponse{}, nil
+		Coin:      msg.Coin,
+	}, nil
 }
 
 func (m msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBurnResponse, error) {
@@ -94,12 +88,10 @@ func (m msgServer) Burn(goCtx context.Context, msg *types.MsgBurn) (*types.MsgBu
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventBurn{
+	return &types.MsgBurnResponse{
 		Sender: msg.Sender,
-		Coin:   msg.Coin.String(),
-	})
-
-	return &types.MsgBurnResponse{}, nil
+		Coin:   msg.Coin,
+	}, nil
 }
 
 func (m msgServer) SetAuthority(goCtx context.Context, msg *types.MsgSetAuthority) (*types.MsgSetAuthorityResponse, error) {
@@ -123,13 +115,11 @@ func (m msgServer) SetAuthority(goCtx context.Context, msg *types.MsgSetAuthorit
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventSetAuthority{
+	return &types.MsgSetAuthorityResponse{
 		Denom:        msg.Denom,
 		OldAuthority: msg.OldAuthority,
 		NewAuthority: msg.NewAuthority,
-	})
-
-	return &types.MsgSetAuthorityResponse{}, nil
+	}, nil
 }
 
 func (m msgServer) SetMinter(goCtx context.Context, msg *types.MsgSetMinter) (*types.MsgSetMinterResponse, error) {
@@ -149,13 +139,11 @@ func (m msgServer) SetMinter(goCtx context.Context, msg *types.MsgSetMinter) (*t
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventSetMinter{
+	return &types.MsgSetMinterResponse{
 		Denom:     msg.Denom,
 		OldMinter: msg.OldMinter,
 		NewMinter: msg.NewMinter,
-	})
-
-	return &types.MsgSetMinterResponse{}, nil
+	}, nil
 }
 
 func (m msgServer) DisableMint(goCtx context.Context, msg *types.MsgDisableMint) (*types.MsgDisableMintResponse, error) {
@@ -170,11 +158,9 @@ func (m msgServer) DisableMint(goCtx context.Context, msg *types.MsgDisableMint)
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventDisableMint{
+	return &types.MsgDisableMintResponse{
 		Denom: msg.Denom,
-	})
-
-	return &types.MsgDisableMintResponse{}, nil
+	}, nil
 }
 
 func (m msgServer) SetUri(goCtx context.Context, msg *types.MsgSetUri) (*types.MsgSetUriResponse, error) {
@@ -189,9 +175,7 @@ func (m msgServer) SetUri(goCtx context.Context, msg *types.MsgSetUri) (*types.M
 		return nil, err
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventSetUri{
+	return &types.MsgSetUriResponse{
 		Denom: msg.Denom,
-	})
-
-	return &types.MsgSetUriResponse{}, nil
+	}, nil
 }
