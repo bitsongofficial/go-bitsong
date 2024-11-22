@@ -15,6 +15,7 @@ build-help:
 	@echo "  build-reproducible                     Build reproducible binaries"
 	@echo "  build-reproducible-amd64               Build reproducible amd64 binary"
 	@echo "  build-reproducible-arm64               Build reproducible arm64 binary"
+	@echo "  build-generate-tar-and-checksum		Compress reproducable binaries and generate checksums"
 
 # Cross-building for arm64 from amd64 (or vice-versa) takes
 # a lot of time due to QEMU virtualization but it's the only way (afaik)
@@ -66,6 +67,11 @@ build-reproducible-arm64: go.sum
 		--load \
 		-f Dockerfile .
 	$(DOCKER) rm -f bitsongbinary || true
-	$(DOCKER) create -ti --name bitsongbinary terp-core:local-arm64
+	$(DOCKER) create -ti --name bitsongbinary bitsong:local-arm64
 	$(DOCKER) cp bitsongbinary:/usr/bin/bitsongd $(BUILDDIR)/bitsongd-linux-arm64
 	$(DOCKER) rm -f bitsongbinary
+
+# Target to generate tarballs and checksums
+build-generate-tar-and-checksum:
+	@echo "Generating tarballs and checksums..."
+	sh scripts/prep-release.sh
