@@ -217,6 +217,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
 		genesisCommand(encodingConfig),
+		InitFromStateCmd(app.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(app.DefaultNodeHome),
