@@ -281,7 +281,10 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 		panic("pub_key not found")
 	}
 	// Update address
-	newAccAddr, _ := newAccount.GetAddress()
+	newAccAddr, err := newAccount.GetAddress()
+	if err != nil {
+		return nil, err
+	}
 	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(newAccAddr.String()), -1)
 
 	genDoc := tmtypes.GenesisDoc{}
@@ -319,13 +322,13 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 		var ibcGenState ibctypes.GenesisState
 		clientCtx.Codec.MustUnmarshalJSON(appState["ibc"], &ibcGenState)
 
-		ibcGenState.ChannelGenesis.AckSequences = []ibcchanneltypes.PacketSequence{}
-		ibcGenState.ChannelGenesis.Acknowledgements = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Channels = []ibcchanneltypes.IdentifiedChannel{}
+		ibcGenState.ChannelGenesis.Acknowledgements = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Commitments = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Receipts = []ibcchanneltypes.PacketState{}
-		ibcGenState.ChannelGenesis.RecvSequences = []ibcchanneltypes.PacketSequence{}
 		ibcGenState.ChannelGenesis.SendSequences = []ibcchanneltypes.PacketSequence{}
+		ibcGenState.ChannelGenesis.RecvSequences = []ibcchanneltypes.PacketSequence{}
+		ibcGenState.ChannelGenesis.AckSequences = []ibcchanneltypes.PacketSequence{}
 		ibcGenState.ChannelGenesis.NextChannelSequence = uint64(1)
 
 		ibcGenState.ClientGenesis.Clients = []ibcclienttypes.IdentifiedClientState{}
@@ -465,6 +468,8 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	// Replace old validator_address with the new one
 	appStateJSON = bytes.Replace(appStateJSON, []byte(operatorAddr), []byte(sdk.ValAddress(params.TmPubKey.Address()).String()), -1)
 	appStateJSON = bytes.Replace(appStateJSON, []byte(sdk.ConsAddress(oldValidator.PubKey.Address()).String()), []byte(sdk.ConsAddress(params.TmPubKey.Address()).String()), -1)
+
+	// TODO: manually proceed with upgrade if needed
 
 	genDoc.AppState = appStateJSON
 

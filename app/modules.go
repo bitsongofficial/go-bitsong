@@ -47,6 +47,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v7/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 )
 
 // ModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -68,6 +69,7 @@ var ModuleBasics = module.NewBasicManager(
 	authzmodule.AppModuleBasic{},
 	consensus.AppModuleBasic{},
 	ibc.AppModuleBasic{},
+	ibctm.AppModuleBasic{},
 	upgrade.AppModuleBasic{},
 	evidence.AppModuleBasic{},
 	transfer.AppModuleBasic{},
