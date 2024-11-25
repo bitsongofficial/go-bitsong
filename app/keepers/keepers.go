@@ -295,11 +295,12 @@ func NewAppKeepers(
 
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
+	const middlewareTimeoutRetry = 0
 	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
 	transferStack = packetforward.NewIBCMiddleware(
 		transferStack,
 		appKeepers.PacketForwardKeeper,
-		0, // retries on timeout
+		middlewareTimeoutRetry, // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
 	)
