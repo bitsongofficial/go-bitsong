@@ -23,7 +23,7 @@ import (
 
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 
-	"github.com/bitsongofficial/go-bitsong/v018/app"
+	bitsong "github.com/bitsongofficial/go-bitsong/v018/app"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -44,12 +44,12 @@ import (
 // NewRootCmd creates a new root command for terpd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := app.MakeEncodingConfig()
+	encodingConfig := bitsong.MakeEncodingConfig()
 
 	cfg := sdk.GetConfig()
-	cfg.SetBech32PrefixForAccount(app.Bech32PrefixAccAddr, app.Bech32PrefixAccPub)
-	cfg.SetBech32PrefixForValidator(app.Bech32PrefixValAddr, app.Bech32PrefixValPub)
-	cfg.SetBech32PrefixForConsensusNode(app.Bech32PrefixConsAddr, app.Bech32PrefixConsPub)
+	cfg.SetBech32PrefixForAccount(bitsong.Bech32PrefixAccAddr, bitsong.Bech32PrefixAccPub)
+	cfg.SetBech32PrefixForValidator(bitsong.Bech32PrefixValAddr, bitsong.Bech32PrefixValPub)
+	cfg.SetBech32PrefixForConsensusNode(bitsong.Bech32PrefixConsAddr, bitsong.Bech32PrefixConsPub)
 	cfg.SetAddressVerifier(wasmtypes.VerifyAddressLen())
 	cfg.Seal()
 
@@ -61,7 +61,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithBroadcastMode(flags.FlagBroadcastMode).
-		WithHomeDir(app.DefaultNodeHome).
+		WithHomeDir(bitsong.DefaultNodeHome).
 		WithViper("") // In bitsong, we don't use any prefix for env variables.
 
 	// Allows you to add extra params to your client.toml
@@ -70,7 +70,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	rootCmd := &cobra.Command{
 		Use:   version.AppName,
-		Short: "Terp Network Community Network",
+		Short: "Bitsong Network Application",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())
@@ -201,25 +201,27 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		// NewTestnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}),
-		// AddGenesisIcaCmd(app.DefaultNodeHome),
+		genutilcli.InitCmd(bitsong.ModuleBasics, bitsong.DefaultNodeHome),
+		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		// DebugCmd(),
 		ConfigCmd(),
 		pruning.PruningCmd(ac.newApp),
 	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
+	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
+		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
 		genesisCommand(encodingConfig),
+		InitFromStateCmd(bitsong.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
-		keys.Commands(app.DefaultNodeHome),
+		keys.Commands(bitsong.DefaultNodeHome),
 	)
 	// add rosetta
 	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
@@ -232,8 +234,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
 func genesisCommand(encodingConfig params.EncodingConfig, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, app.ModuleBasics, app.DefaultNodeHome)
-
+	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, bitsong.ModuleBasics, bitsong.DefaultNodeHome)
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
 	}
@@ -258,7 +259,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	app.ModuleBasics.AddQueryCommands(cmd)
+	bitsong.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -286,7 +287,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetAuxToFeeCommand(),
 	)
 
-	app.ModuleBasics.AddTxCommands(cmd)
+	bitsong.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -317,7 +318,7 @@ func (ac appCreator) newApp(
 
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	return app.NewBitsongApp(
+	return bitsong.NewBitsongApp(
 		logger,
 		db,
 		traceStore,
@@ -339,7 +340,7 @@ func (ac appCreator) appExport(
 	appOpts servertypes.AppOptions,
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
-	var wasmApp *app.BitsongApp
+	var wasmApp *bitsong.BitsongApp
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errors.New("application home is not set")
@@ -355,7 +356,7 @@ func (ac appCreator) appExport(
 	appOpts = viperAppOpts
 
 	var emptyWasmOpts []wasmkeeper.Option
-	wasmApp = app.NewBitsongApp(
+	wasmApp = bitsong.NewBitsongApp(
 		logger,
 		db,
 		traceStore,

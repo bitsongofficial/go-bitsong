@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1beta1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -34,7 +35,7 @@ type GenesisParams struct {
 	StakingParams      stakingtypes.Params
 	MintParams         minttypes.Params
 	DistributionParams distributiontypes.Params
-	GovParams          govtypes.Config
+	GovParams          v1beta1govtypes.GenesisState
 	SlashingParams     slashingtypes.Params
 
 	CrisisConstantFee sdk.Coin
@@ -90,16 +91,15 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.DistributionParams.CommunityTax = sdk.MustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
-	genParams.GovParams = govtypes.DefaultConfig()
-	// genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
-	// genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
-	// 	appparams.MicroCoinUnit,
-	// 	sdk.NewInt(512_000_000),
-	// ))
-	// genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
-	// genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
-	// genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
-	// genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
+	genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
+	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+		appparams.MicroCoinUnit,
+		sdk.NewInt(512_000_000),
+	))
+	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
+	genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
+	genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
+	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
 
 	genParams.SlashingParams = slashingtypes.DefaultParams()
 	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                       // 10000 blocks (~13.8 hr at 5 second blocks)
@@ -125,12 +125,12 @@ func TestnetGenesisParams() GenesisParams {
 
 	genParams.StakingParams.UnbondingTime = time.Hour * 24 * 7 * 2 // 2 weeks
 
-	// genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
-	// 	appparams.MicroCoinUnit,
-	// 	sdk.NewInt(1000000), // 1 BTSG
-	// ))
-	// genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
-	// genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
+	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+		appparams.MicroCoinUnit,
+		sdk.NewInt(1000000), // 1 BTSG
+	))
+	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
+	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
 
 	return genParams
 }
@@ -166,15 +166,15 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 	}
 	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
-	// govGenState := govtypes.DefaultGenesisState()
-	// govGenState.DepositParams = genesisParams.GovParams.DepositParams
-	// govGenState.TallyParams = genesisParams.GovParams.TallyParams
-	// govGenState.VotingParams = genesisParams.GovParams.VotingParams
-	// govGenStateBz, err := cdc.MarshalJSON(govGenState)
-	// if err != nil {
-	// 	return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
-	// }
-	// appState[govtypes.ModuleName] = govGenStateBz
+	govGenState := v1beta1govtypes.DefaultGenesisState()
+	govGenState.DepositParams = genesisParams.GovParams.DepositParams
+	govGenState.TallyParams = genesisParams.GovParams.TallyParams
+	govGenState.VotingParams = genesisParams.GovParams.VotingParams
+	govGenStateBz, err := depCdc.MarshalJSON(govGenState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
+	}
+	appState[govtypes.ModuleName] = govGenStateBz
 
 	crisisGenState := crisistypes.DefaultGenesisState()
 	crisisGenState.ConstantFee = genesisParams.CrisisConstantFee
