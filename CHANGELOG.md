@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [v0.17.0]
+## [v0.18.x]
 ### Features 
 - Interchaintest package support added
 - New CI support to build & release docker image
