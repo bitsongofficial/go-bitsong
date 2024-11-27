@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 	"time"
 
-	tmcfg "github.com/tendermint/tendermint/config"
+	tmcfg "github.com/cometbft/cometbft/config"
 
+	"github.com/cometbft/cometbft/libs/cli"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	"github.com/cometbft/cometbft/types"
 	"github.com/cosmos/go-bip39"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -84,7 +84,7 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			config.P2P.MaxNumOutboundPeers = 50
 			config.Mempool.Size = 10000
 			config.StateSync.TrustPeriod = 112 * time.Hour
-			config.FastSync.Version = "v0"
+			config.BlockSync.Version = "v0"
 
 			config.SetRoot(clientCtx.HomeDir)
 

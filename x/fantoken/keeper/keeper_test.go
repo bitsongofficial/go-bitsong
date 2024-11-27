@@ -1,30 +1,31 @@
 package keeper_test
 
 import (
-	simapp "github.com/bitsongofficial/go-bitsong/app"
-	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/v018/app"
+	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
-	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	"testing"
+
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/stretchr/testify/suite"
 )
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
-	initAmt  = sdk.NewIntWithDecimal(100000000, int(6))
+	initAmt  = sdk.NewIntFromUint64(1000000000)
 	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 	symbol   = "btc"
 	name     = "Bitcoin Network"
 
 	maxSupply = sdk.NewInt(200000000)
-	mintable  = true
-	height    = int64(1)
+	// mintable  = true
+	// height    = int64(1)
 )
 
 type KeeperTestSuite struct {
@@ -38,12 +39,12 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := simapp.Setup(false)
+	app := simapp.Setup(suite.T())
 
 	suite.legacyAmino = app.LegacyAmino()
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{})
-	suite.keeper = app.FanTokenKeeper
-	suite.bk = app.BankKeeper
+	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{ChainID: "testing"})
+	suite.keeper = app.AppKeepers.FanTokenKeeper
+	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app
 
 	// set params

@@ -7,6 +7,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"regexp"
+	"time"
+
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcrypto "github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/libs/cli"
+	tmjson "github.com/cometbft/cometbft/libs/json"
+	tmos "github.com/cometbft/cometbft/libs/os"
+	tmrand "github.com/cometbft/cometbft/libs/rand"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -22,23 +34,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1beta1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/go-bip39"
-	ibcclienttypes "github.com/cosmos/ibc-go/v4/modules/core/02-client/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/v4/modules/core/04-channel/types"
-	ibctypes "github.com/cosmos/ibc-go/v4/modules/core/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctypes "github.com/cosmos/ibc-go/v7/modules/core/types"
 	"github.com/spf13/cobra"
-	tmcfg "github.com/tendermint/tendermint/config"
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmtypes "github.com/tendermint/tendermint/types"
-	"io/ioutil"
-	"path/filepath"
-	"regexp"
-	"time"
 )
 
 const (
@@ -67,7 +69,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			config.P2P.MaxNumOutboundPeers = 50
 			config.Mempool.Size = 10000
 			config.StateSync.TrustPeriod = 112 * time.Hour
-			config.FastSync.Version = "v0"
+			// config.DeprecatedFastSyncConfig.Version = "v0"
 
 			config.SetRoot(clientCtx.HomeDir)
 
@@ -111,7 +113,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			increaseCoinAmount, _ := cmd.Flags().GetInt64(FlagIncreaseCoinAmount)
 
 			// attempt to lookup address from Keybase if no address was provided
-			kb, err := keyring.New(sdk.KeyringServiceName(), "test", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()))
+			kb, err := keyring.New(sdk.KeyringServiceName(), "test", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()), clientCtx.Codec)
 			if err != nil {
 				return fmt.Errorf("failed to open keyring: %w", err)
 			}
@@ -173,7 +175,7 @@ func initNodeFromState(config *tmcfg.Config, cliCtx client.Context, genParams St
 		return fmt.Errorf("failed to export gensis file: %s", err.Error())
 	}
 
-	config.FastSyncMode = false
+	config.DeprecatedFastSyncMode = false
 	tmcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 
 	fmt.Println("State imported successfully")
@@ -272,13 +274,18 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	match := re.FindStringSubmatch(string(stateBz))
 	if len(match) > 1 {
 		oldPubKey := match[2]
-		newPubKey := base64.StdEncoding.EncodeToString(newAccount.GetPubKey().Bytes())
+		newAccAdddr, _ := newAccount.GetPubKey()
+		newPubKey := base64.StdEncoding.EncodeToString(newAccAdddr.Bytes())
 		stateBz = bytes.Replace(stateBz, []byte(oldPubKey), []byte(newPubKey), -1)
 	} else {
 		panic("pub_key not found")
 	}
 	// Update address
-	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(newAccount.GetAddress().String()), -1)
+	newAccAddr, err := newAccount.GetAddress()
+	if err != nil {
+		return nil, err
+	}
+	stateBz = bytes.Replace(stateBz, []byte(params.OldAccountAddress), []byte(newAccAddr.String()), -1)
 
 	genDoc := tmtypes.GenesisDoc{}
 	err = tmjson.Unmarshal(stateBz, &genDoc)
@@ -301,7 +308,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	genDoc.ChainID = params.ChainID
 
 	// Update gov module
-	var govGenState govtypes.GenesisState
+	var govGenState v1beta1govtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appState[govtypes.ModuleName], &govGenState)
 	govGenState.VotingParams.VotingPeriod = params.VotingPeriod
 	govGenStateBz, err := clientCtx.Codec.MarshalJSON(&govGenState)
@@ -315,13 +322,13 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 		var ibcGenState ibctypes.GenesisState
 		clientCtx.Codec.MustUnmarshalJSON(appState["ibc"], &ibcGenState)
 
-		ibcGenState.ChannelGenesis.AckSequences = []ibcchanneltypes.PacketSequence{}
-		ibcGenState.ChannelGenesis.Acknowledgements = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Channels = []ibcchanneltypes.IdentifiedChannel{}
+		ibcGenState.ChannelGenesis.Acknowledgements = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Commitments = []ibcchanneltypes.PacketState{}
 		ibcGenState.ChannelGenesis.Receipts = []ibcchanneltypes.PacketState{}
-		ibcGenState.ChannelGenesis.RecvSequences = []ibcchanneltypes.PacketSequence{}
 		ibcGenState.ChannelGenesis.SendSequences = []ibcchanneltypes.PacketSequence{}
+		ibcGenState.ChannelGenesis.RecvSequences = []ibcchanneltypes.PacketSequence{}
+		ibcGenState.ChannelGenesis.AckSequences = []ibcchanneltypes.PacketSequence{}
 		ibcGenState.ChannelGenesis.NextChannelSequence = uint64(1)
 
 		ibcGenState.ClientGenesis.Clients = []ibcclienttypes.IdentifiedClientState{}
@@ -392,7 +399,8 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	// Update self delegation on operator address
 	for i, _ := range stakingGenState.Delegations {
 		delegation := &stakingGenState.Delegations[i]
-		if delegation.DelegatorAddress == newAccount.GetAddress().String() {
+		newAddr, _ := newAccount.GetAddress()
+		if delegation.DelegatorAddress == newAddr.String() {
 			delegation.Shares = delegation.Shares.Add(sdk.NewDec(params.IncreaseCoinAmount))
 		}
 	}
@@ -408,7 +416,8 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	clientCtx.Codec.MustUnmarshalJSON(appState[distrtypes.ModuleName], &distrGenState)
 	for i, _ := range distrGenState.DelegatorStartingInfos {
 		delegatorStartingInfo := &distrGenState.DelegatorStartingInfos[i]
-		if delegatorStartingInfo.DelegatorAddress == newAccount.GetAddress().String() {
+		newAddr, _ := newAccount.GetAddress()
+		if delegatorStartingInfo.DelegatorAddress == newAddr.String() {
 			delegatorStartingInfo.StartingInfo.Stake = delegatorStartingInfo.StartingInfo.Stake.Add(sdk.NewDec(params.IncreaseCoinAmount))
 		}
 	}
@@ -460,12 +469,14 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	appStateJSON = bytes.Replace(appStateJSON, []byte(operatorAddr), []byte(sdk.ValAddress(params.TmPubKey.Address()).String()), -1)
 	appStateJSON = bytes.Replace(appStateJSON, []byte(sdk.ConsAddress(oldValidator.PubKey.Address()).String()), []byte(sdk.ConsAddress(params.TmPubKey.Address()).String()), -1)
 
+	// TODO: manually proceed with upgrade if needed
+
 	genDoc.AppState = appStateJSON
 
 	return &genDoc, nil
 }
 
-func fetchKey(kb keyring.Keyring, keyref string) (keyring.Info, error) {
+func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	// firstly check if the keyref is a key name of a key registered in a keyring.
 	k, err := kb.Key(keyref)
 	// if the key is not there or if we have a problem with a keyring itself then we move to a

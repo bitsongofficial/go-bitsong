@@ -16,17 +16,19 @@ After launching the main BitSong blockchain in August 2020, the bitsong-2b mainn
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
-**Note**: Requires [Go 1.19.x+](https://golang.org/dl/)
+**Note**: Requires [Go 1.22.x+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
 
 ## From Source
-1. **Install Go** 
+1. **Install Go & Environment Tooling** 
     ```bash
+	sudo apt update
+	sudo apt install -y curl git jq lz4 build-essential
     wget -q -O - https://git.io/vQhTU | bash -s -- --remove
-    wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.19.5
+    wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.22.9
     ```
 2. **Clone BitSong source code to your machine**
     ```bash

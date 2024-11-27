@@ -11,10 +11,6 @@
 # Build
 vendor
 build
-tools/bin/*
-examples/build/*
-docs/_build
-docs/tutorial
 dist
 tools-stamp
 
@@ -27,6 +23,9 @@ mytestnet
 # Testing
 coverage.txt
 profile.out
+
+# heighliner
+heighliner
 
 # Vagrant
 .vagrant/
@@ -50,3 +49,6 @@ buf-stamp
 
 data
 state_export.json
+
+github.com*
+gogoproto*

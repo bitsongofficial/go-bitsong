@@ -1,5 +1,24 @@
 #!/usr/bin/make -f
 
+include scripts/makefiles/build.mk
+include scripts/makefiles/e2e.mk
+include scripts/makefiles/hl.mk
+include contrib/devtools/Makefile
+
+.DEFAULT_GOAL := help
+help:
+	@echo "Available top-level commands:"
+	@echo ""
+	@echo "Usage:"
+	@echo "    make [command]"
+	@echo ""
+	@echo "  make build                 Build Bitsong node binary"
+	@echo "  make install               Install Bitsong node binary"
+	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
+	@echo "  make e2e                   Show available e2e commands"
+	@echo ""
+	@echo "Run 'make [subcommand]' to see the available commands for each subcommand."
+
 APP_DIR = ./app
 BINDIR ?= $(GOPATH)/bin
 
@@ -7,19 +26,41 @@ PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 PACKAGES_UNITTEST=$(shell go list ./... | grep -v '/simulation' | grep -v '/cli_test')
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
+
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
-TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::') # grab everything after the space in "github.com/tendermint/tendermint v0.34.7"
+BUILDDIR ?= $(CURDIR)/build
+
+TENDERMINT_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::') # grab everything after the space in "github.com/tendermint/tendermint v0.34.7"
 
 DOCKER := $(shell which docker)
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
-TEST_DOCKER_REPO=bitsongofficial/bitsongdnode
+
+E2E_UPGRADE_VERSION := "v0.18.0"
+
+GO_MODULE := $(shell cat go.mod | grep "module " | cut -d ' ' -f 2)
+GO_VERSION := $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f 2)
+GO_MAJOR_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
+GO_MINOR_VERSION = $(shell go version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
+GO_MINIMUM_MAJOR_VERSION = $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f2 | cut -d'.' -f1)
+GO_MINIMUM_MINOR_VERSION = $(shell cat go.mod | grep -E 'go [0-9].[0-9]+' | cut -d ' ' -f2 | cut -d'.' -f2)
+# message to be printed if Go does not meet the minimum required version
+GO_VERSION_ERR_MSG = "ERROR: Go version $(GO_MINIMUM_MAJOR_VERSION).$(GO_MINIMUM_MINOR_VERSION)+ is required"
 
 export GO111MODULE = on
 
-# process build tags
+# don't override user values
+ifeq (,$(VERSION))
+  VERSION := $(shell git describe --tags)
+  # if VERSION is empty, then populate it with branch's name and raw commit hash
+  ifeq (,$(VERSION))
+    VERSION := $(BRANCH)-$(COMMIT)
+  endif
+endif
 
+# process build tags
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -74,23 +115,19 @@ endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
 
-BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
-
+BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)' -trimpath
 
 all: install tools lint
-
-# The below include contains the tools.
-include contrib/devtools/Makefile
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
+	go build $(BUILD_FLAGS) -o bin/bitsongd ./cmd/bitsongd
 endif
 
 build-linux: go.sum
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+	go build $(BUILD_FLAGS)
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
