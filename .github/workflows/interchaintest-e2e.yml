@@ -60,7 +60,7 @@ jobs:
         test:
           - "e2e-basic"
           - "e2e-pfm"
-          # - "e2e-upgrade"
+          - "e2e-polytone"
       fail-fast: false
 
     steps:

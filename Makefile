@@ -16,6 +16,7 @@ help:
 	@echo "    make [command]"
 	@echo ""
 	@echo "  make build                 Build Bitsong node binary"
+	@echo "  make docker                Show available docker related commands"
 	@echo "  make e2e                   Show available e2e commands"
 	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
 	@echo "  make install               Install Bitsong node binary"
