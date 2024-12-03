@@ -14,12 +14,15 @@ replace (
 
 require (
 	cosmossdk.io/math v1.3.0
+	github.com/CosmWasm/wasmd v0.45.0
 	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240510223205-7272afc780da
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.26.0
+	gopkg.in/yaml.v2 v2.4.0
+		github.com/BurntSushi/toml v1.3.2 
 )
 
 require (
@@ -27,7 +30,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1 // indirect
-	github.com/cosmos/ibc-go/v7 v7.6.0 // indirect
+	github.com/cosmos/ibc-go/v7 v7.6.0
 	github.com/cosmos/interchain-security/v3 v3.1.1-0.20231102122221-81650a84f989 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
@@ -61,8 +64,9 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/BurntSushi/toml v1.3.2 // indirect
+
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
+	github.com/CosmWasm/wasmvm v1.5.0 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
@@ -243,7 +247,6 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

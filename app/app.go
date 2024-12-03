@@ -25,7 +25,6 @@ import (
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
@@ -69,9 +68,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
-
 	// unnamed import of statik for swagger UI support
-	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
 
 const appName = "BitsongApp"
@@ -86,7 +84,6 @@ var (
 	ProposalsEnabled = "true"
 	// If set to non-empty string it must be comma-separated list of values that are all a subset
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
-	// https://github.com/terpnetwork/terp-core/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
 	EnableSpecificProposals = ""
 
 	Upgrades = []upgrades.Upgrade{
@@ -105,7 +102,7 @@ func init() {
 }
 
 var (
-	// DefaultNodeHome default home directories for terpd
+	// DefaultNodeHome default home directories for Bitsongd
 	DefaultNodeHome = os.ExpandEnv("$HOME/") + NodeDir
 
 	// Bech32PrefixAccAddr defines the Bech32 prefix of an account's address
@@ -486,12 +483,7 @@ func (app *BitsongApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// SimulationManager implements the SimulationApp interface
-func (app *BitsongApp) SimulationManager() *module.SimulationManager {
-	return app.sm
-}
-
-// RegisterAPIRoutes registers all application module routes with the provided
+// RegisterAPIRoutes registers all app module routes with the provided
 // API server.
 func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
@@ -502,12 +494,15 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
+	// Register legacy and grpc-gateway routes for all modules.
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
 	// Register new tendermint queries routes from grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register swagger API from root so that other applications can override easily
-	if err := server.RegisterSwaggerAPI(apiSvr.ClientCtx, apiSvr.Router, apiConfig.Swagger); err != nil {
-		panic(err)
+	if apiConfig.Swagger {
+		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
 
 }
@@ -519,12 +514,22 @@ func (app *BitsongApp) RegisterTxService(clientCtx client.Context) {
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
 func (app *BitsongApp) RegisterTendermintService(clientCtx client.Context) {
-	tmservice.RegisterTendermintService(clientCtx, app.BaseApp.GRPCQueryRouter(), app.interfaceRegistry, app.Query)
+	tmservice.RegisterTendermintService(
+		clientCtx,
+		app.BaseApp.GRPCQueryRouter(),
+		app.interfaceRegistry,
+		app.Query,
+	)
 }
 
 // RegisterNodeService implements the Application.RegisterNodeService method.
 func (app *BitsongApp) RegisterNodeService(clientCtx client.Context) {
 	nodeservice.RegisterNodeService(clientCtx, app.BaseApp.GRPCQueryRouter())
+}
+
+// SimulationManager implements the SimulationApp interface
+func (app *BitsongApp) SimulationManager() *module.SimulationManager {
+	return app.sm
 }
 
 func (app *BitsongApp) setupUpgradeStoreLoaders() {

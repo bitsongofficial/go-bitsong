@@ -1,5 +1,5 @@
-# docker build . -t cosmoscontracts/juno:latest
-# docker run --rm -it cosmoscontracts/juno:latest /bin/sh
+# docker build . -t bitsongofficial/go-bitsong:latest
+# docker run --rm -it bitsongofficial/go-bitsong:latest /bin/sh
 FROM golang:1.22-alpine AS go-builder
 
 # this comes from standard alpine nightly file
@@ -29,7 +29,7 @@ RUN set -eux; \
 COPY . /code/
 
 # force it to use static lib (from above) not standard libgo_cosmwasm.so file
-# then log output of file /code/bin/junod
+# then log output of file /code/bin/bitsongd
 # then ensure static linking
 RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build \
   && file /code/bin/bitsongd \

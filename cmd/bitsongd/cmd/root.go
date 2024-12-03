@@ -140,7 +140,9 @@ func initAppConfig() (string, interface{}) {
 	//   own app.toml to override, or use this default value.
 	//
 	// In simapp, we set the min gas prices to 0.
-	srvCfg.MinGasPrices = "0ubtsg"
+	srvCfg.MinGasPrices = "0.001ubtsg"
+	srvCfg.API.Enable = true
+	srvCfg.API.Swagger = true
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 
 	customAppConfig := CustomAppConfig{
@@ -202,12 +204,12 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(bitsong.ModuleBasics, bitsong.DefaultNodeHome),
-		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
-		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		// DebugCmd(),
 		ConfigCmd(),
 		pruning.PruningCmd(ac.newApp),
+		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
+		// DebugCmd(),
 	)
 
 	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
@@ -219,6 +221,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
 		genesisCommand(encodingConfig),
 		InitFromStateCmd(bitsong.DefaultNodeHome),
+		// VerifyRewardsFromStateCmd(bitsong.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(bitsong.DefaultNodeHome),
