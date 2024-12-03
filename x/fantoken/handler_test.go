@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	simapp "github.com/bitsongofficial/go-bitsong/v018/app"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"

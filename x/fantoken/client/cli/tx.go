@@ -16,7 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // NewTxCmd returns the transaction commands for the fantoken module.

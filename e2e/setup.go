@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	// fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	// fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v7"

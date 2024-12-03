@@ -3,7 +3,7 @@ package bitsong.fantoken.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types";
+option go_package = "github.com/bitsongofficial/go-bitsong/x/fantoken/types";
 
 message EventIssue { string denom = 1; }
 

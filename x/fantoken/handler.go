@@ -6,8 +6,8 @@ import (
 
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
 
 // NewHandler handles all fantoken type messages.
