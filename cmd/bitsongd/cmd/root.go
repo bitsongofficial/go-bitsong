@@ -41,7 +41,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
-// NewRootCmd creates a new root command for terpd. It is called once in the
+// NewRootCmd creates a new root command for bitsongd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	encodingConfig := bitsong.MakeEncodingConfig()
