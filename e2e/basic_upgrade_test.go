@@ -8,7 +8,8 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	// bitsongconformance "github.com/CosmosContracts/juno/tests/interchaintest/conformance"
+	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
+	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
@@ -87,7 +88,7 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	chainUser := users[0]
 
 	// execute a contract before the upgrade
-	// beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
+	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 
 	// upgrade
 	height, err := chain.Height(ctx)
@@ -104,10 +105,10 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
 
 	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
-	// helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
+	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
 
 	// Post Upgrade: Conformance Validation
-	// bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
+	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
 	// TODO: ibc conformance test
 }
 
@@ -166,7 +167,7 @@ func ValidatorVoting(t *testing.T, ctx context.Context, chain *cosmos.CosmosChai
 func SubmitUpgradeProposal(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, upgradeName string, haltHeight int64) string {
 	upgradeMsg := []cosmosproto.Message{
 		&upgradetypes.MsgSoftwareUpgrade{
-			// gGov Module account
+			// gov Module account
 			Authority: "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
 			Plan: upgradetypes.Plan{
 				Name:   upgradeName,
