@@ -33,7 +33,7 @@ var ()
 // and the respective application.
 func VerifySlashedDelegatorsV018(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "verify-rewards-from-state [block-height] state_exported.json ",
+		Use:   "v018 [block-height] state_exported.json ",
 		Short: "verifies those impacted by distribution module bug",
 		Long:  `<add-example-cli>`,
 		Args:  cobra.ExactArgs(2),
@@ -152,13 +152,8 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 	// Key: Validator Address, Value: Map of Delegator Addresses to their Delegation Amounts
 	delegations := staking.Delegations
 	delegationsWithSlashActions := make(map[string]map[string]math.Int)
-	// get delegators for each validator with a slashing action in state since upgrade
+	// GOAL: get delegators for each validator with a slashing action in state
 	for _, vse := range distribution.ValidatorSlashEvents {
-
-		// do not process events prior to upgrade
-		if vse.Height < params.BlockHeight.Uint64() {
-			continue
-		}
 
 		// Initialize the validator's delegations map if not already done
 		if _, ok := delegationsWithSlashActions[vse.ValidatorAddress]; !ok {
@@ -167,15 +162,11 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 		// Now, iterate over delegations to find those related to the validator with a slash action
 		for _, delegation := range delegations {
 			if delegation.ValidatorAddress == vse.ValidatorAddress {
+				fmt.Println("VALIDATOR SLASH ACTION:", vse)
 				delegationsWithSlashActions[vse.ValidatorAddress][delegation.DelegatorAddress] = math.Int(delegation.Shares)
 			}
 		}
 	}
 
-	// // Example: Print the delegations with slash actions after the upgrade
-	for validator, delegations := range delegationsWithSlashActions {
-		fmt.Printf("Validator: %s\n", validator)
-		fmt.Printf("Delegations: %s\n", delegations)
-	}
 	return &genDoc, nil
 }
