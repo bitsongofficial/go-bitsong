@@ -15,6 +15,7 @@ replace (
 require (
 	cosmossdk.io/math v1.3.0
 	github.com/CosmWasm/wasmd v0.45.0
+	github.com/CosmWasm/wasmvm v1.5.0
 	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/docker/docker v24.0.7+incompatible
@@ -22,7 +23,6 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.26.0
 	gopkg.in/yaml.v2 v2.4.0
-		github.com/BurntSushi/toml v1.3.2 
 )
 
 require (
@@ -64,9 +64,8 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-
+	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
-	github.com/CosmWasm/wasmvm v1.5.0 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect

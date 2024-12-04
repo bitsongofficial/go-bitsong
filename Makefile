@@ -16,6 +16,7 @@ help:
 	@echo "    make [command]"
 	@echo ""
 	@echo "  make build                 Build Bitsong node binary"
+	@echo "  make docker                Show available docker related commands"
 	@echo "  make e2e                   Show available e2e commands"
 	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
 	@echo "  make install               Install Bitsong node binary"
@@ -122,7 +123,7 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
 else
-	go build $(BUILD_FLAGS) -o bin/bitsongd ./cmd/bitsongd
+	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
 endif
 
 install: go.sum
