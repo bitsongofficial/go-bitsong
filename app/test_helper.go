@@ -9,8 +9,8 @@ import (
 
 	"cosmossdk.io/math"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/bitsongofficial/go-bitsong/v018/app/helpers"
-	appparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/helpers"
+	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"

@@ -28,6 +28,7 @@ paths:
                     type: string
                     title: sdk.AccAddress allowed to mint new fantoken
                   meta_data:
+                    title: Metadata is metadata of fantoken
                     type: object
                     properties:
                       name:
@@ -107,6 +108,7 @@ paths:
                       type: string
                       title: sdk.AccAddress allowed to mint new fantoken
                     meta_data:
+                      title: Metadata is metadata of fantoken
                       type: object
                       properties:
                         name:
@@ -136,9 +138,10 @@ paths:
                   next_key:
                     type: string
                     format: byte
-                    title: |-
+                    description: |-
                       next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
                   total:
                     type: string
                     format: uint64
@@ -304,177 +307,6 @@ paths:
 
                       signatures required by gogoproto.
                 title: Params defines fantoken module's parameters
-            title: >-
-              QueryParametersResponse is response type for the Query/Parameters
-              RPC method
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
-  /bitsong/merkledrop/v1beta1/markledrops/{id}:
-    get:
-      operationId: Merkledrop
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              merkledrop:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uint64
-                    title: merkledrop id
-                  merkle_root:
-                    type: string
-                    title: merkle_root of the merkledrop
-                  start_height:
-                    type: string
-                    format: int64
-                    title: merkledrop start height
-                  end_height:
-                    type: string
-                    format: int64
-                    title: merkledrop end height
-                  denom:
-                    type: string
-                    title: denom to distribuite
-                  amount:
-                    type: string
-                    title: amount to distribuite
-                  claimed:
-                    type: string
-                    title: claimed amount
-                  owner:
-                    type: string
-                    title: merkledrop's owner
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-          format: uint64
-      tags:
-        - Query
-  /bitsong/merkledrop/v1beta1/markledrops/{id}/index_claimed/{index}:
-    get:
-      operationId: IndexClaimed
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              is_claimed:
-                type: boolean
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-          format: uint64
-        - name: index
-          in: path
-          required: true
-          type: string
-          format: uint64
-      tags:
-        - Query
-  /bitsong/merkledrop/v1beta1/params:
-    get:
-      summary: Params queries the fantoken parameters
-      operationId: MerkledropParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                type: object
-                properties:
-                  creation_fee:
-                    type: object
-                    properties:
-                      denom:
-                        type: string
-                      amount:
-                        type: string
-                    description: >-
-                      Coin defines a token with a denomination and an amount.
-
-
-                      NOTE: The amount field is an Int which implements the
-                      custom method
-
-                      signatures required by gogoproto.
-                title: Params defines merkledrop module's parameters
             title: >-
               QueryParametersResponse is response type for the Query/Parameters
               RPC method
@@ -33376,6 +33208,7 @@ definitions:
         type: string
         title: sdk.AccAddress allowed to mint new fantoken
       meta_data:
+        title: Metadata is metadata of fantoken
         type: object
         properties:
           name:
@@ -33410,6 +33243,7 @@ definitions:
       authority:
         type: string
         title: sdk.AccAddress allowed to set a new uri
+    title: Metadata is metadata of fantoken
   bitsong.fantoken.v1beta1.Params:
     type: object
     properties:
@@ -33467,6 +33301,7 @@ definitions:
             type: string
             title: sdk.AccAddress allowed to mint new fantoken
           meta_data:
+            title: Metadata is metadata of fantoken
             type: object
             properties:
               name:
@@ -33506,6 +33341,7 @@ definitions:
               type: string
               title: sdk.AccAddress allowed to mint new fantoken
             meta_data:
+              title: Metadata is metadata of fantoken
               type: object
               properties:
                 name:
@@ -33531,9 +33367,10 @@ definitions:
           next_key:
             type: string
             format: byte
-            title: |-
+            description: |-
               next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently
+              query the next page most efficiently. It will be empty if
+              there are no more results.
           total:
             type: string
             format: uint64
@@ -33667,6 +33504,10 @@ definitions:
       next_key:
         type: string
         format: byte
+        description: |-
+          next_key is the key to be passed to PageRequest.key to
+          query the next page most efficiently. It will be empty if
+          there are no more results.
         title: |-
           next_key is the key to be passed to PageRequest.key to
           query the next page most efficiently
@@ -34025,115 +33866,6 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
-  bitsong.merkledrop.v1beta1.Merkledrop:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uint64
-        title: merkledrop id
-      merkle_root:
-        type: string
-        title: merkle_root of the merkledrop
-      start_height:
-        type: string
-        format: int64
-        title: merkledrop start height
-      end_height:
-        type: string
-        format: int64
-        title: merkledrop end height
-      denom:
-        type: string
-        title: denom to distribuite
-      amount:
-        type: string
-        title: amount to distribuite
-      claimed:
-        type: string
-        title: claimed amount
-      owner:
-        type: string
-        title: merkledrop's owner
-  bitsong.merkledrop.v1beta1.Params:
-    type: object
-    properties:
-      creation_fee:
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
-    title: Params defines merkledrop module's parameters
-  bitsong.merkledrop.v1beta1.QueryIndexClaimedResponse:
-    type: object
-    properties:
-      is_claimed:
-        type: boolean
-  bitsong.merkledrop.v1beta1.QueryMerkledropResponse:
-    type: object
-    properties:
-      merkledrop:
-        type: object
-        properties:
-          id:
-            type: string
-            format: uint64
-            title: merkledrop id
-          merkle_root:
-            type: string
-            title: merkle_root of the merkledrop
-          start_height:
-            type: string
-            format: int64
-            title: merkledrop start height
-          end_height:
-            type: string
-            format: int64
-            title: merkledrop end height
-          denom:
-            type: string
-            title: denom to distribuite
-          amount:
-            type: string
-            title: amount to distribuite
-          claimed:
-            type: string
-            title: claimed amount
-          owner:
-            type: string
-            title: merkledrop's owner
-  bitsong.merkledrop.v1beta1.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        type: object
-        properties:
-          creation_fee:
-            type: object
-            properties:
-              denom:
-                type: string
-              amount:
-                type: string
-            description: >-
-              Coin defines a token with a denomination and an amount.
-
-
-              NOTE: The amount field is an Int which implements the custom
-              method
-
-              signatures required by gogoproto.
-        title: Params defines merkledrop module's parameters
-    title: >-
-      QueryParametersResponse is response type for the Query/Parameters RPC
-      method
   CheckTxResult:
     type: object
     properties:

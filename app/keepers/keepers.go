@@ -7,9 +7,9 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken"
-	fantokenkeeper "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"

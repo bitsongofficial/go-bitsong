@@ -14,7 +14,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: 1.22.0
+  GO_VERSION: 1.22.4
   TAR_PATH: /tmp/bitsong-docker-image.tar
   IMAGE_NAME: bitsong-docker-image
 
@@ -58,8 +58,9 @@ jobs:
       matrix: 899
         # names of `make` commands to run tests
         test:
-          # - "e2e-basic"
-          # - "e2e-upgrade"
+          - "e2e-basic"
+          - "e2e-pfm"
+          - "e2e-polytone"
       fail-fast: false
 
     steps:

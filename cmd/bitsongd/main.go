@@ -4,10 +4,10 @@ import (
 	"os"
 
 	"cosmossdk.io/log"
-	"github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/params"
 
-	"github.com/bitsongofficial/go-bitsong/v018/app"
-	"github.com/bitsongofficial/go-bitsong/v018/cmd/bitsongd/cmd"
+	"github.com/bitsongofficial/go-bitsong/app"
+	"github.com/bitsongofficial/go-bitsong/cmd/bitsongd/cmd"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )
 

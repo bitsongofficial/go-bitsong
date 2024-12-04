@@ -3,9 +3,9 @@ package app
 import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	encparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	encparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"

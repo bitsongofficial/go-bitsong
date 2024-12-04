@@ -176,7 +176,7 @@ node = "{{ .Node }}"
 broadcast-mode = "{{ .BroadcastMode }}"
 
 ###############################################################################
-###                          Terp Tx Configuration                          ###
+###                          Bitsong Tx Configuration                          ###
 ###############################################################################
 
 # Amount of gas per transaction

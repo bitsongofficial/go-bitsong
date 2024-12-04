@@ -1,8 +1,8 @@
 package v011
 
 import (
-	"github.com/bitsongofficial/go-bitsong/v018/app/keepers"
-	appparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/keepers"
+	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"

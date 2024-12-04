@@ -1,4 +1,4 @@
-module github.com/bitsongofficial/go-bitsong/v018
+module github.com/bitsongofficial/go-bitsong
 
 go 1.22
 
