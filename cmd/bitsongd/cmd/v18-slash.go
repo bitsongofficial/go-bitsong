@@ -149,7 +149,7 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 	clientCtx.Codec.MustUnmarshalJSON(appState[slashingtypes.ModuleName], &slashing)
 
 	// VO18 Slashed validators
-	var DELEGATORS = []string{
+	var VALS = []string{
 		"bitsongvaloper1slnkc2a8lhxgz5cc7lg9zlgzfedfpdve0rh2p6",
 		"bitsongvaloper1j98m4tzhzktqgwmmd3q8k9trgch5ssxnpm7r3k",
 		"bitsongvaloper1l2kthmf0gzlmscca859zs6fa22p769ph3ptgzm",
@@ -165,7 +165,7 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 	delegationsWithSlashActions := make(map[string]map[string]math.Int)
 	uniqueDelegatorsPerValidator := make(map[string][]string)
 	// GOAL: get delegators for each validator with a slashing action in state
-	for _, vse := range DELEGATORS {
+	for _, vse := range VALS {
 
 		// Initialize the validator's delegations map if not already done
 		if _, ok := delegationsWithSlashActions[vse]; !ok {
@@ -227,7 +227,7 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 		if err != nil {
 			fmt.Println(err)
 		}
-		_, err = filea.Write(jsonData2)
+		_, err = fileb.Write(jsonData2)
 		if err != nil {
 			fmt.Println(err)
 		}
