@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -82,7 +83,6 @@ func rewardVerification(_ *tmcfg.Config, cliCtx client.Context, genParams V018St
 }
 
 type V018StateExportParams struct {
-	// DelegatorAddr   string
 	StateFile   string
 	BlockHeight math.Uint
 }
@@ -148,25 +148,104 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 	clientCtx.Codec.MustUnmarshalJSON(appState[minttypes.ModuleName], &mint)
 	clientCtx.Codec.MustUnmarshalJSON(appState[slashingtypes.ModuleName], &slashing)
 
+	// VO18 Slashed validators
+	var DELEGATORS = []string{
+		"bitsongvaloper1slnkc2a8lhxgz5cc7lg9zlgzfedfpdve0rh2p6",
+		"bitsongvaloper1j98m4tzhzktqgwmmd3q8k9trgch5ssxnpm7r3k",
+		"bitsongvaloper1l2kthmf0gzlmscca859zs6fa22p769ph3ptgzm",
+		"bitsongvaloper19mmq66klqpcqjztdaclaf5tvknn4mjkd9k9fup",
+		"bitsongvaloper1ynj2u9x0pgq6gx38pllwrg7948l9yp9lr05zc4",
+		"bitsongvaloper1wusnupm08xwe05zgvk6frqjuxak6q5ang5jppk",
+		"bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr",
+	}
+
 	// Map to store delegations with slash actions after the upgrade
 	// Key: Validator Address, Value: Map of Delegator Addresses to their Delegation Amounts
 	delegations := staking.Delegations
 	delegationsWithSlashActions := make(map[string]map[string]math.Int)
+	uniqueDelegatorsPerValidator := make(map[string][]string)
 	// GOAL: get delegators for each validator with a slashing action in state
-	for _, vse := range distribution.ValidatorSlashEvents {
+	for _, vse := range DELEGATORS {
 
 		// Initialize the validator's delegations map if not already done
-		if _, ok := delegationsWithSlashActions[vse.ValidatorAddress]; !ok {
-			delegationsWithSlashActions[vse.ValidatorAddress] = make(map[string]math.Int)
+		if _, ok := delegationsWithSlashActions[vse]; !ok {
+			delegationsWithSlashActions[vse] = make(map[string]math.Int)
+			uniqueDelegatorsPerValidator[vse] = []string{} // Initialize unique delegators slice
 		}
 		// Now, iterate over delegations to find those related to the validator with a slash action
 		for _, delegation := range delegations {
-			if delegation.ValidatorAddress == vse.ValidatorAddress {
-				fmt.Println("VALIDATOR SLASH ACTION:", vse)
-				delegationsWithSlashActions[vse.ValidatorAddress][delegation.DelegatorAddress] = math.Int(delegation.Shares)
+			if delegation.ValidatorAddress == vse {
+				delegatorAddress := delegation.DelegatorAddress
+
+				// Add delegator address to the unique list if not already present
+				if !contains(uniqueDelegatorsPerValidator[vse], delegatorAddress) {
+					uniqueDelegatorsPerValidator[vse] = append(uniqueDelegatorsPerValidator[vse], delegatorAddress)
+				}
+
+				delegationsWithSlashActions[vse][delegatorAddress] = math.Int(delegation.Shares)
 			}
 		}
+
+		// Print unique delegators per validator to a JSON file
+		fileName := "unique_delegators_per_validator.json"
+		slashedValsFileName := "slashed_validators.json"
+		filea, err1 := os.Create(fileName)
+		fileb, err2 := os.Create(slashedValsFileName)
+		if err1 != nil {
+			fmt.Println(err)
+			break
+		}
+		if err2 != nil {
+			fmt.Println(err)
+			break
+		}
+		defer filea.Close()
+		defer fileb.Close()
+
+		var valDels = map[string][]string{}
+		for validator, delegators := range uniqueDelegatorsPerValidator {
+			valDels[validator] = delegators
+		}
+
+		var slashedVals = map[string]bool{}
+
+		for _, v := range distribution.ValidatorSlashEvents {
+			slashedVals[v.ValidatorAddress] = true
+		}
+		jsonData, err := json.MarshalIndent(valDels, "", "    ")
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		jsonData2, err := json.MarshalIndent(slashedVals, "", "    ")
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		_, err = filea.Write(jsonData)
+		if err != nil {
+			fmt.Println(err)
+		}
+		_, err = fileb.Write(jsonData2)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Printf("Unique delegators per validator written to %s\n", fileName)
+		fmt.Printf("Unique validators with slashing action in state written to %s\n", slashedValsFileName)
+
 	}
 
 	return &genDoc, nil
+}
+
+// Helper function to check if a slice contains a string
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }
