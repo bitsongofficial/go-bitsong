@@ -1,6 +1,6 @@
 module github.com/bitsongofficial/go-bitsong
 
-go 1.22
+go 1.22.4
 
 require (
 	cosmossdk.io/api v0.3.1
@@ -186,8 +186,9 @@ require (
 )
 
 replace (
-	// dragonberry
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+	github.com/cosmos/cosmos-sdk => github.com/permissionlessweb/cosmos-sdk v0.47.5-bitsong
+	// dragonberry
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
