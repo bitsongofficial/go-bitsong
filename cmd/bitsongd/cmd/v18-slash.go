@@ -227,7 +227,7 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 		if err != nil {
 			fmt.Println(err)
 		}
-		_, err = fileb.Write(jsonData2)
+		_, err = filea.Write(jsonData2)
 		if err != nil {
 			fmt.Println(err)
 		}
