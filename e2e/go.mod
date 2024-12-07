@@ -1,10 +1,10 @@
 module github.com/bitsongofficial/go-bitsong/tests/e2e
 
-go 1.22.2
+go 1.22.4
 
 replace (
 	// For this nested module, you always want to replace the parent reference with the current worktree.
-	github.com/bitsongofficial/go-bitsong v0.17.0 => ../
+	github.com/bitsongofficial/go-bitsong v0.18.1 => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/faddat/go-substrate-rpc-client/v4 v4.0.1-0.20240402155230-48db8c110afe
 
