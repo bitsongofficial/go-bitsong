@@ -63,7 +63,7 @@ var (
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
 		Denom:               Denom,
-		CoinType:            "118",
+		CoinType:            "639",
 		GasPrices:           fmt.Sprintf("0%s", Denom),
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",

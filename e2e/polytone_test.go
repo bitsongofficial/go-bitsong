@@ -1,10 +1,18 @@
-// source : https://github.com/DA0-DA0/polytone/blob/main/tests/strangelove/incompatible_handshake_test.go
+// source: https://github.com/DA0-DA0/polytone/blob/main/tests/strangelove/incompatible_handshake_test.go
 package e2e
 
 import (
+	"fmt"
 	"testing"
 
+	w "github.com/CosmWasm/wasmvm/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testBinary string = "aGVsbG8=" // "hello" in base64
+	testText   string = "hello"
 )
 
 // Tests that a note may only ever connect to a voice, and a voice
@@ -13,18 +21,18 @@ func TestPolytoneOnBitsong(t *testing.T) {
 	suite := NewPolytoneSuite(t)
 
 	// note <-> note not allowed.
-	_, _, err := suite.CreateChannel(
+	_, tc, err := suite.CreateChannel(
 		suite.ChainA.Note,
 		suite.ChainB.Note,
 		&suite.ChainA,
 		&suite.ChainB, suite.PathAB,
 	)
 	require.ErrorContains(t, err, "no new channels created", "note <-/-> note")
-
-	// channels := suite.QueryChannelsInState(&suite.ChainB, CHANNEL_STATE_TRY)
-	// require.Len(t, channels, 1, "try note stops in first step")
-	// channels = suite.QueryChannelsInState(&suite.ChainB, CHANNEL_STATE_INIT)
-	// require.Len(t, channels, 1, "init note doesn't advance")
+	fmt.Println("trychannel: ", tc)
+	channels := suite.QueryChannelsInState(&suite.ChainB, CHANNEL_STATE_TRY)
+	require.Len(t, channels, 1, "try note stops in first step")
+	channels = suite.QueryChannelsInState(&suite.ChainB, CHANNEL_STATE_INIT)
+	require.Len(t, channels, 1, "init note doesn't advance")
 
 	// voice <-> voice not allowed
 	_, _, err = suite.CreateChannel(
@@ -35,7 +43,24 @@ func TestPolytoneOnBitsong(t *testing.T) {
 		suite.PathAB,
 	)
 	require.ErrorContains(t, err, "no new channels created", "voice <-/-> voice")
+	accAddr, _ := sdk.AccAddressFromBech32(suite.ChainB.Tester)
+	dataCosmosMsg := HelloMessage(accAddr, string(testBinary))
 
+	noDataCosmosMsg := w.CosmosMsg{
+		Distribution: &w.DistributionMsg{
+			SetWithdrawAddress: &w.SetWithdrawAddressMsg{
+				Address: suite.ChainB.Voice,
+			},
+		},
+	}
+
+	callbackExecute, err := suite.RoundtripExecute(suite.ChainA.Note, &suite.ChainB, []w.CosmosMsg{dataCosmosMsg, noDataCosmosMsg})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Len(t, len(callbackExecute.Success), 2, "error: "+callbackExecute.Error)
+	require.Equal(t, "", callbackExecute.Error)
 	// note <-> voice allowed
 	//
 	// FIXME: below errors with:
@@ -53,4 +78,18 @@ func TestPolytoneOnBitsong(t *testing.T) {
 	// )
 	// require.NoError(t, err, "note <-> voice")
 
+}
+func HelloMessage(to sdk.AccAddress, data string) w.CosmosMsg {
+	return w.CosmosMsg{
+		Wasm: &w.WasmMsg{
+			Execute: &w.ExecuteMsg{
+				ContractAddr: to.String(),
+				Msg: []byte(
+					fmt.Sprintf(`{"hello": { "data": "%s" }}`,
+						data,
+					)),
+				Funds: []w.Coin{},
+			},
+		},
+	}
 }
