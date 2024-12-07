@@ -469,8 +469,6 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	appStateJSON = bytes.Replace(appStateJSON, []byte(operatorAddr), []byte(sdk.ValAddress(params.TmPubKey.Address()).String()), -1)
 	appStateJSON = bytes.Replace(appStateJSON, []byte(sdk.ConsAddress(oldValidator.PubKey.Address()).String()), []byte(sdk.ConsAddress(params.TmPubKey.Address()).String()), -1)
 
-	// TODO: manually proceed with upgrade if needed
-
 	genDoc.AppState = appStateJSON
 
 	return &genDoc, nil

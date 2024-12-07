@@ -92,6 +92,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := tmcfg.DefaultConfig()
+			// add customizations to tendermint configuration here
+			// customTMConfig.P2P.MaxNumInboundPeers = 100
+			// customTMConfig.P2P.MaxNumOutboundPeers = 40
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
@@ -101,18 +104,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	return rootCmd, encodingConfig
 }
-
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-// func initTendermintConfig() *tmcfg.Config {
-// 	cfg := tmcfg.DefaultConfig()
-
-// 	// these values put a higher strain on node memory
-// 	// cfg.P2P.MaxNumInboundPeers = 100
-// 	// cfg.P2P.MaxNumOutboundPeers = 40
-
-// 	return
-// }
 
 // initAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.

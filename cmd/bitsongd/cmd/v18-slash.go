@@ -28,8 +28,6 @@ const (
 	FlagDelegator = "delegator"
 )
 
-var ()
-
 // InitFromStateCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
 func VerifySlashedDelegatorsV018(defaultNodeHome string) *cobra.Command {

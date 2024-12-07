@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -65,7 +66,7 @@ func NewPolytoneSuite(t *testing.T) Suite {
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
 		Denom:               "ubtsg",
-		CoinType:            "118",
+		CoinType:            "639",
 		GasPrices:           "0ubtsg",
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",
@@ -269,6 +270,12 @@ const CHANNEL_STATE_OPEN = "STATE_OPEN"
 const CHANNEL_STATE_TRY = "STATE_TRYOPEN"
 const CHANNEL_STATE_INIT = "STATE_INIT"
 
+func (s *Suite) QueryOpenChannels(chain *SuiteChain) []ibc.ChannelOutput {
+	eq := s.QueryChannelsInState(chain, CHANNEL_STATE_OPEN)
+	fmt.Println("QueryChannelsInState", eq)
+	return eq
+}
+
 func (s *Suite) QueryChannelsInState(chain *SuiteChain, state string) []ibc.ChannelOutput {
 	channels, err := s.Relayer.GetChannels(s.ctx, s.reporter, chain.Ibc.Config().ChainID)
 	if err != nil {
@@ -281,10 +288,6 @@ func (s *Suite) QueryChannelsInState(chain *SuiteChain, state string) []ibc.Chan
 		}
 	}
 	return openChannels
-}
-
-func (s *Suite) QueryOpenChannels(chain *SuiteChain) []ibc.ChannelOutput {
-	return s.QueryChannelsInState(chain, CHANNEL_STATE_OPEN)
 }
 
 func (s *Suite) RoundtripMessage(note string, chain *SuiteChain, msg NoteExecute) (Callback, error) {
