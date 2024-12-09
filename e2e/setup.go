@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -55,16 +54,16 @@ var (
 		},
 	}
 
-	bitsongConfig = ibc.ChainConfig{
+	baseCfg = ibc.ChainConfig{
 		Type:                "cosmos",
 		Name:                "bitsong",
 		ChainID:             "bitsong-2",
 		Images:              []ibc.DockerImage{BitsongImage},
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
-		Denom:               Denom,
-		CoinType:            "639",
-		GasPrices:           fmt.Sprintf("0%s", Denom),
+		Denom:               "ubtsg",
+		CoinType:            "114",
+		GasPrices:           "0ubtsg",
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
@@ -96,7 +95,7 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 
 // CreateChain generates a new chain with a custom image (useful for upgrades)
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
-	cfg := bitsongConfig
+	cfg := baseCfg
 	cfg.Images = []ibc.DockerImage{img}
 	return CreateChainWithCustomConfig(t, numVals, numFull, cfg)
 }
@@ -110,9 +109,8 @@ func CreateChainWithCustomConfig(t *testing.T, numVals, numFull int, config ibc.
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          "bitsong",
-			ChainName:     "bitsong",
-			Version:       config.Images[0].Version,
 			ChainConfig:   config,
+			Version:       config.Images[0].Version,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFull,
 		},

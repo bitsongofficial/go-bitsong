@@ -66,7 +66,7 @@ func NewPolytoneSuite(t *testing.T) Suite {
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
 		Denom:               "ubtsg",
-		CoinType:            "639",
+		CoinType:            "118",
 		GasPrices:           "0ubtsg",
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",
