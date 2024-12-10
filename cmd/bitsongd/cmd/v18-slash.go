@@ -25,7 +25,9 @@ import (
 )
 
 const (
-	FlagDelegator = "delegator"
+	FlagDelegator       = "delegator"
+	fileName            = "unique_delegators_per_validator.json"
+	slashedValsFileName = "slashed_validators.json"
 )
 
 // InitFromStateCmd returns a command that initializes all files needed for Tendermint
@@ -163,6 +165,10 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 	delegationsWithSlashActions := make(map[string]map[string]math.Int)
 	uniqueDelegatorsPerValidator := make(map[string][]string)
 	// GOAL: get delegators for each validator with a slashing action in state
+	// Print unique delegators per validator to a JSON file
+
+	filea, err1 := os.Create(fileName)
+	fileb, err2 := os.Create(slashedValsFileName)
 	for _, vse := range VALS {
 
 		// Initialize the validator's delegations map if not already done
@@ -184,11 +190,6 @@ func V018ConvertStateExport(clientCtx client.Context, params V018StateExportPara
 			}
 		}
 
-		// Print unique delegators per validator to a JSON file
-		fileName := "unique_delegators_per_validator.json"
-		slashedValsFileName := "slashed_validators.json"
-		filea, err1 := os.Create(fileName)
-		fileb, err2 := os.Create(slashedValsFileName)
 		if err1 != nil {
 			fmt.Println(err)
 			break

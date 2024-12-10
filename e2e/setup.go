@@ -62,7 +62,7 @@ var (
 		Bin:                 "bitsongd",
 		Bech32Prefix:        "bitsong",
 		Denom:               "ubtsg",
-		CoinType:            "114",
+		CoinType:            "118",
 		GasPrices:           "0ubtsg",
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",
@@ -110,7 +110,6 @@ func CreateChainWithCustomConfig(t *testing.T, numVals, numFull int, config ibc.
 		{
 			Name:          "bitsong",
 			ChainConfig:   config,
-			Version:       config.Images[0].Version,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFull,
 		},

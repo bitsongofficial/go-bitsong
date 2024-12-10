@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -73,7 +74,7 @@ func ExecuteContract(chain *cosmos.CosmosChain, user ibc.Wallet, ctx context.Con
 		"-y",
 	}
 	if _, _, err := chain.Exec(ctx, cmd, nil); err != nil {
-		return err
+		return fmt.Errorf("failed to execute contract: %w", err)
 	}
 	return testutil.WaitForBlocks(ctx, 1, chain)
 }

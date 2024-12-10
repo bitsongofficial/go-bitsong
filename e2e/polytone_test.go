@@ -2,6 +2,7 @@
 package e2e
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -44,7 +45,7 @@ func TestPolytoneOnBitsong(t *testing.T) {
 	)
 	require.ErrorContains(t, err, "no new channels created", "voice <-/-> voice")
 	accAddr, _ := sdk.AccAddressFromBech32(suite.ChainB.Tester)
-	dataCosmosMsg := HelloMessage(accAddr, string(testBinary))
+	dataCosmosMsg, _ := HelloMessage(accAddr, string(testBinary))
 
 	noDataCosmosMsg := w.CosmosMsg{
 		Distribution: &w.DistributionMsg{
@@ -79,17 +80,18 @@ func TestPolytoneOnBitsong(t *testing.T) {
 	// require.NoError(t, err, "note <-> voice")
 
 }
-func HelloMessage(to sdk.AccAddress, data string) w.CosmosMsg {
+func HelloMessage(to sdk.AccAddress, data string) (w.CosmosMsg, error) {
+	msg := fmt.Sprintf(`{"hello": { "data": "%s" }}`, data)
+	if !json.Valid([]byte(msg)) {
+		return w.CosmosMsg{}, fmt.Errorf("invalid JSON message: %s", msg)
+	}
 	return w.CosmosMsg{
 		Wasm: &w.WasmMsg{
 			Execute: &w.ExecuteMsg{
 				ContractAddr: to.String(),
-				Msg: []byte(
-					fmt.Sprintf(`{"hello": { "data": "%s" }}`,
-						data,
-					)),
-				Funds: []w.Coin{},
+				Msg:          []byte(msg),
+				Funds:        []w.Coin{},
 			},
 		},
-	}
+	}, nil
 }

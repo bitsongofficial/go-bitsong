@@ -17,6 +17,9 @@ pub fn test_single_node_grpc_sanity() -> AnyResult<()> {
     Ok(())
 }
 
-pub fn main() {
-    test_single_node_grpc_sanity().unwrap();
-}
+pub fn main() {  
+    if let Err(e) = test_single_node_grpc_sanity() {  
+        eprintln!("Error running gRPC sanity test: {}", e);  
+        std::process::exit(1);  
+    }  
+}  
