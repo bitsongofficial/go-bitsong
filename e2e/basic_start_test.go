@@ -23,14 +23,14 @@ func TestBasicBtsgStart(t *testing.T) {
 	chains := CreateThisBranchChain(t, 1, 0)
 	ic, ctx, _, _ := BuildInitialChain(t, chains)
 
-	chain := chains[0].(*cosmos.CosmosChain)
+	bitsong := chains[0].(*cosmos.CosmosChain)
 
 	userFunds := sdkmath.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, bitsong)
 	println("users", users)
 	chainUser := users[0]
 
-	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
+	bitsongconformance.ConformanceCosmWasm(t, ctx, bitsong, chainUser)
 
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)

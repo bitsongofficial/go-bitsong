@@ -11,9 +11,10 @@ import (
 )
 
 // ConformanceCosmWasm validates that store, instantiate, execute, and query work on a CosmWasm contract.
-func ConformanceCosmWasm(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet) {
-	StdExecute(t, ctx, chain, user)
+func ConformanceCosmWasm(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet) (contractAddr string) {
+	contractAddr = StdExecute(t, ctx, chain, user)
 	// subMsg(t, ctx, chain, user)
+	return contractAddr
 }
 
 func StdExecute(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet) (contractAddr string) {
