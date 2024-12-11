@@ -13,6 +13,7 @@ e2e-help:
 	@echo "  e2e-upgrade    Run basic planned upgrade test"
 	@echo "  e2e-pfm        Run packet-forward-middleware test "
 	@echo "  e2e-polytone   Run polytone test contracts: Run ./scripts/polytone.sh to install wasm blobs."
+	@echo "  e2e-slashing   Test slashing actions"
 
 e2e: e2e-help
 
@@ -26,8 +27,10 @@ e2e-pfm: rm-testcache
 	cd e2e && go test -race -v -run TestPacketForwardMiddlewareRouter .
 
 e2e-polytone: rm-testcache
-
 	cd e2e && go test -race -v -run TestPolytoneOnBitsong .
+
+e2e-slashing: rm-testcache
+	cd e2e && go test -race -v -run TestBasicBitsongSlashing .
 
 rm-testcache:
 	go clean -testcache

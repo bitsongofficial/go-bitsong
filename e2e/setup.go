@@ -97,15 +97,15 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
 	cfg := baseCfg
 	cfg.Images = []ibc.DockerImage{img}
-	return CreateChainWithCustomConfig(t, numVals, numFull, cfg)
+	return CreateICTestBitsongChainCustomConfig(t, numVals, numFull, cfg)
 }
 
-// CreateThisBranchChain generates this branch's chain (ex: from the commit)
-func CreateThisBranchChain(t *testing.T, numVals, numFull int) []ibc.Chain {
+// CreateThisBranchWithValsAndFullNodes generates this branch's chain (ex: from the commit), with a set of validators and full nodes.
+func CreateICTestBitsongChain(t *testing.T, numVals, numFull int) []ibc.Chain {
 	return CreateChain(t, numVals, numFull, BitsongImage)
 }
 
-func CreateChainWithCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
+func CreateICTestBitsongChainCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          "bitsong",

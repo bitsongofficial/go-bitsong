@@ -47,26 +47,28 @@ func NewDefaultGenesisStateWithCodec(cdc codec.JSONCodec) GenesisState {
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
 // bond denom from stake to ubtsg
 // func stakingGenesisState() *stakingtypes.GenesisState {
+// 	historicalEntries := uint32(0)
 // 	return &stakingtypes.GenesisState{
 // 		Params: stakingtypes.NewParams(
 // 			stakingtypes.DefaultUnbondingTime,
 // 			stakingtypes.DefaultMaxValidators,
 // 			stakingtypes.DefaultMaxEntries,
-// 			0,
+// 			historicalEntries,
 // 			"ubtsg", sdk.ZeroDec(),
 // 		),
 // 	}
 // }
 
-// func govGenesisState() *govtypes.GenesisState {
-// 	return govtypes.NewGenesisState(
-// 		1,
-// 		govtypes.NewDepositParams(
-// 			sdk.NewCoins(sdk.NewCoin("ubtsg", govtypes.DefaultMinDepositTokens)),
-// 			govtypes.DefaultPeriod,
+// func govGenesisState() *govv1beta1.GenesisState {
+// 	startingPropId := uint64(1)
+// 	return govv1beta1.NewGenesisState(
+// 		startingPropId,
+// 		govv1beta1.NewDepositParams(
+// 			sdk.NewCoins(sdk.NewCoin("ubtsg", govv1beta1.DefaultMinDepositTokens)),
+// 			govv1beta1.DefaultPeriod,
 // 		),
-// 		govtypes.NewVotingParams(govtypes.DefaultPeriod),
-// 		govtypes.NewTallyParams(govtypes.DefaultQuorum, govtypes.DefaultThreshold, govtypes.DefaultVetoThreshold),
+// 		govv1beta1.NewVotingParams(govv1beta1.DefaultPeriod),
+// 		govv1beta1.NewTallyParams(govv1beta1.DefaultQuorum, govv1beta1.DefaultThreshold, govv1beta1.DefaultVetoThreshold),
 // 	)
 // }
 

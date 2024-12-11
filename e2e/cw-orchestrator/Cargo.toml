@@ -1,6 +1,6 @@
 [package]
 description = "Cw-Orchestrator end-to-end testing library for Bitsong."
-license     = ""
+license     = "Apache-2.0"
 name        = "bitsong-e2e-cw-orchestrator"
 version     = "0.0.1"
 

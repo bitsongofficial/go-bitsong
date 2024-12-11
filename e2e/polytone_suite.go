@@ -195,28 +195,31 @@ func (s *Suite) SetupChain(chain *SuiteChain) {
 		s.t.Fatal(err)
 	}
 
-	chain.Note = s.Instantiate(cc, user, noteId, NoteInstantiate{
+	chain.Note, err = s.Instantiate(cc, user, noteId, NoteInstantiate{
 		BlockMaxGas: 100_000_000,
 	})
-	chain.Voice = s.Instantiate(cc, user, voiceId, VoiceInstantiate{
+	require.NoError(s.t, err)
+
+	chain.Voice, err = s.Instantiate(cc, user, voiceId, VoiceInstantiate{
 		ProxyCodeId:     uint64(proxyUint),
 		BlockMaxGas:     100_000_000,
 		ContractAddrLen: 32,
 	})
-	chain.Tester = s.Instantiate(cc, user, testerId, TesterInstantiate{})
+	require.NoError(s.t, err)
+	chain.Tester, err = s.Instantiate(cc, user, testerId, TesterInstantiate{})
+	require.NoError(s.t, err)
 }
 
-func (s *Suite) Instantiate(chain *cosmos.CosmosChain, user ibc.Wallet, codeId string, msg any) string {
+func (s *Suite) Instantiate(chain *cosmos.CosmosChain, user ibc.Wallet, codeId string, msg any) (string, error) {
 	str, err := json.Marshal(msg)
 	if err != nil {
-		s.t.Fatal(err)
+		return "", err
 	}
-
 	address, err := chain.InstantiateContract(s.ctx, user.KeyName(), codeId, string(str), true)
 	if err != nil {
-		s.t.Fatal(err)
+		return "", err
 	}
-	return address
+	return address, nil
 }
 
 func (s *Suite) CreateChannel(initModule string, tryModule string, initChain, tryChain *SuiteChain, path string) (initChannel, tryChannel string, err error) {

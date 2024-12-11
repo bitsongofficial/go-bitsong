@@ -25,7 +25,7 @@ e2e-grpc: rm-testcache
 	cd e2e && go test -race -v -run TestBasicGrpcQuery .
 ```
 
- To run the integration test in the CI environment, add the make file cli commands to `/.github/interchain-e2e.yml`:
+ To run the integration test in the CI environment, add the make file cli commands to `/.github/interchaintest-e2e.yml`:
  ```mk
         # names of `make` commands to run tests
         test:
