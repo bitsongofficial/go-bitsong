@@ -21,7 +21,7 @@ func CreateV019UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		V0182 UPGRADE manually claims delegation rewards for all users. 
 		This will refresh the delegation information to the upgrade block.
-		This prevent the error from occuring in the future.
+		This prevents the error from occuring in the future.
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		`)

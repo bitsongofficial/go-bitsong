@@ -212,6 +212,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
 		genesisCommand(encodingConfig),
 		InitFromStateCmd(bitsong.DefaultNodeHome),
+		V019(bitsong.DefaultNodeHome),
 		VerifySlashedDelegatorsV018(bitsong.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
