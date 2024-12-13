@@ -11,9 +11,9 @@ import (
 
 	abci "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/client/cli"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/keeper"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

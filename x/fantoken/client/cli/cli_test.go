@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	simapp "github.com/bitsongofficial/go-bitsong/v018/app"
-	tokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	simapp "github.com/bitsongofficial/go-bitsong/app"
+	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -17,7 +17,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	tokencli "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/client/cli"
+	tokencli "github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
 )
 
 var (

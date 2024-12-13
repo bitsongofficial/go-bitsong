@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/params"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"

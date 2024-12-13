@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/cosmos/cosmos-sdk/std"
 )
 

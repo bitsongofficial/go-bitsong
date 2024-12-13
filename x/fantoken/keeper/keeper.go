@@ -5,7 +5,7 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

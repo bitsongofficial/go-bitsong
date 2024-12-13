@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken/client/cli"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
 	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 )
 

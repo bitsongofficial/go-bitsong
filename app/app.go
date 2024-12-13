@@ -3,15 +3,15 @@ package app
 import (
 	"fmt"
 
-	"github.com/bitsongofficial/go-bitsong/v018/app/keepers"
-	"github.com/bitsongofficial/go-bitsong/v018/app/upgrades"
-	v010 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v010"
-	v011 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v011"
-	v013 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v013"
-	v014 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v014"
-	v015 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v015"
-	v016 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v016"
-	v018 "github.com/bitsongofficial/go-bitsong/v018/app/upgrades/v018"
+	"github.com/bitsongofficial/go-bitsong/app/keepers"
+	"github.com/bitsongofficial/go-bitsong/app/upgrades"
+	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
+	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
+	v013 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
+	v014 "github.com/bitsongofficial/go-bitsong/app/upgrades/v014"
+	v015 "github.com/bitsongofficial/go-bitsong/app/upgrades/v015"
+	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
+	v018 "github.com/bitsongofficial/go-bitsong/app/upgrades/v018"
 
 	errorsmod "cosmossdk.io/errors"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -47,7 +47,7 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	fantokenclient "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/client"
+	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -71,7 +71,7 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 
 	// unnamed import of statik for swagger UI support
-	_ "github.com/bitsongofficial/go-bitsong/v018/swagger/statik"
+	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
 
 const appName = "BitsongApp"
@@ -501,6 +501,9 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+
+	// Register legacy and grpc-gateway routes for all modules.
+	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register new tendermint queries routes from grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

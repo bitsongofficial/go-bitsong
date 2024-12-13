@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/bitsongofficial/go-bitsong/v018/app/keepers"
-	appparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/app/keepers"
+	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"

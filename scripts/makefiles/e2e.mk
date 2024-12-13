@@ -18,7 +18,7 @@ e2e-basic: rm-testcache
 	cd e2e && go test -race -v -run TestBasicBitsongStart .
 
 e2e-upgrade: rm-testcache
-	cd e2e && go test -race -v -run TestBasicBitsongUpgrade .
+	cd e2e && go test -race -v -run TestBitsongUpgradeIBC .
 
 
 rm-testcache:

@@ -1,7 +1,7 @@
 package upgrades
 
 import (
-	"github.com/bitsongofficial/go-bitsong/v018/app/keepers"
+	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

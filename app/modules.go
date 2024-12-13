@@ -3,9 +3,9 @@ package app
 import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	encparams "github.com/bitsongofficial/go-bitsong/v018/app/params"
-	"github.com/bitsongofficial/go-bitsong/v018/x/fantoken"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
+	encparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
@@ -91,7 +91,7 @@ func appModules(
 			app.AppKeepers.AccountKeeper, app.AppKeepers.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+		auth.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
 		vesting.NewAppModule(app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper),
 		bank.NewAppModule(appCodec, app.AppKeepers.BankKeeper, app.AppKeepers.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *app.AppKeepers.CapabilityKeeper, false),
