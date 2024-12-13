@@ -10,7 +10,7 @@ import (
 // If testing locally, user should run `make hl` or 'make docker' to view options to build docker images tagged with local.
 func GetDockerImageInfo() (repo, version string) {
 	branchVersion, found := os.LookupEnv("BRANCH_CI")
-	repo = BitsongE2eRepo
+	repo = BitsongMainRepo
 	if !found {
 		// make local-image
 		repo = "bitsong"

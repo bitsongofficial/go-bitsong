@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBasicBtsgStart is a basic test to assert that spinning up a Bitsong network with one validator works properly.
-func TestBasicBtsgStart(t *testing.T) {
+// TestBasicBitsongStart is a basic test to assert that spinning up a Bitsong network with one validator works properly.
+func TestBasicBitsongStart(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
