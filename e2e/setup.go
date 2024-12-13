@@ -35,8 +35,8 @@ var (
 
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
-		Repository: BitsongMainRepo,
-		Version:    "v0.18.1",
+		Repository: "bitsong",
+		Version:    "local",
 		UidGid:     "1025:1025",
 	}
 
@@ -105,15 +105,15 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
 	cfg := baseCfg
 	cfg.Images = []ibc.DockerImage{img}
-	return CreateICTestBitsongChainCustomConfig(t, numVals, numFull, cfg)
+	return CreateThisBranchWithValsAndFullNodesCustomConfig(t, numVals, numFull, cfg)
 }
 
 // CreateThisBranchWithValsAndFullNodes generates this branch's chain (ex: from the commit), with a set of validators and full nodes.
-func CreateICTestBitsongChain(t *testing.T, numVals, numFull int) []ibc.Chain {
+func CreateThisBranchWithValsAndFullNodes(t *testing.T, numVals, numFull int) []ibc.Chain {
 	return CreateChain(t, numVals, numFull, BitsongImage)
 }
 
-func CreateICTestBitsongChainCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
+func CreateThisBranchWithValsAndFullNodesCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          "bitsong",

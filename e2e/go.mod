@@ -1,10 +1,10 @@
 module github.com/bitsongofficial/go-bitsong/tests/e2e
 
-go 1.22.2
+go 1.22.4
 
 replace (
 	// For this nested module, you always want to replace the parent reference with the current worktree.
-	github.com/bitsongofficial/go-bitsong v0.17.0 => ../
+	github.com/bitsongofficial/go-bitsong v0.18.1 => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/faddat/go-substrate-rpc-client/v4 v4.0.1-0.20240402155230-48db8c110afe
 
@@ -14,6 +14,7 @@ replace (
 
 require (
 	cosmossdk.io/math v1.3.0
+	github.com/CosmWasm/wasmd v0.45.0
 	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/docker/docker v24.0.7+incompatible
@@ -27,7 +28,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.0 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1 // indirect
-	github.com/cosmos/ibc-go/v7 v7.6.0 // indirect
+	github.com/cosmos/ibc-go/v7 v7.6.0
 	github.com/cosmos/interchain-security/v3 v3.1.1-0.20231102122221-81650a84f989 // indirect
 	github.com/dgraph-io/badger/v4 v4.2.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
@@ -63,6 +64,7 @@ require (
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
+	github.com/CosmWasm/wasmvm v1.5.0 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect

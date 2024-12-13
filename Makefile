@@ -3,6 +3,7 @@
 include scripts/makefiles/build.mk
 include scripts/makefiles/e2e.mk
 include scripts/makefiles/hl.mk
+include scripts/makefiles/docker.mk
 include contrib/devtools/Makefile
 
 .DEFAULT_GOAL := help
