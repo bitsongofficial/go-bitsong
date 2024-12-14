@@ -77,7 +77,7 @@ func rewardVerification(_ *tmcfg.Config, cliCtx client.Context, genParams V018St
 		return fmt.Errorf("failed to convert state export: %w", err)
 	}
 
-	fmt.Println("Veification Complete")
+	fmt.Println("Verification Complete")
 
 	return nil
 }

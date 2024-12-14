@@ -74,7 +74,7 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	cfg.Images = []ibc.DockerImage{baseChain}
 
 	numVals, numNodes := 4, 0
-	chains := CreateChainWithCustomConfig(t, numVals, numNodes, cfg)
+	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
 	chain := chains[0].(*cosmos.CosmosChain)
 
 	ic, ctx, client, _ := BuildInitialChain(t, chains)

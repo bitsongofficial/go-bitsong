@@ -20,7 +20,7 @@ func TestBasicBtsgStart(t *testing.T) {
 	t.Parallel()
 
 	// Base setup
-	chains := CreateThisBranchChain(t, 1, 0)
+	chains := CreateICTestBitsongChain(t, 1, 0)
 	ic, ctx, _, _ := BuildInitialChain(t, chains)
 
 	bitsong := chains[0].(*cosmos.CosmosChain)
@@ -31,6 +31,24 @@ func TestBasicBtsgStart(t *testing.T) {
 	chainUser := users[0]
 
 	bitsongconformance.ConformanceCosmWasm(t, ctx, bitsong, chainUser)
+
+	// grpc query
+	// bitsongGrpc := bitsong.GetGRPCAddress()
+	// dialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
+	// conn, err := grpc.NewClient(bitsongGrpc, dialOpts)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// fmt.Println(conn)
+	// defer conn.Close()
+	// client := wasmtypes.NewQueryClient(conn)
+	// req6 := &wasmtypes.QueryParamsRequest{}
+	// resp6, err6 := client.Params(ctx, req6)
+	// if err6 != nil {
+	// 	log.Fatal(err)
+	// }
+	// require.NotNil(t, resp6)
 
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)

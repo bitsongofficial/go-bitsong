@@ -6,12 +6,12 @@ import (
 )
 
 const (
-	UpgradeName = "v18"
+	UpgradeName = "v020"
 )
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateV182UpgradeHandler,
+	CreateUpgradeHandler: CreateV020UpgradeHandler,
 	StoreUpgrades: store.StoreUpgrades{
 		Added:   []string{},
 		Deleted: []string{},

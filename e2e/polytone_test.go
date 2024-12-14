@@ -81,15 +81,16 @@ func TestPolytoneOnBitsong(t *testing.T) {
 
 }
 func HelloMessage(to sdk.AccAddress, data string) (w.CosmosMsg, error) {
-	msg := fmt.Sprintf(`{"hello": { "data": "%s" }}`, data)
-	if !json.Valid([]byte(msg)) {
-		return w.CosmosMsg{}, fmt.Errorf("invalid JSON message: %s", msg)
+	msgContent := map[string]interface{}{"hello": map[string]string{"data": data}}
+	msgBytes, err := json.Marshal(msgContent)
+	if err != nil {
+		return w.CosmosMsg{}, fmt.Errorf("failed to marshal message: %w", err)
 	}
 	return w.CosmosMsg{
 		Wasm: &w.WasmMsg{
 			Execute: &w.ExecuteMsg{
 				ContractAddr: to.String(),
-				Msg:          []byte(msg),
+				Msg:          msgBytes,
 				Funds:        []w.Coin{},
 			},
 		},
