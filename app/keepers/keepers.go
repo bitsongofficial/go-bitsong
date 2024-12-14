@@ -284,7 +284,7 @@ func NewAppKeepers(
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		stakingKeeper,
-		baseapp.NewMsgServiceRouter(),
+		bApp.MsgServiceRouter(),
 		govConfig,
 		govModAddress,
 	)
