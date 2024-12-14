@@ -1,4 +1,4 @@
-package v019
+package v020
 
 import (
 	"fmt"
@@ -24,9 +24,9 @@ func CreateV182UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		`)
 
 		// manually claim rewards for all delegators slashed in validator
-		for _, valAddr := range SLASHED_VALIDATORS {
+		for _, val := range k.StakingKeeper.GetAllValidators(ctx) {
 			// get delegations
-			val := sdk.ValAddress(valAddr)
+			val := sdk.ValAddress(val.GetOperator())
 			delegation := k.StakingKeeper.GetValidatorDelegations(ctx, val)
 
 			for _, del := range delegation {
