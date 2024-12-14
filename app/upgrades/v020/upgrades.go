@@ -1,4 +1,4 @@
-package v019
+package v020
 
 import (
 	"fmt"
@@ -105,7 +105,6 @@ func CreateV019UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				stake := validator.TokensFromSharesTruncated(delegation.GetShares())
 				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
-
 			}
 		}
 
