@@ -12,7 +12,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-func CreateV019UpgradeHandler(mm *module.Manager, configurator module.Configurator, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
@@ -112,7 +112,6 @@ func CreateV019UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
 			valAddr := del.GetValidatorAddr()
 			val := k.StakingKeeper.Validator(ctx, valAddr)
-
 			// calculate rewards
 			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
 		}
@@ -121,8 +120,7 @@ func CreateV019UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		Upgrade V018 Patch complete. 
-		All delegation rewards have been claimed. 
-		Nodes are now able to regress upstream to the main cosmos-sdk module :)
+		All delegation rewards claimed and startingInfo set to this block height
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		`)
