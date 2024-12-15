@@ -109,7 +109,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 				// calculate delegation stake in tokens
 				// we don't store directly, so multiply delegation shares * (tokens per share)
 				// note: necessary to truncate so we don't allow withdrawing more rewards than owed
-				stake := CustommTokensFromSharesTruncated(validator.GetTokens(), delegation.GetShares(), validator.GetDelegatorShares())
+				stake := validator.TokensFromSharesTruncated(delegation.GetShares())
 
 				// save new delegator starting info to kv store
 				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, del.GetDelegatorAddr(), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
@@ -117,12 +117,13 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		}
 
 		// // confirm patch has been applied by querying rewards again for each delegation
-		// for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
-		// 	valAddr := del.GetValidatorAddr()
-		// 	val := k.StakingKeeper.Validator(ctx, valAddr)
-		// 	// calculate rewards
-		// 	k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
-		// }
+		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
+			valAddr := del.GetValidatorAddr()
+			val := k.StakingKeeper.Validator(ctx, valAddr)
+			// calculate rewards
+			rewards := k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
+			ctx.Logger().Info("rewards", rewards)
+		}
 
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -163,6 +164,8 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 				endingPeriod := event.ValidatorPeriod
 				if endingPeriod > startingPeriod {
 					rewards = rewards.Add(customCalculateDelegationRewardsBetween(ctx, k, val, startingPeriod, endingPeriod, stake)...)
+					// Note: It is necessary to truncate so we don't allow withdrawing
+					// more rewards than owed.
 					stake = stake.MulTruncate(math.LegacyOneDec().Sub(event.Fraction))
 					startingPeriod = endingPeriod
 				}
