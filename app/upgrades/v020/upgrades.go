@@ -15,7 +15,7 @@ import (
 func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
-
+		ctx = sdk.UnwrapSDKContext(ctx)
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -61,6 +61,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				// add coins to user account
 				if !finalRewards.IsZero() {
+					ctx.Logger().Info("finalRewards", finalRewards)
 					withdrawAddr := k.DistrKeeper.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
 					err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, withdrawAddr, finalRewards)
 					if err != nil {
@@ -92,6 +93,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					// Note, we do not call the NewCoins constructor as we do not want the zero
 					// coin removed.
 					finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
+					ctx.Logger().Info("finalRewards", finalRewards)
 				}
 
 				// reinitialize the delegation
@@ -100,21 +102,27 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				// increment reference count for the period we're going to track
 				incrementReferenceCount(ctx, k, valAddr, previousPeriod)
-				validator := k.StakingKeeper.Validator(ctx, valAddr)
-				delegation := k.StakingKeeper.Delegation(ctx, sdk.AccAddress(del.DelegatorAddress), valAddr)
 
-				stake := validator.TokensFromSharesTruncated(delegation.GetShares())
-				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
+				validator := k.StakingKeeper.Validator(ctx, valAddr)
+				delegation := k.StakingKeeper.Delegation(ctx, del.GetDelegatorAddr(), valAddr)
+
+				// calculate delegation stake in tokens
+				// we don't store directly, so multiply delegation shares * (tokens per share)
+				// note: necessary to truncate so we don't allow withdrawing more rewards than owed
+				stake := CustommTokensFromSharesTruncated(validator.GetTokens(), delegation.GetShares(), validator.GetDelegatorShares())
+
+				// save new delegator starting info to kv store
+				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, del.GetDelegatorAddr(), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
 			}
 		}
 
-		// confirm patch has been applied by querying rewards again for each delegation
-		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
-			valAddr := del.GetValidatorAddr()
-			val := k.StakingKeeper.Validator(ctx, valAddr)
-			// calculate rewards
-			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
-		}
+		// // confirm patch has been applied by querying rewards again for each delegation
+		// for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
+		// 	valAddr := del.GetValidatorAddr()
+		// 	val := k.StakingKeeper.Validator(ctx, valAddr)
+		// 	// calculate rewards
+		// 	k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
+		// }
 
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -215,6 +223,7 @@ func customDecrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAd
 	}
 	historical.ReferenceCount--
 	if historical.ReferenceCount == 0 {
+
 		k.DistrKeeper.DeleteValidatorHistoricalReward(ctx, valAddr, period)
 	} else {
 		k.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
@@ -231,26 +240,7 @@ func incrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAddr sdk
 	k.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
 }
 
-// func CalculateRewardsForSlashedDelegators(
-// 	ctx sdk.Context,
-// 	k *keepers.AppKeepers,
-// 	val stakingtypes.ValidatorI,
-// 	del stakingtypes.DelegationI,
-// 	currentStake math.LegacyDec,
-// 	list []string,
-// ) bool {
-// 	valAddr := del.GetValidatorAddr().String()
-// 	delAddr := del.GetDelegatorAddr().String()
-// 	for _, sv := range SLASHED_VALIDATORS {
-// 		if valAddr == sv {
-// 			return true
-// 		}
-// 	}
-// 	for _, sv := range list {
-// 		if delAddr == sv {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }
+// calculate the token worth of provided shares, truncated
+func CustommTokensFromSharesTruncated(t math.Int, ds math.LegacyDec, shares sdk.Dec) math.LegacyDec {
+	return (shares.MulInt(t)).QuoTruncate(ds)
+}
