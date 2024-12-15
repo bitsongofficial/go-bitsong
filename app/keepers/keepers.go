@@ -289,6 +289,9 @@ func NewAppKeepers(
 		govModAddress,
 	)
 
+	// Set legacy router for backwards compatibility with gov v1beta1
+	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
+
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
 	const middlewareTimeoutRetry = 0
