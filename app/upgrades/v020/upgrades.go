@@ -15,11 +15,11 @@ import (
 func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
-
+		ctx = sdk.UnwrapSDKContext(ctx)
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-		V0182 UPGRADE manually claims delegation rewards for all users. 
+		V020 UPGRADE manually claims delegation rewards for all users. 
 		This will refresh the delegation information to the upgrade block.
 		This prevents the error from occuring in the future.
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -92,6 +92,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					// Note, we do not call the NewCoins constructor as we do not want the zero
 					// coin removed.
 					finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
+					ctx.Logger().Info("No final rewards", finalRewards)
 				}
 
 				// reinitialize the delegation
@@ -100,15 +101,21 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				// increment reference count for the period we're going to track
 				incrementReferenceCount(ctx, k, valAddr, previousPeriod)
-				validator := k.StakingKeeper.Validator(ctx, valAddr)
-				delegation := k.StakingKeeper.Delegation(ctx, sdk.AccAddress(del.DelegatorAddress), valAddr)
 
+				validator := k.StakingKeeper.Validator(ctx, valAddr)
+				delegation := k.StakingKeeper.Delegation(ctx, del.GetDelegatorAddr(), valAddr)
+
+				// calculate delegation stake in tokens
+				// we don't store directly, so multiply delegation shares * (tokens per share)
+				// note: necessary to truncate so we don't allow withdrawing more rewards than owed
 				stake := validator.TokensFromSharesTruncated(delegation.GetShares())
-				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
+
+				// save new delegator starting info to kv store
+				k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, del.GetDelegatorAddr(), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
 			}
 		}
 
-		// confirm patch has been applied by querying rewards again for each delegation
+		// // confirm patch has been applied by querying rewards again for each delegation
 		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
 			valAddr := del.GetValidatorAddr()
 			val := k.StakingKeeper.Validator(ctx, valAddr)
@@ -119,7 +126,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-		Upgrade V018 Patch complete. 
+		Upgrade V020 Patch complete. 
 		All delegation rewards claimed and startingInfo set to this block height
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -132,7 +139,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			return nil, err
 		}
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
-
 		return versionMap, err
 	}
 }
@@ -155,6 +161,8 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 				endingPeriod := event.ValidatorPeriod
 				if endingPeriod > startingPeriod {
 					rewards = rewards.Add(customCalculateDelegationRewardsBetween(ctx, k, val, startingPeriod, endingPeriod, stake)...)
+					// Note: It is necessary to truncate so we don't allow withdrawing
+					// more rewards than owed.
 					stake = stake.MulTruncate(math.LegacyOneDec().Sub(event.Fraction))
 					startingPeriod = endingPeriod
 				}
@@ -169,11 +177,6 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
 		} else {
-			// ok := CalculateRewardsForSlashedDelegators(ctx, k, val, del, currentStake, SLASHED_DELEGATORS)
-			// if ok {
-			// 	stake = currentStake
-			// } else {
-			// }
 			panic(fmt.Sprintln("current stake is not delgator from slashed validator, and is more than maximum margin of error"))
 		}
 	}
@@ -215,6 +218,7 @@ func customDecrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAd
 	}
 	historical.ReferenceCount--
 	if historical.ReferenceCount == 0 {
+
 		k.DistrKeeper.DeleteValidatorHistoricalReward(ctx, valAddr, period)
 	} else {
 		k.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
@@ -231,26 +235,7 @@ func incrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAddr sdk
 	k.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, period, historical)
 }
 
-// func CalculateRewardsForSlashedDelegators(
-// 	ctx sdk.Context,
-// 	k *keepers.AppKeepers,
-// 	val stakingtypes.ValidatorI,
-// 	del stakingtypes.DelegationI,
-// 	currentStake math.LegacyDec,
-// 	list []string,
-// ) bool {
-// 	valAddr := del.GetValidatorAddr().String()
-// 	delAddr := del.GetDelegatorAddr().String()
-// 	for _, sv := range SLASHED_VALIDATORS {
-// 		if valAddr == sv {
-// 			return true
-// 		}
-// 	}
-// 	for _, sv := range list {
-// 		if delAddr == sv {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }
+// calculate the token worth of provided shares, truncated
+func CustommTokensFromSharesTruncated(t math.Int, ds math.LegacyDec, shares sdk.Dec) math.LegacyDec {
+	return (shares.MulInt(t)).QuoTruncate(ds)
+}
