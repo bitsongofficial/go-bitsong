@@ -8,6 +8,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+
+	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
+	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
+
+	sdkmath "cosmossdk.io/math"
 	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
 	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
 
@@ -45,7 +50,7 @@ func TestBasicBitsongUpgrade(t *testing.T) {
 	CosmosChainUpgradeTest(t, chainName, version, repo, upgradeName)
 }
 
-func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
+func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
@@ -70,10 +75,15 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	}
 
 	cfg := baseCfg
+
+	cfg := baseCfg
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
+	cfg.Images = []ibc.DockerImage{baseChain}
 	cfg.Images = []ibc.DockerImage{baseChain}
 
 	numVals, numNodes := 4, 0
+	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
+	chain := chains[0].(*cosmos.CosmosChain)
 	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
 	chain := chains[0].(*cosmos.CosmosChain)
 
@@ -85,15 +95,19 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 
 	userFunds := sdkmath.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
+	userFunds := sdkmath.NewInt(10_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
 	chainUser := users[0]
 
+	// execute a contract before the upgrade
+	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 	// execute a contract before the upgrade
 	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 
 	// upgrade
 	height, err := chain.Height(ctx)
+	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
-
 	haltHeight := height + haltHeightDelta
 	proposalID := SubmitUpgradeProposal(t, ctx, chain, chainUser, upgradeName, haltHeight)
 
@@ -101,7 +115,16 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	require.NoError(t, err, "failed to parse proposal ID")
 
 	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
+	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
 
+	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
+
+	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
+	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
+
+	// Post Upgrade: Conformance Validation
+	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
+	// TODO: ibc conformance test
 	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
 
 	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
