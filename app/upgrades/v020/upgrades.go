@@ -19,7 +19,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-		V0182 UPGRADE manually claims delegation rewards for all users. 
+		V020 UPGRADE manually claims delegation rewards for all users. 
 		This will refresh the delegation information to the upgrade block.
 		This prevents the error from occuring in the future.
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -61,7 +61,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				// add coins to user account
 				if !finalRewards.IsZero() {
-					ctx.Logger().Info("finalRewards", finalRewards)
 					withdrawAddr := k.DistrKeeper.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
 					err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, withdrawAddr, finalRewards)
 					if err != nil {
@@ -93,7 +92,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					// Note, we do not call the NewCoins constructor as we do not want the zero
 					// coin removed.
 					finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
-					ctx.Logger().Info("finalRewards", finalRewards)
+					ctx.Logger().Info("No final rewards", finalRewards)
 				}
 
 				// reinitialize the delegation
@@ -121,14 +120,13 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			valAddr := del.GetValidatorAddr()
 			val := k.StakingKeeper.Validator(ctx, valAddr)
 			// calculate rewards
-			rewards := k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
-			ctx.Logger().Info("rewards", rewards)
+			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
 		}
 
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-		Upgrade V018 Patch complete. 
+		Upgrade V020 Patch complete. 
 		All delegation rewards claimed and startingInfo set to this block height
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -141,7 +139,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			return nil, err
 		}
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
-
 		return versionMap, err
 	}
 }
@@ -180,11 +177,6 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
 		} else {
-			// ok := CalculateRewardsForSlashedDelegators(ctx, k, val, del, currentStake, SLASHED_DELEGATORS)
-			// if ok {
-			// 	stake = currentStake
-			// } else {
-			// }
 			panic(fmt.Sprintln("current stake is not delgator from slashed validator, and is more than maximum margin of error"))
 		}
 	}
