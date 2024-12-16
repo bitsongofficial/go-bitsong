@@ -8,8 +8,10 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+
 	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
 	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
+
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
@@ -45,7 +47,7 @@ func TestBasicBitsongUpgrade(t *testing.T) {
 	CosmosChainUpgradeTest(t, chainName, version, repo, upgradeName)
 }
 
-func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
+func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
@@ -93,8 +95,8 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 	// upgrade
 	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
-
 	haltHeight := height + haltHeightDelta
+
 	proposalID := SubmitUpgradeProposal(t, ctx, chain, chainUser, upgradeName, haltHeight)
 
 	proposalIDInt, err := strconv.ParseInt(proposalID, 10, 64)
@@ -168,7 +170,7 @@ func SubmitUpgradeProposal(t *testing.T, ctx context.Context, chain *cosmos.Cosm
 	upgradeMsg := []cosmosproto.Message{
 		&upgradetypes.MsgSoftwareUpgrade{
 			// gov Module account
-			Authority: "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
+			Authority: "bitsong10d07y265gmmuvt4z0w9aw880jnsr700jktpd5u",
 			Plan: upgradetypes.Plan{
 				Name:   upgradeName,
 				Height: int64(haltHeight),

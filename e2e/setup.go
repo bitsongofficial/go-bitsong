@@ -14,12 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	ibclocalhost "github.com/cosmos/ibc-go/v7/modules/light-clients/09-localhost"
 )
 
 var (
+	chainName        = "bitsong"
 	VotingPeriod     = "15s"
 	MaxDepositPeriod = "10s"
 	Denom            = "ubtsg"
@@ -31,6 +33,12 @@ var (
 	IBCRelayerVersion = "main"
 
 	bitsongRepo, bitsongVersion = GetDockerImageInfo()
+	// baseChain is the current version of the chain that will be upgraded from
+	baseChain = ibc.DockerImage{
+		Repository: "bitsong",
+		Version:    "local",
+		UidGid:     "1025:1025",
+	}
 
 	BitsongImage = ibc.DockerImage{
 		Repository: bitsongRepo,
@@ -88,7 +96,7 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 	// register custom types
 	ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	// fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
 }
