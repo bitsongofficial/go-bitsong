@@ -12,7 +12,6 @@ import (
 	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
 	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
 
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/docker/docker/client"
@@ -26,25 +25,14 @@ import (
 )
 
 const (
-	chainName   = "bitsong"
-	upgradeName = "v019"
-
+	upgradeName        = "v019"
 	haltHeightDelta    = int64(9) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
 )
 
-var (
-	// baseChain is the current version of the chain that will be upgraded from
-	baseChain = ibc.DockerImage{
-		Repository: BitsongMainRepo,
-		Version:    "v0.18.1",
-		UidGid:     "1025:1025",
-	}
-)
-
 func TestBasicBitsongUpgrade(t *testing.T) {
 	repo, version := GetDockerImageInfo()
-	CosmosChainUpgradeTest(t, chainName, version, repo, upgradeName)
+	BitsongBasicUpgradeSanityTest(t, chainName, version, repo, upgradeName)
 }
 
 func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {

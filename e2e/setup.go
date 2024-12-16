@@ -35,8 +35,8 @@ var (
 	bitsongRepo, bitsongVersion = GetDockerImageInfo()
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
-		Repository: "bitsong",
-		Version:    "local",
+		Repository: BitsongMainRepo,
+		Version:    "v0.18.1",
 		UidGid:     "1025:1025",
 	}
 
