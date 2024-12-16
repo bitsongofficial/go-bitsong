@@ -69,9 +69,8 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
-
 	// unnamed import of statik for swagger UI support
-	_ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
 
 const appName = "BitsongApp"
