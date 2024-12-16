@@ -1,12 +1,5 @@
 package e2e
 
-// steps:
-// 1. get:
-// - the current version image being used in production
-// - the docker image to upgrade into
-// 2. config the current image network and start it
-// 3. propose & vote on upgrade
-// 4. once
 import (
 	"context"
 	"fmt"
@@ -14,7 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
+
+	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
+	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/docker/docker/client"
@@ -28,20 +25,17 @@ import (
 )
 
 const (
-	upgradeName        = "v0.18.0" // The upcoming version name - Should match with upgrade handler name. This version needs to be built locally for tests.
-	haltHeightDelta    = int64(9)  // will propose upgrade this many blocks in the future
+	upgradeName        = "v019"
+	haltHeightDelta    = int64(9) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
-	VotingPeriod       = "30s" // Reducing voting period for testing
-	MaxDepositPeriod   = "10s"
-	Denom              = "ubtsg"
 )
 
 func TestBasicBitsongUpgrade(t *testing.T) {
 	repo, version := GetDockerImageInfo()
-	CosmosChainUpgradeTest(t, "bitsong", version, repo, upgradeName)
+	BitsongBasicUpgradeSanityTest(t, chainName, version, repo, upgradeName)
 }
 
-func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
+func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
 	if testing.Short() {
 		t.Skip("skipping in short mode")
 	}
@@ -64,13 +58,14 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 			Value: Denom,
 		},
 	}
-	cfg := bitsongCfg
+
+	cfg := baseCfg
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
-	cfg.Images = []ibc.DockerImage{UpgradeFromBitsongImage}
+	cfg.Images = []ibc.DockerImage{baseChain}
 
 	numVals, numNodes := 4, 0
-	chains := CreateChainWithCustomConfig(t, numVals, numNodes, cfg)
-	bitsongChain := chains[0].(*cosmos.CosmosChain)
+	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
+	chain := chains[0].(*cosmos.CosmosChain)
 
 	ic, ctx, client, _ := BuildInitialChain(t, chains)
 
@@ -78,25 +73,33 @@ func CosmosChainUpgradeTest(t *testing.T, chainName, upgradeBranchVersion, upgra
 		_ = ic.Close()
 	})
 
-	const userFunds = int64(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), math.NewInt(userFunds), bitsongChain)
+	userFunds := sdkmath.NewInt(10_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
 	chainUser := users[0]
 
-	// Creating a contract before upgrade and ensuring expected state.
-	// _, contractAddr := helpers.SetupContract(t, ctx, bitsongChain, chainUser.KeyName(), "contracts/cw_template.wasm", `{}`)
-	// t.Log(contractAddr)
+	// execute a contract before the upgrade
+	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 
 	// upgrade
-	height, err := bitsongChain.Height(ctx)
+	height, err := chain.Height(ctx)
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
-
 	haltHeight := height + haltHeightDelta
-	proposalID := SubmitUpgradeProposal(t, ctx, bitsongChain, chainUser, upgradeName, haltHeight)
-	proposalIDInt, _ := strconv.ParseInt(proposalID, 10, 64)
 
-	ValidatorVoting(t, ctx, bitsongChain, proposalIDInt, height, haltHeight)
+	proposalID := SubmitUpgradeProposal(t, ctx, chain, chainUser, upgradeName, haltHeight)
 
-	UpgradeNodes(t, ctx, bitsongChain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
+	proposalIDInt, err := strconv.ParseInt(proposalID, 10, 64)
+	require.NoError(t, err, "failed to parse proposal ID")
+
+	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
+
+	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
+
+	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
+	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
+
+	// Post Upgrade: Conformance Validation
+	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
+	// TODO: ibc conformance test
 }
 
 func UpgradeNodes(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, client *client.Client, haltHeight int64, upgradeRepo, upgradeBranchVersion string) {
@@ -154,8 +157,8 @@ func ValidatorVoting(t *testing.T, ctx context.Context, chain *cosmos.CosmosChai
 func SubmitUpgradeProposal(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, user ibc.Wallet, upgradeName string, haltHeight int64) string {
 	upgradeMsg := []cosmosproto.Message{
 		&upgradetypes.MsgSoftwareUpgrade{
-			// Gov Module account
-			Authority: "TODO",
+			// gov Module account
+			Authority: "bitsong10d07y265gmmuvt4z0w9aw880jnsr700jktpd5u",
 			Plan: upgradetypes.Plan{
 				Name:   upgradeName,
 				Height: int64(haltHeight),

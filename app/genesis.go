@@ -3,10 +3,8 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-
-	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // The genesis state of the blockchain is represented here as a map of raw json
@@ -18,7 +16,7 @@ import (
 // object provided to it during init.
 type GenesisState map[string]json.RawMessage
 
-// NewDefaultGenesisState generates the default state for the application.
+// NewDefaultGenesisState generates the default state for bitsong.
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
 	return ModuleBasics.DefaultGenesis(cdc)
 }
@@ -33,59 +31,56 @@ func NewDefaultGenesisStateWithCodec(cdc codec.JSONCodec) GenesisState {
 			InstantiateDefaultPermission: wasmtypes.AccessTypeEverybody,
 		},
 	}
-	gen[wasm.ModuleName] = cdc.MustMarshalJSON(&wasmGen)
+	// other default genesis
+	// mintGenesis := mintGenesisState()
+	// stakingGenesis := stakingGenesisState()
+	// govGenesis := govGenesisState()
+
+	gen[wasmtypes.ModuleName] = cdc.MustMarshalJSON(&wasmGen)
+	// gen["mint"] = cdc.MustMarshalJSON(mintGenesis)
+	// gen["staking"] = cdc.MustMarshalJSON(stakingGenesis)
+	// gen["gov"] = cdc.MustMarshalJSON(govGenesis)
+
 	return gen
-}
-
-/*func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
-	genesis := ModuleBasics.DefaultGenesis(cdc)
-	mintGenesis := mintGenesisState()
-	stakingGenesis := stakingGenesisState()
-	govGenesis := govGenesisState()
-
-	genesis["mint"] = cdc.MustMarshalJSON(mintGenesis)
-	genesis["staking"] = cdc.MustMarshalJSON(stakingGenesis)
-	genesis["gov"] = cdc.MustMarshalJSON(govGenesis)
-
-	return genesis
 }
 
 // stakingGenesisState returns the default genesis state for the staking module, replacing the
 // bond denom from stake to ubtsg
-func stakingGenesisState() *stakingtypes.GenesisState {
-	return &stakingtypes.GenesisState{
-		Params: stakingtypes.NewParams(
-			stakingtypes.DefaultUnbondingTime,
-			stakingtypes.DefaultMaxValidators,
-			stakingtypes.DefaultMaxEntries,
-			0,
-			types.BondDenom,
-		),
-	}
-}
+// func stakingGenesisState() *stakingtypes.GenesisState {
+// 	historicalEntries := uint32(0)
+// 	return &stakingtypes.GenesisState{
+// 		Params: stakingtypes.NewParams(
+// 			stakingtypes.DefaultUnbondingTime,
+// 			stakingtypes.DefaultMaxValidators,
+// 			stakingtypes.DefaultMaxEntries,
+// 			historicalEntries,
+// 			"ubtsg", sdk.ZeroDec(),
+// 		),
+// 	}
+// }
 
-func govGenesisState() *govtypes.GenesisState {
-	return govtypes.NewGenesisState(
-		1,
-		govtypes.NewDepositParams(
-			sdk.NewCoins(sdk.NewCoin(types.BondDenom, govtypes.DefaultMinDepositTokens)),
-			govtypes.DefaultPeriod,
-		),
-		govtypes.NewVotingParams(govtypes.DefaultPeriod),
-		govtypes.NewTallyParams(govtypes.DefaultQuorum, govtypes.DefaultThreshold, govtypes.DefaultVetoThreshold),
-	)
-}
+// func govGenesisState() *govv1beta1.GenesisState {
+// 	startingPropId := uint64(1)
+// 	return govv1beta1.NewGenesisState(
+// 		startingPropId,
+// 		govv1beta1.NewDepositParams(
+// 			sdk.NewCoins(sdk.NewCoin("ubtsg", govv1beta1.DefaultMinDepositTokens)),
+// 			govv1beta1.DefaultPeriod,
+// 		),
+// 		govv1beta1.NewVotingParams(govv1beta1.DefaultPeriod),
+// 		govv1beta1.NewTallyParams(govv1beta1.DefaultQuorum, govv1beta1.DefaultThreshold, govv1beta1.DefaultVetoThreshold),
+// 	)
+// }
 
-func mintGenesisState() *minttypes.GenesisState {
-	return &minttypes.GenesisState{
-		Params: minttypes.NewParams(
-			types.BondDenom,
-			sdk.NewDecWithPrec(13, 2),
-			sdk.NewDecWithPrec(20, 2),
-			sdk.NewDecWithPrec(7, 2),
-			sdk.NewDecWithPrec(67, 2),
-			uint64(60*60*8766/5), // assuming 5 second block times
-		),
-	}
-}
-*/
+// func mintGenesisState() *minttypes.GenesisState {
+// 	return &minttypes.GenesisState{
+// 		Params: minttypes.NewParams(
+// 			"ubtsg",
+// 			sdk.NewDecWithPrec(13, 2),
+// 			sdk.NewDecWithPrec(20, 2),
+// 			sdk.NewDecWithPrec(7, 2),
+// 			sdk.NewDecWithPrec(67, 2),
+// 			uint64(60*60*8766/6), // assuming 6 second block times
+// 		),
+// 	}
+// }

@@ -1,6 +1,6 @@
-module github.com/bitsongofficial/go-bitsong/v018
+module github.com/bitsongofficial/go-bitsong
 
-go 1.22
+go 1.22.4
 
 require (
 	cosmossdk.io/api v0.3.1

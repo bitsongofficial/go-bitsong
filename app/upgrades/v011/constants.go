@@ -1,9 +1,9 @@
 package v011
 
 import (
-	"github.com/bitsongofficial/go-bitsong/v018/app/upgrades"
-	fantokentypes "github.com/bitsongofficial/go-bitsong/v018/x/fantoken/types"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/v018/x/merkledrop/types"
+	"github.com/bitsongofficial/go-bitsong/app/upgrades"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 

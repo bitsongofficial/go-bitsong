@@ -25,7 +25,7 @@ coverage.txt
 profile.out
 
 # heighliner
-heighliner
+heighliner/
 
 # Vagrant
 .vagrant/
@@ -52,3 +52,4 @@ state_export.json
 
 github.com*
 gogoproto*
+target/

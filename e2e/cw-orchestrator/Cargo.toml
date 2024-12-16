@@ -1,0 +1,47 @@
+[package]
+description = "Cw-Orchestrator end-to-end testing library for Bitsong."
+license     = "Apache-2.0"
+name        = "bitsong-e2e-cw-orchestrator"
+version     = "0.0.1"
+
+[dependencies]
+cosmwasm-std       = "2.1.4"
+cw-orch            = { version = "0.27.0", features = ["daemon"] }
+cw-orch-interchain = { version = "0.8.1", features = ["daemon"] }
+cw-orch-proto      = "0.9.0"
+cw-utils           = "2.0.0"
+cw2                = "2.0.0"
+
+abstract-adapter   = { version = "0.24.1", features = ["test-utils"] }
+abstract-app       = { version = "0.24.1", features = ["test-utils"] }
+abstract-client    = { version = "0.24.1" }
+abstract-interface = { version = "0.24.1", features = ["interchain"] }
+abstract-sdk       = "0.24.1"
+abstract-std       = " 0.24.1"
+abstract-testing   = "0.24.1"
+# abstract-scripts   = { path = "./scripts" }
+
+anyhow     = "1.0.94"
+dotenv     = "0.15.0"
+env_logger = "0.11.3"
+log        = "0.4.14"
+tokio      = "1.42.0"
+base64                    = "0.22.1"
+ibc-relayer-types = "0.29"
+
+
+cosmwasm-schema = "2.0.0"
+cw-controllers            = "2.0.0"
+cw-storage-plus = "2.0.0"
+# cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+# polytone                  = "0.25.0"
+thiserror  = "2.0.4"
+# Testing contract
+counter-contract = { version = "0.27.0" } # Use tag if breaks
+
+[profile.dev]
+debug = true
+
+[profile.release]
+debug = false
+opt-level = 3

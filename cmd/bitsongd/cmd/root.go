@@ -10,7 +10,7 @@ import (
 	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/bitsongofficial/go-bitsong/v018/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -23,7 +23,7 @@ import (
 
 	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 
-	bitsong "github.com/bitsongofficial/go-bitsong/v018/app"
+	bitsong "github.com/bitsongofficial/go-bitsong/app"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -41,7 +41,7 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 )
 
-// NewRootCmd creates a new root command for terpd. It is called once in the
+// NewRootCmd creates a new root command for bitsongd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	encodingConfig := bitsong.MakeEncodingConfig()
@@ -92,6 +92,9 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := tmcfg.DefaultConfig()
+			// add customizations to tendermint configuration here
+			// customTMConfig.P2P.MaxNumInboundPeers = 100
+			// customTMConfig.P2P.MaxNumOutboundPeers = 40
 
 			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
 		},
@@ -101,18 +104,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	return rootCmd, encodingConfig
 }
-
-// initTendermintConfig helps to override default Tendermint Config values.
-// return tmcfg.DefaultConfig if no custom configuration is required for the application.
-// func initTendermintConfig() *tmcfg.Config {
-// 	cfg := tmcfg.DefaultConfig()
-
-// 	// these values put a higher strain on node memory
-// 	// cfg.P2P.MaxNumInboundPeers = 100
-// 	// cfg.P2P.MaxNumOutboundPeers = 40
-
-// 	return
-// }
 
 // initAppConfig helps to override default appConfig template and configs.
 // return "", nil if no custom configuration is required for the application.
@@ -140,7 +131,9 @@ func initAppConfig() (string, interface{}) {
 	//   own app.toml to override, or use this default value.
 	//
 	// In simapp, we set the min gas prices to 0.
-	srvCfg.MinGasPrices = "0ubtsg"
+	srvCfg.MinGasPrices = "0.001ubtsg"
+	srvCfg.API.Enable = true
+	srvCfg.API.Swagger = true
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
 
 	customAppConfig := CustomAppConfig{
@@ -202,12 +195,12 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(bitsong.ModuleBasics, bitsong.DefaultNodeHome),
-		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
-		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
-		// DebugCmd(),
 		ConfigCmd(),
 		pruning.PruningCmd(ac.newApp),
+		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
+		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
+		// DebugCmd(),
 	)
 
 	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
@@ -219,6 +212,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
 		genesisCommand(encodingConfig),
 		InitFromStateCmd(bitsong.DefaultNodeHome),
+		V019(bitsong.DefaultNodeHome),
+		VerifySlashedDelegatorsV018(bitsong.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(bitsong.DefaultNodeHome),

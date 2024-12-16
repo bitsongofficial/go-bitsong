@@ -31,7 +31,7 @@ buf generate
 
 then, move the generated proto file into the right places:
 ```sh
-cp -r ./github.com/bitsongofficial/go-bitsong/v018/x/* x/
+cp -r ./github.com/bitsongofficial/go-bitsong/x/* x/
 # cp -r ./github.com/<any-other>/<proto-imports>/x/* x/
 ```
 
