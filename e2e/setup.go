@@ -26,13 +26,13 @@ var (
 	MaxDepositPeriod = "10s"
 	Denom            = "ubtsg"
 
+	BitsongE2eRepo  = "ghcr.io/bitsongofficial/go-bitsong-e2e"
 	BitsongMainRepo = "ghcr.io/bitsongofficial/go-bitsong"
 
 	IBCRelayerImage   = "ghcr.io/cosmos/relayer"
 	IBCRelayerVersion = "main"
 
 	bitsongRepo, bitsongVersion = GetDockerImageInfo()
-
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
 		Repository: "bitsong",
@@ -105,15 +105,15 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
 	cfg := baseCfg
 	cfg.Images = []ibc.DockerImage{img}
-	return CreateThisBranchWithValsAndFullNodesCustomConfig(t, numVals, numFull, cfg)
+	return CreateICTestBitsongChainCustomConfig(t, numVals, numFull, cfg)
 }
 
 // CreateThisBranchWithValsAndFullNodes generates this branch's chain (ex: from the commit), with a set of validators and full nodes.
-func CreateThisBranchWithValsAndFullNodes(t *testing.T, numVals, numFull int) []ibc.Chain {
+func CreateICTestBitsongChain(t *testing.T, numVals, numFull int) []ibc.Chain {
 	return CreateChain(t, numVals, numFull, BitsongImage)
 }
 
-func CreateThisBranchWithValsAndFullNodesCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
+func CreateICTestBitsongChainCustomConfig(t *testing.T, numVals, numFull int, config ibc.ChainConfig) []ibc.Chain {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          "bitsong",

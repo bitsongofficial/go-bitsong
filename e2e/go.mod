@@ -15,6 +15,7 @@ replace (
 require (
 	cosmossdk.io/math v1.3.0
 	github.com/CosmWasm/wasmd v0.45.0
+	github.com/CosmWasm/wasmvm v1.5.0
 	github.com/bitsongofficial/go-bitsong v0.18.1
 	github.com/cosmos/cosmos-sdk v0.47.12
 	github.com/cosmos/gogoproto v1.4.10
@@ -22,6 +23,7 @@ require (
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240510223205-7272afc780da
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.26.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -246,7 +248,6 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

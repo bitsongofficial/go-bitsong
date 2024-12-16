@@ -18,6 +18,12 @@
 
 name: Push Docker Images
 
+env:
+  DOCKER_REPOSITORY: bitsongofficial/go-bitsong
+  RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian11
+  RUNNER_BASE_IMAGE_NONROOT: gcr.io/distroless/static-debian11:nonroot
+  RUNNER_BASE_IMAGE_ALPINE: alpine:3.17
+
 on:
   release:
     types: [published, created, edited]
@@ -26,7 +32,7 @@ on:
     - 'v[0-9]+.[0-9]+.[0-9]+' # ignore rc
 
 jobs:
-  terp-images:
+  bitsong-images:
     runs-on: ubuntu-latest
     steps:
       - 

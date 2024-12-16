@@ -170,7 +170,7 @@ func simulationModules(
 	return []module.AppModuleSimulation{
 		auth.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.AppKeepers.BankKeeper, app.AppKeepers.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper),
+		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper), // todo: reimplement
 		capability.NewAppModule(appCodec, *app.AppKeepers.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.AppKeepers.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, app.AppKeepers.AuthzKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.interfaceRegistry),

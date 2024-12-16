@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestBasicBitsongStart is a basic test to assert that spinning up a Bitsong network with one validator works properly.
-func TestBasicBitsongStart(t *testing.T) {
+// TestBasicBtsgStart is a basic test to assert that spinning up a Bitsong network with one validator works properly.
+func TestBasicBtsgStart(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -20,7 +20,7 @@ func TestBasicBitsongStart(t *testing.T) {
 	t.Parallel()
 
 	// Base setup
-	chains := CreateThisBranchWithValsAndFullNodes(t, 1, 0)
+	chains := CreateICTestBitsongChain(t, 1, 0)
 	ic, ctx, _, _ := BuildInitialChain(t, chains)
 
 	bitsong := chains[0].(*cosmos.CosmosChain)
