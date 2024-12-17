@@ -12,10 +12,6 @@ import (
 	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
 	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
 
-	sdkmath "cosmossdk.io/math"
-	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
-	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	cosmosproto "github.com/cosmos/gogoproto/proto"
 	"github.com/docker/docker/client"
@@ -47,7 +43,7 @@ var (
 
 func TestBasicBitsongUpgrade(t *testing.T) {
 	repo, version := GetDockerImageInfo()
-	CosmosChainUpgradeTest(t, chainName, version, repo, upgradeName)
+	BitsongBasicUpgradeSanityTest(t, chainName, version, repo, upgradeName)
 }
 
 func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, upgradeName string) {
@@ -76,14 +72,10 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 
 	cfg := baseCfg
 
-	cfg := baseCfg
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
-	cfg.Images = []ibc.DockerImage{baseChain}
 	cfg.Images = []ibc.DockerImage{baseChain}
 
 	numVals, numNodes := 4, 0
-	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
-	chain := chains[0].(*cosmos.CosmosChain)
 	chains := CreateICTestBitsongChainCustomConfig(t, numVals, numNodes, cfg)
 	chain := chains[0].(*cosmos.CosmosChain)
 
@@ -95,18 +87,15 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 
 	userFunds := sdkmath.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
-	userFunds := sdkmath.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
+
 	chainUser := users[0]
 
-	// execute a contract before the upgrade
-	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 	// execute a contract before the upgrade
 	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
 
 	// upgrade
 	height, err := chain.Height(ctx)
-	height, err := chain.Height(ctx)
+
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 	haltHeight := height + haltHeightDelta
 	proposalID := SubmitUpgradeProposal(t, ctx, chain, chainUser, upgradeName, haltHeight)
