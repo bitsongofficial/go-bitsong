@@ -33,9 +33,35 @@ Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
 # Changelog
+## [v0.20.0]
+
+## Added
+- v020 upgrade handler 
+
+## Fixed
+- certain delegators inability to claim rewards after v018 patch 
+
+## [v0.19.0]
+### Added 
+- new ci tests for wasm,packetforwardmiddleware & polytone (ibc-callbacks)
+- Introduced a Makefile for managing Docker-related tasks, including commands for building various Docker images.
+- Added functionality for validating CosmWasm contracts in a new testing framework.
+- Enhanced configuration capabilities for the Bitsong application with additional parameters.
+- Introduced commands for verifying slashed delegators and calculating discrepancies in delegator rewards.
+- Added a new Makefile for managing a local testnet environment for the Bitsong blockchain.
+- Introduced a new script for automating the downloading of Polyone contract.
+- Improved docker commands
+
+### Fixed
+- Registered legacy gov msgs
+- Register ModuleBasics GrpcGatewayRoutes
+
+### Removed 
+- versioning of app go module 
+- removed randomGenesisAccounts as param on new apps auth module registration
 
 ## [v0.18.x]
-### Features 
+### Added
 - Interchaintest package support added
 - New CI support to build & release docker image
 - New CI support to run interchain tests

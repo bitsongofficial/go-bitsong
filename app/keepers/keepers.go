@@ -188,7 +188,7 @@ func NewAppKeepers(
 		stakingKeeper, authtypes.FeeCollectorName, govModAddress,
 	)
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
-		appCodec, &codec.LegacyAmino{}, keys[slashingtypes.StoreKey], stakingKeeper, govModAddress,
+		appCodec, cdc, keys[slashingtypes.StoreKey], stakingKeeper, govModAddress,
 	)
 
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
@@ -288,7 +288,6 @@ func NewAppKeepers(
 		govConfig,
 		govModAddress,
 	)
-
 	// Set legacy router for backwards compatibility with gov v1beta1
 	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
 

@@ -26,9 +26,6 @@ func StdExecute(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, us
 	require.NoError(t, err)
 	require.Equal(t, int64(1), res.Data.Count)
 
-
-	// query config
-
 	return contractAddr
 }
 

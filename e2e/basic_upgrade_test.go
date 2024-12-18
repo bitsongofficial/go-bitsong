@@ -25,9 +25,20 @@ import (
 )
 
 const (
-	upgradeName        = "v019"
+	chainName   = "bitsong"
+	upgradeName = "v019"
+
 	haltHeightDelta    = int64(9) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
+)
+
+var (
+	// baseChain is the current version of the chain that will be upgraded from
+	baseChain = ibc.DockerImage{
+		Repository: BitsongMainRepo,
+		Version:    "v0.18.1",
+		UidGid:     "1025:1025",
+	}
 )
 
 func TestBasicBitsongUpgrade(t *testing.T) {
@@ -60,6 +71,7 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 	}
 
 	cfg := baseCfg
+
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
 	cfg.Images = []ibc.DockerImage{baseChain}
 
@@ -75,6 +87,7 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 
 	userFunds := sdkmath.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chain)
+
 	chainUser := users[0]
 
 	// execute a contract before the upgrade
@@ -82,16 +95,25 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 
 	// upgrade
 	height, err := chain.Height(ctx)
+
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 	haltHeight := height + haltHeightDelta
-
 	proposalID := SubmitUpgradeProposal(t, ctx, chain, chainUser, upgradeName, haltHeight)
 
 	proposalIDInt, err := strconv.ParseInt(proposalID, 10, 64)
 	require.NoError(t, err, "failed to parse proposal ID")
 
 	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
+	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
 
+	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
+
+	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
+	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
+
+	// Post Upgrade: Conformance Validation
+	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
+	// TODO: ibc conformance test
 	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
 
 	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
@@ -158,7 +180,7 @@ func SubmitUpgradeProposal(t *testing.T, ctx context.Context, chain *cosmos.Cosm
 	upgradeMsg := []cosmosproto.Message{
 		&upgradetypes.MsgSoftwareUpgrade{
 			// gov Module account
-			Authority: "bitsong10d07y265gmmuvt4z0w9aw880jnsr700jktpd5u",
+			Authority: "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
 			Plan: upgradetypes.Plan{
 				Name:   upgradeName,
 				Height: int64(haltHeight),
