@@ -62,6 +62,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 )
@@ -314,6 +315,36 @@ func NewAppKeepers(
 	if err != nil {
 		panic("error while reading wasm config: " + err.Error())
 	}
+
+	// Stargate Queries
+	accepted := wasmkeeper.AcceptedStargateQueries{
+		// ibc
+		"/ibc.core.client.v1.Query/ClientState":    &ibcclienttypes.QueryClientStateResponse{},
+		"/ibc.core.client.v1.Query/ConsensusState": &ibcclienttypes.QueryConsensusStateResponse{},
+		"/ibc.core.connection.v1.Query/Connection": &ibcconnectiontypes.QueryConnectionResponse{},
+
+		// distribution
+		"/cosmos.distribution.v1beta1.Query/DelegationRewards": &distrtypes.QueryDelegationRewardsResponse{},
+
+		// staking
+		"/cosmos.staking.v1beta1.Query/Delegation":          &stakingtypes.QueryDelegationResponse{},
+		"/cosmos.staking.v1beta1.Query/Redelegations":       &stakingtypes.QueryRedelegationsResponse{},
+		"/cosmos.staking.v1beta1.Query/UnbondingDelegation": &stakingtypes.QueryUnbondingDelegationResponse{},
+		"/cosmos.staking.v1beta1.Query/Validator":           &stakingtypes.QueryValidatorResponse{},
+		"/cosmos.staking.v1beta1.Query/Params":              &stakingtypes.QueryParamsResponse{},
+		"/cosmos.staking.v1beta1.Query/Pool":                &stakingtypes.QueryPoolResponse{},
+
+		// fantoken
+		"/bitsong.fantoken.v1beta1.Query/Params":    &fantokentypes.QueryParamsResponse{},
+		"/bitsong.fantoken.v1beta1.Query/FanToken":  &fantokentypes.QueryFanTokenResponse{},
+		"/bitsong.fantoken.v1beta1.Query/FanTokens": &fantokentypes.QueryFanTokensResponse{},
+	}
+
+	querierOpts := wasmkeeper.WithQueryPlugins(
+		&wasmkeeper.QueryPlugins{
+			Stargate: wasmkeeper.AcceptListStargateQuerier(accepted, bApp.GRPCQueryRouter(), appCodec),
+		})
+	wasmOpts = append(wasmOpts, querierOpts)
 
 	appKeepers.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
