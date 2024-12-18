@@ -173,7 +173,7 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 	currentStake := val.TokensFromShares(del.GetShares())
 
 	if stake.GT(currentStake) {
-		marginOfErr := currentStake.Mul(sdk.NewDecWithPrec(12, 3)) // 1.2%
+		marginOfErr := currentStake.Mul(sdk.NewDecWithPrec(50, 3)) // 5.0%
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
 		} else {

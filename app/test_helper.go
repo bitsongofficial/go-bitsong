@@ -95,9 +95,7 @@ func Setup(t *testing.T) *BitsongApp {
 type EmptyAppOptions struct{}
 
 // Get implements AppOptions
-func (ao EmptyAppOptions) Get(o string) interface{} {
-	return nil
-}
+func (ao EmptyAppOptions) Get(o string) interface{} { return nil }
 
 func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
