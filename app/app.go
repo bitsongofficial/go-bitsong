@@ -29,9 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 
@@ -47,7 +45,7 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -64,7 +62,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
-	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -158,21 +155,6 @@ func GetWasmOpts(appOpts servertypes.AppOptions) []wasm.Option {
 	wasmOpts = append(wasmOpts, wasmkeeper.WithGasRegister(wasmtypes.NewWasmGasRegister(wasmtypes.DefaultGasRegisterConfig())))
 
 	return wasmOpts
-}
-
-func getGovProposalHandlers() []govclient.ProposalHandler {
-	var govProposalHandlers []govclient.ProposalHandler
-
-	govProposalHandlers = append(govProposalHandlers,
-		paramsclient.ProposalHandler,
-		upgradeclient.LegacyProposalHandler,
-		upgradeclient.LegacyCancelProposalHandler,
-		ibcclientclient.UpdateClientProposalHandler,
-		ibcclientclient.UpgradeProposalHandler,
-		fantokenclient.ProposalHandler,
-	)
-
-	return govProposalHandlers
 }
 
 var (
@@ -496,8 +478,8 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register new tendermint queries routes from grpc-gateway.
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
-	// Register legacy and grpc-gateway routes for all modules.
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	// Register legacy and grpc-gateway routes for all application modules.
+	AppModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Register new tendermint queries routes from grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

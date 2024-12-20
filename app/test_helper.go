@@ -44,10 +44,16 @@ const (
 // EmptyBaseAppOptions is a stub implementing AppOptions
 type EmptyBaseAppOptions struct{}
 
+// EmptyAppOptions is a stub implementing AppOptions
+type EmptyAppOptions struct{}
+
 // Get implements AppOptions
 func (ao EmptyBaseAppOptions) Get(_ string) interface{} {
 	return nil
 }
+
+// Get implements AppOptions
+func (ao EmptyAppOptions) Get(o string) interface{} { return nil }
 
 var DefaultConsensusParams = &tmproto.ConsensusParams{
 	Block: &tmproto.BlockParams{
@@ -87,15 +93,8 @@ func Setup(t *testing.T) *BitsongApp {
 	}
 
 	app := SetupWithGenesisAccounts(t, valSet, []authtypes.GenesisAccount{acc}, balance)
-
 	return app
 }
-
-// EmptyAppOptions is a stub implementing AppOptions
-type EmptyAppOptions struct{}
-
-// Get implements AppOptions
-func (ao EmptyAppOptions) Get(o string) interface{} { return nil }
 
 func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
@@ -113,7 +112,7 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongA
 
 	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts, bam.SetChainID("testing"), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
 	if withGenesis {
-		return app, NewDefaultGenesisState(app.AppCodec())
+		return app, NewDefaultGenesisState()
 	}
 	return app, GenesisState{}
 }
@@ -124,7 +123,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 	t.Helper()
 
 	btsgApp, genesisState := setup(t, true)
-	genesisState = genesisStateWithValSet(t, btsgApp, genesisState, valSet, genAccs, balances...)
+	genesisState = GenesisStateWithValSet(t, btsgApp, genesisState, valSet, genAccs, balances...)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
 	require.NoError(t, err)
@@ -215,7 +214,7 @@ func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances s
 	require.True(t, balances.IsEqual(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
-func genesisStateWithValSet(t *testing.T,
+func GenesisStateWithValSet(t *testing.T,
 	app *BitsongApp, genesisState GenesisState,
 	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
@@ -230,19 +229,21 @@ func genesisStateWithValSet(t *testing.T,
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
 	bondAmt := sdk.DefaultPowerReduction
+	initValPowers := []abci.ValidatorUpdate{}
 
-	for _, val := range valSet.Validators {
-		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
-		require.NoError(t, err)
-		pkAny, err := codectypes.NewAnyWithValue(pk)
-		require.NoError(t, err)
+	for i, val := range valSet.Validators {
+		if i == 0 {
+
+		}
+		pk, _ := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pkAny, _ := codectypes.NewAnyWithValue(pk)
 		validator := stakingtypes.Validator{
 			OperatorAddress:   sdk.ValAddress(val.Address).String(),
 			ConsensusPubkey:   pkAny,
 			Jailed:            false,
 			Status:            stakingtypes.Bonded,
 			Tokens:            bondAmt,
-			DelegatorShares:   math.LegacyOneDec(),
+			DelegatorShares:   math.LegacyOneDec().MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))), // 1 % slash
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
@@ -251,6 +252,13 @@ func genesisStateWithValSet(t *testing.T,
 		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), math.LegacyOneDec()))
+
+		// add initial validator powers so consumer InitGenesis runs correctly
+		pub, _ := val.ToProto()
+		initValPowers = append(initValPowers, abci.ValidatorUpdate{
+			Power:  val.VotingPower,
+			PubKey: pub.PubKey,
+		})
 
 	}
 
@@ -268,21 +276,27 @@ func genesisStateWithValSet(t *testing.T,
 	stakingGenesis := stakingtypes.NewGenesisState(stParams, validators, delegations)
 	genesisState[stakingtypes.ModuleName] = codec.MustMarshalJSON(stakingGenesis)
 
-	// add bonded amount to bonded pool module account
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(appparams.DefaultBondDenom, bondAmt.MulRaw(int64(len(valSet.Validators))))},
-	})
-
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
 		// add genesis acc tokens to total supply
 		totalSupply = totalSupply.Add(b.Coins...)
 	}
 
+	for range delegations {
+		// add delegated tokens to total supply
+		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
+	}
+
+	// add bonded amount to bonded pool module account
+	balances = append(balances, banktypes.Balance{
+		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
+		Coins:   sdk.Coins{sdk.NewCoin(appparams.DefaultBondDenom, bondAmt.MulRaw(int64(len(valSet.Validators))))},
+	})
+
 	// update total supply
 	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = codec.MustMarshalJSON(bankGenesis)
+
 	// println("genesisStateWithValSet bankState:", string(genesisState[banktypes.ModuleName]))
 
 	return genesisState
