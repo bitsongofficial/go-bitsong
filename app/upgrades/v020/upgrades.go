@@ -1,7 +1,9 @@
 package v020
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
@@ -26,6 +28,12 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		`)
 
+		file, err := os.Create("v020_claimed_delegations.json")
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		first := true
 		// manually claim rewards by calling keeper functions
 		for _, validator := range k.StakingKeeper.GetAllValidators(ctx) {
 			for _, del := range k.StakingKeeper.GetValidatorDelegations(ctx, validator.GetOperator()) {
@@ -39,7 +47,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 				// end current period and calculate rewards
 				endingPeriod := k.DistrKeeper.IncrementValidatorPeriod(ctx, val)
-				rewardsRaw := customCalculateDelegationRewards(ctx, k, val, del, endingPeriod)
+				rewardsRaw, patched := customCalculateDelegationRewards(ctx, k, val, del, endingPeriod)
 				outstanding := k.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, del.GetValidatorAddr())
 
 				// defensive edge case may happen on the very final digits
@@ -63,6 +71,36 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 				if !finalRewards.IsZero() {
 					withdrawAddr := k.DistrKeeper.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
 					err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, withdrawAddr, finalRewards)
+					if err != nil {
+						return nil, err
+					}
+
+					// create json file
+					data := struct {
+						ValidatorAddress string    `json:"v"`
+						DelegatorAddress string    `json:"d"`
+						FinalRewards     sdk.Coins `json:"r"`
+						Patched          bool      `json:"p"`
+					}{
+						ValidatorAddress: valAddr.String(),
+						DelegatorAddress: del.GetDelegatorAddr().String(),
+						FinalRewards:     finalRewards,
+						Patched:          patched,
+					}
+
+					// Marshal the data to JSON
+					jsonBytes, err := json.MarshalIndent(data, "", "  ")
+					if err != nil {
+						return nil, err
+					}
+
+					// write to json
+					if first {
+						_, err = file.Write(jsonBytes)
+						first = false
+					} else {
+						_, err = file.Write([]byte(",\n" + string(jsonBytes)))
+					}
 					if err != nil {
 						return nil, err
 					}
@@ -143,7 +181,8 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 	}
 }
 
-func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins) {
+func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins, patched bool) {
+	patched = false
 	// fetch starting info for delegation
 	startingInfo := k.DistrKeeper.GetDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr())
 	if startingInfo.Height == uint64(ctx.BlockHeight()) {
@@ -170,19 +209,21 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 			},
 		)
 	}
+
 	currentStake := val.TokensFromShares(del.GetShares())
 
 	if stake.GT(currentStake) {
 		marginOfErr := currentStake.Mul(sdk.NewDecWithPrec(50, 3)) // 5.0%
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
+			patched = true
 		} else {
 			panic(fmt.Sprintln("current stake is not delgator from slashed validator, and is more than maximum margin of error"))
 		}
 	}
 	// calculate rewards for final period
 	rewards = rewards.Add(customCalculateDelegationRewardsBetween(ctx, k, val, startingPeriod, endingPeriod, stake)...)
-	return rewards
+	return rewards, patched
 }
 
 func customCalculateDelegationRewardsBetween(ctx sdk.Context, k *keepers.AppKeepers, val stakingtypes.ValidatorI,
