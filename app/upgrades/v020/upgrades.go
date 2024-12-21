@@ -1,9 +1,7 @@
 package v020
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
@@ -27,19 +25,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		`)
-
-		file, err := os.Create("v020_claimed_delegations.json")
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-		// Write the opening bracket
-		_, err = file.Write([]byte("[\n"))
-		if err != nil {
-			return nil, err
-		}
-
-		first := true
 		// manually claim rewards by calling keeper functions
 		for _, validator := range k.StakingKeeper.GetAllValidators(ctx) {
 			for _, del := range k.StakingKeeper.GetValidatorDelegations(ctx, validator.GetOperator()) {
@@ -77,36 +62,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					if !finalRewards.IsZero() {
 						withdrawAddr := k.DistrKeeper.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
 						err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, withdrawAddr, finalRewards)
-						if err != nil {
-							return nil, err
-						}
-
-						// create json file
-						data := struct {
-							ValidatorAddress string    `json:"v"`
-							DelegatorAddress string    `json:"d"`
-							FinalRewards     sdk.Coins `json:"r"`
-							Patched          bool      `json:"p"`
-						}{
-							ValidatorAddress: valAddr.String(),
-							DelegatorAddress: del.GetDelegatorAddr().String(),
-							FinalRewards:     finalRewards,
-							Patched:          patched,
-						}
-
-						// Marshal the data to JSON
-						jsonBytes, err := json.MarshalIndent(data, "", "  ")
-						if err != nil {
-							return nil, err
-						}
-
-						// write to json
-						if first {
-							_, err = file.Write(jsonBytes)
-							first = false
-						} else {
-							_, err = file.Write([]byte(",\n" + string(jsonBytes)))
-						}
 						if err != nil {
 							return nil, err
 						}
@@ -158,10 +113,6 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, del.GetDelegatorAddr(), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
 				}
 			}
-		}
-		_, err = file.Write([]byte("\n]"))
-		if err != nil {
-			return nil, err
 		}
 
 		// // confirm patch has been applied by querying rewards again for each delegation

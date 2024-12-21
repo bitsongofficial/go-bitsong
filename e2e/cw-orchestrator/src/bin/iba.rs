@@ -53,7 +53,6 @@ pub fn test_ibc_hook_callback() -> AnyResult<()> {
         .interchain_channel;
 
     let (abstr_bitsong, _abstr_bitsong2) = bitsong_starship_interfaces(&interchain)?;
-
     let bitsong_sender = bitsong.sender_addr().to_string();
 
     // Register this channel with the abstract ibc implementation for sending tokens
