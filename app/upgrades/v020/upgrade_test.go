@@ -8,6 +8,7 @@ import (
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
+	"github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -39,10 +40,20 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			for _, del := range dels {
 				endingPeriod := s.App.AppKeepers.DistrKeeper.IncrementValidatorPeriod(s.Ctx, val)
 				// assert v018 bug is present prior to upgrade
-				assertPanic(s.T(), func() {
+				s.Require().Panics(func() {
 					s.App.AppKeepers.DistrKeeper.CalculateDelegationRewards(s.Ctx, val, del, endingPeriod)
 				})
 			}
+			// create another delegator
+			del2 := s.TestAccs[2]
+			s.FundAcc(del2, types.NewCoins(types.NewCoin("ubtsg", math.NewInt(1000000))))
+			s.StakingHelper.Delegate(del2, val.GetOperator(), math.NewInt(1000000))
+			del, found := s.App.AppKeepers.StakingKeeper.GetDelegation(s.Ctx, del2, val.GetOperator())
+			s.Require().True(found)
+			endingPeriod := s.App.AppKeepers.DistrKeeper.IncrementValidatorPeriod(s.Ctx, val)
+			s.Require().NotPanics(func() {
+				s.App.AppKeepers.DistrKeeper.CalculateDelegationRewards(s.Ctx, val, del, endingPeriod)
+			})
 		}
 	}
 
@@ -76,20 +87,19 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				validators := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
 				for _, val := range validators {
 					dels := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
-					fmt.Println("Delegations:", dels)
 					for _, del := range dels {
 						// confirm delegators can query, withdraw and stake
 						// require all rewards to have been claimed for this delegator
 						// confirm delegators claimed tokens was accurate
-						endingPeriod := s.App.AppKeepers.DistrKeeper.IncrementValidatorPeriod(s.Ctx, val)
-						rewards := s.App.AppKeepers.DistrKeeper.CalculateDelegationRewards(s.Ctx, val, del, endingPeriod)
-						fmt.Println("rewards:", rewards)
 						s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight + 10)
+						endingPeriod := s.App.AppKeepers.DistrKeeper.IncrementValidatorPeriod(s.Ctx, val)
+						s.App.AppKeepers.DistrKeeper.CalculateDelegationRewards(s.Ctx, val, del, endingPeriod)
+						s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight + 10)
+						s.FundAcc(del.GetDelegatorAddr(), types.NewCoins(types.NewCoin("ubtsg", math.NewInt(1000000))))
 						s.StakingHelper.Delegate(del.GetDelegatorAddr(), del.GetValidatorAddr(), math.NewInt(1000000))
 						s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight + 10)
-						withdraw, err := s.App.AppKeepers.DistrKeeper.WithdrawDelegationRewards(s.Ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
+						_, err := s.App.AppKeepers.DistrKeeper.WithdrawDelegationRewards(s.Ctx, del.GetDelegatorAddr(), del.GetValidatorAddr())
 						s.Require().NoError(err)
-						fmt.Println("withdraw:", withdraw)
 					}
 				}
 
@@ -106,15 +116,4 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			tc.post_upgrade()
 		})
 	}
-}
-
-func assertPanic(t *testing.T, f func()) {
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-		t.Errorf("Expected panic did not occur")
-		t.FailNow()
-	}()
-	f()
 }

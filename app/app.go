@@ -85,14 +85,8 @@ var (
 	EnableSpecificProposals = ""
 
 	Upgrades = []upgrades.Upgrade{
-		v010.Upgrade,
-		v011.Upgrade,
-		v013.Upgrade,
-		v014.Upgrade,
-		v015.Upgrade,
-		v016.Upgrade,
-		v018.Upgrade,
-		v020.Upgrade,
+		v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
+		v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
 	}
 )
 
