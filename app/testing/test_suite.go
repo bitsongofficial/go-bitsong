@@ -12,23 +12,23 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakinghelper "github.com/cosmos/cosmos-sdk/x/staking/testutil"
+
 	"github.com/stretchr/testify/suite"
 )
 
 type KeeperTestHelper struct {
 	suite.Suite
 
-	App         *app.BitsongApp
-	Ctx         sdk.Context
-	QueryHelper *baseapp.QueryServiceTestHelper
-	TestAccs    []sdk.AccAddress
+	App         *app.BitsongApp                 // Mock bitsong application
+	Ctx         sdk.Context                     // simulated context
+	QueryHelper *baseapp.QueryServiceTestHelper // GRPC query simulator
+	TestAccs    []sdk.AccAddress                // Test accounts
 
-	StakingHelper *stakinghelper.Helper
+	StakingHelper *stakinghelper.Helper // Useful staking helpers
 }
 
 func (s *KeeperTestHelper) Setup() {
-	t := s.T()
-	s.App = app.Setup(t)
+	s.App = app.Setup(s.T())
 	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "testing", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),

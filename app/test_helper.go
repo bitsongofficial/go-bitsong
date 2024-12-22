@@ -96,6 +96,7 @@ func Setup(t *testing.T) *BitsongApp {
 	return app
 }
 
+// Setup node for testing simulation
 func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
 	db := dbm.NewMemDB()
 	nodeHome := t.TempDir()
@@ -110,7 +111,7 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongA
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	appOptions[flags.FlagHome] = nodeHome // ensure unique folder
 
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, EmptyAppOptions{}, opts, bam.SetChainID("testing"), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, appOptions, opts, bam.SetChainID("testing"), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
 	if withGenesis {
 		return app, NewDefaultGenesisState()
 	}
@@ -123,6 +124,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 	t.Helper()
 
 	btsgApp, genesisState := setup(t, true)
+
 	genesisState = GenesisStateWithValSet(t, btsgApp, genesisState, valSet, genAccs, balances...)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -231,19 +233,17 @@ func GenesisStateWithValSet(t *testing.T,
 	bondAmt := sdk.DefaultPowerReduction
 	initValPowers := []abci.ValidatorUpdate{}
 
-	for i, val := range valSet.Validators {
-		if i == 0 {
-
-		}
+	for _, val := range valSet.Validators {
 		pk, _ := cryptocodec.FromTmPubKeyInterface(val.PubKey)
 		pkAny, _ := codectypes.NewAnyWithValue(pk)
 		validator := stakingtypes.Validator{
-			OperatorAddress:   sdk.ValAddress(val.Address).String(),
-			ConsensusPubkey:   pkAny,
-			Jailed:            false,
-			Status:            stakingtypes.Bonded,
-			Tokens:            bondAmt,
-			DelegatorShares:   math.LegacyOneDec().MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))), // 1 % slash
+			OperatorAddress: sdk.ValAddress(val.Address).String(),
+			ConsensusPubkey: pkAny,
+			Jailed:          false,
+			Status:          stakingtypes.Bonded,
+			Tokens:          bondAmt,
+			DelegatorShares: math.LegacyOneDec(),
+			// DelegatorShares:   math.LegacyOneDec().MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))), // 1 % slash
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
@@ -284,7 +284,7 @@ func GenesisStateWithValSet(t *testing.T,
 
 	for range delegations {
 		// add delegated tokens to total supply
-		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
+		totalSupply = totalSupply.Add(sdk.NewCoin(appparams.DefaultBondDenom, bondAmt))
 	}
 
 	// add bonded amount to bonded pool module account
