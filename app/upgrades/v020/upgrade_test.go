@@ -36,7 +36,6 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			val.Tokens = math.LegacyNewDecFromInt(val.Tokens).MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))).RoundInt() // 1 % slash
 
 			dels := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
-			// fmt.Println("Delegations:", dels)
 			for _, del := range dels {
 				endingPeriod := s.App.AppKeepers.DistrKeeper.IncrementValidatorPeriod(s.Ctx, val)
 				// assert v018 bug is present prior to upgrade
