@@ -1,9 +1,12 @@
 package types
 
 import (
+	"strings"
+
+	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"strings"
 )
 
 const (
@@ -30,7 +33,7 @@ var (
 )
 
 // NewMsgIssue - construct token issue msg.
-func NewMsgIssue(name, symbol, uri string, maxSupply sdk.Int, authority string) *MsgIssue {
+func NewMsgIssue(name, symbol, uri string, maxSupply math.Int, authority string) *MsgIssue {
 	return &MsgIssue{
 		Name:      name,
 		Symbol:    symbol,
@@ -50,12 +53,12 @@ func (msg MsgIssue) Type() string { return TypeMsgIssue }
 func (msg MsgIssue) ValidateBasic() error {
 	authority, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
 
 	minter, err := sdk.AccAddressFromBech32(msg.Minter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
 	}
 
 	fantoken := &FanToken{
@@ -122,7 +125,7 @@ func (msg MsgSetAuthority) GetSigners() []sdk.AccAddress {
 func (msg MsgSetAuthority) ValidateBasic() error {
 	oldAuthority, err := sdk.AccAddressFromBech32(msg.OldAuthority)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid old authority address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid old authority address (%s)", err)
 	}
 
 	var newAuthority sdk.AccAddress
@@ -130,7 +133,7 @@ func (msg MsgSetAuthority) ValidateBasic() error {
 	if len(strings.TrimSpace(msg.NewAuthority)) > 0 {
 		newAuthority, err = sdk.AccAddressFromBech32(msg.NewAuthority)
 		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
 		}
 	}
 
@@ -185,12 +188,12 @@ func (msg MsgSetMinter) GetSigners() []sdk.AccAddress {
 func (msg MsgSetMinter) ValidateBasic() error {
 	oldMinter, err := sdk.AccAddressFromBech32(msg.OldMinter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid old minter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid old minter address (%s)", err)
 	}
 
 	newMinter, err := sdk.AccAddressFromBech32(msg.NewMinter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new minter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new minter address (%s)", err)
 	}
 
 	// check if the `newMinter` is same as the original minter
@@ -249,7 +252,7 @@ func (msg MsgDisableMint) GetSigners() []sdk.AccAddress {
 func (msg MsgDisableMint) ValidateBasic() error {
 	// check minter
 	if _, err := sdk.AccAddressFromBech32(msg.Minter); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
 	}
 
 	return ValidateDenom(msg.Denom)
@@ -292,13 +295,13 @@ func (msg MsgMint) GetSigners() []sdk.AccAddress {
 func (msg MsgMint) ValidateBasic() error {
 	// check the minter
 	if _, err := sdk.AccAddressFromBech32(msg.Minter); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
 	}
 
 	// check the reception
 	if len(msg.Recipient) > 0 {
 		if _, err := sdk.AccAddressFromBech32(msg.Recipient); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid mint reception address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid mint reception address (%s)", err)
 		}
 	}
 
@@ -345,7 +348,7 @@ func (msg MsgBurn) GetSigners() []sdk.AccAddress {
 func (msg MsgBurn) ValidateBasic() error {
 	// check the owner
 	if _, err := sdk.AccAddressFromBech32(msg.Sender); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address (%s)", err)
 	}
 
 	if err := ValidateAmount(msg.Coin.Amount); err != nil {
@@ -392,7 +395,7 @@ func (msg MsgSetUri) GetSigners() []sdk.AccAddress {
 func (msg MsgSetUri) ValidateBasic() error {
 	// check the authority
 	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 	}
 
 	if err := ValidateUri(msg.URI); err != nil {

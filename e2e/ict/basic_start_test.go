@@ -6,8 +6,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/stretchr/testify/require"
 )
 

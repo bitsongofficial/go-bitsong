@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -26,7 +26,7 @@ type HandlerTestSuite struct {
 
 func (suite *HandlerTestSuite) SetupTest() {
 	suite.app = simapp.Setup(suite.T())
-	suite.ctx = suite.app.BaseApp.NewContext(false, tmproto.Header{})
+	suite.ctx = suite.app.BaseApp.NewContext(false)
 	suite.govHandler = params.NewParamChangeProposalHandler(suite.app.AppKeepers.ParamsKeeper)
 }
 
@@ -55,14 +55,14 @@ func (suite *HandlerTestSuite) TestParamChangeProposal() {
 
 func TestProposalHandlerPassed(t *testing.T) {
 	app := simapp.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
 	require.Equal(t, params, fantokentypes.DefaultParams())
 
-	newIssueFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1))
-	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2))
-	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(3))
+	newIssueFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))
+	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2))
+	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(3))
 
 	proposal := fantokentypes.NewUpdateFeesProposal(
 		"Test",
@@ -83,17 +83,17 @@ func TestProposalHandlerPassed(t *testing.T) {
 
 func TestProposalHandlerFailed(t *testing.T) {
 	app := simapp.Setup(t)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false)
 
 	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
 	require.Equal(t, params, fantokentypes.DefaultParams())
 
 	newIssueFee := sdk.Coin{
 		Denom:  sdk.DefaultBondDenom,
-		Amount: sdk.NewInt(-1),
+		Amount: math.NewInt(-1),
 	}
-	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
-	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
+	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, math.ZeroInt())
+	newBurnFee := sdk.NewCoin(sdk.DefaultBondDenom, math.ZeroInt())
 
 	proposal := fantokentypes.NewUpdateFeesProposal(
 		"Test",

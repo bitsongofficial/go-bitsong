@@ -1,22 +1,24 @@
 package v020
 
 import (
+	"context"
 	"fmt"
 
 	"cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
+	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		logger := ctx.Logger().With("upgrade", UpgradeName)
-		ctx = sdk.UnwrapSDKContext(ctx)
-		ctx.Logger().Info(`
+func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
+		logger.Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		V020 UPGRADE manually claims delegation rewards for all users. 
@@ -25,105 +27,124 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		`)
-		// manually claim rewards by calling keeper functions
-		for _, validator := range k.StakingKeeper.GetAllValidators(ctx) {
-			for _, del := range k.StakingKeeper.GetValidatorDelegations(ctx, validator.GetOperator()) {
-				valAddr := del.GetValidatorAddr()
-				val := k.StakingKeeper.Validator(ctx, valAddr)
-
-				// check existence of delegator starting info
-				if !k.DistrKeeper.HasDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr()) {
-					return nil, distrtypes.ErrEmptyDelegationDistInfo
-				}
-
-				// calculate rewards
-				endingPeriod := k.DistrKeeper.IncrementValidatorPeriod(ctx, val)
-				rewardsRaw, patched := customCalculateDelegationRewards(ctx, k, val, del, endingPeriod)
-				outstanding := k.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, del.GetValidatorAddr())
-				if patched {
-					// defensive edge case may happen on the very final digits
-					// of the decCoins due to operation order of the distribution mechanism.
-					rewards := rewardsRaw.Intersect(outstanding)
-					if !rewards.IsEqual(rewardsRaw) {
-						logger := k.DistrKeeper.Logger(ctx)
-						logger.Info(
-							"rounding error withdrawing rewards from validator",
-							"delegator", del.GetDelegatorAddr().String(),
-							"validator", val.GetOperator().String(),
-							"got", rewards.String(),
-							"expected", rewardsRaw.String(),
-						)
-					}
-
-					// truncate reward dec coins, return remainder to community pool
-					finalRewards, remainder := rewards.TruncateDecimal()
-
-					// add coins to user account
-					if !finalRewards.IsZero() {
-						withdrawAddr := k.DistrKeeper.GetDelegatorWithdrawAddr(ctx, del.GetDelegatorAddr())
-						err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, distrtypes.ModuleName, withdrawAddr, finalRewards)
+		if validators, err := k.StakingKeeper.GetAllValidators(sdkCtx); err != nil {
+			return nil, err
+		} else {
+			for _, validator := range validators {
+				if dels, err := k.StakingKeeper.GetValidatorDelegations(sdkCtx, sdk.ValAddress(validator.GetOperator())); err != nil {
+					return nil, err
+				} else {
+					for _, del := range dels {
+						valAddr := del.GetValidatorAddr()
+						val, err := k.StakingKeeper.Validator(sdkCtx, sdk.ValAddress(valAddr))
 						if err != nil {
 							return nil, err
 						}
-					}
 
-					// update the outstanding rewards and the community pool only if the
-					// transaction was successful
-					k.DistrKeeper.SetValidatorOutstandingRewards(ctx, del.GetValidatorAddr(), distrtypes.ValidatorOutstandingRewards{Rewards: outstanding.Sub(rewards)})
-					feePool := k.DistrKeeper.GetFeePool(ctx)
-					feePool.CommunityPool = feePool.CommunityPool.Add(remainder...)
-					k.DistrKeeper.SetFeePool(ctx, feePool)
-
-					// decrement reference count of starting period
-					startingInfo := k.DistrKeeper.GetDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr())
-					startingPeriod := startingInfo.PreviousPeriod
-					customDecrementReferenceCount(ctx, k, del.GetValidatorAddr(), startingPeriod)
-
-					// remove delegator starting info
-					k.DistrKeeper.DeleteDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr())
-
-					if finalRewards.IsZero() {
-						baseDenom, _ := sdk.GetBaseDenom()
-						if baseDenom == "" {
-							baseDenom = sdk.DefaultBondDenom
+						// check existence of delegator starting info
+						hasInfo, _ := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
+						if !hasInfo {
+							return nil, err
 						}
 
-						// Note, we do not call the NewCoins constructor as we do not want the zero
-						// coin removed.
-						finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
-						ctx.Logger().Info("No final rewards", finalRewards)
+						// calculate rewards
+						endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
+						if err != nil {
+							return nil, err
+						}
+
+						rewardsRaw, patched := customCalculateDelegationRewards(sdkCtx, k, val, del, endingPeriod)
+						outstanding, err := k.DistrKeeper.GetValidatorOutstandingRewardsCoins(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()))
+						if patched {
+							// defensive edge case may happen on the very final digits
+							// of the decCoins due to operation order of the distribution mechanism.
+							rewards := rewardsRaw.Intersect(outstanding)
+							if !rewards.Equal(rewardsRaw) {
+								logger := k.DistrKeeper.Logger(sdkCtx)
+								logger.Info(
+									"rounding error withdrawing rewards from validator",
+									"delegator", del.GetDelegatorAddr(),
+									"validator", val.GetOperator(),
+									"got", rewards.String(),
+									"expected", rewardsRaw.String(),
+								)
+							}
+
+							// truncate reward dec coins, return remainder to community pool
+							finalRewards, remainder := rewards.TruncateDecimal()
+
+							// add coins to user account
+							if !finalRewards.IsZero() {
+								withdrawAddr, err := k.DistrKeeper.GetDelegatorWithdrawAddr(sdkCtx, sdk.AccAddress(del.GetDelegatorAddr()))
+								err = k.BankKeeper.SendCoinsFromModuleToAccount(sdkCtx, distrtypes.ModuleName, withdrawAddr, finalRewards)
+								if err != nil {
+									return nil, err
+								}
+							}
+
+							// update the outstanding rewards and the community pool only if the
+							// transaction was successful
+							k.DistrKeeper.SetValidatorOutstandingRewards(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()), distrtypes.ValidatorOutstandingRewards{Rewards: outstanding.Sub(rewards)})
+							feePool, _ := k.DistrKeeper.FeePool.Get(sdkCtx)
+							feePool.CommunityPool = feePool.CommunityPool.Add(remainder...)
+							k.DistrKeeper.FeePool.Set(sdkCtx, feePool)
+
+							// decrement reference count of starting period
+							startingInfo, _ := k.DistrKeeper.GetDelegatorStartingInfo(ctx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
+							startingPeriod := startingInfo.PreviousPeriod
+							customDecrementReferenceCount(sdkCtx, k, sdk.ValAddress(del.GetValidatorAddr()), startingPeriod)
+
+							// remove delegator starting info
+							k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
+
+							if finalRewards.IsZero() {
+								baseDenom, _ := sdk.GetBaseDenom()
+								if baseDenom == "" {
+									baseDenom = sdk.DefaultBondDenom
+								}
+
+								// Note, we do not call the NewCoins constructor as we do not want the zero
+								// coin removed.
+								finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
+								sdkCtx.Logger().Info("No final rewards", finalRewards)
+							}
+
+							// reinitialize the delegation
+							// period has already been incremented - we want to store the period ended by this delegation action
+							vcr, _ := k.DistrKeeper.GetValidatorCurrentRewards(sdkCtx, sdk.ValAddress(valAddr))
+							previousPeriod := vcr.Period - 1
+							// increment reference count for the period we're going to track
+							incrementReferenceCount(sdkCtx, k, sdk.ValAddress(valAddr), previousPeriod)
+
+							validator, _ := k.StakingKeeper.Validator(sdkCtx, sdk.ValAddress(valAddr))
+							delegation, _ := k.StakingKeeper.Delegation(sdkCtx, sdk.AccAddress(del.GetDelegatorAddr()), sdk.ValAddress(valAddr))
+
+							// calculate delegation stake in tokens
+							// we don't store directly, so multiply delegation shares * (tokens per share)
+							// note: necessary to truncate so we don't allow withdrawing more rewards than owed
+							stake := validator.TokensFromSharesTruncated(delegation.GetShares())
+
+							// save new delegator starting info to kv store
+							k.DistrKeeper.SetDelegatorStartingInfo(sdkCtx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(sdkCtx.BlockHeight())))
+						}
 					}
-
-					// reinitialize the delegation
-					// period has already been incremented - we want to store the period ended by this delegation action
-					previousPeriod := k.DistrKeeper.GetValidatorCurrentRewards(ctx, valAddr).Period - 1
-
-					// increment reference count for the period we're going to track
-					incrementReferenceCount(ctx, k, valAddr, previousPeriod)
-
-					validator := k.StakingKeeper.Validator(ctx, valAddr)
-					delegation := k.StakingKeeper.Delegation(ctx, del.GetDelegatorAddr(), valAddr)
-
-					// calculate delegation stake in tokens
-					// we don't store directly, so multiply delegation shares * (tokens per share)
-					// note: necessary to truncate so we don't allow withdrawing more rewards than owed
-					stake := validator.TokensFromSharesTruncated(delegation.GetShares())
-
-					// save new delegator starting info to kv store
-					k.DistrKeeper.SetDelegatorStartingInfo(ctx, valAddr, del.GetDelegatorAddr(), distrtypes.NewDelegatorStartingInfo(previousPeriod, stake, uint64(ctx.BlockHeight())))
 				}
 			}
 		}
 
-		// // confirm patch has been applied by querying rewards again for each delegation
-		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
-			valAddr := del.GetValidatorAddr()
-			val := k.StakingKeeper.Validator(ctx, valAddr)
-			// calculate rewards
-			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
-		}
+		if dels, err := k.StakingKeeper.GetAllDelegations(sdkCtx); err != nil {
+			return nil, err
+		} else {
 
-		ctx.Logger().Info(`
+			// // confirm patch has been applied by querying rewards again for each delegation
+			for _, del := range dels {
+				valAddr := del.GetValidatorAddr()
+				val, _ := k.StakingKeeper.Validator(sdkCtx, sdk.ValAddress(valAddr))
+				// calculate rewards
+				k.DistrKeeper.CalculateDelegationRewards(sdkCtx, val, del, uint64(sdkCtx.BlockHeight()))
+			}
+		}
+		sdkCtx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 		Upgrade V020 Patch complete. 
@@ -146,7 +167,10 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) (rewards sdk.DecCoins, patched bool) {
 	patched = false
 	// fetch starting info for delegation
-	startingInfo := k.DistrKeeper.GetDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr())
+	startingInfo, err := k.DistrKeeper.GetDelegatorStartingInfo(ctx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
+	if err != nil {
+		return
+	}
 	if startingInfo.Height == uint64(ctx.BlockHeight()) {
 		// started this height, no rewards yet
 		return
@@ -157,7 +181,7 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 	startingHeight := startingInfo.Height
 	endingHeight := uint64(ctx.BlockHeight())
 	if endingHeight > startingHeight {
-		k.DistrKeeper.IterateValidatorSlashEventsBetween(ctx, del.GetValidatorAddr(), startingHeight, endingHeight,
+		k.DistrKeeper.IterateValidatorSlashEventsBetween(ctx, sdk.ValAddress(del.GetValidatorAddr()), startingHeight, endingHeight,
 			func(height uint64, event distrtypes.ValidatorSlashEvent) (stop bool) {
 				endingPeriod := event.ValidatorPeriod
 				if endingPeriod > startingPeriod {
@@ -175,7 +199,7 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 	currentStake := val.TokensFromShares(del.GetShares())
 
 	if stake.GT(currentStake) {
-		marginOfErr := currentStake.Mul(sdk.NewDecWithPrec(50, 3)) // 5.0%
+		marginOfErr := currentStake.Mul(math.LegacyNewDecWithPrec(50, 3)) // 5.0%
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			stake = currentStake
 			patched = true
@@ -189,7 +213,7 @@ func customCalculateDelegationRewards(ctx sdk.Context, k *keepers.AppKeepers, va
 }
 
 func customCalculateDelegationRewardsBetween(ctx sdk.Context, k *keepers.AppKeepers, val stakingtypes.ValidatorI,
-	startingPeriod, endingPeriod uint64, stake sdk.Dec,
+	startingPeriod, endingPeriod uint64, stake math.LegacyDec,
 ) (rewards sdk.DecCoins) {
 	// sanity check
 	if startingPeriod > endingPeriod {
@@ -202,8 +226,8 @@ func customCalculateDelegationRewardsBetween(ctx sdk.Context, k *keepers.AppKeep
 	}
 
 	// return staking * (ending - starting)
-	starting := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, val.GetOperator(), startingPeriod)
-	ending := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, val.GetOperator(), endingPeriod)
+	starting, _ := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, sdk.ValAddress(val.GetOperator()), startingPeriod)
+	ending, _ := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, sdk.ValAddress(val.GetOperator()), endingPeriod)
 	difference := ending.CumulativeRewardRatio.Sub(starting.CumulativeRewardRatio)
 	if difference.IsAnyNegative() {
 		panic("negative rewards should not be possible")
@@ -215,7 +239,7 @@ func customCalculateDelegationRewardsBetween(ctx sdk.Context, k *keepers.AppKeep
 
 // decrement the reference count for a historical rewards value, and delete if zero references remain
 func customDecrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAddr sdk.ValAddress, period uint64) {
-	historical := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, valAddr, period)
+	historical, _ := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, valAddr, period)
 	if historical.ReferenceCount == 0 {
 		panic("cannot set negative reference count")
 	}
@@ -230,7 +254,7 @@ func customDecrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAd
 
 // increment the reference count for a historical rewards value
 func incrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAddr sdk.ValAddress, period uint64) {
-	historical := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, valAddr, period)
+	historical, _ := k.DistrKeeper.GetValidatorHistoricalRewards(ctx, valAddr, period)
 	if historical.ReferenceCount > 2 {
 		panic("reference count should never exceed 2")
 	}
@@ -239,6 +263,6 @@ func incrementReferenceCount(ctx sdk.Context, k *keepers.AppKeepers, valAddr sdk
 }
 
 // calculate the token worth of provided shares, truncated
-func CustommTokensFromSharesTruncated(t math.Int, ds math.LegacyDec, shares sdk.Dec) math.LegacyDec {
+func CustommTokensFromSharesTruncated(t math.Int, ds math.LegacyDec, shares math.LegacyDec) math.LegacyDec {
 	return (shares.MulInt(t)).QuoTruncate(ds)
 }

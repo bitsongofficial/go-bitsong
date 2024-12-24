@@ -1,6 +1,8 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 	"gopkg.in/yaml.v2"
@@ -15,7 +17,7 @@ var (
 )
 
 // NewFanToken constructs a new FanToken instance
-func NewFanToken(name, symbol, uri string, maxSupply sdk.Int, minter, authority sdk.AccAddress, height int64) *FanToken {
+func NewFanToken(name, symbol, uri string, maxSupply math.Int, minter, authority sdk.AccAddress, height int64) *FanToken {
 	return &FanToken{
 		Denom:     GetFantokenDenom(height, minter, symbol, name),
 		MaxSupply: maxSupply,
@@ -40,7 +42,7 @@ func (ft FanToken) GetName() string {
 }
 
 // GetMaxSupply implements exported.FanTokenI
-func (ft FanToken) GetMaxSupply() sdk.Int {
+func (ft FanToken) GetMaxSupply() math.Int {
 	return ft.MaxSupply
 }
 
@@ -79,7 +81,7 @@ func (ft FanToken) String() string {
 func (ft FanToken) Validate() error {
 	if len(ft.Minter) > 0 {
 		if _, err := sdk.AccAddressFromBech32(ft.Minter); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address (%s)", err)
 		}
 	}
 
@@ -110,7 +112,7 @@ func NewMetadata(name, symbol, uri string, authority sdk.AccAddress) Metadata {
 func (m Metadata) Validate() error {
 	if len(m.Authority) > 0 {
 		if _, err := sdk.AccAddressFromBech32(m.Authority); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address (%s)", err)
 		}
 	}
 

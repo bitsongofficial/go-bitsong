@@ -7,22 +7,23 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
+	"cosmossdk.io/store/snapshots"
+	snapshottypes "cosmossdk.io/store/snapshots/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/bitsongofficial/go-bitsong/app/helpers"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+	cosmosdb "github.com/cosmos/cosmos-db"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/snapshots"
-	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	dbm "github.com/cometbft/cometbft-db"
 	"github.com/stretchr/testify/require"
 )
 
@@ -89,7 +89,7 @@ func Setup(t *testing.T) *BitsongApp {
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 	balance := banktypes.Balance{
 		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, sdk.NewInt(100000000000000))),
+		Coins:   sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, math.NewInt(100000000000000))),
 	}
 
 	app := SetupWithGenesisAccounts(t, valSet, []authtypes.GenesisAccount{acc}, balance)
@@ -98,10 +98,10 @@ func Setup(t *testing.T) *BitsongApp {
 
 // Setup node for testing simulation
 func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
-	db := dbm.NewMemDB()
+	db := cosmosdb.NewMemDB()
 	nodeHome := t.TempDir()
 	snapshotDir := filepath.Join(nodeHome, "data", "snapshots")
-	snapshotDB, err := dbm.NewDB("metadata", dbm.GoLevelDBBackend, snapshotDir)
+	snapshotDB, err := cosmosdb.NewGoLevelDB("metadata", snapshotDir, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { snapshotDB.Close() })
 	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
@@ -131,7 +131,7 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 	require.NoError(t, err)
 
 	btsgApp.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: simtestutil.DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
@@ -143,14 +143,14 @@ func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAcc
 
 	// commit genesis changes
 	btsgApp.Commit()
-	btsgApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-		ChainID:            SimAppChainID,
-		Height:             btsgApp.LastBlockHeight() + 1,
-		AppHash:            btsgApp.LastCommitID().Hash,
-		ValidatorsHash:     valSet.Hash(),
-		NextValidatorsHash: valSet.Hash(),
-		Time:               time.Now().UTC(),
-	}})
+	// btsgApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
+	// 	ChainID:            SimAppChainID,
+	// 	Height:             btsgApp.LastBlockHeight() + 1,
+	// 	AppHash:            btsgApp.LastCommitID().Hash,
+	// 	ValidatorsHash:     valSet.Hash(),
+	// 	NextValidatorsHash: valSet.Hash(),
+	// 	Time:               time.Now().UTC(),
+	// }})
 
 	return btsgApp
 }
@@ -190,7 +190,7 @@ func SignCheckDeliver(
 	}
 
 	// Simulate a sending a transaction and committing a block
-	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+	// app.BeginBlock(abci.RequestBeginBlock{Header: header})
 	gInfo, res, err := app.SimDeliver(txCfg.TxEncoder(), tx)
 
 	if expPass {
@@ -201,7 +201,7 @@ func SignCheckDeliver(
 		require.Nil(t, res)
 	}
 
-	app.EndBlock(abci.RequestEndBlock{})
+	// app.EndBlock(abci.RequestEndBlock{})
 	app.Commit()
 
 	return gInfo, res, err
@@ -212,8 +212,8 @@ func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
 }
 
 func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances sdk.Coins) {
-	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
-	require.True(t, balances.IsEqual(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
+	ctxCheck := app.BaseApp.NewContext(true)
+	require.True(t, balances.Equal(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
 func GenesisStateWithValSet(t *testing.T,
@@ -251,7 +251,7 @@ func GenesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), math.LegacyOneDec()))
 
 		// add initial validator powers so consumer InitGenesis runs correctly
 		pub, _ := val.ToProto()

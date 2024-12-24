@@ -1,6 +1,7 @@
 package params
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -35,17 +36,6 @@ func init() {
 	RegisterTokenDenomination()
 }
 
-func RegisterTokenDenomination() {
-	err := sdk.RegisterDenom(CoinUnit, sdk.OneDec())
-	if err != nil {
-		panic(err)
-	}
-	err = sdk.RegisterDenom(MicroCoinUnit, sdk.NewDecWithPrec(1, CoinExponent))
-	if err != nil {
-		panic(err)
-	}
-}
-
 func SetAddressPrefixes() {
 	config := sdk.GetConfig()
 	config.SetBech32PrefixForAccount(Bech32PrefixAccAddr, Bech32PrefixAccPub)
@@ -75,4 +65,15 @@ func SetAddressPrefixes() {
 
 		return nil
 	})
+}
+
+func RegisterTokenDenomination() {
+	err := sdk.RegisterDenom(CoinUnit, math.LegacyOneDec())
+	if err != nil {
+		panic(err)
+	}
+	err = sdk.RegisterDenom(MicroCoinUnit, math.LegacyNewDecWithPrec(1, CoinExponent))
+	if err != nil {
+		panic(err)
+	}
 }

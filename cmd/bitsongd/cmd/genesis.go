@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/math"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -86,34 +87,34 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.MintParams.MintDenom = appparams.MicroCoinUnit
 
 	genParams.DistributionParams = distributiontypes.DefaultParams()
-	genParams.DistributionParams.BaseProposerReward = sdk.MustNewDecFromStr("0.01")
-	genParams.DistributionParams.BonusProposerReward = sdk.MustNewDecFromStr("0.04")
-	genParams.DistributionParams.CommunityTax = sdk.MustNewDecFromStr("0.02")
+	genParams.DistributionParams.BaseProposerReward = math.LegacyMustNewDecFromStr("0.01")
+	genParams.DistributionParams.BonusProposerReward = math.LegacyMustNewDecFromStr("0.04")
+	genParams.DistributionParams.CommunityTax = math.LegacyMustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
 	genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
 	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
 		appparams.MicroCoinUnit,
-		sdk.NewInt(512_000_000),
+		math.NewInt(512_000_000),
 	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
-	genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
-	genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
+	genParams.GovParams.TallyParams.Quorum = math.LegacyMustNewDecFromStr("0.4")          // 40%
+	genParams.GovParams.TallyParams.Threshold = math.LegacyMustNewDecFromStr("0.5")       // 50%
+	genParams.GovParams.TallyParams.VetoThreshold = math.LegacyMustNewDecFromStr("0.334") // 33.40%
+	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7                    // 7 days
 
 	genParams.SlashingParams = slashingtypes.DefaultParams()
-	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                       // 10000 blocks (~13.8 hr at 5 second blocks)
-	genParams.SlashingParams.MinSignedPerWindow = sdk.MustNewDecFromStr("0.05")      // 5% minimum liveness
-	genParams.SlashingParams.DowntimeJailDuration = time.Hour                        // 1 hour jail period
-	genParams.SlashingParams.SlashFractionDoubleSign = sdk.MustNewDecFromStr("0.05") // 5% double sign slashing
-	genParams.SlashingParams.SlashFractionDowntime = sdk.MustNewDecFromStr("0.01")   // 1% liveness slashing
+	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                              // 10000 blocks (~13.8 hr at 5 second blocks)
+	genParams.SlashingParams.MinSignedPerWindow = math.LegacyMustNewDecFromStr("0.05")      // 5% minimum liveness
+	genParams.SlashingParams.DowntimeJailDuration = time.Hour                               // 1 hour jail period
+	genParams.SlashingParams.SlashFractionDoubleSign = math.LegacyMustNewDecFromStr("0.05") // 5% double sign slashing
+	genParams.SlashingParams.SlashFractionDowntime = math.LegacyMustNewDecFromStr("0.01")   // 1% liveness slashing
 
-	genParams.CrisisConstantFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(133_333_000_000))
+	genParams.CrisisConstantFee = sdk.NewCoin(appparams.MicroCoinUnit, math.NewInt(133_333_000_000))
 
 	genParams.FantokenParams = fantokentypes.DefaultParams()
-	genParams.FantokenParams.IssueFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.NewInt(1_000_000_000))
-	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
-	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, sdk.ZeroInt())
+	genParams.FantokenParams.IssueFee = sdk.NewCoin(appparams.MicroCoinUnit, math.NewInt(1_000_000_000))
+	genParams.FantokenParams.MintFee = sdk.NewCoin(appparams.MicroCoinUnit, math.ZeroInt())
+	genParams.FantokenParams.BurnFee = sdk.NewCoin(appparams.MicroCoinUnit, math.ZeroInt())
 
 	return genParams
 }
@@ -127,20 +128,20 @@ func TestnetGenesisParams() GenesisParams {
 
 	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
 		appparams.MicroCoinUnit,
-		sdk.NewInt(1000000), // 1 BTSG
+		math.NewInt(1000000), // 1 BTSG
 	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
+	genParams.GovParams.TallyParams.Quorum = math.LegacyMustNewDecFromStr("0.0000000001") // 0.00000001%
+	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300                     // 300 seconds
 
 	return genParams
 }
 
-func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *tmtypes.GenesisDoc, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *tmtypes.GenesisDoc, error) {
+func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessage, genDoc *genutiltypes.AppGenesis, genesisParams GenesisParams, chainID string) (map[string]json.RawMessage, *genutiltypes.AppGenesis, error) {
 	depCdc := clientCtx.Codec
 
 	genDoc.ChainID = chainID
 	genDoc.GenesisTime = genesisParams.GenesisTime
-	genDoc.ConsensusParams = genesisParams.ConsensusParams
+	genDoc.Consensus.Params = genesisParams.ConsensusParams
 
 	stakingGenState := stakingtypes.GetGenesisStateFromAppState(depCdc, appState)
 	stakingGenState.Params = genesisParams.StakingParams

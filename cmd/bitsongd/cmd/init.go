@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	tmcfg "github.com/cometbft/cometbft/config"
@@ -13,7 +14,6 @@ import (
 	"github.com/cometbft/cometbft/libs/cli"
 	tmos "github.com/cometbft/cometbft/libs/os"
 	tmrand "github.com/cometbft/cometbft/libs/rand"
-	"github.com/cometbft/cometbft/types"
 	"github.com/cosmos/go-bip39"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -25,6 +25,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 const (
@@ -74,20 +75,26 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			cdc := clientCtx.Codec
+			// cdc := clientCtx.Codec
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
+			// P2P
+			seeds := []string{
+				"",
+			}
 			// Override default settings in config.toml
-			config.P2P.MaxNumInboundPeers = 100
-			config.P2P.MaxNumOutboundPeers = 50
+			config.P2P.Seeds = strings.Join(seeds, ",")
+			config.P2P.MaxNumInboundPeers = 80
+			config.P2P.MaxNumOutboundPeers = 60
 			config.Mempool.Size = 10000
 			config.StateSync.TrustPeriod = 112 * time.Hour
 			config.BlockSync.Version = "v0"
+			// // Consensus
+			// config.Consensus.TimeoutCommit = 1500 * time.Millisecond // 1.5s
 
 			config.SetRoot(clientCtx.HomeDir)
-
 			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
 			if chainID == "" {
 				chainID = fmt.Sprintf("test-chain-%v", tmrand.Str(6))
@@ -114,38 +121,41 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			}
 
 			config.Moniker = args[0]
+			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
 
 			genFile := config.GenesisFile()
-			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
+			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
+			}
 
 			if !overwrite && tmos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
-			appState, err := json.MarshalIndent(mbm.DefaultGenesis(cdc), "", " ")
+			// appState, err := json.MarshalIndent(mbm.DefaultGenesis(cdc), "", " ")
+
+			isMainnet := chainID == "" || chainID == "bitsong-2b"
+
+			if isMainnet {
+				// download mainnet genesis file, if fail make new one
+			}
 			if err != nil {
 				return errors.Wrap(err, "Failed to marshall default genesis state")
 			}
 
-			genDoc := &types.GenesisDoc{}
-			if _, err := os.Stat(genFile); err != nil {
-				if !os.IsNotExist(err) {
-					return err
-				}
-			} else {
-				genDoc, err = types.GenesisDocFromFile(genFile)
-				if err != nil {
-					return errors.Wrap(err, "Failed to read genesis doc from file")
-				}
+			appStateJSON, err := json.Marshal(appState)
+			if err != nil {
+				return fmt.Errorf("failed to marshal application genesis state: %w", err)
 			}
 
 			genDoc.ChainID = chainID
-			genDoc.Validators = nil
-			genDoc.AppState = appState
+			genDoc.Consensus.Validators = nil
+			genDoc.AppState = appStateJSON
 			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
 				return errors.Wrap(err, "Failed to export gensis file")
 			}
 
-			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appState)
+			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appStateJSON)
 
 			tmcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
 			return displayInfo(toPrint)

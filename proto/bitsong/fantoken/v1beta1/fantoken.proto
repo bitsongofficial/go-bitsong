@@ -31,7 +31,7 @@ message FanToken {
   string denom = 1;
 
   string max_supply = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.moretags) = "yaml:\"max_supply\"",
     (gogoproto.nullable) = false
   ];

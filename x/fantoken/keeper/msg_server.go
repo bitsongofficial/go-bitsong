@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/errors"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -107,7 +108,7 @@ func (m msgServer) SetAuthority(goCtx context.Context, msg *types.MsgSetAuthorit
 	if len(strings.TrimSpace(msg.NewAuthority)) > 0 {
 		newAuthority, err = sdk.AccAddressFromBech32(msg.NewAuthority)
 		if err != nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
+			return nil, errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid new authority address (%s)", err)
 		}
 	}
 

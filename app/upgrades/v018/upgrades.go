@@ -1,11 +1,14 @@
 package v018
 
 import (
+	"context"
 	"fmt"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,16 +23,16 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	exported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
+	exported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
 
-func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurator, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		logger := ctx.Logger().With("upgrade", UpgradeName)
+func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, keepers *keepers.AppKeepers) upgradetypes.UpgradeHandler {
+	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
 
-		ctx.Logger().Info(`
+		logger.Info(`
 			; 
 			;;
 			;';. 
@@ -98,9 +101,9 @@ func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurato
 				if !subspace.HasKeyTable() {
 					subspace.WithKeyTable(keyTable)
 				}
-			// wasmd module
-			case wasmtypes.ModuleName:
-				keyTable = wasmtypes.ParamKeyTable() //nolint:staticcheck
+			// // wasmd module
+			// case wasmtypes.ModuleName:
+			// 	keyTable = wasmtypes.ParamKeyTable() //nolint:staticcheck
 			default:
 				continue
 			}
@@ -113,12 +116,12 @@ func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurato
 		// Migrate Tendermint consensus parameters from x/params module to a deprecated x/consensus module.
 		// The old params module is required to still be imported in your app.go in order to handle this migration.
 		baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-		baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+		baseapp.MigrateParams(sdkCtx, baseAppLegacySS, &keepers.ConsensusParamsKeeper.ParamsStore)
 
 		// manually cache current x/mint params for upgrade
-		mintParams := keepers.MintKeeper.GetParams(ctx)
+		mintParams, _ := keepers.MintKeeper.Params.Get(sdkCtx)
 		mintParams.MintDenom = appparams.MicroCoinUnit
-		keepers.MintKeeper.SetParams(ctx, mintParams)
+		keepers.MintKeeper.Params.Set(ctx, mintParams)
 
 		// manually cache current x/bank params for upgrade
 		bankParams := keepers.BankKeeper.GetParams(ctx)
@@ -137,14 +140,14 @@ func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurato
 
 		// https://github.com/cosmos/ibc-go/blob/v7.1.0/docs/migrations/v7-to-v7_1.md
 		// explicitly update the IBC 02-client params, adding the localhost client type
-		params := keepers.IBCKeeper.ClientKeeper.GetParams(ctx)
+		params := keepers.IBCKeeper.ClientKeeper.GetParams(sdkCtx)
 		params.AllowedClients = append(params.AllowedClients, exported.Localhost)
-		keepers.IBCKeeper.ClientKeeper.SetParams(ctx, params)
+		keepers.IBCKeeper.ClientKeeper.SetParams(sdkCtx, params)
 
 		// update gov params to use a 50% initial deposit ratio
-		govParams := keepers.GovKeeper.GetParams(ctx)
-		govParams.MinInitialDepositRatio = sdk.NewDec(50).Quo(sdk.NewDec(100)).String()
-		if err := keepers.GovKeeper.SetParams(ctx, govParams); err != nil {
+		govParams, err := keepers.GovKeeper.Params.Get(sdkCtx)
+		govParams.MinInitialDepositRatio = math.LegacyNewDec(50).Quo(math.LegacyNewDec(100)).String()
+		if err := keepers.GovKeeper.Params.Set(sdkCtx, govParams); err != nil {
 			return nil, err
 		}
 

@@ -12,10 +12,10 @@ import (
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -136,7 +136,7 @@ func V019PatchTest(t *testing.T, chainName, upgradeBranchVersion, upgradeRepo, u
 	require.NoError(t, err, "error fetching height before submit upgrade proposal")
 
 	haltHeight := height + haltHeightDelta
-	proposalID := SubmitUpgradeProposal(t, ctx, chain, btsgDelegator, upgradeName, haltHeight)
+	proposalID := SubmitUpgradeProposal(t, ctx, chain, btsgDelegator, upgradeName, haltHeight, users2)
 
 	proposalIDInt, err := strconv.ParseInt(proposalID, 10, 64)
 	require.NoError(t, err, "failed to parse proposal ID")

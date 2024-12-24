@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
+	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
@@ -28,7 +28,7 @@ func (k Keeper) FanToken(c context.Context, req *types.QueryFanTokenRequest) (*t
 	}
 
 	if len(req.Denom) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty denom")
+		return nil, errors.Wrap(sdkerrors.ErrInvalidRequest, "empty denom")
 	}
 
 	fantoken, err := k.GetFanToken(ctx, req.Denom)

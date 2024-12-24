@@ -59,6 +59,7 @@ from_scratch () {
   # Gov
   update_test_genesis '.app_state["gov"]["params"]["min_deposit"]=[{"denom": "ubtsg","amount": "1000000"}]'
   update_test_genesis '.app_state["gov"]["params"]["voting_period"]="15s"'
+  update_test_genesis '.app_state["gov"]["params"]["expedited_voting_period"]="6s"'
   # staking
   update_test_genesis '.app_state["staking"]["params"]["bond_denom"]="ubtsg"'
   update_test_genesis '.app_state["staking"]["params"]["min_commission_rate"]="0.050000000000000000"'
