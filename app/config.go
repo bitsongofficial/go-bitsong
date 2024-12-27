@@ -30,7 +30,7 @@ func DefaultConfig() network.Config {
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
 		AppConstructor:    NewAppConstructor(encCfg),
-		GenesisState:      ModuleBasics.DefaultGenesis(encCfg.Marshaler),
+		GenesisState:      AppModuleBasics.DefaultGenesis(encCfg.Marshaler),
 		TimeoutCommit:     1 * time.Second / 2,
 		ChainID:           "bitsong-test-1",
 		NumValidators:     1,

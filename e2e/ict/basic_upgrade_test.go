@@ -26,9 +26,9 @@ import (
 
 const (
 	chainName   = "bitsong"
-	upgradeName = "v019"
+	upgradeName = "v020"
 
-	haltHeightDelta    = int64(9) // will propose upgrade this many blocks in the future
+	haltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
 )
 
@@ -36,7 +36,7 @@ var (
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
 		Repository: BitsongMainRepo,
-		Version:    "v0.18.1",
+		Version:    "v0.19.0",
 		UidGid:     "1025:1025",
 	}
 )
@@ -103,7 +103,6 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 	proposalIDInt, err := strconv.ParseInt(proposalID, 10, 64)
 	require.NoError(t, err, "failed to parse proposal ID")
 
-	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
 	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
 
 	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
@@ -180,7 +179,7 @@ func SubmitUpgradeProposal(t *testing.T, ctx context.Context, chain *cosmos.Cosm
 	upgradeMsg := []cosmosproto.Message{
 		&upgradetypes.MsgSoftwareUpgrade{
 			// gov Module account
-			Authority: "juno10d07y265gmmuvt4z0w9aw880jnsr700jvss730",
+			Authority: "bitsong10d07y265gmmuvt4z0w9aw880jnsr700jktpd5u",
 			Plan: upgradetypes.Plan{
 				Name:   upgradeName,
 				Height: int64(haltHeight),

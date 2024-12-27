@@ -194,7 +194,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	}
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(bitsong.ModuleBasics, bitsong.DefaultNodeHome),
+		genutilcli.InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		ConfigCmd(),
 		pruning.PruningCmd(ac.newApp),
@@ -209,7 +209,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		rpc.StatusCommand(),
-		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.ModuleBasics),
+		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.AppModuleBasics),
 		genesisCommand(encodingConfig),
 		InitFromStateCmd(bitsong.DefaultNodeHome),
 		queryCommand(),
@@ -227,7 +227,7 @@ func addModuleInitFlags(startCmd *cobra.Command) {
 
 // genesisCommand builds genesis-related `simd genesis` command. Users may provide application specific commands as a parameter
 func genesisCommand(encodingConfig params.EncodingConfig, cmds ...*cobra.Command) *cobra.Command {
-	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, bitsong.ModuleBasics, bitsong.DefaultNodeHome)
+	cmd := genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, bitsong.AppModuleBasics, bitsong.DefaultNodeHome)
 	for _, subCmd := range cmds {
 		cmd.AddCommand(subCmd)
 	}
@@ -252,7 +252,7 @@ func queryCommand() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	bitsong.ModuleBasics.AddQueryCommands(cmd)
+	bitsong.AppModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
@@ -280,7 +280,7 @@ func txCommand() *cobra.Command {
 		authcmd.GetAuxToFeeCommand(),
 	)
 
-	bitsong.ModuleBasics.AddTxCommands(cmd)
+	bitsong.AppModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
