@@ -168,6 +168,11 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
 			valAddr := del.GetValidatorAddr()
 			val := k.StakingKeeper.Validator(ctx, valAddr)
+
+			// if val is jailed, skip
+			if val.IsJailed() {
+				continue
+			}
 			// calculate rewards
 			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
 		}
