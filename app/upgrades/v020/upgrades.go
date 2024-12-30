@@ -116,12 +116,12 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		}
 
 		// // confirm patch has been applied by querying rewards again for each delegation
-		for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
-			valAddr := del.GetValidatorAddr()
-			val := k.StakingKeeper.Validator(ctx, valAddr)
-			// calculate rewards
-			k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
-		}
+		// for _, del := range k.StakingKeeper.GetAllDelegations(ctx) {
+		// 	valAddr := del.GetValidatorAddr()
+		// 	val := k.StakingKeeper.Validator(ctx, valAddr)
+		// 	// calculate rewards
+		// 	k.DistrKeeper.CalculateDelegationRewards(ctx, val, del, uint64(ctx.BlockHeight()))
+		// }
 
 		ctx.Logger().Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
