@@ -50,9 +50,6 @@ func NewPolytoneSuite(t *testing.T) Suite {
 
 	var (
 		ctx                  = context.Background()
-		client, network      = interchaintest.DockerSetup(t)
-		rep                  = testreporter.NewNopReporter()
-		eRep                 = rep.RelayerExecReporter(t)
 		chainID_A, chainID_B = "chain-a", "chain-b"
 		chainA, chainB       *cosmos.CosmosChain
 	)
@@ -71,12 +68,14 @@ func NewPolytoneSuite(t *testing.T) Suite {
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{
 			Name:          "bitsong",
+			ChainName:     "bitsong1",
 			ChainConfig:   configA,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFullNodes,
 		},
 		{
 			Name:          "bitsong",
+			ChainName:     "bitsong2",
 			ChainConfig:   configB,
 			NumValidators: &numVals,
 			NumFullNodes:  &numFullNodes,
@@ -89,12 +88,13 @@ func NewPolytoneSuite(t *testing.T) Suite {
 
 	chainA, chainB = chains[0].(*cosmos.CosmosChain), chains[1].(*cosmos.CosmosChain)
 
+	dockerClient, dockerNetwork := interchaintest.DockerSetup(t)
 	r := interchaintest.NewBuiltinRelayerFactory(
 		ibc.CosmosRly,
 		zaptest.NewLogger(t),
 		interchaintestrelayer.CustomDockerImage(IBCRelayerImage, IBCRelayerVersion, "100:1000"),
 		interchaintestrelayer.StartupFlags("--processor", "events", "--block-history", "100"),
-	).Build(t, client, network)
+	).Build(t, dockerClient, dockerNetwork)
 
 	const pathAB = "ab"
 
@@ -109,46 +109,40 @@ func NewPolytoneSuite(t *testing.T) Suite {
 			Path:    pathAB,
 		})
 
-	require.NoError(t, ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
+	reporter := testreporter.NewNopReporter().RelayerExecReporter(t)
+	require.NoError(t, ic.Build(ctx, reporter, interchaintest.InterchainBuildOptions{
 		TestName:          t.Name(),
-		Client:            client,
-		NetworkID:         network,
+		Client:            dockerClient,
+		NetworkID:         dockerNetwork,
 		BlockDatabaseFile: interchaintest.DefaultBlockDatabaseFilepath(),
 
 		SkipPathCreation: false,
 	}))
+
 	t.Cleanup(func() {
 		_ = ic.Close()
 	})
-
-	userFunds := sdkmath.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, chainA, chainB)
-
-	// abChan, err := ibc.GetTransferChannel(ctx, r, eRep, chainID_A, chainID_B)
-	// require.NoError(t, err)
-
-	// baChan := abChan.Counterparty
-
-	// Start the relayer on all paths
-	err = r.StartRelayer(ctx, eRep, pathAB)
-	require.NoError(t, err)
-
-	t.Cleanup(
-		func() {
-			err := r.StopRelayer(ctx, eRep)
-			if err != nil {
-				t.Logf("an error occurred while stopping the relayer: %s", err)
-			}
-		},
-	)
+	err = r.StartRelayer(ctx, reporter, pathAB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		err := r.StopRelayer(ctx, reporter)
+		if err != nil {
+			t.Logf("couldn't stop relayer: %s", err)
+		}
+	})
 
 	// Get original account balances
+	userFunds := sdkmath.NewInt(10_000_000_000)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", userFunds, chainA, chainB)
+
 	userA, userB := users[0], users[1]
 	t.Logf("userA: %s", userA)
 
 	suite := Suite{
 		t:        t,
-		reporter: eRep,
+		reporter: reporter,
 		ctx:      ctx,
 		ChainA: SuiteChain{
 			Ibc:    chainA,
