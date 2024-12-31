@@ -79,20 +79,12 @@ make localnet-clean
 
 LocalBitSong is pre-configured with one validator and 9 accounts with BTSG balances.
 
-| Account   | Address                                                                                                | Mnemonic                                                                                                                                                                   |
+| Account   |  | |
 |-----------|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| val    | `bitsong1gws6wz8q5kyyu4gqze48fwlmm4m0mdjz0620gw`<br/>`bitsongvaloper1gws6wz8q5kyyu4gqze48fwlmm4m0mdjzw7kxcn` | `bottom loan skill merry east cradle onion journey palm apology verb edit desert impose absurd oil bubble sweet glove shallow size build burst effort`                    |
-| lo-test1  | `bitsong1regz7kj3ylg2dn9rl8vwrhclkgz528mf0tfsck`                                                          | `notice oak worry limit wrap speak medal online prefer cluster roof addict wrist behave treat actual wasp year salad speed social layer crew genius`                       |
-| lo-test2  | `bitsong1hvrhhex6wfxh7r7nnc3y39p0qlmff6v9t5rc25`                                                          | `quality vacuum heart guard buzz spike sight swarm shove special gym robust assume sudden deposit grid alcohol choice devote leader tilt noodle tide penalty`              |
-| lo-test3  | `bitsong175vgzztymvvcxvqun54nlu9dq6856thgvyl5sa`                                                          | `symbol force gallery make bulk round subway violin worry mixture penalty kingdom boring survey tool fringe patrol sausage hard admit remember broken alien absorb`        |
-| lo-test4  | `bitsong1t8nznzj4sd6zzutwdmslgy4dcxyd2jafz7822x`                                                          | `bounce success option birth apple portion aunt rural episode solution hockey pencil lend session cause hedgehog slender journey system canvas decorate razor catch empty` |
-| lo-test5  | `bitsong14vdrvstsffj8mq5e4fhm6y2hpfxtedajczsj5d`                                                          | `second render cat sing soup reward cluster island bench diet lumber grocery repeat balcony perfect diesel stumble piano distance caught occur example ozone loyal`        |
-| lo-test6  | `bitsong1vwe5hay74v0vhuzdhadteyqfasu5d7tdf83pyy`                                                          | `spatial forest elevator battle also spoon fun skirt flight initial nasty transfer glory palm drama gossip remove fan joke shove label dune debate quick`                  |
-| lo-test7  | `bitsong16866dezn6ez2qpmpcrrv9cyud8v8c7ufnzwhhh`                                                          | `noble width taxi input there patrol clown public spell aunt wish punch moment will misery eight excess arena pen turtle minimum grain vague inmate`                       |
-| lo-test8  | `bitsong1tlwh75lvu35nw9vcg557mxhspz5s88t6vzscd8`                                                          | `cream sport mango believe inhale text fish rely elegant below earth april wall rug ritual blossom cherry detail length blind digital proof identify ride`                 |
-| lo-test9  | `bitsong16z9wj8n5f3zgzwspw0r9sj9v7k7hdasqj95us9`                                                          | `index light average senior silent limit usual local involve delay update rack cause inmate wall render magnet common feature laundry exact casual resource hundred`       |
-| lo-test10 | `bitsong1gulaxnca7rped0grw0lz4h4zy0xn3ttvmlad8x`                                                          | `prefer forget visit mistake mixture feel eyebrow autumn shop pair address airport diesel street pass vague innocent poem method awful require hurry unhappy shoulder`     |
-
+| val   |  |   |
+| del1  |  |   |
+| del2  |  |   |
+| del3  |  |   |
 To list all keys in the keyring named `test`
 ```bash
 bitsongd keys list --keyring-backend test
