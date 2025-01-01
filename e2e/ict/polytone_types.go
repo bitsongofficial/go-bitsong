@@ -12,6 +12,10 @@ import (
 // imports and think it would take more work to learn than to copy
 // these files every once and a while.
 
+type ListenerInstantiate struct {
+	Note string `json:"note"`
+}
+
 type NoteInstantiate struct {
 	BlockMaxGas uint64 `json:"block_max_gas,string"`
 }

@@ -38,9 +38,10 @@ type SuiteChain struct {
 	Cosmos *cosmos.CosmosChain
 	User   ibc.Wallet
 
-	Note   string
-	Voice  string
-	Tester string
+	Note     string
+	Listener string
+	Voice    string
+	Tester   string
 }
 
 func NewPolytoneSuite(t *testing.T) Suite {
@@ -179,6 +180,11 @@ func (s *Suite) SetupChain(chain *SuiteChain) {
 		s.t.Fatal(err)
 	}
 
+	listenerId, err := cc.StoreContract(s.ctx, user.KeyName(), "contracts/polytone_listener.wasm")
+	if err != nil {
+		s.t.Fatal(err)
+	}
+
 	testerId, err := cc.StoreContract(s.ctx, user.KeyName(), "contracts/polytone_tester.wasm")
 	if err != nil {
 		s.t.Fatal(err)
@@ -200,6 +206,12 @@ func (s *Suite) SetupChain(chain *SuiteChain) {
 		ContractAddrLen: 32,
 	})
 	require.NoError(s.t, err)
+
+	chain.Listener, err = s.Instantiate(cc, user, listenerId, ListenerInstantiate{
+		Note: chain.Note,
+	})
+	require.NoError(s.t, err)
+
 	chain.Tester, err = s.Instantiate(cc, user, testerId, TesterInstantiate{})
 	require.NoError(s.t, err)
 }
@@ -228,6 +240,16 @@ func (s *Suite) CreateChannel(initModule string, tryModule string, initChain, tr
 		return
 	}
 	err = testutil.WaitForBlocks(s.ctx, 10, initChain.Ibc, tryChain.Ibc)
+	if err != nil {
+		return
+	}
+
+	err = s.Relayer.StopRelayer(s.ctx, s.reporter)
+	if err != nil {
+		return
+	}
+
+	err = s.Relayer.StartRelayer(s.ctx, s.reporter)
 	if err != nil {
 		return
 	}
@@ -272,18 +294,15 @@ func (s *Suite) RoundtripMessage(note string, chain *SuiteChain, msg NoteExecute
 	callbacksStart := s.QueryTesterCallbackHistory(&s.ChainA).History
 
 	marshalled, err := json.Marshal(msg)
-	if err != nil {
-		return Callback{}, err
-	}
+	require.NoError(s.t, err)
+
 	_, err = chain.Cosmos.ExecuteContract(s.ctx, chain.User.KeyName(), note, string(marshalled))
-	if err != nil {
-		return Callback{}, err
-	}
+	require.NoError(s.t, err)
+
 	// wait for packet to relay.
 	err = testutil.WaitForBlocks(s.ctx, 10, s.ChainA.Ibc, s.ChainB.Ibc)
-	if err != nil {
-		return Callback{}, err
-	}
+	require.NoError(s.t, err)
+
 	callbacksEnd := s.QueryTesterCallbackHistory(&s.ChainA).History
 	if len(callbacksEnd) == len(callbacksStart) {
 		return Callback{}, errors.New("no new callback")
