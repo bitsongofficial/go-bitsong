@@ -19,7 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1beta1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	v1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -35,7 +35,7 @@ type GenesisParams struct {
 	StakingParams      stakingtypes.Params
 	MintParams         minttypes.Params
 	DistributionParams distributiontypes.Params
-	GovParams          v1beta1govtypes.GenesisState
+	GovParams          v1govtypes.GenesisState
 	SlashingParams     slashingtypes.Params
 
 	CrisisConstantFee sdk.Coin
@@ -86,20 +86,22 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.MintParams.MintDenom = appparams.MicroCoinUnit
 
 	genParams.DistributionParams = distributiontypes.DefaultParams()
-	genParams.DistributionParams.BaseProposerReward = sdk.MustNewDecFromStr("0.01")
-	genParams.DistributionParams.BonusProposerReward = sdk.MustNewDecFromStr("0.04")
 	genParams.DistributionParams.CommunityTax = sdk.MustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
-	genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
-	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+	maxDepositPeriod := time.Hour * 24 * 15
+	maxVotingPeriod := time.Hour * 24 * 7
+
+	genParams.GovParams.Params.MaxDepositPeriod = &maxDepositPeriod
+
+	genParams.GovParams.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(
 		appparams.MicroCoinUnit,
 		sdk.NewInt(512_000_000),
 	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.4")          // 40%
-	genParams.GovParams.TallyParams.Threshold = sdk.MustNewDecFromStr("0.5")       // 50%
-	genParams.GovParams.TallyParams.VetoThreshold = sdk.MustNewDecFromStr("0.334") // 33.40%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7             // 7 days
+	genParams.GovParams.Params.Quorum = "0.4"                  // 40%
+	genParams.GovParams.Params.Threshold = "0.5"               // 50%
+	genParams.GovParams.Params.VetoThreshold = "0.334"         // 33.40%
+	genParams.GovParams.Params.VotingPeriod = &maxVotingPeriod // 7 days
 
 	genParams.SlashingParams = slashingtypes.DefaultParams()
 	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                       // 10000 blocks (~13.8 hr at 5 second blocks)
@@ -129,8 +131,9 @@ func TestnetGenesisParams() GenesisParams {
 		appparams.MicroCoinUnit,
 		sdk.NewInt(1000000), // 1 BTSG
 	))
-	genParams.GovParams.TallyParams.Quorum = sdk.MustNewDecFromStr("0.0000000001") // 0.00000001%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300              // 300 seconds
+	maxVotingPeriod := time.Second * 300
+	genParams.GovParams.Params.Quorum = "0.0000000001"         // 0.00000001%
+	genParams.GovParams.Params.VotingPeriod = &maxVotingPeriod // 300 seconds
 
 	return genParams
 }
@@ -166,7 +169,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 	}
 	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
-	govGenState := v1beta1govtypes.DefaultGenesisState()
+	govGenState := v1govtypes.DefaultGenesisState()
 	govGenState.DepositParams = genesisParams.GovParams.DepositParams
 	govGenState.TallyParams = genesisParams.GovParams.TallyParams
 	govGenState.VotingParams = genesisParams.GovParams.VotingParams
