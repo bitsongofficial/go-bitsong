@@ -5,6 +5,12 @@ BITSONG_HOME=$HOME/.bitsongd
 CONFIG_FOLDER=$BITSONG_HOME/config
 STATE='false'
 
+# Check if MNEMONIC is provided as an environment variable
+if [ -z "${MNEMONIC}" ]; then
+    echo "Error: MNEMONIC environment variable is required but not set"
+    exit 1
+fi
+
 KEY_PATH=$BITSONG_HOME/config/test-keys
 VAL=val
 DEL1=del1
@@ -75,6 +81,7 @@ edit_genesis () {
     # Update mint module
     dasel put string -f $GENESIS '.app_state.mint.params.mint_denom' -v "ubtsg"
 }
+
 
 add_genesis_accounts () {
 
