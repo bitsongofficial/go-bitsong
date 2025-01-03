@@ -7,11 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	"github.com/cometbft/cometbft/libs/cli"
@@ -34,7 +35,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1beta1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	v1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/go-bip39"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
@@ -51,6 +52,7 @@ const (
 	FlagIncreaseCoinAmount = "increase-coin-amount"
 )
 
+// bitsongd init-from-state v021 export-v021.json v021 --old-moniker Cosmostation --old-account-addr bitsong1wf3q0a3uzechxvf27reuqts8nqm45sn29ykncv  --increase-coin-amount 10000000000000000ubtsg --o
 // InitFromStateCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
 func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
@@ -65,12 +67,10 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			config := serverCtx.Config
 
 			// Override default settings in config.toml
-			config.P2P.MaxNumInboundPeers = 100
-			config.P2P.MaxNumOutboundPeers = 50
+			config.P2P.MaxNumInboundPeers = 80
+			config.P2P.MaxNumOutboundPeers = 40
 			config.Mempool.Size = 10000
 			config.StateSync.TrustPeriod = 112 * time.Hour
-			// config.DeprecatedFastSyncConfig.Version = "v0"
-
 			config.SetRoot(clientCtx.HomeDir)
 
 			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
@@ -97,6 +97,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			tmPubKey, _ := cryptocodec.ToTmPubKeyInterface(pubKey)
 
 			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
 			moniker := args[0]
@@ -119,7 +120,6 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			}
 			clientCtx.Keyring = kb
 
-			tmPubKey, _ := cryptocodec.ToTmPubKeyInterface(pubKey)
 			genParams := StateExportParams{
 				ChainID:            chainID,
 				Moniker:            moniker,
@@ -166,9 +166,9 @@ func initNodeFromState(config *tmcfg.Config, cliCtx client.Context, genParams St
 
 	// validate genesis state
 	// TODO: fix this!
-	/*if err = mbm.ValidateGenesis(cliCtx.Codec, cliCtx.TxConfig, appState); err != nil {
-		return fmt.Errorf("error validating genesis file: %s", err.Error())
-	}*/
+	// /*if err = mbm.ValidateGenesis(cliCtx.Codec, cliCtx.TxConfig, appState); err != nil {
+	// 	return fmt.Errorf("error validating genesis file: %s", err.Error())
+	// }*/
 
 	// save genesis
 	if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
@@ -257,7 +257,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 		return nil, err
 	}
 
-	stateBz, err := ioutil.ReadFile(params.StateFile)
+	stateBz, err := os.ReadFile(params.StateFile)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read state export file: %w", err)
 	}
@@ -308,9 +308,9 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	genDoc.ChainID = params.ChainID
 
 	// Update gov module
-	var govGenState v1beta1govtypes.GenesisState
+	var govGenState v1govtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appState[govtypes.ModuleName], &govGenState)
-	govGenState.VotingParams.VotingPeriod = params.VotingPeriod
+	govGenState.Params.VotingPeriod = &params.VotingPeriod
 	govGenStateBz, err := clientCtx.Codec.MarshalJSON(&govGenState)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)
@@ -347,7 +347,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	var oldValidator tmtypes.GenesisValidator
 
 	// Update tendermint validator data
-	for i, _ := range genDoc.Validators {
+	for i := range genDoc.Validators {
 		if genDoc.Validators[i].Name == params.OldMoniker {
 			oldValidator = genDoc.Validators[i]
 			validator := &genDoc.Validators[i]
@@ -366,7 +366,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	var stakingGenState stakingtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appState[stakingtypes.ModuleName], &stakingGenState)
 	operatorAddr := ""
-	for i, _ := range stakingGenState.Validators {
+	for i := range stakingGenState.Validators {
 		validator := &stakingGenState.Validators[i]
 		if validator.Description.Moniker == params.OldMoniker {
 			valPubKey, err := cryptocodec.FromTmPubKeyInterface(params.TmPubKey)
@@ -384,11 +384,13 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 			validator.OperatorAddress = sdk.ValAddress(params.TmPubKey.Address()).String()
 			validator.DelegatorShares = validator.DelegatorShares.Add(sdk.NewDec(params.IncreaseCoinAmount))
 			validator.Tokens = validator.Tokens.Add(sdk.NewInt(params.IncreaseCoinAmount))
+		} else {
+			validator.Jailed = true
 		}
 	}
 
 	// Update total power
-	for i, _ := range stakingGenState.LastValidatorPowers {
+	for i := range stakingGenState.LastValidatorPowers {
 		validatorPower := &stakingGenState.LastValidatorPowers[i]
 		if validatorPower.Address == operatorAddr {
 			validatorPower.Power = validatorPower.Power + (params.IncreaseCoinAmount / 1000000)
@@ -397,7 +399,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	stakingGenState.LastTotalPower = stakingGenState.LastTotalPower.Add(sdk.NewInt(params.IncreaseCoinAmount / 1000000))
 
 	// Update self delegation on operator address
-	for i, _ := range stakingGenState.Delegations {
+	for i := range stakingGenState.Delegations {
 		delegation := &stakingGenState.Delegations[i]
 		newAddr, _ := newAccount.GetAddress()
 		if delegation.DelegatorAddress == newAddr.String() {
@@ -414,7 +416,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	// Update genesis['app_state']['distribution']['delegator_starting_infos'] on operator address
 	var distrGenState distrtypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appState[distrtypes.ModuleName], &distrGenState)
-	for i, _ := range distrGenState.DelegatorStartingInfos {
+	for i := range distrGenState.DelegatorStartingInfos {
 		delegatorStartingInfo := &distrGenState.DelegatorStartingInfos[i]
 		newAddr, _ := newAccount.GetAddress()
 		if delegatorStartingInfo.DelegatorAddress == newAddr.String() {
@@ -431,14 +433,14 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	var bankGenState banktypes.GenesisState
 	clientCtx.Codec.MustUnmarshalJSON(appState[banktypes.ModuleName], &bankGenState)
 
-	for i, _ := range bankGenState.Balances {
+	for i := range bankGenState.Balances {
 		balance := &bankGenState.Balances[i]
 
 		// Add 1 BN ubtsg to bonded_tokens_pool module address
 		bondedPool := authtypes.NewModuleAddress(stakingtypes.BondedPoolName)
 		if balance.Address == bondedPool.String() {
-			for balanceIdx, _ := range balance.Coins {
-				coin := &balance.Coins[balanceIdx]
+			for balIdx := range balance.Coins {
+				coin := &balance.Coins[balIdx]
 				if coin.Denom == stakingGenState.Params.BondDenom {
 					coin.Amount = coin.Amount.Add(sdk.NewInt(params.IncreaseCoinAmount))
 				}
@@ -447,7 +449,7 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	}
 
 	// Update bank balance
-	for i, _ := range bankGenState.Supply {
+	for i := range bankGenState.Supply {
 		supply := &bankGenState.Supply[i]
 		if supply.Denom == stakingGenState.Params.BondDenom {
 			supply.Amount = supply.Amount.Add(sdk.NewInt(params.IncreaseCoinAmount))
@@ -480,7 +482,7 @@ func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	// if the key is not there or if we have a problem with a keyring itself then we move to a
 	// fallback: searching for key by address.
 
-	if err == nil || !sdkerr.IsOf(err, sdkerr.ErrIO, sdkerr.ErrKeyNotFound) {
+	if err == nil || !errorsmod.IsOf(err, sdkerr.ErrIO, sdkerr.ErrKeyNotFound) {
 		return k, err
 	}
 
@@ -490,5 +492,5 @@ func fetchKey(kb keyring.Keyring, keyref string) (*keyring.Record, error) {
 	}
 
 	k, err = kb.KeyByAddress(accAddr)
-	return k, sdkerr.Wrap(err, "Invalid key")
+	return k, errorsmod.Wrapf(err, "Invalid key")
 }

@@ -3,10 +3,22 @@
 CHAIN_ID=localbitsong
 BITSONG_HOME=$HOME/.bitsongd
 CONFIG_FOLDER=$BITSONG_HOME/config
-MONIKER=val
 STATE='false'
 
-MNEMONIC="bottom loan skill merry east cradle onion journey palm apology verb edit desert impose absurd oil bubble sweet glove shallow size build burst effort"
+# Check if MNEMONIC is provided as an environment variable
+if [ -z "${MNEMONIC}" ]; then
+    echo "Error: MNEMONIC environment variable is required but not set"
+    exit 1
+fi
+
+KEY_PATH=$BITSONG_HOME/config/test-keys
+VAL=val
+DEL1=del1
+DEL2=del2
+DEL3=del3
+
+genesisBalance=10000000000000ubtsg
+genTx=5000000000000ubtsg
 
 while getopts s flag
 do
@@ -19,6 +31,29 @@ install_prerequisites () {
     apk add dasel lz4
 }
 
+
+configure_keyring(){
+## remove old localbitsong key path
+rm -rf $CONFIG_FOLDER/test-keys
+## create new key path 
+mkdir -rf $CONFIG_FOLDER/test-keys
+## create new keys 
+bitsongd config keyring-backend test
+
+yes | $BIND  --home $BITSONG_HOME keys add $VAL --output json > $CONFIG_FOLDER/test-keys/$VAL.json 2>&1 
+sleep 1
+yes | $BIND  --home $BITSONG_HOME keys add $DEl1 --output json > $CONFIG_FOLDER/test-keys/$DEl1.json 2>&1 
+sleep 1
+yes | $BIND  --home $BITSONG_HOME keys add $DEL2 --output json > $CONFIG_FOLDER/test-keys/$DEL2.json 2>&1 
+sleep 1
+yes | $BIND  --home $BITSONG_HOME keys add $DEL3 --output json > $CONFIG_FOLDER/test-keys/$DEL3.json 2>&1 
+sleep 1
+
+VALADDR=$(jq -r '.address' $CONFIG_FOLDER/test-keys/$VAL.json)
+DEL1ADDR=$(jq -r '.address' $CONFIG_FOLDER/test-keys/$DEl1.json)
+DEL2ADDR=$(jq -r '.address' $CONFIG_FOLDER/test-keys/$DEL2.json)
+DEL3ADDR=$(jq -r '.address' $CONFIG_FOLDER/test-keys/$DEL3.json)
+}
 edit_genesis () {
 
     GENESIS=$CONFIG_FOLDER/genesis.json
@@ -47,25 +82,19 @@ edit_genesis () {
     dasel put string -f $GENESIS '.app_state.mint.params.mint_denom' -v "ubtsg"
 }
 
+
 add_genesis_accounts () {
 
     # val
-    bitsongd genesis add-genesis-account bitsong1gws6wz8q5kyyu4gqze48fwlmm4m0mdjz0620gw 10000000000000ubtsg --home $BITSONG_HOME
+    bitsongd genesis add-genesis-account $VALADDR $genesisBalance --home $BITSONG_HOME
     
     # wallets
-    bitsongd genesis add-genesis-account bitsong1regz7kj3ylg2dn9rl8vwrhclkgz528mf0tfsck 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong1hvrhhex6wfxh7r7nnc3y39p0qlmff6v9t5rc25 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong175vgzztymvvcxvqun54nlu9dq6856thgvyl5sa 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong1t8nznzj4sd6zzutwdmslgy4dcxyd2jafz7822x 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong14vdrvstsffj8mq5e4fhm6y2hpfxtedajczsj5d 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong1vwe5hay74v0vhuzdhadteyqfasu5d7tdf83pyy 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong16866dezn6ez2qpmpcrrv9cyud8v8c7ufnzwhhh 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong1tlwh75lvu35nw9vcg557mxhspz5s88t6vzscd8 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong16z9wj8n5f3zgzwspw0r9sj9v7k7hdasqj95us9 10000000000000ubtsg --home $BITSONG_HOME
-    bitsongd genesis add-genesis-account bitsong1gulaxnca7rped0grw0lz4h4zy0xn3ttvmlad8x 10000000000000ubtsg --home $BITSONG_HOME
+    bitsongd genesis add-genesis-account $DEL1ADDR $genesisBalance --home $BITSONG_HOME
+    bitsongd genesis add-genesis-account $DEL2ADDR $genesisBalance --home $BITSONG_HOME
+    bitsongd genesis add-genesis-account $DEL3ADDR $genesisBalance --home $BITSONG_HOME
 
-    echo $MNEMONIC | bitsongd keys add $MONIKER --recover --keyring-backend=test --home $BITSONG_HOME
-    bitsongd genesis gentx $MONIKER 5000000000000ubtsg --keyring-backend=test --chain-id=$CHAIN_ID --home $BITSONG_HOME
+    echo $MNEMONIC | bitsongd keys add $VAL --recover --keyring-backend=test --home $BITSONG_HOME
+    bitsongd genesis gentx $VAL $genTx --keyring-backend=test --chain-id=$CHAIN_ID --home $BITSONG_HOME
 
     bitsongd genesis collect-gentxs --home $BITSONG_HOME
 
@@ -104,10 +133,10 @@ enable_cors () {
     dasel put bool -f $CONFIG_FOLDER/app.toml -v "true" '.grpc-web.enable-unsafe-cors'
 
     # Enable SQS & route caching
-    dasel put string -f $CONFIG_FOLDER/app.toml -v "true" '.bitsong-sqs.is-enabled'
-    dasel put string -f $CONFIG_FOLDER/app.toml -v "true" '.bitsong-sqs.route-cache-enabled'
+    # dasel put string -f $CONFIG_FOLDER/app.toml -v "true" '.bitsong-sqs.is-enabled'
+    # dasel put string -f $CONFIG_FOLDER/app.toml -v "true" '.bitsong-sqs.route-cache-enabled'
+    # dasel put string -f $CONFIG_FOLDER/app.toml -v "redis" '.bitsong-sqs.db-host'
 
-    dasel put string -f $CONFIG_FOLDER/app.toml -v "redis" '.bitsong-sqs.db-host'
 }
 
 run_with_retries() {
@@ -133,7 +162,7 @@ run_with_retries() {
 
 if [[ ! -d $CONFIG_FOLDER ]]
 then
-    echo $MNEMONIC | bitsongd init -o --chain-id=$CHAIN_ID --home $BITSONG_HOME --recover $MONIKER
+    echo $MNEMONIC | bitsongd init -o --chain-id=$CHAIN_ID --home $BITSONG_HOME --recover $VAL
     install_prerequisites
     edit_genesis
     add_genesis_accounts

@@ -177,7 +177,7 @@ func NewAppKeepers(
 	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec, keys[feegrant.StoreKey], appKeepers.AccountKeeper,
 	)
-	stakingKeeper := *stakingkeeper.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec, keys[stakingtypes.StoreKey], appKeepers.AccountKeeper, appKeepers.BankKeeper, govModAddress,
 	)
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
@@ -214,7 +214,7 @@ func NewAppKeepers(
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(appKeepers.DistrKeeper.Hooks(), appKeepers.SlashingKeeper.Hooks()),
 	)
-	appKeepers.StakingKeeper = &stakingKeeper
+	appKeepers.StakingKeeper = stakingKeeper
 
 	// ... other modules keepers
 
@@ -250,7 +250,6 @@ func NewAppKeepers(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
-		//app.IBCKeeper.ChannelKeeper,
 		appKeepers.PacketForwardKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		&appKeepers.IBCKeeper.PortKeeper,
@@ -292,25 +291,7 @@ func NewAppKeepers(
 	// Set legacy router for backwards compatibility with gov v1beta1
 	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
 
-	// Create Transfer Stack
-	var transferStack porttypes.IBCModule
-	const middlewareTimeoutRetry = 0
-	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
-	transferStack = packetforward.NewIBCMiddleware(
-		transferStack,
-		appKeepers.PacketForwardKeeper,
-		middlewareTimeoutRetry, // retries on timeout
-		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
-	)
-
-	// Create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
-	ibcRouter.AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper))
-	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 	wasmDir := filepath.Join(homePath, "data")
-
 	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
 	if err != nil {
 		panic("error while reading wasm config: " + err.Error())
@@ -366,6 +347,25 @@ func NewAppKeepers(
 		govModAddress,
 		wasmOpts...,
 	)
+
+	/// ADVANCED IBC CONFIGURATION
+	// Create Transfer Stack
+	var transferStack porttypes.IBCModule
+	const middlewareTimeoutRetry = 0
+	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
+	transferStack = packetforward.NewIBCMiddleware(
+		transferStack,
+		appKeepers.PacketForwardKeeper,
+		middlewareTimeoutRetry, // retries on timeout
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
+		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
+	)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	ibcRouter.AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper))
+	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
 	appKeepers.ScopedIBCKeeper = scopedIBCKeeper
 	appKeepers.ScopedTransferKeeper = scopedTransferKeeper
