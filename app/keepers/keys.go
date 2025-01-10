@@ -21,7 +21,9 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 )
@@ -45,6 +47,8 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		packetforwardtypes.StoreKey,
 		ibcexported.StoreKey,
 		ibctransfertypes.StoreKey,
+		ibcwasmtypes.StoreKey,
+		icqtypes.StoreKey,
 		fantokentypes.StoreKey,
 		wasmtypes.StoreKey,
 		capabilitytypes.StoreKey,

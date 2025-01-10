@@ -16,6 +16,7 @@ import (
 	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
 	v018 "github.com/bitsongofficial/go-bitsong/app/upgrades/v018"
 	v020 "github.com/bitsongofficial/go-bitsong/app/upgrades/v020"
+	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
 
 	errorsmod "cosmossdk.io/errors"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -51,6 +52,7 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -93,6 +95,7 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
 		v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
+		v021.Upgrade,
 	}
 )
 
@@ -324,6 +327,12 @@ func NewBitsongApp(
 	if manager := app.SnapshotManager(); manager != nil {
 		err = manager.RegisterExtensions(
 			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.AppKeepers.WasmKeeper),
+		)
+		if err != nil {
+			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
+		}
+		err = manager.RegisterExtensions(
+			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
