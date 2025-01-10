@@ -4,7 +4,6 @@ import (
 	store "cosmossdk.io/store/types"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	merkledroptypes "github.com/bitsongofficial/go-bitsong/x/merkledrop/types"
 )
 
 const (
@@ -15,6 +14,6 @@ var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateV11UpgradeHandler,
 	StoreUpgrades: store.StoreUpgrades{
-		Added: []string{fantokentypes.ModuleName, merkledroptypes.ModuleName},
+		Added: []string{fantokentypes.ModuleName, "merkledrop"},
 	},
 }

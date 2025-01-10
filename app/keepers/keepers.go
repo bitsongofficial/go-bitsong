@@ -39,6 +39,9 @@ import (
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
+	cadancekeeper "github.com/bitsongofficial/go-bitsong/x/cadance/keeper"
+	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -134,12 +137,12 @@ type AppKeepers struct {
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	AuthzKeeper           authzkeeper.Keeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
-
-	// custom module keepers
-	FanTokenKeeper fantokenkeeper.Keeper
+	FanTokenKeeper        fantokenkeeper.Keeper
 
 	// cosmwasm keepers
-	WasmKeeper wasmkeeper.Keeper
+	WasmKeeper     wasmkeeper.Keeper
+	CadanceKeeper  cadancekeeper.Keeper
+	ContractKeeper wasmtypes.ContractOpsKeeper
 
 	// Middleware wrapper
 	Ics20WasmHooks   *ibc_hooks.WasmHooks
@@ -192,6 +195,7 @@ func NewAppKeepers(
 
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := appKeepers.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
+	scopedICQKeeper := appKeepers.CapabilityKeeper.ScopeToModule(icqtypes.ModuleName)
 	scopedTransferKeeper := appKeepers.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	scopedWasmKeeper := appKeepers.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 
@@ -257,6 +261,14 @@ func NewAppKeepers(
 	homePath := cast.ToString(appOpts.Get(flags.FlagHome))
 	appKeepers.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights, runtime.NewKVStoreService(appKeepers.keys[upgradetypes.StoreKey]), appCodec, homePath, bApp, govModAddress,
+	)
+
+	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
+		appKeepers.keys[cadancetypes.StoreKey],
+		appCodec,
+		appKeepers.WasmKeeper,
+		appKeepers.ContractKeeper,
+		govModAddress,
 	)
 
 	// register the staking hooks
@@ -474,8 +486,13 @@ func NewAppKeepers(
 
 	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
+	// set the contract keeper for the Ics20WasmHooks
+	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
+	appKeepers.Ics20WasmHooks.ContractKeeper = &appKeepers.WasmKeeper
+
 	appKeepers.ScopedIBCKeeper = scopedIBCKeeper
 	appKeepers.ScopedTransferKeeper = scopedTransferKeeper
+	appKeepers.ScopedICQKeeper = scopedICQKeeper
 	appKeepers.ScopedWasmKeeper = scopedWasmKeeper
 
 	return appKeepers
@@ -497,6 +514,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
+	paramsKeeper.Subspace(icqtypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
