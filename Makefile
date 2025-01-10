@@ -6,21 +6,24 @@ include scripts/makefiles/e2e.mk
 include scripts/makefiles/hl.mk
 include scripts/makefiles/proto.mk
 include scripts/makefiles/localnet.mk
+include scripts/makefiles/format.mk
 include contrib/devtools/Makefile
 
 .DEFAULT_GOAL := help
 help:
 	@echo "Available top-level commands:"
 	@echo ""
-	@echo "Usage:"
+	@echo "To run commands, use:"
 	@echo "    make [command]"
 	@echo ""
 	@echo "  make build                 Build Bitsong node binary"
 	@echo "  make docker                Show available docker related commands"
 	@echo "  make e2e                   Show available e2e commands"
+	@echo "  make format                Show available formatting commands"
 	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
 	@echo "  make install               Install Bitsong node binary"
 	@echo "  make localnet              Show available localnet commands"
+	@echo "  make proto                 Show available protobuf commands"
 	@echo ""
 	@echo "Run 'make [subcommand]' to see the available commands for each subcommand."
 
