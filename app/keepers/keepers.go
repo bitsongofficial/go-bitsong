@@ -62,6 +62,9 @@ import (
 	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
+	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
+	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
@@ -124,6 +127,7 @@ type AppKeepers struct {
 	IBCKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	ICQKeeper             *icqkeeper.Keeper
 	IBCFeeKeeper          ibcfeekeeper.Keeper
+	IBCHooksKeeper        *ibchookskeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
 	IBCWasmClientKeeper   *ibcwasmkeeper.Keeper
@@ -136,6 +140,10 @@ type AppKeepers struct {
 
 	// cosmwasm keepers
 	WasmKeeper wasmkeeper.Keeper
+
+	// Middleware wrapper
+	Ics20WasmHooks   *ibc_hooks.WasmHooks
+	HooksICS4Wrapper ibc_hooks.ICS4Middleware
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -332,27 +340,25 @@ func NewAppKeepers(
 	// Set legacy router for backwards compatibility with gov v1beta1
 	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
 
-	// We are using a separate VM here
-	ibcWasmConfig := ibcwasmtypes.WasmConfig{
-		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
-		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
-		ContractDebugMode:     false,
-	}
-	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
-		appCodec,
-		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
-		appKeepers.IBCKeeper.ClientKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		ibcWasmConfig,
-		bApp.GRPCQueryRouter(),
+	// Configure the hooks keeper
+	hooksKeeper := ibchookskeeper.NewKeeper(
+		appKeepers.keys[ibchookstypes.StoreKey],
 	)
+	appKeepers.IBCHooksKeeper = &hooksKeeper
 
-	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
+	btsgPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
+	wasmHooks := ibc_hooks.NewWasmHooks(appKeepers.IBCHooksKeeper, &appKeepers.WasmKeeper, btsgPrefix) // The contract keeper needs to be set later
+	appKeepers.Ics20WasmHooks = &wasmHooks
+	appKeepers.HooksICS4Wrapper = ibc_hooks.NewICS4Middleware(
+		appKeepers.IBCKeeper.ChannelKeeper,
+		appKeepers.Ics20WasmHooks,
+	)
 
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
 	const middlewareTimeoutRetry = 0
 	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
+	transferStack = ibc_hooks.NewIBCMiddleware(transferStack, &appKeepers.HooksICS4Wrapper)
 	transferStack = packetforward.NewIBCMiddleware(
 		transferStack,
 		appKeepers.PacketForwardKeeper,
@@ -391,7 +397,7 @@ func NewAppKeepers(
 	}
 
 	// Stargate Queries
-	accepted := wasmkeeper.AcceptedQueries{
+	acceptedStargateQueries := wasmkeeper.AcceptedQueries{
 		// ibc
 		"/ibc.core.client.v1.Query/ClientState":    &ibcclienttypes.QueryClientStateResponse{},
 		"/ibc.core.client.v1.Query/ConsensusState": &ibcclienttypes.QueryConsensusStateResponse{},
@@ -416,7 +422,7 @@ func NewAppKeepers(
 
 	querierOpts := wasmkeeper.WithQueryPlugins(
 		&wasmkeeper.QueryPlugins{
-			Stargate: wasmkeeper.AcceptListStargateQuerier(accepted, bApp.GRPCQueryRouter(), appCodec),
+			Stargate: wasmkeeper.AcceptListStargateQuerier(acceptedStargateQueries, bApp.GRPCQueryRouter(), appCodec),
 		})
 	wasmOpts = append(wasmOpts, querierOpts)
 
@@ -440,6 +446,33 @@ func NewAppKeepers(
 		govModAddress,
 		wasmOpts...,
 	)
+
+	acc := make([]string, 0)
+	for k := range acceptedStargateQueries {
+		acc = append(acc, k)
+	}
+
+	// We are using a separate VM here
+	ibcWasmConfig := ibcwasmtypes.WasmConfig{
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
+		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
+		ContractDebugMode:     false,
+	}
+
+	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
+		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
+		appKeepers.IBCKeeper.ClientKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		ibcWasmConfig,
+		bApp.GRPCQueryRouter(),
+		ibcwasmkeeper.WithQueryPlugins(&ibcwasmtypes.QueryPlugins{
+
+			Stargate: ibcwasmtypes.AcceptListStargateQuerier(acc),
+		}),
+	)
+
+	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
 	appKeepers.ScopedIBCKeeper = scopedIBCKeeper
 	appKeepers.ScopedTransferKeeper = scopedTransferKeeper

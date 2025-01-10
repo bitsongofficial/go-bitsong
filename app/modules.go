@@ -51,6 +51,9 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 	icq "github.com/cosmos/ibc-apps/modules/async-icq/v8"
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
+	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
+
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
@@ -98,6 +101,7 @@ var AppModuleBasics = module.NewBasicManager(
 	fantoken.AppModuleBasic{},
 	wasm.AppModuleBasic{},
 	icq.AppModuleBasic{},
+	ibc_hooks.AppModuleBasic{},
 	ibcwasm.AppModuleBasic{},
 )
 
@@ -133,6 +137,7 @@ func appModules(
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		packetforward.NewAppModule(app.AppKeepers.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		ibc_hooks.NewAppModule(app.AppKeepers.AccountKeeper),
 		icq.NewAppModule(*app.AppKeepers.ICQKeeper, app.GetSubspace(icqtypes.ModuleName)),
 		crisis.NewAppModule(app.AppKeepers.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
@@ -144,7 +149,7 @@ func orderBeginBlockers() []string {
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, ibcwasmtypes.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
 		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -153,7 +158,7 @@ func orderEndBlockers() []string {
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, ibcwasmtypes.ModuleName,
 		packetforwardtypes.ModuleName, icqtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, fantokentypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -181,6 +186,7 @@ func orderInitBlockers() []string {
 		packetforwardtypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		ibchookstypes.ModuleName,
 		vestingtypes.ModuleName,
 		wasmtypes.ModuleName,
 	}
