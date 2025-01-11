@@ -10,7 +10,6 @@ import (
 	// upgradeclient "cosmossdk.io/x/upgrade/client"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/CosmWasm/wasmd/x/wasm"
-	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -18,6 +17,8 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	smartaccount "github.com/bitsongofficial/go-bitsong/x/smart-account"
+	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
@@ -103,6 +104,7 @@ var AppModuleBasics = module.NewBasicManager(
 	icq.AppModuleBasic{},
 	ibc_hooks.AppModuleBasic{},
 	ibcwasm.AppModuleBasic{},
+	smartaccount.AppModuleBasic{},
 )
 
 func appModules(
@@ -117,8 +119,8 @@ func appModules(
 			app.AppKeepers.AccountKeeper, app.AppKeepers.StakingKeeper, app.BaseApp,
 			encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
-		vesting.NewAppModule(app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper),
+		auth.NewAppModule(appCodec, *app.AppKeepers.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
+		vesting.NewAppModule(*app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper),
 		bank.NewAppModule(appCodec, app.AppKeepers.BankKeeper, app.AppKeepers.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		capability.NewAppModule(appCodec, *app.AppKeepers.CapabilityKeeper, false),
 		gov.NewAppModule(appCodec, &app.AppKeepers.GovKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
@@ -126,7 +128,7 @@ func appModules(
 		slashing.NewAppModule(appCodec, app.AppKeepers.SlashingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.AppKeepers.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
 		distr.NewAppModule(appCodec, app.AppKeepers.DistrKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.AppKeepers.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		staking.NewAppModule(appCodec, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
-		upgrade.NewAppModule(app.AppKeepers.UpgradeKeeper, addresscodec.NewBech32Codec(appparams.Bech32PrefixAccAddr)),
+		upgrade.NewAppModule(app.AppKeepers.UpgradeKeeper, addresscodec.NewBech32Codec(encparams.Bech32PrefixAccAddr)),
 		evidence.NewAppModule(app.AppKeepers.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.AppKeepers.FeeGrantKeeper, app.interfaceRegistry),
 		fantoken.NewAppModule(appCodec, app.AppKeepers.FanTokenKeeper, app.AppKeepers.BankKeeper),
@@ -137,19 +139,20 @@ func appModules(
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		packetforward.NewAppModule(app.AppKeepers.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
-		ibc_hooks.NewAppModule(app.AppKeepers.AccountKeeper),
+		ibc_hooks.NewAppModule(*app.AppKeepers.AccountKeeper),
 		icq.NewAppModule(*app.AppKeepers.ICQKeeper, app.GetSubspace(icqtypes.ModuleName)),
+		smartaccount.NewAppModule(appCodec, *app.AppKeepers.SmartAccountKeeper),
 		crisis.NewAppModule(app.AppKeepers.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
 }
 
 func orderBeginBlockers() []string {
 	return []string{
-		upgradetypes.ModuleName, capabilitytypes.ModuleName, crisistypes.ModuleName, govtypes.ModuleName,
-		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, ibcwasmtypes.ModuleName, packetforwardtypes.ModuleName,
-		icqtypes.ModuleName, authtypes.ModuleName, banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName,
-		minttypes.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, authz.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
+		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
+		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
+		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
+		icqtypes.ModuleName, authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName, ibcwasmtypes.ModuleName,
 	}
 }
 
@@ -182,6 +185,7 @@ func orderInitBlockers() []string {
 		authtypes.ModuleName,
 		ibcwasmtypes.ModuleName,
 		icqtypes.ModuleName,
+		smartaccounttypes.ModuleName,
 		genutiltypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		paramstypes.ModuleName,
@@ -200,7 +204,7 @@ func simulationModules(
 	appCodec := encodingConfig.Marshaler
 
 	return []module.AppModuleSimulation{
-		auth.NewAppModule(appCodec, app.AppKeepers.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+		auth.NewAppModule(appCodec, *app.AppKeepers.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.AppKeepers.BankKeeper, app.AppKeepers.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
 		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper), // todo: reimplement
 		capability.NewAppModule(appCodec, *app.AppKeepers.CapabilityKeeper, false),

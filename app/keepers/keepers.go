@@ -22,9 +22,13 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	"github.com/bitsongofficial/go-bitsong/x/smart-account/authenticator"
+	smartaccountkeeper "github.com/bitsongofficial/go-bitsong/x/smart-account/keeper"
+	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -115,7 +119,7 @@ type AppKeepers struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper         authkeeper.AccountKeeper
+	AccountKeeper         *authkeeper.AccountKeeper
 	BankKeeper            bankkeeper.Keeper
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	StakingKeeper         *stakingkeeper.Keeper
@@ -138,12 +142,12 @@ type AppKeepers struct {
 	AuthzKeeper           authzkeeper.Keeper
 	PacketForwardKeeper   *packetforwardkeeper.Keeper
 	FanTokenKeeper        fantokenkeeper.Keeper
-
+	SmartAccountKeeper    *smartaccountkeeper.Keeper
+	AuthenticatorManager  *authenticator.AuthenticatorManager
 	// cosmwasm keepers
 	WasmKeeper     wasmkeeper.Keeper
 	CadanceKeeper  cadancekeeper.Keeper
-	ContractKeeper wasmtypes.ContractOpsKeeper
-
+	ContractKeeper *wasmkeeper.PermissionedKeeper
 	// Middleware wrapper
 	Ics20WasmHooks   *ibc_hooks.WasmHooks
 	HooksICS4Wrapper ibc_hooks.ICS4Middleware
@@ -156,6 +160,7 @@ type AppKeepers struct {
 
 func NewAppKeepers(
 	appCodec codec.Codec,
+	encodingConfig appparams.EncodingConfig,
 	bApp *baseapp.BaseApp,
 	cdc *codec.LegacyAmino,
 	maccPerms map[string][]string,
@@ -201,10 +206,12 @@ func NewAppKeepers(
 
 	// add keepers
 	Bech32Prefix := "bitsong"
-	appKeepers.AccountKeeper = authkeeper.NewAccountKeeper(
+	accountKeeper := authkeeper.NewAccountKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), Bech32Prefix,
 		govModAddress,
 	)
+	appKeepers.AccountKeeper = &accountKeeper
+
 	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[banktypes.StoreKey]), appKeepers.AccountKeeper, BlockedAddrs(),
 		govModAddress, bApp.Logger(),
@@ -221,6 +228,27 @@ func NewAppKeepers(
 	// if err != nil {
 	// 	panic(err)
 	// }
+
+	// Initialize authenticators
+	appKeepers.AuthenticatorManager = authenticator.NewAuthenticatorManager()
+	appKeepers.AuthenticatorManager.InitializeAuthenticators([]authenticator.Authenticator{
+		authenticator.NewSignatureVerification(appKeepers.AccountKeeper),
+		authenticator.NewMessageFilter(encodingConfig),
+		authenticator.NewAllOf(appKeepers.AuthenticatorManager),
+		authenticator.NewAnyOf(appKeepers.AuthenticatorManager),
+		authenticator.NewPartitionedAnyOf(appKeepers.AuthenticatorManager),
+		authenticator.NewPartitionedAllOf(appKeepers.AuthenticatorManager),
+	})
+	govModuleAddr := appKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+
+	smartAccountKeeper := smartaccountkeeper.NewKeeper(
+		appCodec,
+		appKeepers.keys[smartaccounttypes.StoreKey],
+		govModuleAddr,
+		appKeepers.GetSubspace(smartaccounttypes.ModuleName),
+		appKeepers.AuthenticatorManager,
+	)
+	appKeepers.SmartAccountKeeper = &smartAccountKeeper
 
 	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(appKeepers.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), appKeepers.AccountKeeper,
@@ -495,6 +523,10 @@ func NewAppKeepers(
 	appKeepers.ScopedICQKeeper = scopedICQKeeper
 	appKeepers.ScopedWasmKeeper = scopedWasmKeeper
 
+	// register CosmWasm authenticator
+	appKeepers.AuthenticatorManager.RegisterAuthenticator(
+		authenticator.NewCosmwasmAuthenticator(appKeepers.ContractKeeper, appKeepers.AccountKeeper, appCodec))
+
 	return appKeepers
 
 }
@@ -515,7 +547,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibcexported.ModuleName)
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(icqtypes.ModuleName)
+	paramsKeeper.Subspace(ibchookstypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
+	paramsKeeper.Subspace(smartaccounttypes.ModuleName).WithKeyTable(smartaccounttypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
 	return paramsKeeper

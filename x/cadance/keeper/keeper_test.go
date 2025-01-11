@@ -59,6 +59,7 @@ func TestKeeperTestSuite(t *testing.T) {
 //go:embed testdata/clock_example.wasm
 var wasmContract []byte
 
+// stores  uploads wasm code in example
 func (s *IntegrationTestSuite) StoreCode() {
 	_, _, sender := testdata.KeyTestPubAddr()
 	msg := wasmtypes.MsgStoreCodeFixture(func(m *wasmtypes.MsgStoreCode) {

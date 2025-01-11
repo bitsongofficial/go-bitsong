@@ -226,6 +226,7 @@ func NewBitsongApp(
 	// Setup keepers
 	app.AppKeepers = keepers.NewAppKeepers(
 		appCodec,
+		encodingConfig,
 		bApp,
 		legacyAmino,
 		keepers.GetMaccPerms(),
