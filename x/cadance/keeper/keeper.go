@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	"cosmossdk.io/log"
 
@@ -21,7 +20,7 @@ type Keeper struct {
 	cdc      codec.BinaryCodec
 
 	wasmKeeper     wasmkeeper.Keeper
-	contractKeeper wasmtypes.ContractOpsKeeper
+	contractKeeper *wasmkeeper.PermissionedKeeper
 
 	authority string
 }
@@ -30,7 +29,7 @@ func NewKeeper(
 	key storetypes.StoreKey,
 	cdc codec.BinaryCodec,
 	wasmKeeper wasmkeeper.Keeper,
-	contractKeeper wasmtypes.ContractOpsKeeper,
+	contractKeeper *wasmkeeper.PermissionedKeeper,
 	authority string,
 ) Keeper {
 	return Keeper{
@@ -78,7 +77,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 }
 
 // GetContractKeeper returns the x/wasm module's contract keeper.
-func (k Keeper) GetContractKeeper() wasmtypes.ContractOpsKeeper {
+func (k Keeper) GetContractKeeper() *wasmkeeper.PermissionedKeeper {
 	return k.contractKeeper
 }
 
