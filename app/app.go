@@ -207,7 +207,7 @@ func init() {
 //   - allow for larger wasm files
 func overrideWasmVariables() {
 	// Override Wasm size limitation from WASMD.
-	wasmtypes.MaxWasmSize = 7 * 1024 * 1024
+	wasmtypes.MaxWasmSize = 7 * 1024 * 1024 // 7mb wasm blob
 	wasmtypes.MaxProposalWasmSize = wasmtypes.MaxWasmSize
 }
 
@@ -437,6 +437,10 @@ func (app *BitsongApp) setPostHandler() {
 // Name returns the name of the App
 func (app *BitsongApp) Name() string { return app.BaseApp.Name() }
 
+func (app *BitsongApp) GetBaseApp() *baseapp.BaseApp {
+	return app.BaseApp
+}
+
 // BeginBlocker application updates every begin block
 func (app *BitsongApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	return app.mm.BeginBlock(ctx)
@@ -487,7 +491,7 @@ func (app *BitsongApp) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
 }
 
-// AppCodec returns Gaia's app codec.
+// AppCodec returns Bitsong's app codec.
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
@@ -495,7 +499,7 @@ func (app *BitsongApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InterfaceRegistry returns Gaia's InterfaceRegistry
+// InterfaceRegistry returns Bitsong's InterfaceRegistry
 func (app *BitsongApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }

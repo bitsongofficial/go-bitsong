@@ -10,6 +10,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	encparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/cadance"
+	"github.com/cosmos/cosmos-sdk/client"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
 	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
@@ -46,6 +47,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
@@ -53,16 +55,19 @@ import (
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
+	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
 	// ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
 	// ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/ibc-go/modules/capability"
+	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 )
 
@@ -219,4 +224,24 @@ func simulationModules(
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasm.ModuleName)),
 	}
+}
+
+// used for ibctesting with bitsongs simulation app
+func (app *BitsongApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
+	return *app.AppKeepers.StakingKeeper // Dereferencing the pointer
+}
+func (app *BitsongApp) GetSDKStakingKeeper() stakingkeeper.Keeper {
+	return *app.AppKeepers.StakingKeeper // Dereferencing the pointer
+}
+
+func (app *BitsongApp) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.AppKeepers.IBCKeeper // This is a *ibckeeper.Keeper
+}
+
+func (app *BitsongApp) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.AppKeepers.ScopedIBCKeeper
+}
+
+func (app *BitsongApp) GetTxConfig() client.TxConfig {
+	return GetEncodingConfig().TxConfig
 }

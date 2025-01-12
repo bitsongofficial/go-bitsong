@@ -9,7 +9,7 @@ import (
 )
 
 // SortSlice sorts a slice of type T elements that implement constraints.Ordered.
-// Mutates input slice s
+// Mutates input slice s ::::: 	SortSlice([]int{4, 2, 7, 1, 3}) == [1 2 3 4 7]
 func SortSlice[T constraints.Ordered](s []T) {
 	sort.Slice(s, func(i, j int) bool {
 		return s[i] < s[j]
@@ -28,6 +28,7 @@ func Filter[T interface{}](filter func(T) bool, s []T) []T {
 
 // ReverseSlice reverses the input slice in place.
 // Does mutate argument.
+// ex: ReverseSlice([]int{4, 2, 7, 1, 3}) == [3 1 7 2 4]
 func ReverseSlice[T any](s []T) []T {
 	maxIndex := len(s)
 	for i := 0; i < maxIndex/2; i++ {
@@ -40,6 +41,7 @@ func ReverseSlice[T any](s []T) []T {
 
 // ContainsDuplicate checks if there are any duplicate
 // elements in the slice.
+// ex: ContainsDuplicate([]int{4, 2, 7, 1, 1}) ==  true
 func ContainsDuplicate[T any](arr []T) bool {
 	visited := make(map[any]bool, 0)
 	for i := 0; i < len(arr); i++ {

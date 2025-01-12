@@ -25,7 +25,7 @@ type HandlerTestSuite struct {
 }
 
 func (suite *HandlerTestSuite) SetupTest() {
-	suite.app = simapp.Setup(suite.T())
+	suite.app = simapp.Setup(false)
 	suite.ctx = suite.app.BaseApp.NewContext(false)
 	suite.govHandler = params.NewParamChangeProposalHandler(suite.app.AppKeepers.ParamsKeeper)
 }
@@ -54,7 +54,7 @@ func (suite *HandlerTestSuite) TestParamChangeProposal() {
 }
 
 func TestProposalHandlerPassed(t *testing.T) {
-	app := simapp.Setup(t)
+	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false)
 
 	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
@@ -82,7 +82,7 @@ func TestProposalHandlerPassed(t *testing.T) {
 }
 
 func TestProposalHandlerFailed(t *testing.T) {
-	app := simapp.Setup(t)
+	app := simapp.Setup(false)
 	ctx := app.BaseApp.NewContext(false)
 
 	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)

@@ -3,7 +3,9 @@ package v021
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
@@ -56,7 +58,13 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		params := k.IBCKeeper.ClientKeeper.GetParams(sdkCtx)
 		params.AllowedClients = append(params.AllowedClients, wasmlctypes.Wasm)
 		k.IBCKeeper.ClientKeeper.SetParams(sdkCtx, params)
-
+		// configure expidited proposals
+		govparams, _ := k.GovKeeper.Params.Get(sdkCtx)
+		govparams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("ubtsg", math.NewInt(10000000000))) // 10K
+		newExpeditedVotingPeriod := time.Minute * 60 * 24                                            // 1 DAY
+		govparams.ExpeditedVotingPeriod = &newExpeditedVotingPeriod
+		govparams.ExpeditedThreshold = "0.75" // 75% voting threshold
+		k.GovKeeper.Params.Set(sdkCtx, govparams)
 		// Run migrations
 		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
 		versionMap, err := mm.RunMigrations(ctx, configurator, vm)

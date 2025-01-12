@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	txfeetypes "github.com/bitsongofficial/go-bitsong/x/txfees/types"
-
+	"github.com/bitsongofficial/go-bitsong/e2e/bitsongibctesting"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/authenticator"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/testutils"
 
@@ -23,9 +22,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/bitsongofficial/go-bitsong/app/apptesting"
 	"github.com/bitsongofficial/go-bitsong/app/params"
-	"github.com/bitsongofficial/go-bitsong/tests/bitsongibctesting"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
+	// "github.com/bitsongofficial/go-bitsong/tests/bitsongibctesting"¸
 )
 
 type AuthenticatorSuite struct {
@@ -51,7 +50,6 @@ func TestAuthenticatorSuite(t *testing.T) {
 }
 
 func (s *AuthenticatorSuite) SetupTest() {
-	txfeetypes.ConsensusMinFee = math.ZeroDec()
 
 	// Use the osmosis custom function for creating an osmosis app
 	ibctesting.DefaultTestingAppInit = bitsongibctesting.SetupTestingApp
@@ -84,9 +82,9 @@ func (s *AuthenticatorSuite) CreateAccount(privKey cryptotypes.PrivKey, amount i
 	accountAddr := sdk.AccAddress(privKey.PubKey().Address())
 	// fund the account
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, int64(amount)))
-	err := s.app.BankKeeper.SendCoins(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), accountAddr, coins)
+	err := s.app.AppKeepers.BankKeeper.SendCoins(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), accountAddr, coins)
 	s.Require().NoError(err, "Failed to send bank tx to account")
-	return s.app.AccountKeeper.GetAccount(s.chainA.GetContext(), accountAddr)
+	return s.app.AppKeepers.AccountKeeper.GetAccount(s.chainA.GetContext(), accountAddr)
 }
 
 // TestKeyRotationStory tests the authenticator module by adding multiple SignatureVerifications
@@ -104,7 +102,7 @@ func (s *AuthenticatorSuite) TestKeyRotationStory() {
 	s.Require().NoError(err, "Failed to send bank tx using the first private key")
 
 	// Change account's authenticator
-	sigVerAuthId, err := s.app.SmartAccountKeeper.AddAuthenticator(
+	sigVerAuthId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(),
 		s.Account.GetAddress(),
 		"SignatureVerification",
@@ -125,7 +123,7 @@ func (s *AuthenticatorSuite) TestKeyRotationStory() {
 	s.Require().NoError(err, "Sending from the original PrivKey failed. This should succeed")
 
 	// Remove the account's authenticator
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), sigVerAuthId)
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), sigVerAuthId)
 	s.Require().NoError(err, "Failed to remove authenticator")
 
 	// Sending from the default PrivKey still works
@@ -144,16 +142,16 @@ func (s *AuthenticatorSuite) TestCircuitBreaker() {
 	}
 
 	// Activate circuit breaker
-	authenticatorParams := s.app.SmartAccountKeeper.GetParams(s.chainA.GetContext())
+	authenticatorParams := s.app.AppKeepers.SmartAccountKeeper.GetParams(s.chainA.GetContext())
 	authenticatorParams.IsSmartAccountActive = false
-	s.app.SmartAccountKeeper.SetParams(s.chainA.GetContext(), authenticatorParams)
+	s.app.AppKeepers.SmartAccountKeeper.SetParams(s.chainA.GetContext(), authenticatorParams)
 
 	// Send msg from accounts default privkey
 	_, err := s.chainA.SendMsgsFromPrivKeys(pks{s.PrivKeys[0]}, sendMsg)
 	s.Require().NoError(err, "Failed to send bank tx using the first private key")
 
 	// Add signature verification authenticator
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(), s.Account.GetAddress(), "SignatureVerification", s.PrivKeys[1].PubKey().Bytes())
 	s.Require().NoError(err, "Failed to add authenticator")
 
@@ -163,7 +161,7 @@ func (s *AuthenticatorSuite) TestCircuitBreaker() {
 
 	// Deactivate circuit breaker
 	authenticatorParams.IsSmartAccountActive = true
-	s.app.SmartAccountKeeper.SetParams(s.chainA.GetContext(), authenticatorParams)
+	s.app.AppKeepers.SmartAccountKeeper.SetParams(s.chainA.GetContext(), authenticatorParams)
 
 	// ReSubmit a bank send tx using the second private key
 	_, err = s.chainA.SendMsgsFromPrivKeysWithAuthenticator(pks{s.PrivKeys[0]}, pks{s.PrivKeys[1]}, []uint64{1}, sendMsg)
@@ -185,8 +183,8 @@ func (s *AuthenticatorSuite) TestMessageFilterStory() {
 
 	// Change account's authenticator
 	msgFilter := authenticator.NewMessageFilter(s.EncodingConfig)
-	s.app.AuthenticatorManager.RegisterAuthenticator(msgFilter)
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(msgFilter)
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(), s.Account.GetAddress(),
 		"MessageFilter",
 		[]byte(fmt.Sprintf(`{"@type":"/cosmos.bank.v1beta1.MsgSend","amount": [{"denom": "%s", "amount": "50"}]}`, sdk.DefaultBondDenom)))
@@ -217,7 +215,7 @@ func (s *AuthenticatorSuite) TestKeyRotation() {
 	}
 
 	// Add a signature verification authenticator
-	_, err := s.app.SmartAccountKeeper.AddAuthenticator(
+	_, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(), s.Account.GetAddress(), "SignatureVerification", s.PrivKeys[0].PubKey().Bytes())
 	s.Require().NoError(err, "Failed to add authenticator for key %d", 0)
 
@@ -234,11 +232,11 @@ func (s *AuthenticatorSuite) TestKeyRotation() {
 	s.Require().NoError(err, "Bank send with authenticator should pass 0")
 
 	// Add multiple keys
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(), s.Account.GetAddress(), "SignatureVerification", s.PrivKeys[1].PubKey().Bytes())
 	s.Require().NoError(err, "Failed to add authenticator for key %d", 0)
 
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.chainA.GetContext(), s.Account.GetAddress(), "SignatureVerification", s.PrivKeys[2].PubKey().Bytes())
 	s.Require().NoError(err, "Failed to add authenticator for key %d", 0)
 
@@ -255,7 +253,7 @@ func (s *AuthenticatorSuite) TestKeyRotation() {
 	s.Require().Error(err, "Should fail as incorrect authenticator selected")
 
 	// Remove an authenticator and try to send
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), uint64(3))
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), uint64(3))
 	s.Require().NoError(err, "Failed to remove authenticator with id %d", 1)
 
 	// Fail as authenticator was removed
@@ -278,9 +276,9 @@ func (s *AuthenticatorSuite) TestAuthenticatorState() {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000_000_000_000)),
 	}
 
-	stateful := testutils.StatefulAuthenticator{KvStoreKey: s.app.GetKVStoreKey()[smartaccounttypes.StoreKey]}
-	s.app.AuthenticatorManager.RegisterAuthenticator(stateful)
-	_, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), "Stateful", []byte{})
+	stateful := testutils.StatefulAuthenticator{KvStoreKey: s.app.AppKeepers.GetKVStoreKey()[smartaccounttypes.StoreKey]}
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(stateful)
+	_, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), "Stateful", []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
 	_, err = s.chainA.SendMsgsFromPrivKeysWithAuthenticator(pks{s.PrivKeys[0]}, pks{s.PrivKeys[1]}, []uint64{1}, failSendMsg)
@@ -304,14 +302,14 @@ func (s *AuthenticatorSuite) TestAuthenticatorMultiMsg() {
 		Amount:      sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1_000)),
 	}
 
-	storeKey := s.app.GetKVStoreKey()[smartaccounttypes.StoreKey]
+	storeKey := s.app.AppKeepers.GetKVStoreKey()[smartaccounttypes.StoreKey]
 	maxAmount := testutils.MaxAmountAuthenticator{KvStoreKey: storeKey}
 	stateful := testutils.StatefulAuthenticator{KvStoreKey: storeKey}
 
-	s.app.AuthenticatorManager.RegisterAuthenticator(maxAmount)
-	s.app.AuthenticatorManager.RegisterAuthenticator(stateful)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(maxAmount)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(stateful)
 
-	_, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), "MaxAmountAuthenticator", []byte{})
+	_, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), "MaxAmountAuthenticator", []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
 	// Note that we are sending 2 messages here, so the amount should be 2_000 (2*1_000)
@@ -339,11 +337,11 @@ func (s *AuthenticatorSuite) TestAuthenticatorGas() {
 
 	// fund the account
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 100_000))
-	err := s.app.BankKeeper.SendCoins(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), accountAddr, coins)
+	err := s.app.AppKeepers.BankKeeper.SendCoins(s.chainA.GetContext(), s.chainA.SenderAccount.GetAddress(), accountAddr, coins)
 	s.Require().NoError(err, "Failed to send bank tx using the first private key")
 
 	// get the account
-	account2 := s.app.AccountKeeper.GetAccount(s.chainA.GetContext(), accountAddr)
+	account2 := s.app.AppKeepers.AccountKeeper.GetAccount(s.chainA.GetContext(), accountAddr)
 
 	sendFromAcc2 := &banktypes.MsgSend{
 		FromAddress: sdk.MustBech32ifyAddressBytes("bitsong", account2.GetAddress()),
@@ -358,13 +356,13 @@ func (s *AuthenticatorSuite) TestAuthenticatorGas() {
 	// Will always approve and will consume 500k gas
 	alwaysHigher := testutils.TestingAuthenticator{Approve: testutils.Always, GasConsumption: 500_000}
 
-	s.app.AuthenticatorManager.RegisterAuthenticator(alwaysLow)
-	s.app.AuthenticatorManager.RegisterAuthenticator(alwaysHigh)
-	s.app.AuthenticatorManager.RegisterAuthenticator(alwaysHigher)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(alwaysLow)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(alwaysHigh)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(alwaysHigher)
 
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), alwaysLow.Type(), []byte{})
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), alwaysLow.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
-	acc2authId, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigh.Type(), []byte{})
+	acc2authId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigh.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
 	// Both account 0 and account 1 can send
@@ -374,16 +372,16 @@ func (s *AuthenticatorSuite) TestAuthenticatorGas() {
 	s.Require().NoError(err)
 
 	// Remove account2's authenticator
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), account2.GetAddress(), acc2authId)
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), account2.GetAddress(), acc2authId)
 	s.Require().NoError(err, "Failed to remove authenticator")
 
 	// Add two authenticators that are always higher, and one always high.
 	// This allows account2 to execute but *only* after consuming >9k gas
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigher.Type(), []byte{})
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigher.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigher.Type(), []byte{})
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigher.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigh.Type(), []byte{})
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), account2.GetAddress(), alwaysHigh.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
 	// This should fail, as authenticating the fee payer needs to be done with low gas
@@ -407,7 +405,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAnyOf() {
 		Amount:      coins,
 	}
 
-	anyOf := authenticator.NewAnyOf(s.app.AuthenticatorManager)
+	anyOf := authenticator.NewAnyOf(s.app.AppKeepers.AuthenticatorManager)
 
 	// construct SubAuthenticatorInitData for each SigVerificationAuthenticator
 	initDataPrivKey1 := authenticator.SubAuthenticatorInitData{
@@ -426,7 +424,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAnyOf() {
 	})
 
 	// Set the authenticator to our account
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), anyOf.Type(), compositeData)
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), anyOf.Type(), compositeData)
 	s.Require().NoError(err)
 
 	// Send from account 1 using the AnyOf authenticator
@@ -457,7 +455,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 		Amount:      coins,
 	}
 
-	allOf := authenticator.NewAllOf(s.app.AuthenticatorManager)
+	allOf := authenticator.NewAllOf(s.app.AppKeepers.AuthenticatorManager)
 
 	initDataPrivKey1 := authenticator.SubAuthenticatorInitData{
 		Type:   "SignatureVerification",
@@ -478,7 +476,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 	})
 
 	// Set the authenticator to our account
-	allOfAuthId, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), allOf.Type(), compositeData)
+	allOfAuthId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), allOf.Type(), compositeData)
 	s.Require().NoError(err)
 
 	// Send from account 1 using the AllOf authenticator
@@ -507,7 +505,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 	s.Require().ErrorContains(err, "message does not match pattern")
 
 	// Remove the first AllOf authenticator
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), allOfAuthId)
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), allOfAuthId)
 	s.Require().NoError(err, "Failed to remove authenticator")
 
 	initDataPrivKey2 := authenticator.SubAuthenticatorInitData{
@@ -522,8 +520,8 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 	})
 
 	// Set the authenticator to our account
-	partitionedAllOf := authenticator.NewPartitionedAllOf(s.app.AuthenticatorManager)
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), partitionedAllOf.Type(), compositeData)
+	partitionedAllOf := authenticator.NewPartitionedAllOf(s.app.AppKeepers.AuthenticatorManager)
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), partitionedAllOf.Type(), compositeData)
 	s.Require().NoError(err)
 
 	// We should provide only one signature (for the allOf authenticator) but the signature needs to be a compound
@@ -547,36 +545,36 @@ func (s *AuthenticatorSuite) TestAuthenticatorAddRemove() {
 	blockRemove := testutils.TestingAuthenticator{BlockRemoval: true}
 	allowRemove := testutils.TestingAuthenticator{}
 
-	s.app.AuthenticatorManager.RegisterAuthenticator(blockAdd)
-	s.app.AuthenticatorManager.RegisterAuthenticator(allowAdd)
-	s.app.AuthenticatorManager.RegisterAuthenticator(blockRemove)
-	s.app.AuthenticatorManager.RegisterAuthenticator(allowRemove)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(blockAdd)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(allowAdd)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(blockRemove)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(allowRemove)
 
 	// Initialize an account
 	accountAddr := sdk.AccAddress(s.PrivKeys[0].PubKey().Address())
 
 	// Test authenticator that blocks addition
-	_, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, blockAdd.Type(), []byte{})
+	_, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, blockAdd.Type(), []byte{})
 	s.Require().Error(err, "Authenticator should not be added")
 	s.Require().ErrorContains(err, "authenticator could not be added")
 
 	// Test authenticator that allows addition
-	_, err = s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, allowAdd.Type(), []byte{})
+	_, err = s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, allowAdd.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
 	// Test authenticator that blocks removal
-	blockRemoveId, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, blockRemove.Type(), []byte{})
+	blockRemoveId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, blockRemove.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), accountAddr, blockRemoveId)
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), accountAddr, blockRemoveId)
 	s.Require().Error(err, "Authenticator should not be removed")
 	s.Require().ErrorContains(err, "authenticator could not be removed")
 
 	// Test authenticator that allows removal
-	allowRemoveId, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, allowRemove.Type(), []byte{})
+	allowRemoveId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), accountAddr, allowRemove.Type(), []byte{})
 	s.Require().NoError(err, "Failed to add authenticator")
 
-	err = s.app.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), accountAddr, allowRemoveId)
+	err = s.app.AppKeepers.SmartAccountKeeper.RemoveAuthenticator(s.chainA.GetContext(), accountAddr, allowRemoveId)
 	s.Require().NoError(err, "Failed to remove authenticator")
 }
 
@@ -588,16 +586,16 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 	alwaysAuth := testutils.TestingAuthenticator{Approve: testutils.Always}
 	neverAuth := testutils.TestingAuthenticator{Approve: testutils.Never}
 
-	s.app.AuthenticatorManager.RegisterAuthenticator(alwaysAuth)
-	s.app.AuthenticatorManager.RegisterAuthenticator(neverAuth)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(alwaysAuth)
+	s.app.AppKeepers.AuthenticatorManager.RegisterAuthenticator(neverAuth)
 
-	payerYes, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address1, alwaysAuth.Type(), []byte{})
+	payerYes, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address1, alwaysAuth.Type(), []byte{})
 	s.Require().NoError(err)
-	payerNo, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address1, neverAuth.Type(), []byte{})
+	payerNo, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address1, neverAuth.Type(), []byte{})
 	s.Require().NoError(err)
-	otherYes, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address2, alwaysAuth.Type(), []byte{})
+	otherYes, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address2, alwaysAuth.Type(), []byte{})
 	s.Require().NoError(err)
-	otherNo, err := s.app.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address2, neverAuth.Type(), []byte{})
+	otherNo, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), address2, neverAuth.Type(), []byte{})
 	s.Require().NoError(err)
 
 	testCases := []struct {
@@ -700,7 +698,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
-			initialBalance := s.app.BankKeeper.GetAllBalances(s.chainA.GetContext(), sdk.AccAddress(tc.signers[0].PubKey().Address()))
+			initialBalance := s.app.AppKeepers.BankKeeper.GetAllBalances(s.chainA.GetContext(), sdk.AccAddress(tc.signers[0].PubKey().Address()))
 			_, err := s.chainA.SendMsgsFromPrivKeysWithAuthenticator(tc.signers, tc.signers, tc.selectedAuthenticators, tc.messages...)
 			if tc.expectedError {
 				s.Require().Error(err)
@@ -708,7 +706,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 			} else {
 				s.Require().NoError(err)
 			}
-			finalBalance := s.app.BankKeeper.GetAllBalances(s.chainA.GetContext(), sdk.AccAddress(tc.signers[0].PubKey().Address()))
+			finalBalance := s.app.AppKeepers.BankKeeper.GetAllBalances(s.chainA.GetContext(), sdk.AccAddress(tc.signers[0].PubKey().Address()))
 			fee := sdk.NewInt64Coin(sdk.DefaultBondDenom, 25000)
 			expectedBalance := initialBalance.Sub(fee)
 			if tc.selectedAuthenticators[0] == payerYes {

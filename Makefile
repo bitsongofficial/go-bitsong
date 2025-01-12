@@ -1,13 +1,14 @@
 #!/usr/bin/make -f
 
+include contrib/devtools/Makefile
 include scripts/makefiles/build.mk
 include scripts/makefiles/docker.mk
 include scripts/makefiles/e2e.mk
-include scripts/makefiles/hl.mk
-include scripts/makefiles/proto.mk
-include scripts/makefiles/localnet.mk
 include scripts/makefiles/format.mk
-include contrib/devtools/Makefile
+include scripts/makefiles/hl.mk
+include scripts/makefiles/localnet.mk
+include scripts/makefiles/proto.mk
+include scripts/makefiles/tests.mk
 
 .DEFAULT_GOAL := help
 help:
@@ -24,7 +25,7 @@ help:
 	@echo "  make install               Install Bitsong node binary"
 	@echo "  make localnet              Show available localnet commands"
 	@echo "  make proto                 Show available protobuf commands"
-	@echo ""
+	@echo "  make test					Show available testing commands"
 	@echo "Run 'make [subcommand]' to see the available commands for each subcommand."
 
 APP_DIR = ./app
@@ -156,32 +157,6 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
-
-########################################
-### Testing
-
-test: test-unit
-test-all: test-race test-cover
-
-test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags '$(ldflags)' ${PACKAGES_UNITTEST}
-
-test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
-
-test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
-
-lint: golangci-lint
-	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./swagger/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
-	go mod verify
-
-benchmark:
-	@go test -mod=readonly -bench=. ./...
-
-# include simulations
-# include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \

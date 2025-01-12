@@ -241,21 +241,23 @@ func NewAppKeepers(
 	})
 	govModuleAddr := appKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
+	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
+		appCodec, runtime.NewKVStoreService(appKeepers.keys[feegrant.StoreKey]), appKeepers.AccountKeeper,
+	)
 	smartAccountKeeper := smartaccountkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[smartaccounttypes.StoreKey],
 		govModuleAddr,
 		appKeepers.GetSubspace(smartaccounttypes.ModuleName),
 		appKeepers.AuthenticatorManager,
+		appKeepers.FeeGrantKeeper,
 	)
 	appKeepers.SmartAccountKeeper = &smartAccountKeeper
 
 	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(appKeepers.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), appKeepers.AccountKeeper,
 	)
-	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(appKeepers.keys[feegrant.StoreKey]), appKeepers.AccountKeeper,
-	)
+
 	stakingKeeper := *stakingkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[stakingtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper, govModAddress,
 		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),

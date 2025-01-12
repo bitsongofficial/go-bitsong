@@ -61,7 +61,7 @@ func (ad AuthenticatorDecorator) AnteHandle(
 	defer telemetry.MeasureSince(time.Now(), types.ModuleName, types.MeasureKeyAnteHandler)
 
 	// Authenticators don't support manually setting the fee payer
-	err = ad.ValidateAuthenticatorFeePayer(tx)
+	err = ad.ValidateAuthenticatorFeePayer(ctx, tx)
 	if err != nil {
 		return sdk.Context{}, err
 	}
@@ -261,8 +261,8 @@ func (ad AuthenticatorDecorator) AnteHandle(
 // to an account different to the signer of the first message. This is a requirement
 // for the authenticator module.
 // The only user of a manually set fee payer is with fee grants, which are available on bitsong,
-// therefore only if an active feegrant exists for
-func (ad AuthenticatorDecorator) ValidateAuthenticatorFeePayer(tx sdk.Tx) error {
+// therefore only if an active feegrant exists for the
+func (ad AuthenticatorDecorator) ValidateAuthenticatorFeePayer(ctx sdk.Context, tx sdk.Tx) error {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return errorsmod.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
@@ -284,7 +284,13 @@ func (ad AuthenticatorDecorator) ValidateAuthenticatorFeePayer(tx sdk.Tx) error 
 	}
 
 	if !bytes.Equal(feePayer, signers[0]) {
-		return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer")
+		// check if feegrant exists
+		if feeGrant, err := ad.smartAccountKeeper.FeegrantKeeper.GetAllowance(ctx, feePayer, signers[0]); err != nil {
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer, or have an active feegrant allowance")
+		} else if _, err := feeGrant.Accept(ctx, feeTx.GetFee(), msgs); err != nil {
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee grant not accepted")
+
+		}
 	}
 	return nil
 }
