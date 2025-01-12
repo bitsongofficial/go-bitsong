@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/rakyll/statik/fs"
@@ -52,7 +53,6 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -82,9 +82,10 @@ const appName = "BitsongApp"
 
 // We pull these out so we can set them with LDFLAGS in the Makefile
 var (
-	NodeDir      = ".bitsongd"
-	Bech32Prefix = "bitsong"
-
+	NodeDir       = ".bitsongd"
+	Bech32Prefix  = "bitsong"
+	EmptyWasmOpts []wasmkeeper.Option
+	homePath      string
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
 	ProposalsEnabled = "true"
@@ -189,6 +190,25 @@ type BitsongApp struct {
 	// simulation manager
 	sm           *module.SimulationManager
 	configurator module.Configurator
+	homePath     string
+}
+
+// init sets DefaultNodeHome to default bitsongd install location.
+func init() {
+	userHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	DefaultNodeHome = filepath.Join(userHomeDir, ".bitsongd")
+}
+
+// overrideWasmVariables overrides the wasm variables to:
+//   - allow for larger wasm files
+func overrideWasmVariables() {
+	// Override Wasm size limitation from WASMD.
+	wasmtypes.MaxWasmSize = 7 * 1024 * 1024
+	wasmtypes.MaxProposalWasmSize = wasmtypes.MaxWasmSize
 }
 
 // NewBitsongApp returns a reference to an initialized BitsongApp.
@@ -197,11 +217,13 @@ func NewBitsongApp(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
+	homePath string,
 	appOpts servertypes.AppOptions,
 	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *BitsongApp {
 	encodingConfig := MakeEncodingConfig()
+	overrideWasmVariables()
 
 	appCodec, legacyAmino := encodingConfig.Marshaler, encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -211,7 +233,6 @@ func NewBitsongApp(
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
-	bApp.SetTxEncoder(txConfig.TxEncoder())
 
 	app := &BitsongApp{
 		BaseApp:           bApp,
@@ -221,6 +242,13 @@ func NewBitsongApp(
 		interfaceRegistry: interfaceRegistry,
 		tkeys:             storetypes.NewTransientStoreKeys(paramstypes.TStoreKey),
 		memKeys:           storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey),
+	}
+	app.homePath = homePath
+	dataDir := filepath.Join(homePath, "data")
+	wasmDir := filepath.Join(homePath, "wasm")
+	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	if err != nil {
+		panic("error while reading wasm config: " + err.Error())
 	}
 
 	// Setup keepers
@@ -232,6 +260,10 @@ func NewBitsongApp(
 		keepers.GetMaccPerms(),
 		appOpts,
 		wasmOpts,
+		dataDir,
+		wasmDir,
+		wasmConfig,
+		// ibcwasmtypes.WasmConfig{},
 	)
 	app.keys = app.AppKeepers.GetKVStoreKey()
 	enabledSignModes := append(tx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
@@ -239,14 +271,14 @@ func NewBitsongApp(
 		EnabledSignModes:           enabledSignModes,
 		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.AppKeepers.BankKeeper),
 	}
-	txConfig, err := tx.NewTxConfigWithOptions(
+	txConfigWithTextual, err := tx.NewTxConfigWithOptions(
 		appCodec,
 		txConfigOpts,
 	)
 	if err != nil {
 		panic(err)
 	}
-	app.txConfig = txConfig
+	app.txConfig = txConfigWithTextual
 
 	// load state streaming if enabled
 	if err := app.RegisterStreamingServices(appOpts, app.keys); err != nil {
@@ -293,11 +325,6 @@ func NewBitsongApp(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic("error while reading wasm config: " + err.Error())
-	}
-
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
 			HandlerOptions: ante.HandlerOptions{
@@ -307,6 +334,7 @@ func NewBitsongApp(
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
+			SmartAccount:      app.AppKeepers.SmartAccountKeeper,
 			GovKeeper:         app.AppKeepers.GovKeeper,
 			IBCKeeper:         app.AppKeepers.IBCKeeper,
 			TxCounterStoreKey: runtime.NewKVStoreService(app.AppKeepers.GetKey(wasmtypes.StoreKey)), // app.AppKeepers.GetKey(wasmtypes.StoreKey),
@@ -332,9 +360,9 @@ func NewBitsongApp(
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
-		err = manager.RegisterExtensions(
-			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
-		)
+		// err = manager.RegisterExtensions(
+		// 	ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
+		// )
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
@@ -371,6 +399,9 @@ func NewBitsongApp(
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
+		// if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
+		// 	tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+		// }
 		// Initialize and seal the capability keeper so all persistent capabilities
 		// are loaded in-memory and prevent any further modules from creating scoped
 		// sub-keepers.
@@ -521,7 +552,7 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		// RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
 
 }

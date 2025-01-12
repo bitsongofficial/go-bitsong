@@ -6,34 +6,19 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/x/cadance"
 	"github.com/bitsongofficial/go-bitsong/x/cadance/types"
 )
 
-type GenesisTestSuite struct {
-	suite.Suite
-
-	ctx sdk.Context
-
-	app *app.BitsongApp
-}
-
 func TestGenesisTestSuite(t *testing.T) {
-	suite.Run(t, new(GenesisTestSuite))
+	suite.Run(t, new(CadanceModuleSuite))
 }
 
-func (suite *GenesisTestSuite) SetupTest() {
-	app := app.Setup(suite.T())
-	ctx := app.BaseApp.NewContext(false)
-
-	suite.app = app
-	suite.ctx = ctx
+func (suite *CadanceModuleSuite) SetupTest() {
+	suite.Setup()
 }
 
-func (suite *GenesisTestSuite) TestClockInitGenesis() {
+func (suite *CadanceModuleSuite) TestClockInitGenesis() {
 	testCases := []struct {
 		name    string
 		genesis types.GenesisState
@@ -70,14 +55,14 @@ func (suite *GenesisTestSuite) TestClockInitGenesis() {
 
 			if tc.success {
 				suite.Require().NotPanics(func() {
-					cadance.InitGenesis(suite.ctx, suite.app.AppKeepers.CadanceKeeper, tc.genesis)
+					cadance.InitGenesis(suite.Ctx, suite.App.AppKeepers.CadanceKeeper, tc.genesis)
 				})
 
-				params := suite.app.AppKeepers.CadanceKeeper.GetParams(suite.ctx)
+				params := suite.App.AppKeepers.CadanceKeeper.GetParams(suite.Ctx)
 				suite.Require().Equal(tc.genesis.Params, params)
 			} else {
 				suite.Require().Panics(func() {
-					cadance.InitGenesis(suite.ctx, suite.app.AppKeepers.CadanceKeeper, tc.genesis)
+					cadance.InitGenesis(suite.Ctx, suite.App.AppKeepers.CadanceKeeper, tc.genesis)
 				})
 			}
 		})

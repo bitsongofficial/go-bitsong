@@ -1,17 +1,31 @@
 package apptesting
 
 import (
+	"fmt"
+	"os"
+	"time"
+
 	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/cometbft/cometbft/crypto/ed25519"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakinghelper "github.com/cosmos/cosmos-sdk/x/staking/testutil"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/stretchr/testify/suite"
+)
+
+var (
+	SecondaryDenom       = "uakt"
+	SecondaryAmount      = math.NewInt(100000000)
+	baseTestAccts        = []sdk.AccAddress{}
+	defaultTestStartTime = time.Now().UTC()
+	testDescription      = stakingtypes.NewDescription("test_moniker", "test_identity", "test_website", "test_security_contact", "test_details")
 )
 
 type KeeperTestHelper struct {
@@ -23,19 +37,46 @@ type KeeperTestHelper struct {
 	TestAccs    []sdk.AccAddress                // Test accounts
 
 	StakingHelper *stakinghelper.Helper // Useful staking helpers
+
+	// set to true if any method alters baseapp/abci is used.
+	// controls whether or not to reuse app instance or set new one.
+	hasUsedAbci bool
+	withCaching bool
+}
+
+func init() {
+	baseTestAccts = CreateRandomAccounts(3)
 }
 
 func (s *KeeperTestHelper) Setup() {
-	s.App = app.Setup(s.T())
-	s.Ctx = s.App.BaseApp.NewContext(false)
+	dir, err := os.MkdirTemp("", "bitsongd-test-home")
+	if err != nil {
+		panic(fmt.Sprintf("failed creating temporary directory: %v", err))
+	}
+	s.T().Cleanup(func() { os.RemoveAll(dir); s.withCaching = false })
+	s.App = app.SetupWithCustomHome(false, dir)
+	// configure ctx, caching, query helper,& test accounts
+	s.setupGeneral()
+
+}
+
+func (s *KeeperTestHelper) setupGeneral() {
+	s.setupGeneralCustomChainId("bitsong-2b")
+}
+
+func (s *KeeperTestHelper) setupGeneralCustomChainId(chainId string) {
+	s.Ctx = s.App.BaseApp.NewContextLegacy(false, cmtproto.Header{Height: 1, ChainID: chainId, Time: defaultTestStartTime})
+	if s.withCaching {
+		s.Ctx, _ = s.Ctx.CacheContext()
+	}
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx,
 	}
 
-	s.TestAccs = CreateRandomAccounts(3)
-	s.StakingHelper = stakinghelper.NewHelper(s.Suite.T(), s.Ctx, s.App.AppKeepers.StakingKeeper)
-	s.StakingHelper.Denom = "ubtsg"
+	s.TestAccs = []sdk.AccAddress{}
+	s.TestAccs = append(s.TestAccs, baseTestAccts...)
+	s.hasUsedAbci = false
 }
 
 // CreateRandomAccounts is a function return a list of randomly generated AccAddresses

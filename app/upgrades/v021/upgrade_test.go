@@ -40,12 +40,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			},
 			func() {
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-				plan := upgradetypes.Plan{Name: "v020", Height: dummyUpgradeHeight}
+				plan := upgradetypes.Plan{Name: "v021", Height: dummyUpgradeHeight}
 				err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
 				_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
 				s.Require().NoError(err)
-
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight)
 				s.Require().NotPanics(func() {
 					s.App.BeginBlocker(s.Ctx)

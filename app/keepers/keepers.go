@@ -1,8 +1,6 @@
 package keepers
 
 import (
-	"path/filepath"
-
 	"github.com/spf13/cast"
 
 	"cosmossdk.io/x/feegrant"
@@ -66,8 +64,6 @@ import (
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
 	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
@@ -137,13 +133,13 @@ type AppKeepers struct {
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
-	IBCWasmClientKeeper   *ibcwasmkeeper.Keeper
-	FeeGrantKeeper        feegrantkeeper.Keeper
-	AuthzKeeper           authzkeeper.Keeper
-	PacketForwardKeeper   *packetforwardkeeper.Keeper
-	FanTokenKeeper        fantokenkeeper.Keeper
-	SmartAccountKeeper    *smartaccountkeeper.Keeper
-	AuthenticatorManager  *authenticator.AuthenticatorManager
+	// IBCWasmClientKeeper   *ibcwasmkeeper.Keeper
+	FeeGrantKeeper       feegrantkeeper.Keeper
+	AuthzKeeper          authzkeeper.Keeper
+	PacketForwardKeeper  *packetforwardkeeper.Keeper
+	FanTokenKeeper       fantokenkeeper.Keeper
+	SmartAccountKeeper   *smartaccountkeeper.Keeper
+	AuthenticatorManager *authenticator.AuthenticatorManager
 	// cosmwasm keepers
 	WasmKeeper     wasmkeeper.Keeper
 	CadanceKeeper  cadancekeeper.Keeper
@@ -166,6 +162,10 @@ func NewAppKeepers(
 	maccPerms map[string][]string,
 	appOpts servertypes.AppOptions,
 	wasmOpts []wasmkeeper.Option,
+	dataDir string,
+	wasmDir string,
+	wasmConfig wasmtypes.WasmConfig,
+	// ibcWasmConfig ibcwasmtypes.WasmConfig,
 ) AppKeepers {
 	appKeepers := AppKeepers{}
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
@@ -291,14 +291,6 @@ func NewAppKeepers(
 		skipUpgradeHeights, runtime.NewKVStoreService(appKeepers.keys[upgradetypes.StoreKey]), appCodec, homePath, bApp, govModAddress,
 	)
 
-	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
-		appKeepers.keys[cadancetypes.StoreKey],
-		appCodec,
-		appKeepers.WasmKeeper,
-		appKeepers.ContractKeeper,
-		govModAddress,
-	)
-
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	stakingKeeper.SetHooks(
@@ -414,7 +406,7 @@ func NewAppKeepers(
 		appKeepers.IBCKeeper.ChannelKeeper, // may be replaced with middleware
 		appKeepers.IBCKeeper.ChannelKeeper,
 		appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.ScopedICQKeeper,
+		scopedICQKeeper,
 		bApp.GRPCQueryRouter(),
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -429,12 +421,12 @@ func NewAppKeepers(
 		AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper)).
 		AddRoute(icqtypes.ModuleName, icqModule)
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
-	wasmDir := filepath.Join(homePath, "data")
 
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic("error while reading wasm config: " + err.Error())
-	}
+	// ibcWasmConfig := ibcwasmtypes.WasmConfig{
+	// 	DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
+	// 	SupportedCapabilities: []string{"iterator", "stargate", "abort"},
+	// 	ContractDebugMode:     false,
+	// }
 
 	// Stargate Queries
 	acceptedStargateQueries := wasmkeeper.AcceptedQueries{
@@ -487,32 +479,33 @@ func NewAppKeepers(
 		wasmOpts...,
 	)
 
-	acc := make([]string, 0)
-	for k := range acceptedStargateQueries {
-		acc = append(acc, k)
-	}
+	// acc := make([]string, 0)
+	// for k := range acceptedStargateQueries {
+	// 	acc = append(acc, k)
+	// }
 
-	// We are using a separate VM here
-	ibcWasmConfig := ibcwasmtypes.WasmConfig{
-		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
-		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
-		ContractDebugMode:     false,
-	}
+	// ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
+	// 	appCodec,
+	// 	runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
+	// 	appKeepers.IBCKeeper.ClientKeeper,
+	// 	govModAddress,
+	// 	ibcWasmConfig,
+	// 	bApp.GRPCQueryRouter(),
+	// 	// ibcwasmkeeper.WithQueryPlugins(&ibcwasmtypes.QueryPlugins{
 
-	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
+	// 	// 	Stargate: ibcwasmtypes.AcceptListStargateQuerier(acc),
+	// 	// }),
+	// )
+
+	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
+		appKeepers.keys[cadancetypes.StoreKey],
 		appCodec,
-		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
-		appKeepers.IBCKeeper.ClientKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		ibcWasmConfig,
-		bApp.GRPCQueryRouter(),
-		ibcwasmkeeper.WithQueryPlugins(&ibcwasmtypes.QueryPlugins{
-
-			Stargate: ibcwasmtypes.AcceptListStargateQuerier(acc),
-		}),
+		appKeepers.WasmKeeper,
+		appKeepers.ContractKeeper,
+		govModAddress,
 	)
 
-	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
+	// appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
 	// set the contract keeper for the Ics20WasmHooks
 	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)

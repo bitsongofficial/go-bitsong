@@ -7,25 +7,20 @@ import (
 
 	"cosmossdk.io/math"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/stretchr/testify/suite"
 
 	_ "embed"
 
+	cadance "github.com/bitsongofficial/go-bitsong/x/cadance"
+	"github.com/bitsongofficial/go-bitsong/x/cadance/types"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-
-	"github.com/bitsongofficial/go-bitsong/app"
-	cadance "github.com/bitsongofficial/go-bitsong/x/cadance"
-	"github.com/bitsongofficial/go-bitsong/x/cadance/types"
 )
 
 type EndBlockerTestSuite struct {
-	suite.Suite
-
-	ctx sdk.Context
-
-	app *app.BitsongApp
+	apptesting.KeeperTestHelper
 }
 
 func TestEndBlockerTestSuite(t *testing.T) {
@@ -33,11 +28,8 @@ func TestEndBlockerTestSuite(t *testing.T) {
 }
 
 func (s *EndBlockerTestSuite) SetupTest() {
-	app := app.Setup(s.T())
-	ctx := app.BaseApp.NewContext(false)
+	s.Setup()
 
-	s.app = app
-	s.ctx = ctx
 }
 
 //go:embed keeper/testdata/clock_example.wasm
@@ -52,15 +44,15 @@ func (s *EndBlockerTestSuite) StoreCode(wasmContract []byte) {
 		m.WASMByteCode = wasmContract
 		m.Sender = sender.String()
 	})
-	rsp, err := s.app.MsgServiceRouter().Handler(msg)(s.ctx, msg)
+	rsp, err := s.App.MsgServiceRouter().Handler(msg)(s.Ctx, msg)
 	s.Require().NoError(err)
 	var result wasmtypes.MsgStoreCodeResponse
-	s.Require().NoError(s.app.AppCodec().Unmarshal(rsp.Data, &result))
+	s.Require().NoError(s.App.AppCodec().Unmarshal(rsp.Data, &result))
 	s.Require().Equal(uint64(1), result.CodeID)
 	expHash := sha256.Sum256(wasmContract)
 	s.Require().Equal(expHash[:], result.Checksum)
 	// and
-	info := s.app.AppKeepers.WasmKeeper.GetCodeInfo(s.ctx, 1)
+	info := s.App.AppKeepers.WasmKeeper.GetCodeInfo(s.Ctx, 1)
 	s.Require().NotNil(info)
 	s.Require().Equal(expHash[:], info.CodeHash)
 	s.Require().Equal(sender.String(), info.Creator)
@@ -72,7 +64,7 @@ func (s *EndBlockerTestSuite) InstantiateContract(sender string, admin string) s
 		m.WASMByteCode = cadanceContract
 		m.Sender = sender
 	})
-	_, err := s.app.MsgServiceRouter().Handler(msgStoreCode)(s.ctx, msgStoreCode)
+	_, err := s.App.MsgServiceRouter().Handler(msgStoreCode)(s.Ctx, msgStoreCode)
 	s.Require().NoError(err)
 
 	msgInstantiate := wasmtypes.MsgInstantiateContractFixture(func(m *wasmtypes.MsgInstantiateContract) {
@@ -80,11 +72,11 @@ func (s *EndBlockerTestSuite) InstantiateContract(sender string, admin string) s
 		m.Admin = admin
 		m.Msg = []byte(`{}`)
 	})
-	resp, err := s.app.MsgServiceRouter().Handler(msgInstantiate)(s.ctx, msgInstantiate)
+	resp, err := s.App.MsgServiceRouter().Handler(msgInstantiate)(s.Ctx, msgInstantiate)
 	s.Require().NoError(err)
 	var result wasmtypes.MsgInstantiateContractResponse
-	s.Require().NoError(s.app.AppCodec().Unmarshal(resp.Data, &result))
-	contractInfo := s.app.AppKeepers.WasmKeeper.GetContractInfo(s.ctx, sdk.MustAccAddressFromBech32(result.Address))
+	s.Require().NoError(s.App.AppCodec().Unmarshal(resp.Data, &result))
+	contractInfo := s.App.AppKeepers.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
 	s.Require().Equal(contractInfo.CodeID, uint64(1))
 	s.Require().Equal(contractInfo.Admin, admin)
 	s.Require().Equal(contractInfo.Creator, sender)
@@ -93,11 +85,11 @@ func (s *EndBlockerTestSuite) InstantiateContract(sender string, admin string) s
 }
 
 func (s *EndBlockerTestSuite) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
-	if err := s.app.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+	if err := s.App.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err
 	}
 
-	return s.app.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+	return s.App.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
 }
 
 // Register a contract. You must store the contract code before registering.
@@ -105,24 +97,24 @@ func (s *EndBlockerTestSuite) registerContract() string {
 	// Create & fund accounts
 	_, _, sender := testdata.KeyTestPubAddr()
 	_, _, admin := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, sender, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
-	_ = s.FundAccount(s.ctx, admin, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, sender, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, admin, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	// Instantiate contract
 	contractAddress := s.InstantiateContract(sender.String(), admin.String())
 
 	// Register contract
-	cadanceKeeper := s.app.AppKeepers.CadanceKeeper
-	err := cadanceKeeper.RegisterContract(s.ctx, admin.String(), contractAddress)
+	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	err := cadanceKeeper.RegisterContract(s.Ctx, admin.String(), contractAddress)
 	s.Require().NoError(err)
 
 	// Assert contract is registered
-	contract, err := cadanceKeeper.GetCadanceContract(s.ctx, contractAddress)
+	contract, err := cadanceKeeper.GetCadanceContract(s.Ctx, contractAddress)
 	s.Require().NoError(err)
 	s.Require().Equal(contractAddress, contract.ContractAddress)
 
 	// Increment block height
-	s.ctx = s.ctx.WithBlockHeight(11)
+	s.Ctx = s.Ctx.WithBlockHeight(11)
 
 	return contract.ContractAddress
 }
@@ -131,7 +123,7 @@ func (s *EndBlockerTestSuite) registerContract() string {
 // too little gas, and also ensures the unjailing process functions.
 func (s *EndBlockerTestSuite) TestEndBlocker() {
 	// Setup test
-	cadanceKeeper := s.app.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
 	s.StoreCode(cadanceContract)
 	contractAddress := s.registerContract()
 
@@ -153,7 +145,7 @@ func (s *EndBlockerTestSuite) TestEndBlocker() {
 	s.callEndBlocker()
 
 	// Ensure contract is now jailed
-	contract, err := cadanceKeeper.GetCadanceContract(s.ctx, contractAddress)
+	contract, err := cadanceKeeper.GetCadanceContract(s.Ctx, contractAddress)
 	s.Require().NoError(err)
 	s.Require().True(contract.IsJailed)
 
@@ -164,11 +156,11 @@ func (s *EndBlockerTestSuite) TestEndBlocker() {
 	s.callEndBlocker()
 
 	// Unjail contract
-	err = cadanceKeeper.SetJailStatus(s.ctx, contractAddress, false)
+	err = cadanceKeeper.SetJailStatus(s.Ctx, contractAddress, false)
 	s.Require().NoError(err)
 
 	// Ensure contract is no longer jailed
-	contract, err = cadanceKeeper.GetCadanceContract(s.ctx, contractAddress)
+	contract, err = cadanceKeeper.GetCadanceContract(s.Ctx, contractAddress)
 	s.Require().NoError(err)
 	s.Require().False(contract.IsJailed)
 
@@ -183,7 +175,7 @@ func (s *EndBlockerTestSuite) TestEndBlocker() {
 // Test a contract which does not handle the sudo EndBlock msg.
 func (s *EndBlockerTestSuite) TestInvalidContract() {
 	// Setup test
-	cadanceKeeper := s.app.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
 	s.StoreCode(burnContract)
 	contractAddress := s.registerContract()
 
@@ -191,7 +183,7 @@ func (s *EndBlockerTestSuite) TestInvalidContract() {
 	s.callEndBlocker()
 
 	// Ensure contract is now jailed
-	contract, err := cadanceKeeper.GetCadanceContract(s.ctx, contractAddress)
+	contract, err := cadanceKeeper.GetCadanceContract(s.Ctx, contractAddress)
 	s.Require().NoError(err)
 	s.Require().True(contract.IsJailed)
 }
@@ -209,8 +201,8 @@ func (s *EndBlockerTestSuite) TestPerformance() {
 	}
 
 	// Ensure contracts exist
-	cadanceKeeper := s.app.AppKeepers.CadanceKeeper
-	contracts, err := cadanceKeeper.GetAllContracts(s.ctx)
+	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	contracts, err := cadanceKeeper.GetAllContracts(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Len(contracts, numContracts)
 
@@ -218,7 +210,7 @@ func (s *EndBlockerTestSuite) TestPerformance() {
 	s.callEndBlocker()
 
 	// Ensure contracts are jailed
-	contracts, err = cadanceKeeper.GetAllContracts(s.ctx)
+	contracts, err = cadanceKeeper.GetAllContracts(s.Ctx)
 	s.Require().NoError(err)
 	for _, contract := range contracts {
 		s.Require().True(contract.IsJailed)
@@ -229,25 +221,25 @@ func (s *EndBlockerTestSuite) TestPerformance() {
 func (s *EndBlockerTestSuite) updateGasLimit(gasLimit uint64) {
 	params := types.DefaultParams()
 	params.ContractGasLimit = gasLimit
-	k := s.app.AppKeepers.CadanceKeeper
+	k := s.App.AppKeepers.CadanceKeeper
 
-	store := s.ctx.KVStore(k.GetStore())
+	store := s.Ctx.KVStore(k.GetStore())
 	bz := k.GetCdc().MustMarshal(&params)
 	store.Set(types.ParamsKey, bz)
 
-	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1)
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 }
 
 // Call the end blocker, incrementing the block height
 func (s *EndBlockerTestSuite) callEndBlocker() {
-	cadance.EndBlocker(s.ctx, s.app.AppKeepers.CadanceKeeper)
-	s.ctx = s.ctx.WithBlockHeight(s.ctx.BlockHeight() + 1)
+	cadance.EndBlocker(s.Ctx, s.App.AppKeepers.CadanceKeeper)
+	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 }
 
 // Query the cadance contract
 func (s *EndBlockerTestSuite) queryContract(contractAddress string) int64 {
 	query := `{"get_config":{}}`
-	output, err := s.app.AppKeepers.WasmKeeper.QuerySmart(s.ctx, sdk.MustAccAddressFromBech32(contractAddress), []byte(query))
+	output, err := s.App.AppKeepers.WasmKeeper.QuerySmart(s.Ctx, sdk.MustAccAddressFromBech32(contractAddress), []byte(query))
 	s.Require().NoError(err)
 
 	var val struct {

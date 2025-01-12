@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -29,7 +30,7 @@ var (
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	apptesting.KeeperTestHelper
 
 	legacyAmino *codec.LegacyAmino
 	ctx         sdk.Context
@@ -39,13 +40,13 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := simapp.Setup(suite.T())
+	suite.Setup()
 
-	suite.legacyAmino = app.LegacyAmino()
-	suite.ctx = app.BaseApp.NewContext(false)
+	app := suite.App
 	suite.keeper = app.AppKeepers.FanTokenKeeper
 	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app
+	suite.ctx = suite.Ctx
 
 	// set params
 	suite.keeper.SetParamSet(suite.ctx, fantokentypes.DefaultParams())

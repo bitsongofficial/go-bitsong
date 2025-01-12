@@ -71,11 +71,11 @@ from_scratch () {
   # Custom Modules
 
   # Allocate genesis accounts
-  BINARY genesis add-genesis-account $KEY 10000000ubtsg,1000utest --keyring-backend $KEYRING
-  BINARY genesis add-genesis-account $KEY2 1000000ubtsg,1000utest --keyring-backend $KEYRING
-  BINARY genesis add-genesis-account bitsong1e7f6j0006x5csqra593uvm7q850ek72jke37z9 100000000000ubtsg --keyring-backend $KEYRING
+  BINARY genesis add-genesis-account $KEY 10000000ubtsg,1000utest --keyring-backend $KEYRING  
+  BINARY genesis add-genesis-account $KEY2 1000000ubtsg,1000utest --keyring-backend $KEYRING 
+  # BINARY genesis add-genesis-account bitsong1e7f6j0006x5csqra593uvm7q850ek72jke37z9 100000000000ubtsg --keyring-backend $KEYRING --append
 
-  BINARY genesis gentx $KEY 1000000ubtsg --keyring-backend $KEYRING --chain-id $CHAIN_ID
+  BINARY genesis gentx $KEY 1000000ubtsg --keyring-backend $KEYRING --chain-id $CHAIN_ID --sequence 1
 
   # Collect genesis tx
   BINARY genesis collect-gentxs

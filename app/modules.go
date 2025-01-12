@@ -6,14 +6,13 @@ import (
 	"cosmossdk.io/x/feegrant"
 	feegrantmodule "cosmossdk.io/x/feegrant/module"
 	"cosmossdk.io/x/upgrade"
-
-	// upgradeclient "cosmossdk.io/x/upgrade/client"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/CosmWasm/wasmd/x/wasm"
+	encparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/x/cadance"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	encparams "github.com/bitsongofficial/go-bitsong/app/params"
+	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -55,9 +54,9 @@ import (
 	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
 
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-
+	// ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	// ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
@@ -80,10 +79,6 @@ var AppModuleBasics = module.NewBasicManager(
 	distr.AppModuleBasic{},
 	gov.NewAppModuleBasic([]govclient.ProposalHandler{
 		paramsclient.ProposalHandler,
-		// upgradeclient.LegacyProposalHandler,
-		// upgradeclient.LegacyCancelProposalHandler,
-		// ibcclientclient.UpdateClientProposalHandler,
-		// ibcclientclient.UpgradeProposalHandler,
 		fantokenclient.ProposalHandler,
 	}),
 	params.AppModuleBasic{},
@@ -103,7 +98,8 @@ var AppModuleBasics = module.NewBasicManager(
 	wasm.AppModuleBasic{},
 	icq.AppModuleBasic{},
 	ibc_hooks.AppModuleBasic{},
-	ibcwasm.AppModuleBasic{},
+	cadance.AppModuleBasic{},
+	// ibcwasm.AppModuleBasic{},
 	smartaccount.AppModuleBasic{},
 )
 
@@ -134,13 +130,14 @@ func appModules(
 		fantoken.NewAppModule(appCodec, app.AppKeepers.FanTokenKeeper, app.AppKeepers.BankKeeper),
 		authzmodule.NewAppModule(appCodec, app.AppKeepers.AuthzKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.AppKeepers.IBCKeeper),
-		ibcwasm.NewAppModule(*app.AppKeepers.IBCWasmClientKeeper),
+		// ibcwasm.NewAppModule(*app.AppKeepers.IBCWasmClientKeeper),
 		params.NewAppModule(app.AppKeepers.ParamsKeeper),
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
 		packetforward.NewAppModule(app.AppKeepers.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibc_hooks.NewAppModule(*app.AppKeepers.AccountKeeper),
 		icq.NewAppModule(*app.AppKeepers.ICQKeeper, app.GetSubspace(icqtypes.ModuleName)),
+		cadance.NewAppModule(appCodec, app.AppKeepers.CadanceKeeper),
 		smartaccount.NewAppModule(appCodec, *app.AppKeepers.SmartAccountKeeper),
 		crisis.NewAppModule(app.AppKeepers.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
@@ -152,16 +149,16 @@ func orderBeginBlockers() []string {
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName, ibcwasmtypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName, // ibcwasmtypes.ModuleName,
 	}
 }
 
 func orderEndBlockers() []string {
 	return []string{
-		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, ibcwasmtypes.ModuleName,
+		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, // ibcwasmtypes.ModuleName,
 		packetforwardtypes.ModuleName, icqtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -183,13 +180,14 @@ func orderInitBlockers() []string {
 		feegrant.ModuleName,
 		authz.ModuleName,
 		authtypes.ModuleName,
-		ibcwasmtypes.ModuleName,
-		icqtypes.ModuleName,
+		// ibcwasmtypes.ModuleName,
 		smartaccounttypes.ModuleName,
+		icqtypes.ModuleName,
 		genutiltypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		cadancetypes.ModuleName,
 		ibchookstypes.ModuleName,
 		vestingtypes.ModuleName,
 		wasmtypes.ModuleName,

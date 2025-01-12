@@ -34,12 +34,11 @@ func (s *IntegrationTestSuite) TestQueryClockParams() {
 		tc := tc
 		s.Run(tc.desc, func() {
 			// Set params
-			err := s.app.AppKeepers.CadanceKeeper.SetParams(s.ctx, tc.params)
+			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, tc.params)
 			s.Require().NoError(err)
 
 			// Query params
-			goCtx := sdk.WrapSDKContext(s.ctx)
-			resp, err := s.queryClient.Params(goCtx, &types.QueryParamsRequest{})
+			resp, err := s.queryClient.Params(s.Ctx, &types.QueryParamsRequest{})
 
 			// Response check
 			s.Require().NoError(err)
@@ -52,7 +51,7 @@ func (s *IntegrationTestSuite) TestQueryClockParams() {
 // Query Clock Contracts
 func (s *IntegrationTestSuite) TestQueryCadanceContracts() {
 	_, _, addr := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	s.StoreCode()
 
@@ -87,8 +86,7 @@ func (s *IntegrationTestSuite) TestQueryCadanceContracts() {
 			}
 
 			// Contracts check
-			goCtx := sdk.WrapSDKContext(s.ctx)
-			resp, err := s.queryClient.CadanceContracts(goCtx, &types.QueryCadanceContracts{})
+			resp, err := s.queryClient.CadanceContracts(s.Ctx, &types.QueryCadanceContracts{})
 
 			// Response check
 			s.Require().NoError(err)
@@ -100,7 +98,7 @@ func (s *IntegrationTestSuite) TestQueryCadanceContracts() {
 
 			// Remove all contracts
 			for _, contract := range tc.contracts {
-				s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contract)
+				s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contract)
 			}
 		})
 	}
@@ -109,7 +107,7 @@ func (s *IntegrationTestSuite) TestQueryCadanceContracts() {
 // Query Jailed Clock Contracts
 func (s *IntegrationTestSuite) TestQueryJailedCadanceContracts() {
 	_, _, addr := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	s.StoreCode()
 
@@ -145,8 +143,7 @@ func (s *IntegrationTestSuite) TestQueryJailedCadanceContracts() {
 			}
 
 			// Contracts check
-			goCtx := sdk.WrapSDKContext(s.ctx)
-			resp, err := s.queryClient.CadanceContracts(goCtx, &types.QueryCadanceContracts{})
+			resp, err := s.queryClient.CadanceContracts(s.Ctx, &types.QueryCadanceContracts{})
 
 			// Response check
 			s.Require().NoError(err)
@@ -158,7 +155,7 @@ func (s *IntegrationTestSuite) TestQueryJailedCadanceContracts() {
 
 			// Remove all contracts
 			for _, contract := range tc.contracts {
-				s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contract)
+				s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contract)
 			}
 		})
 	}
@@ -167,19 +164,19 @@ func (s *IntegrationTestSuite) TestQueryJailedCadanceContracts() {
 // Query Clock Contract
 func (s *IntegrationTestSuite) TestQueryCadanceContract() {
 	_, _, addr := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 	_, _, invalidAddr := testdata.KeyTestPubAddr()
 
 	s.StoreCode()
 
 	unjailedContract := s.InstantiateContract(addr.String(), "")
-	_ = s.app.AppKeepers.CadanceKeeper.SetCadanceContract(s.ctx, types.CadanceContract{
+	_ = s.App.AppKeepers.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
 		ContractAddress: unjailedContract,
 		IsJailed:        false,
 	})
 
 	jailedContract := s.InstantiateContract(addr.String(), "")
-	_ = s.app.AppKeepers.CadanceKeeper.SetCadanceContract(s.ctx, types.CadanceContract{
+	_ = s.App.AppKeepers.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
 		ContractAddress: jailedContract,
 		IsJailed:        true,
 	})
@@ -218,7 +215,7 @@ func (s *IntegrationTestSuite) TestQueryCadanceContract() {
 		tc := tc
 		s.Run(tc.desc, func() {
 			// Query contract
-			resp, err := s.queryClient.CadanceContract(s.ctx, &types.QueryCadanceContract{
+			resp, err := s.queryClient.CadanceContract(s.Ctx, &types.QueryCadanceContract{
 				ContractAddress: tc.contract,
 			})
 

@@ -3,27 +3,23 @@ package app
 import (
 	"encoding/json"
 	"math/rand"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/bitsongofficial/go-bitsong/app/helpers"
-	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	cosmosdb "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/testutil/mock"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -73,86 +69,44 @@ var DefaultConsensusParams = &tmproto.ConsensusParams{
 }
 
 // Setup initializes a new BitsongApp
-func Setup(t *testing.T) *BitsongApp {
-	t.Helper()
-
-	privVal := helpers.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
-
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-
-	// generate genesis account
-	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, math.NewInt(100000000000000))),
-	}
-
-	app := SetupWithGenesisAccounts(t, valSet, []authtypes.GenesisAccount{acc}, balance)
-	return app
+func Setup(isCheckTx bool) *BitsongApp {
+	return SetupWithCustomHome(isCheckTx, DefaultNodeHome)
 }
 
-// Setup node for testing simulation
-func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*BitsongApp, GenesisState) {
+var defaultGenesisStatebytes = []byte{}
+
+// SetupWithCustomHome initializes a new BitsongApp with a custom home directory
+func SetupWithCustomHome(isCheckTx bool, dir string) *BitsongApp {
+	return SetupWithCustomHomeAndChainId(isCheckTx, dir, "bitsong-2b")
+}
+
+func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *BitsongApp {
 	db := cosmosdb.NewMemDB()
-	nodeHome := t.TempDir()
-	snapshotDir := filepath.Join(nodeHome, "data", "snapshots")
-	snapshotDB, err := cosmosdb.NewGoLevelDB("metadata", snapshotDir, nil)
-	require.NoError(t, err)
-	t.Cleanup(func() { snapshotDB.Close() })
-	snapshotStore, err := snapshots.NewStore(snapshotDB, snapshotDir)
-	require.NoError(t, err)
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, dir, sims.EmptyAppOptions{}, EmptyWasmOpts, baseapp.SetChainID(chainId))
+	if !isCheckTx {
+		if len(defaultGenesisStatebytes) == 0 {
+			var err error
+			genesisState := GenesisStateWithValSet(app)
+			defaultGenesisStatebytes, err = json.Marshal(genesisState)
+			if err != nil {
+				panic(err)
+			}
+		}
 
-	// var emptyWasmOpts []wasm.Option
-	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = nodeHome // ensure unique folder
-
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, appOptions, opts, bam.SetChainID("testing"), bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}))
-	if withGenesis {
-		return app, NewDefaultGenesisState()
+		_, err := app.InitChain(
+			&abci.RequestInitChain{
+				Validators:      []abci.ValidatorUpdate{},
+				ConsensusParams: sims.DefaultConsensusParams,
+				AppStateBytes:   defaultGenesisStatebytes,
+				ChainId:         chainId,
+			},
+		)
+		if err != nil {
+			panic(err)
+		}
 	}
-	return app, GenesisState{}
-}
 
-// SetupWithGenesisAccounts initializes a new SimApp with the provided genesis
-// accounts and possible balances.
-func SetupWithGenesisAccounts(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *BitsongApp {
-	t.Helper()
-
-	btsgApp, genesisState := setup(t, true)
-
-	genesisState = GenesisStateWithValSet(t, btsgApp, genesisState, valSet, genAccs, balances...)
-
-	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-	require.NoError(t, err)
-
-	btsgApp.InitChain(
-		&abci.RequestInitChain{
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: simtestutil.DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
-			ChainId:         SimAppChainID,
-			Time:            time.Now().UTC(),
-			InitialHeight:   1,
-		},
-	)
-
-	// commit genesis changes
-	btsgApp.Commit()
-	// btsgApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-	// 	ChainID:            SimAppChainID,
-	// 	Height:             btsgApp.LastBlockHeight() + 1,
-	// 	AppHash:            btsgApp.LastCommitID().Hash,
-	// 	ValidatorsHash:     valSet.Hash(),
-	// 	NextValidatorsHash: valSet.Hash(),
-	// 	Time:               time.Now().UTC(),
-	// }})
-
-	return btsgApp
+	return app
 }
 
 // SignCheckDeliver checks a generated signed transaction and simulates a
@@ -216,16 +170,23 @@ func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances s
 	require.True(t, balances.Equal(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
-func GenesisStateWithValSet(t *testing.T,
-	app *BitsongApp, genesisState GenesisState,
-	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
-	balances ...banktypes.Balance,
-) GenesisState {
-	codec := app.AppCodec()
+func GenesisStateWithValSet(app *BitsongApp) GenesisState {
+	privVal := mock.NewPV()
+	pubKey, _ := privVal.GetPubKey()
+	validator := tmtypes.NewValidator(pubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 
 	// set genesis accounts
+	senderPrivKey := secp256k1.GenPrivKey()
+	senderPrivKey.PubKey().Address()
+	acc := authtypes.NewBaseAccountWithAddress(senderPrivKey.PubKey().Address().Bytes())
+
+	//////////////////////
+	balances := []banktypes.Balance{}
+	genesisState := NewDefaultGenesisState()
+	genAccs := []authtypes.GenesisAccount{acc}
 	authGenesis := authtypes.NewGenesisState(authtypes.DefaultParams(), genAccs)
-	genesisState[authtypes.ModuleName] = codec.MustMarshalJSON(authGenesis)
+	genesisState[authtypes.ModuleName] = app.AppCodec().MustMarshalJSON(authGenesis)
 
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
@@ -234,16 +195,15 @@ func GenesisStateWithValSet(t *testing.T,
 	initValPowers := []abci.ValidatorUpdate{}
 
 	for _, val := range valSet.Validators {
-		pk, _ := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, _ := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		pkAny, _ := codectypes.NewAnyWithValue(pk)
 		validator := stakingtypes.Validator{
-			OperatorAddress: sdk.ValAddress(val.Address).String(),
-			ConsensusPubkey: pkAny,
-			Jailed:          false,
-			Status:          stakingtypes.Bonded,
-			Tokens:          bondAmt,
-			DelegatorShares: math.LegacyOneDec(),
-			// DelegatorShares:   math.LegacyOneDec().MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))), // 1 % slash
+			OperatorAddress:   sdk.ValAddress(val.Address).String(),
+			ConsensusPubkey:   pkAny,
+			Jailed:            false,
+			Status:            stakingtypes.Bonded,
+			Tokens:            bondAmt,
+			DelegatorShares:   math.LegacyOneDec(),
 			Description:       stakingtypes.Description{},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
@@ -251,7 +211,7 @@ func GenesisStateWithValSet(t *testing.T,
 			MinSelfDelegation: math.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), math.LegacyOneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), sdk.ValAddress(val.Address).String(), math.LegacyOneDec()))
 
 		// add initial validator powers so consumer InitGenesis runs correctly
 		pub, _ := val.ToProto()
@@ -259,22 +219,19 @@ func GenesisStateWithValSet(t *testing.T,
 			Power:  val.VotingPower,
 			PubKey: pub.PubKey,
 		})
-
 	}
-
-	defaultStParams := stakingtypes.DefaultParams()
-	stParams := stakingtypes.NewParams(
-		defaultStParams.UnbondingTime,
-		defaultStParams.MaxValidators,
-		defaultStParams.MaxEntries,
-		defaultStParams.HistoricalEntries,
-		appparams.DefaultBondDenom,
-		defaultStParams.MinCommissionRate, // 5%
-	)
-
 	// set validators and delegations
-	stakingGenesis := stakingtypes.NewGenesisState(stParams, validators, delegations)
-	genesisState[stakingtypes.ModuleName] = codec.MustMarshalJSON(stakingGenesis)
+	// defaultStParams := stakingtypes.DefaultParams()
+	// stParams := stakingtypes.NewParams(
+	// 	defaultStParams.UnbondingTime,
+	// 	defaultStParams.MaxValidators,
+	// 	defaultStParams.MaxEntries,
+	// 	defaultStParams.HistoricalEntries,
+
+	// 	defaultStParams.MinCommissionRate, // 5%
+	// )
+	stakingGenesis := stakingtypes.NewGenesisState(stakingtypes.DefaultParams(), validators, delegations)
+	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
@@ -284,20 +241,24 @@ func GenesisStateWithValSet(t *testing.T,
 
 	for range delegations {
 		// add delegated tokens to total supply
-		totalSupply = totalSupply.Add(sdk.NewCoin(appparams.DefaultBondDenom, bondAmt))
+		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
 	}
 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(appparams.DefaultBondDenom, bondAmt.MulRaw(int64(len(valSet.Validators))))},
+		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
 	})
 
 	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
-	genesisState[banktypes.ModuleName] = codec.MustMarshalJSON(bankGenesis)
-
-	// println("genesisStateWithValSet bankState:", string(genesisState[banktypes.ModuleName]))
+	bankGenesis := banktypes.NewGenesisState(
+		banktypes.DefaultGenesisState().Params,
+		balances,
+		totalSupply,
+		[]banktypes.Metadata{},
+		[]banktypes.SendEnabled{},
+	)
+	genesisState[banktypes.ModuleName] = app.AppCodec().MustMarshalJSON(bankGenesis)
 
 	return genesisState
 }

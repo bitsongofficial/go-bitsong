@@ -14,7 +14,7 @@ import (
 func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 	_, _, addr := testdata.KeyTestPubAddr()
 	_, _, addr2 := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	// Store code
 	s.StoreCode()
@@ -76,18 +76,18 @@ func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 		s.Run(tc.desc, func() {
 			// Set params
 			params := types.DefaultParams()
-			err := s.app.AppKeepers.CadanceKeeper.SetParams(s.ctx, params)
+			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Jail contract if needed
 			if tc.isJailed {
 				s.RegisterCadanceContract(tc.sender, tc.contract)
-				err := s.app.AppKeepers.CadanceKeeper.SetJailStatus(s.ctx, tc.contract, true)
+				err := s.App.AppKeepers.CadanceKeeper.SetJailStatus(s.Ctx, tc.contract, true)
 				s.Require().NoError(err)
 			}
 
 			// Try to register contract
-			res, err := s.cadanceMsgServer.RegisterCadanceContract(s.ctx, &types.MsgRegisterCadanceContract{
+			res, err := s.cadanceMsgServer.RegisterCadanceContract(s.Ctx, &types.MsgRegisterCadanceContract{
 				SenderAddress:   tc.sender,
 				ContractAddress: tc.contract,
 			})
@@ -100,8 +100,8 @@ func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddress)
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddressWithAdmin)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }
@@ -110,7 +110,7 @@ func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 	_, _, addr := testdata.KeyTestPubAddr()
 	_, _, addr2 := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	s.StoreCode()
 	contractAddress := s.InstantiateContract(addr.String(), "")
@@ -166,11 +166,11 @@ func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 
 			// Set params
 			params := types.DefaultParams()
-			err := s.app.AppKeepers.CadanceKeeper.SetParams(s.ctx, params)
+			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Try to register all contracts
-			res, err := s.cadanceMsgServer.UnregisterCadanceContract(s.ctx, &types.MsgUnregisterCadanceContract{
+			res, err := s.cadanceMsgServer.UnregisterCadanceContract(s.Ctx, &types.MsgUnregisterCadanceContract{
 				SenderAddress:   tc.sender,
 				ContractAddress: tc.contract,
 			})
@@ -183,8 +183,8 @@ func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddress)
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddressWithAdmin)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }
@@ -192,32 +192,32 @@ func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 // Test duplicate register/unregister cadance contract s.
 func (s *IntegrationTestSuite) TestDuplicateRegistrationChecks() {
 	_, _, addr := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	s.StoreCode()
 	contractAddress := s.InstantiateContract(addr.String(), "")
 
 	// Test double register, first succeed, second fail
-	_, err := s.cadanceMsgServer.RegisterCadanceContract(s.ctx, &types.MsgRegisterCadanceContract{
+	_, err := s.cadanceMsgServer.RegisterCadanceContract(s.Ctx, &types.MsgRegisterCadanceContract{
 		SenderAddress:   addr.String(),
 		ContractAddress: contractAddress,
 	})
 	s.Require().NoError(err)
 
-	_, err = s.cadanceMsgServer.RegisterCadanceContract(s.ctx, &types.MsgRegisterCadanceContract{
+	_, err = s.cadanceMsgServer.RegisterCadanceContract(s.Ctx, &types.MsgRegisterCadanceContract{
 		SenderAddress:   addr.String(),
 		ContractAddress: contractAddress,
 	})
 	s.Require().Error(err)
 
 	// Test double unregister, first succeed, second fail
-	_, err = s.cadanceMsgServer.UnregisterCadanceContract(s.ctx, &types.MsgUnregisterCadanceContract{
+	_, err = s.cadanceMsgServer.UnregisterCadanceContract(s.Ctx, &types.MsgUnregisterCadanceContract{
 		SenderAddress:   addr.String(),
 		ContractAddress: contractAddress,
 	})
 	s.Require().NoError(err)
 
-	_, err = s.cadanceMsgServer.UnregisterCadanceContract(s.ctx, &types.MsgUnregisterCadanceContract{
+	_, err = s.cadanceMsgServer.UnregisterCadanceContract(s.Ctx, &types.MsgUnregisterCadanceContract{
 		SenderAddress:   addr.String(),
 		ContractAddress: contractAddress,
 	})
@@ -228,7 +228,7 @@ func (s *IntegrationTestSuite) TestDuplicateRegistrationChecks() {
 func (s *IntegrationTestSuite) TestUnjailCadanceContract() {
 	_, _, addr := testdata.KeyTestPubAddr()
 	_, _, addr2 := testdata.KeyTestPubAddr()
-	_ = s.FundAccount(s.ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
+	_ = s.FundAccount(s.Ctx, addr, sdk.NewCoins(sdk.NewCoin("stake", math.NewInt(1_000_000))))
 
 	s.StoreCode()
 	contractAddress := s.InstantiateContract(addr.String(), "")
@@ -300,11 +300,11 @@ func (s *IntegrationTestSuite) TestUnjailCadanceContract() {
 
 			// Set params
 			params := types.DefaultParams()
-			err := s.app.AppKeepers.CadanceKeeper.SetParams(s.ctx, params)
+			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Try to register all contracts
-			res, err := s.cadanceMsgServer.UnjailCadanceContract(s.ctx, &types.MsgUnjailCadanceContract{
+			res, err := s.cadanceMsgServer.UnjailCadanceContract(s.Ctx, &types.MsgUnjailCadanceContract{
 				SenderAddress:   tc.sender,
 				ContractAddress: tc.contract,
 			})
@@ -317,8 +317,8 @@ func (s *IntegrationTestSuite) TestUnjailCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddress)
-			s.app.AppKeepers.CadanceKeeper.RemoveContract(s.ctx, contractAddressWithAdmin)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }

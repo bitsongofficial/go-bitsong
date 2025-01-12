@@ -62,12 +62,13 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.Seal()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	// tempDir := tempDir()
+	tempDir := tempDir()
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
 		cosmosdb.NewMemDB(),
 		nil,
 		true,
+		tempDir,
 		appOptions,
 		[]wasmkeeper.Option{},
 	)
@@ -346,6 +347,7 @@ func (ac appCreator) newApp(
 		db,
 		traceStore,
 		loadLatest,
+		cast.ToString(appOpts.Get(flags.FlagHome)),
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
@@ -384,6 +386,7 @@ func (ac appCreator) appExport(
 		db,
 		traceStore,
 		height == -1,
+		cast.ToString(appOpts.Get(flags.FlagHome)),
 		appOpts,
 		emptyWasmOpts,
 	)

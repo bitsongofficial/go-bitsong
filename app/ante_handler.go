@@ -15,6 +15,9 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+
+	smartaccountante "github.com/bitsongofficial/go-bitsong/x/smart-account/ante"
+	smartaccountkeeper "github.com/bitsongofficial/go-bitsong/x/smart-account/keeper"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
@@ -22,11 +25,12 @@ import (
 type HandlerOptions struct {
 	ante.HandlerOptions
 
+	SmartAccount      *smartaccountkeeper.Keeper
 	GovKeeper         govkeeper.Keeper
 	IBCKeeper         *ibckeeper.Keeper
 	TxCounterStoreKey corestoretypes.KVStoreService
 	WasmConfig        wasmTypes.WasmConfig
-	Cdc               codec.BinaryCodec
+	Cdc               codec.Codec
 
 	TxEncoder sdk.TxEncoder
 }
@@ -119,6 +123,29 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		sigGasConsumer = ante.DefaultSigVerificationGasConsumer
 	}
 
+	deductFeeDecorator := ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker)
+	// classicSignatureVerificationDecorator is the old flow to enable a circuit breaker
+	classicSignatureVerificationDecorator := sdk.ChainAnteDecorators(
+		deductFeeDecorator,
+		// We use the old pubkey decorator here to ensure that accounts work as expected,
+		// in SetPubkeyDecorator we set a pubkey in the account store, for authenticators
+		// we avoid this code path completely.
+		ante.NewSetPubKeyDecorator(options.AccountKeeper),
+		ante.NewValidateSigCountDecorator(options.AccountKeeper),
+		ante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
+		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+	)
+	// authenticatorVerificationDecorator is the new authenticator flow that's embedded into the circuit breaker ante
+	authenticatorVerificationDecorator := sdk.ChainAnteDecorators(
+		smartaccountante.NewEmitPubKeyDecoratorEvents(options.AccountKeeper),
+		ante.NewValidateSigCountDecorator(options.AccountKeeper), // we can probably remove this as multisigs are not supported here
+		// Both the signature verification, fee deduction, and gas consumption functionality
+		// is embedded in the authenticator decorator
+		smartaccountante.NewAuthenticatorDecorator(options.Cdc, options.SmartAccount, options.AccountKeeper, options.SignModeHandler, deductFeeDecorator),
+		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+	)
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),
 		NewMinValCommissionDecorator(options.Cdc),
@@ -129,14 +156,16 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
+		deductFeeDecorator,
 		// SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewSetPubKeyDecorator(options.AccountKeeper),
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+		smartaccountante.NewCircuitBreakerDecorator(
+			options.SmartAccount,
+			authenticatorVerificationDecorator,
+			classicSignatureVerificationDecorator,
+		),
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
