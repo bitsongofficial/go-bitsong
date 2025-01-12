@@ -57,12 +57,12 @@ import (
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
 	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
 
-	// ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	// ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
@@ -104,7 +104,7 @@ var AppModuleBasics = module.NewBasicManager(
 	icq.AppModuleBasic{},
 	ibc_hooks.AppModuleBasic{},
 	cadance.AppModuleBasic{},
-	// ibcwasm.AppModuleBasic{},
+	ibcwasm.AppModuleBasic{},
 	smartaccount.AppModuleBasic{},
 )
 
@@ -135,7 +135,7 @@ func appModules(
 		fantoken.NewAppModule(appCodec, app.AppKeepers.FanTokenKeeper, app.AppKeepers.BankKeeper),
 		authzmodule.NewAppModule(appCodec, app.AppKeepers.AuthzKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.interfaceRegistry),
 		ibc.NewAppModule(app.AppKeepers.IBCKeeper),
-		// ibcwasm.NewAppModule(*app.AppKeepers.IBCWasmClientKeeper),
+		ibcwasm.NewAppModule(*app.AppKeepers.IBCWasmClientKeeper),
 		params.NewAppModule(app.AppKeepers.ParamsKeeper),
 		transfer.NewAppModule(app.AppKeepers.TransferKeeper),
 		wasm.NewAppModule(appCodec, &app.AppKeepers.WasmKeeper, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
@@ -150,20 +150,20 @@ func appModules(
 
 func orderBeginBlockers() []string {
 	return []string{
-		upgradetypes.ModuleName, capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
+		capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName, // ibcwasmtypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
 func orderEndBlockers() []string {
 	return []string{
-		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, // ibcwasmtypes.ModuleName,
+		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName,
 		packetforwardtypes.ModuleName, icqtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, fantokentypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -185,7 +185,7 @@ func orderInitBlockers() []string {
 		feegrant.ModuleName,
 		authz.ModuleName,
 		authtypes.ModuleName,
-		// ibcwasmtypes.ModuleName,
+		ibcwasmtypes.ModuleName,
 		smartaccounttypes.ModuleName,
 		icqtypes.ModuleName,
 		genutiltypes.ModuleName,

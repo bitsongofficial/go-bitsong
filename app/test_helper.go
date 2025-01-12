@@ -13,13 +13,11 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	cosmosdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
-	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -82,7 +80,7 @@ func SetupWithCustomHome(isCheckTx bool, dir string) *BitsongApp {
 
 func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *BitsongApp {
 	db := cosmosdb.NewMemDB()
-	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, dir, sims.EmptyAppOptions{}, EmptyWasmOpts, baseapp.SetChainID(chainId))
+	app := NewBitsongApp(log.NewNopLogger(), db, nil, true, dir, simtestutil.EmptyAppOptions{}, EmptyWasmOpts, baseapp.SetChainID(chainId))
 	if !isCheckTx {
 		if len(defaultGenesisStatebytes) == 0 {
 			var err error
@@ -96,7 +94,7 @@ func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *Bitsong
 		_, err := app.InitChain(
 			&abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: sims.DefaultConsensusParams,
+				ConsensusParams: simtestutil.DefaultConsensusParams,
 				AppStateBytes:   defaultGenesisStatebytes,
 				ChainId:         chainId,
 			},
@@ -114,7 +112,7 @@ func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *Bitsong
 // the parameter 'expPass' against the result. A corresponding result is
 // returned.
 func SignCheckDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
+	t *testing.T, txCfg client.TxConfig, app *baseapp.BaseApp, header tmproto.Header, msgs []sdk.Msg,
 	accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simtestutil.GenSignedMockTx(

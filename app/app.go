@@ -32,12 +32,10 @@ import (
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
-	store "cosmossdk.io/store/types"
 	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cosmos/cosmos-db"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/gorilla/mux"
 
 	// "github.com/rakyll/statik/fs"
@@ -72,6 +70,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	// unnamed import of statik for swagger UI support
@@ -178,9 +178,9 @@ type BitsongApp struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
-	keys    map[string]*store.KVStoreKey
-	tkeys   map[string]*store.TransientStoreKey
-	memKeys map[string]*store.MemoryStoreKey
+	keys    map[string]*storetypes.KVStoreKey
+	tkeys   map[string]*storetypes.TransientStoreKey
+	memKeys map[string]*storetypes.MemoryStoreKey
 
 	AppKeepers keepers.AppKeepers
 
@@ -251,6 +251,12 @@ func NewBitsongApp(
 		panic("error while reading wasm config: " + err.Error())
 	}
 
+	ibcWasmConfig := ibcwasmtypes.WasmConfig{
+		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
+		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
+		ContractDebugMode:     false,
+	}
+
 	// Setup keepers
 	app.AppKeepers = keepers.NewAppKeepers(
 		appCodec,
@@ -263,15 +269,17 @@ func NewBitsongApp(
 		dataDir,
 		wasmDir,
 		wasmConfig,
-		// ibcwasmtypes.WasmConfig{},
+		ibcWasmConfig,
 	)
 	app.keys = app.AppKeepers.GetKVStoreKey()
-	enabledSignModes := append(tx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
-	txConfigOpts := tx.ConfigOptions{
+
+	// cosmos-sdk@v0.50: textual signature for ledger devices
+	enabledSignModes := append(authtx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
+	txConfigOpts := authtx.ConfigOptions{
 		EnabledSignModes:           enabledSignModes,
 		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.AppKeepers.BankKeeper),
 	}
-	txConfigWithTextual, err := tx.NewTxConfigWithOptions(
+	txConfigWithTextual, err := authtx.NewTxConfigWithOptions(
 		appCodec,
 		txConfigOpts,
 	)
@@ -299,6 +307,8 @@ func NewBitsongApp(
 	app.mm = module.NewManager(appModules(app, encodingConfig, skipGenesisInvariants)...)
 	app.mm.RegisterServices(app.configurator)
 
+	// NOTE: upgrade module is required to be prioritized
+	app.mm.SetOrderPreBlockers(upgradetypes.ModuleName)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
@@ -360,9 +370,9 @@ func NewBitsongApp(
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
-		// err = manager.RegisterExtensions(
-		// 	ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
-		// )
+		err = manager.RegisterExtensions(
+			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
+		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
@@ -511,21 +521,21 @@ func (app *BitsongApp) ModuleManager() module.Manager {
 // GetKey returns the KVStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *BitsongApp) GetKey(storeKey string) *store.KVStoreKey {
+func (app *BitsongApp) GetKey(storeKey string) *storetypes.KVStoreKey {
 	return app.keys[storeKey]
 }
 
 // GetTKey returns the TransientStoreKey for the provided store key.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *BitsongApp) GetTKey(storeKey string) *store.TransientStoreKey {
+func (app *BitsongApp) GetTKey(storeKey string) *storetypes.TransientStoreKey {
 	return app.tkeys[storeKey]
 }
 
 // GetMemKey returns the MemStoreKey for the provided mem key.
 //
 // NOTE: This is solely used for testing purposes.
-func (app *BitsongApp) GetMemKey(storeKey string) *store.MemoryStoreKey {
+func (app *BitsongApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
 

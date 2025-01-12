@@ -68,6 +68,8 @@ import (
 	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
 	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
+	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	ibcfeekeeper "github.com/cosmos/ibc-go/v8/modules/apps/29-fee/keeper"
 	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v8/modules/apps/transfer/keeper"
@@ -133,13 +135,13 @@ type AppKeepers struct {
 	IBCHooksKeeper        *ibchookskeeper.Keeper
 	EvidenceKeeper        evidencekeeper.Keeper
 	TransferKeeper        ibctransferkeeper.Keeper
-	// IBCWasmClientKeeper   *ibcwasmkeeper.Keeper
-	FeeGrantKeeper       feegrantkeeper.Keeper
-	AuthzKeeper          authzkeeper.Keeper
-	PacketForwardKeeper  *packetforwardkeeper.Keeper
-	FanTokenKeeper       fantokenkeeper.Keeper
-	SmartAccountKeeper   *smartaccountkeeper.Keeper
-	AuthenticatorManager *authenticator.AuthenticatorManager
+	IBCWasmClientKeeper   *ibcwasmkeeper.Keeper
+	FeeGrantKeeper        feegrantkeeper.Keeper
+	AuthzKeeper           authzkeeper.Keeper
+	PacketForwardKeeper   *packetforwardkeeper.Keeper
+	FanTokenKeeper        fantokenkeeper.Keeper
+	SmartAccountKeeper    *smartaccountkeeper.Keeper
+	AuthenticatorManager  *authenticator.AuthenticatorManager
 	// cosmwasm keepers
 	WasmKeeper     wasmkeeper.Keeper
 	CadanceKeeper  cadancekeeper.Keeper
@@ -165,7 +167,7 @@ func NewAppKeepers(
 	dataDir string,
 	wasmDir string,
 	wasmConfig wasmtypes.WasmConfig,
-	// ibcWasmConfig ibcwasmtypes.WasmConfig,
+	ibcWasmConfig ibcwasmtypes.WasmConfig,
 ) AppKeepers {
 	appKeepers := AppKeepers{}
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
@@ -216,18 +218,6 @@ func NewAppKeepers(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[banktypes.StoreKey]), appKeepers.AccountKeeper, BlockedAddrs(),
 		govModAddress, bApp.Logger(),
 	)
-	// enabledSignModes := append(tx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
-	// txConfigOpts := tx.ConfigOptions{
-	// 	EnabledSignModes:           enabledSignModes,
-	// 	TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(appKeepers.BankKeeper),
-	// }
-	// txConfig, err := tx.NewTxConfigWithOptions(
-	// 	appCodec,
-	// 	txConfigOpts,
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	// Initialize authenticators
 	appKeepers.AuthenticatorManager = authenticator.NewAuthenticatorManager()
@@ -300,14 +290,10 @@ func NewAppKeepers(
 	)
 	appKeepers.StakingKeeper = &stakingKeeper
 
-	// ... other modules keepers
-
-	// Create IBC Keeper
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], appKeepers.GetSubspace(ibcexported.ModuleName), appKeepers.StakingKeeper, appKeepers.UpgradeKeeper, scopedIBCKeeper, govModAddress,
 	)
 
-	// Create Fantoken Keeper
 	appKeepers.FanTokenKeeper = fantokenkeeper.NewKeeper(
 		appCodec,
 		keys[fantokentypes.StoreKey],
@@ -423,13 +409,6 @@ func NewAppKeepers(
 		AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper)).
 		AddRoute(icqtypes.ModuleName, icqModule)
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
-
-	// ibcWasmConfig := ibcwasmtypes.WasmConfig{
-	// 	DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
-	// 	SupportedCapabilities: []string{"iterator", "stargate", "abort"},
-	// 	ContractDebugMode:     false,
-	// }
-
 	// Stargate Queries
 	acceptedStargateQueries := wasmkeeper.AcceptedQueries{
 		// ibc
@@ -481,23 +460,22 @@ func NewAppKeepers(
 		wasmOpts...,
 	)
 
-	// acc := make([]string, 0)
-	// for k := range acceptedStargateQueries {
-	// 	acc = append(acc, k)
-	// }
+	acc := make([]string, 0)
+	for k := range acceptedStargateQueries {
+		acc = append(acc, k)
+	}
 
-	// ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
-	// 	appCodec,
-	// 	runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
-	// 	appKeepers.IBCKeeper.ClientKeeper,
-	// 	govModAddress,
-	// 	ibcWasmConfig,
-	// 	bApp.GRPCQueryRouter(),
-	// 	// ibcwasmkeeper.WithQueryPlugins(&ibcwasmtypes.QueryPlugins{
-
-	// 	// 	Stargate: ibcwasmtypes.AcceptListStargateQuerier(acc),
-	// 	// }),
-	// )
+	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
+		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
+		appKeepers.IBCKeeper.ClientKeeper,
+		govModAddress,
+		ibcWasmConfig,
+		bApp.GRPCQueryRouter(),
+		ibcwasmkeeper.WithQueryPlugins(&ibcwasmtypes.QueryPlugins{
+			Stargate: ibcwasmtypes.AcceptListStargateQuerier(acc),
+		}),
+	)
 
 	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
 		appKeepers.keys[cadancetypes.StoreKey],
@@ -507,7 +485,7 @@ func NewAppKeepers(
 		govModAddress,
 	)
 
-	// appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
+	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
 	// set the contract keeper for the Ics20WasmHooks
 	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
