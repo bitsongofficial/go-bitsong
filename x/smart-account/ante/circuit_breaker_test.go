@@ -53,7 +53,7 @@ func (s *AuthenticatorCircuitBreakerAnteSuite) SetupTest() {
 
 	// Initialize the Osmosis application
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.BitsongApp = app.Setup(s.T())
+	s.BitsongApp = app.Setup(false)
 
 	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
 
@@ -99,21 +99,21 @@ func (m MockAnteDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool,
 
 // TestCircuitBreakerAnte verifies that the CircuitBreaker AnteDecorator functions correctly.
 func (s *AuthenticatorCircuitBreakerAnteSuite) TestCircuitBreakerAnte() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Create test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Generate a test transaction
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{

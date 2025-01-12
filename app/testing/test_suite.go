@@ -48,6 +48,15 @@ func init() {
 	baseTestAccts = CreateRandomAccounts(3)
 }
 
+func (s *KeeperTestHelper) Reset() {
+	if s.hasUsedAbci || !s.withCaching {
+		s.withCaching = true
+		s.Setup()
+	} else {
+		s.setupGeneral()
+	}
+}
+
 func (s *KeeperTestHelper) Setup() {
 	dir, err := os.MkdirTemp("", "bitsongd-test-home")
 	if err != nil {

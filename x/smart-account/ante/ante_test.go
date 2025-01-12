@@ -32,12 +32,13 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/ante"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/testutils"
 )
 
 type AuthenticatorAnteSuite struct {
-	suite.Suite
+	apptesting.KeeperTestHelper
 	BitsongApp             *app.BitsongApp
 	Ctx                    sdk.Context
 	EncodingConfig         params.EncodingConfig
@@ -62,7 +63,8 @@ func (s *AuthenticatorAnteSuite) SetupTest() {
 	s.EncodingConfig = app.MakeEncodingConfig()
 
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.BitsongApp = app.Setup(s.T())
+	s.Setup()
+	s.BitsongApp = s.App
 
 	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
 
@@ -100,21 +102,21 @@ func (s *AuthenticatorAnteSuite) TearDownTest() {
 // TestSignatureVerificationNoAuthenticatorInStore test a non-smart account signature verification
 // with no authenticator in the store
 func (s *AuthenticatorAnteSuite) TestSignatureVerificationNoAuthenticatorInStore() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Create a test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{
 		testMsg1,
@@ -136,27 +138,27 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationNoAuthenticatorInStore
 // TestSignatureVerificationWithAuthenticatorInStore test a non-smart account signature verification
 // with a single authenticator in the store
 func (s *AuthenticatorAnteSuite) TestSignatureVerificationWithAuthenticatorInStore() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Ensure the feepayer has funds
-	fees := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 	feePayer := s.TestPrivKeys[0].PubKey().Address()
 	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, feePayer.Bytes(), fees)
 	s.Require().NoError(err)
 
 	// Create a test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	id, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
@@ -197,15 +199,15 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationWithAuthenticatorInSto
 // fee payer has not been authenticated before consuming the parametrized max unauthenticated gas limit (even if the specified limit is 300k)
 // This is to ensure that the amount of compute a non-authenticated user can execute is limited.
 func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	maxUnauthenticatedGasLimit := s.BitsongApp.AppKeepers.SmartAccountKeeper.GetParams(s.Ctx).MaximumUnauthenticatedGas
 	specifiedGasLimit := uint64(300_000)
 
 	// Ensure the feepayers have funds
-	fees := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)
@@ -213,8 +215,8 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 
 	// This message will have several authenticators for s.TestPrivKeys[0] and one for s.TestPrivKeys[1] at the end
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 
@@ -256,8 +258,8 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 
 	// This is a message that can only be aithenticated by its default authenticator (s.TestAccAddress[1])
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 
@@ -282,27 +284,27 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 
 // TestFeePayerGasComsumption tests that the fee payer only gets charged gas for the transaction once.
 func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	specifiedGasLimit := uint64(300_000)
 
 	// Ensure the feepayer has funds
-	fees := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 
 	// Create two messages to ensure that the fee payer code path is reached twice
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 
@@ -317,7 +319,7 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 	s.Require().Equal(sigId, uint64(1), "Adding authenticator returning incorrect id")
 
 	// Check balances before transaction
-	balances := s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), osmoToken)
+	balances := s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
 	s.Require().Equal(fees[0], balances, "Fees incorrect before transaction")
 
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{
@@ -334,22 +336,22 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 	s.Require().NoError(err)
 
 	// Check balances after transaction
-	balances = s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), osmoToken)
-	emptyFees := sdk.NewInt64Coin(osmoToken, 0)
+	balances = s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
+	emptyFees := sdk.NewInt64Coin(bitsongToken, 0)
 	s.Require().Equal(emptyFees, balances, "Fees incorrect after transaction")
 }
 
 func (s *AuthenticatorAnteSuite) TestSpecificAuthenticator() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Create a test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	sig1Id, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
@@ -386,7 +388,7 @@ func (s *AuthenticatorAnteSuite) TestSpecificAuthenticator() {
 	}
 
 	// Ensure the feepayer has funds
-	fees := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2_500_000)}
+	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2_500_000)}
 	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)

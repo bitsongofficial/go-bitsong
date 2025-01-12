@@ -65,31 +65,31 @@ type SignatureVerificationTest struct {
 
 // TestSignatureAuthenticator test a non-smart account signature verification
 func (s *SigVerifyAuthenticationSuite) TestSignatureAuthenticator() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	bitsongToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	// Create a test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg3 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[2]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[2]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	//testMsg4 := &banktypes.MsgSend{
-	//	FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-	//	ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+	//	FromAddress: sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[0]),
+	//	ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 	//	Amount:      coins,
 	//}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
 	tests := []SignatureVerificationTest{
 		{
@@ -292,13 +292,13 @@ func (s *SigVerifyAuthenticationSuite) TestSignatureAuthenticator() {
 
 // TODO: revisit multisignature
 //func (s *SigVerifyAuthenticationSuite) TestMultiSignatureAuthenticator() {
-//	osmoToken := "osmo"
+//	bitsongToken := "bitsong"
 //	priv := []cryptotypes.PrivKey{
 //		s.TestPrivKeys[0],
 //		s.TestPrivKeys[1],
 //	}
 //
-//	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+//	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 //
 //	sigs := make([]signing.SignatureV2, 1)
 //	gen := s.EncodingConfig.TxConfig
@@ -316,10 +316,10 @@ func (s *SigVerifyAuthenticationSuite) TestSignatureAuthenticator() {
 //	account := authtypes.NewBaseAccount(accAddress, multisigKey1, 0, 0)
 //	s.BitsongApp.AccountKeeper.SetAccount(s.Ctx, account)
 //
-//	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+//	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 //	msg := &banktypes.MsgSend{
 //		FromAddress: accAddress.String(),
-//		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+//		ToAddress:   sdk.MustBech32ifyAddressBytes(bitsongToken, s.TestAccAddress[1]),
 //		Amount:      coins,
 //	}
 //

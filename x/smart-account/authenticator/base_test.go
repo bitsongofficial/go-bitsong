@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	"github.com/stretchr/testify/suite"
 
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
@@ -20,17 +18,15 @@ import (
 
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 
-	storetypes "cosmossdk.io/store/types"
-
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 )
 
 type BaseAuthenticatorSuite struct {
-	suite.Suite
+	apptesting.KeeperTestHelper
 	BitsongApp                   *app.BitsongApp
-	Ctx                          sdk.Context
 	EncodingConfig               params.EncodingConfig
 	SigVerificationAuthenticator authenticator.SignatureVerification
 	TestKeys                     []string
@@ -47,11 +43,9 @@ func (s *BaseAuthenticatorSuite) SetupKeys() {
 		"49006a359803f0602a7ec521df88bf5527579da79112bb71f285dd3e7d438033",
 	}
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.BitsongApp = app.Setup(s.T())
+	s.Setup()
+	s.BitsongApp = s.App
 	s.EncodingConfig = app.MakeEncodingConfig()
-
-	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
-	s.Ctx = s.Ctx.WithGasMeter(storetypes.NewGasMeter(1_000_000))
 
 	// Set up test accounts
 	for _, key := range TestKeys {
@@ -71,7 +65,7 @@ func (s *BaseAuthenticatorSuite) SetupKeys() {
 
 func (s *BaseAuthenticatorSuite) GenSimpleTx(msgs []sdk.Msg, signers []cryptotypes.PrivKey) (sdk.Tx, error) {
 	txconfig := app.MakeEncodingConfig().TxConfig
-	feeCoins := sdk.Coins{sdk.NewInt64Coin("osmo", 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin("bitsong", 2500)}
 	var accNums []uint64
 	var accSeqs []uint64
 

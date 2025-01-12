@@ -273,7 +273,7 @@ Similarly, to match a `MsgSwapExactIn` message with a specific sender and token,
 ```json
 {
    "@type":"/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn",
-   "sender":"osmo1...", 
+   "sender":"bitsong1...", 
    "token_in":{
       "denom":"inputDenom"
    }

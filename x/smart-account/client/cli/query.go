@@ -22,7 +22,7 @@ func GetCmdAuthenticators() (*btsgcli.QueryDescriptor, *types.GetAuthenticatorsR
 		Use:   "authenticators",
 		Short: "Query authenticators by account",
 		Long: `{{.Short}}{{.ExampleHeader}}
-{{.CommandPrefix}} osmo12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj`,
+{{.CommandPrefix}} bitsong12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj`,
 	}, &types.GetAuthenticatorsRequest{}
 }
 
@@ -31,7 +31,7 @@ func GetCmdAuthenticator() (*btsgcli.QueryDescriptor, *types.GetAuthenticatorReq
 		Use:   "authenticator",
 		Short: "Query authenticator by account and id",
 		Long: `{{.Short}}{{.ExampleHeader}}
-{{.CommandPrefix}} osmo12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj 17`,
+{{.CommandPrefix}} bitsong12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj 17`,
 	}, &types.GetAuthenticatorRequest{}
 }
 

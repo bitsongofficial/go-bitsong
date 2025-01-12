@@ -303,7 +303,7 @@ func (s *MessageFilterTest) TestLimitOrder() {
 		{"place limit order, simple message filter, no contract address",
 			fmt.Sprintf(`{"@type":"/cosmwasm.wasm.v1.MsgExecuteContract", "msg": {"place_limit": {}}}`),
 			&types.MsgExecuteContract{
-				Contract: "osmo16xcfxjd8263srfqhl5stru49y2w3u7dllugn9dkdrlrhfaeu523s85htxv",
+				Contract: "bitsong16xcfxjd8263srfqhl5stru49y2w3u7dllugn9dkdrlrhfaeu523s85htxv",
 				Msg:      []byte(fmt.Sprintf(`{"place_limit": { "claim_bounty": "%s", "order_direction": "%s", "quantity": "%s", "tick_id": %d}}`, "0.0001", "bid", "47612515", -5257343)),
 				Sender:   fromAddr,
 				Funds:    sdk.NewCoins(sdk.NewCoin("inputDenom", math.NewInt(100))),
@@ -330,9 +330,9 @@ func (s *MessageFilterTest) TestLimitOrder() {
 			true,
 		},
 		{"place limit order, only ask, with contract address",
-			fmt.Sprintf(`{"@type":"/cosmwasm.wasm.v1.MsgExecuteContract", "sender":"%s", "msg": {"place_limit": { "order_direction": "bid"}}, "contract": "osmo1aufrskevnmtvafnvflea9ypllkqqz333tzfcs3cwsg9mfk7946yqprspug"}`, fromAddr),
+			fmt.Sprintf(`{"@type":"/cosmwasm.wasm.v1.MsgExecuteContract", "sender":"%s", "msg": {"place_limit": { "order_direction": "bid"}}, "contract": "bitsong1aufrskevnmtvafnvflea9ypllkqqz333tzfcs3cwsg9mfk7946yqprspug"}`, fromAddr),
 			&types.MsgExecuteContract{
-				Contract: "osmo1aufrskevnmtvafnvflea9ypllkqqz333tzfcs3cwsg9mfk7946yqprspug",
+				Contract: "bitsong1aufrskevnmtvafnvflea9ypllkqqz333tzfcs3cwsg9mfk7946yqprspug",
 				Msg:      []byte(fmt.Sprintf(`{"place_limit": { "claim_bounty": "%s", "order_direction": "%s", "quantity": "%s", "tick_id": %d}}`, "0.0001", "bid", "47612515", -5257343)),
 				Sender:   fromAddr, Funds: sdk.NewCoins(sdk.NewCoin("inputDenom", math.NewInt(100)))},
 			true,

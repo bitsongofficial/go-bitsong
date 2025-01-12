@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,14 +17,14 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/ante"
 )
 
 // AuthenticatorSetPubKeyAnteSuite is a test suite for the authenticator and SetPubKey AnteDecorator.
 type AuthenticatorSetPubKeyAnteSuite struct {
-	suite.Suite
+	apptesting.KeeperTestHelper
 	BitsongApp             *app.BitsongApp
-	Ctx                    sdk.Context
 	EncodingConfig         params.EncodingConfig
 	AuthenticatorDecorator ante.AuthenticatorDecorator
 	TestKeys               []string
@@ -53,9 +52,8 @@ func (s *AuthenticatorSetPubKeyAnteSuite) SetupTest() {
 
 	// Initialize the Osmosis application
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.BitsongApp = app.Setup(s.T())
-
-	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
+	s.Setup()
+	s.BitsongApp = s.App
 
 	// Set up test accounts
 	for _, key := range TestKeys {
@@ -82,21 +80,21 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TearDownTest() {
 
 // TestSetPubKeyAnte verifies that the SetPubKey AnteDecorator functions correctly.
 func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnte() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	btsgToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}
 
 	// Create test messages for signing
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[0]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[0]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
 	testMsg2 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[1]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[1]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[1]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}
 
 	// Generate a test transaction
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{
@@ -121,16 +119,16 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnte() {
 
 // TestSetPubKeyAnteWithSenderNotSigner verifies that SetPubKey AnteDecorator correctly handles a non-signer sender.
 func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnteWithSenderNotSigner() {
-	osmoToken := "osmo"
-	coins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	btsgToken := "bitsong"
+	coins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}
 
 	// Create a test message with a sender that is not a signer
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[4]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(osmoToken, s.TestAccAddress[3]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[4]),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[3]),
 		Amount:      coins,
 	}
-	feeCoins := sdk.Coins{sdk.NewInt64Coin(osmoToken, 2500)}
+	feeCoins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}
 
 	// Generate a test transaction
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{
