@@ -52,7 +52,7 @@ const (
 	FlagIncreaseCoinAmount = "increase-coin-amount"
 )
 
-// bitsongd init-from-state v021 export-v021.json v021 --old-moniker Cosmostation --old-account-addr bitsong1wf3q0a3uzechxvf27reuqts8nqm45sn29ykncv  --increase-coin-amount 10000000000000000ubtsg --o
+// bitsongd init-from-state v021 export-v021.json v021 --old-moniker Cosmostation --old-account-addr bitsong1wf3q0a3uzechxvf27reuqts8nqm45sn29ykncv  --increase-coin-amount 10000000000000000 -o
 // InitFromStateCmd returns a command that initializes all files needed for Tendermint
 // and the respective application.
 func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
@@ -114,7 +114,7 @@ func InitFromStateCmd(defaultNodeHome string) *cobra.Command {
 			increaseCoinAmount, _ := cmd.Flags().GetInt64(FlagIncreaseCoinAmount)
 
 			// attempt to lookup address from Keybase if no address was provided
-			kb, err := keyring.New(sdk.KeyringServiceName(), "test", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()), clientCtx.Codec)
+			kb, err := keyring.New(sdk.KeyringServiceName(), "os", clientCtx.HomeDir, bufio.NewReader(cmd.InOrStdin()), clientCtx.Codec)
 			if err != nil {
 				return fmt.Errorf("failed to open keyring: %w", err)
 			}
@@ -346,18 +346,27 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 	// Impersonate validator
 	var oldValidator tmtypes.GenesisValidator
 
-	// Update tendermint validator data
+	// Filter the validators to keep only the one matching params.OldMoniker
+	var updatedValidators []tmtypes.GenesisValidator
 	for i := range genDoc.Validators {
 		if genDoc.Validators[i].Name == params.OldMoniker {
 			oldValidator = genDoc.Validators[i]
+			// Update the matching validator's data
 			validator := &genDoc.Validators[i]
 
-			// Replace validator data
 			validator.PubKey = params.TmPubKey
 			validator.Address = params.TmPubKey.Address()
-			validator.Power = validator.Power + (params.IncreaseCoinAmount / 1000000)
+			validator.Power = validator.Power + (params.IncreaseCoinAmount)
+
+			// Add the updated validator to the new slice
+			updatedValidators = append(updatedValidators, *validator)
+			break // Exit loop after finding and updating the matching validator
 		}
 	}
+
+	// Replace the original validators slice with the updated slice
+	genDoc.Validators = updatedValidators
+	
 	if oldValidator.Name == "" {
 		return nil, fmt.Errorf("validator to replace %s not found", params.OldMoniker)
 	}
@@ -389,14 +398,15 @@ func ConvertStateExport(clientCtx client.Context, params StateExportParams) (*tm
 		}
 	}
 
-	// Update total power
-	for i := range stakingGenState.LastValidatorPowers {
-		validatorPower := &stakingGenState.LastValidatorPowers[i]
-		if validatorPower.Address == operatorAddr {
-			validatorPower.Power = validatorPower.Power + (params.IncreaseCoinAmount / 1000000)
-		}
+	// Update LastValidatorPowers
+	stakingGenState.LastValidatorPowers = []stakingtypes.LastValidatorPower{
+		{
+			Address: operatorAddr,
+			Power:   updatedValidators[0].Power,
+		},
 	}
-	stakingGenState.LastTotalPower = stakingGenState.LastTotalPower.Add(sdk.NewInt(params.IncreaseCoinAmount / 1000000))
+	
+	stakingGenState.LastTotalPower = sdk.NewInt(updatedValidators[0].Power)
 
 	// Update self delegation on operator address
 	for i := range stakingGenState.Delegations {
