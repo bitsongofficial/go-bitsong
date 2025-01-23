@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bitsongofficial/go-bitsong/e2e/bitsongibctesting"
+	"github.com/bitsongofficial/go-bitsong/tests/bitsongibctesting"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/authenticator"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/testutils"
 
@@ -51,7 +51,7 @@ func TestAuthenticatorSuite(t *testing.T) {
 
 func (s *AuthenticatorSuite) SetupTest() {
 
-	// Use the osmosis custom function for creating an osmosis app
+	// Use the bitsong custom function for creating an bitsong app
 	ibctesting.DefaultTestingAppInit = bitsongibctesting.SetupTestingApp
 
 	// Here we create the app using ibctesting

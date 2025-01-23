@@ -25,6 +25,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 func (s *UpgradeTestSuite) TestUpgrade() {
+	// Commented out as this coverage used testing an issue specific to v0.18 - v0.20.*
 	// upgradeSetup := func() {
 	// 	validators, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
 	// 	for _, val := range validators {

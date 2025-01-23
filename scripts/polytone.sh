@@ -1,7 +1,7 @@
 #!/bin/bash
 BASE_URL="https://github.com/DA0-DA0/polytone/releases/download/v1.1.0/"
 # Directory to store WASM files
-POLYTONE_WASM_DIR="e2e/contracts/"
+POLYTONE_WASM_DIR="tests/ict/contracts/"
 mkdir -p "$POLYTONE_WASM_DIR"
 
 POLYTONE_CONTRACTS=(
