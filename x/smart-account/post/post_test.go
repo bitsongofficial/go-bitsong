@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	storetypes "cosmossdk.io/store/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -22,7 +24,6 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
-	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/post"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/testutils"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
@@ -31,8 +32,9 @@ import (
 )
 
 type AuthenticatorPostSuite struct {
-	apptesting.KeeperTestHelper
+	suite.Suite
 	BitsongApp                 *app.BitsongApp
+	Ctx                        sdk.Context
 	EncodingConfig             params.EncodingConfig
 	AuthenticatorPostDecorator post.AuthenticatorPostDecorator
 	TestKeys                   []string
@@ -55,9 +57,9 @@ func (s *AuthenticatorPostSuite) SetupTest() {
 	s.EncodingConfig = app.MakeEncodingConfig()
 
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.Setup()
-	s.BitsongApp = s.App
+	s.BitsongApp = app.SetupWithCustomHome(false, s.HomeDir)
 
+	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
 	// Set up test accounts
 	for _, key := range TestKeys {
 		bz, _ := hex.DecodeString(key)
@@ -81,6 +83,7 @@ func (s *AuthenticatorPostSuite) SetupTest() {
 		// Add an empty handler here to enable a circuit breaker pattern
 		sdk.ChainPostDecorators(sdk.Terminator{}), //nolint
 	)
+	s.Ctx = s.Ctx.WithGasMeter(storetypes.NewGasMeter(1_000_000))
 
 }
 

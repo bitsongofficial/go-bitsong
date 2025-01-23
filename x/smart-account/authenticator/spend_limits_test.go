@@ -74,8 +74,7 @@ const UUSDC = "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA
 
 func (s *SpendLimitAuthenticatorTest) SetupTest() {
 	s.SetupKeys()
-	s.Setup()
-	s.BitsongApp = s.App
+	s.BitsongApp = app.Setup(false)
 	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
 	s.Ctx = s.Ctx.WithGasMeter(storetypes.NewGasMeter(10_000_000))
 	s.Ctx = s.Ctx.WithBlockTime(time.Now())

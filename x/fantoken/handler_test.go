@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	simapp "github.com/bitsongofficial/go-bitsong/app"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,17 +17,14 @@ import (
 )
 
 type HandlerTestSuite struct {
-	suite.Suite
-
-	app        *simapp.BitsongApp
-	ctx        sdk.Context
+	apptesting.KeeperTestHelper
 	govHandler govv1beta1.Handler
 }
 
 func (suite *HandlerTestSuite) SetupTest() {
-	suite.app = simapp.Setup(false)
-	suite.ctx = suite.app.BaseApp.NewContext(false)
-	suite.govHandler = params.NewParamChangeProposalHandler(suite.app.AppKeepers.ParamsKeeper)
+	suite.Setup()
+	// suite.ctx = suite.app.BaseApp.NewContext(false)
+	suite.govHandler = params.NewParamChangeProposalHandler(suite.App.AppKeepers.ParamsKeeper)
 }
 
 func TestHandlerTestSuite(t *testing.T) {
@@ -49,16 +46,14 @@ func (suite *HandlerTestSuite) TestParamChangeProposal() {
 
 	fmt.Println(tp.String())
 
-	err := suite.govHandler(suite.ctx, tp)
+	err := suite.govHandler(suite.Ctx, tp)
 	suite.Require().NoError(err)
 }
 
-func TestProposalHandlerPassed(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false)
+func (suite *HandlerTestSuite) TestProposalHandlerPassed() {
 
-	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
-	require.Equal(t, params, fantokentypes.DefaultParams())
+	params := suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	require.Equal(suite.T(), params, fantokentypes.DefaultParams())
 
 	newIssueFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))
 	newMintFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(2))
@@ -72,21 +67,19 @@ func TestProposalHandlerPassed(t *testing.T) {
 		newBurnFee,
 	)
 
-	h := fantoken.NewProposalHandler(app.AppKeepers.FanTokenKeeper)
-	require.NoError(t, h(ctx, proposal))
+	h := fantoken.NewProposalHandler(suite.App.AppKeepers.FanTokenKeeper)
+	require.NoError(suite.T(), h(suite.Ctx, proposal))
 
-	params = app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
-	require.Equal(t, newIssueFee, params.IssueFee)
-	require.Equal(t, newMintFee, params.MintFee)
-	require.Equal(t, newBurnFee, params.BurnFee)
+	params = suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	require.Equal(suite.T(), newIssueFee, params.IssueFee)
+	require.Equal(suite.T(), newMintFee, params.MintFee)
+	require.Equal(suite.T(), newBurnFee, params.BurnFee)
 }
 
-func TestProposalHandlerFailed(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false)
+func (suite *HandlerTestSuite) TestProposalHandlerFailed() {
 
-	params := app.AppKeepers.FanTokenKeeper.GetParamSet(ctx)
-	require.Equal(t, params, fantokentypes.DefaultParams())
+	params := suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	require.Equal(suite.T(), params, fantokentypes.DefaultParams())
 
 	newIssueFee := sdk.Coin{
 		Denom:  sdk.DefaultBondDenom,
@@ -103,6 +96,6 @@ func TestProposalHandlerFailed(t *testing.T) {
 		newBurnFee,
 	)
 
-	h := fantoken.NewProposalHandler(app.AppKeepers.FanTokenKeeper)
-	require.Error(t, h(ctx, proposal))
+	h := fantoken.NewProposalHandler(suite.App.AppKeepers.FanTokenKeeper)
+	require.Error(suite.T(), h(suite.Ctx, proposal))
 }

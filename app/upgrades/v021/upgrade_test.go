@@ -5,7 +5,9 @@ import (
 	"testing"
 
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 
+	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -25,7 +27,28 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 func (s *UpgradeTestSuite) TestUpgrade() {
-	upgradeSetup := func() {}
+	upgradeSetup := func() {
+		// create delegations with 0 power
+		validators, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		// del2 := s.TestAccs[1]
+		for _, val := range validators {
+			dels, _ := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
+
+			// log the current delegations
+			log := fmt.Sprintf("Current delegations for validator %s: %#v", val.OperatorAddress, dels)
+			fmt.Println(log)
+
+			// update delegation with 0 shares
+			for _, del := range dels {
+				del.Shares = math.LegacyZeroDec()
+			}
+
+			// s.Ctx.Logger().Info(fmt.Sprintf("Current delegations for validator %s: %#v", val.OperatorAddress, dels))
+			// // create another delegator
+			// s.FundAcc(del2, types.NewCoins(types.NewCoin("ubtsg", math.NewInt(1000000))))
+			// s.StakingHelper.Delegate(del2, valAddr, math.NewInt(1000000))
+		}
+	}
 
 	testCases := []struct {
 		name         string
@@ -49,8 +72,15 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.Require().NotPanics(func() {
 					s.App.BeginBlocker(s.Ctx)
 				})
+
 			},
-			func() {},
+			func() {
+				// confirm 0 delegation does not exists
+				dels, _ := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
+				for _, del := range dels {
+					s.Require().NotZero(del.Shares)
+				}
+			},
 		},
 	}
 

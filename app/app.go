@@ -35,7 +35,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	dbm "github.com/cosmos/cosmos-db"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	"github.com/gorilla/mux"
 
 	// "github.com/rakyll/statik/fs"
@@ -85,7 +84,7 @@ var (
 	NodeDir       = ".bitsongd"
 	Bech32Prefix  = "bitsong"
 	EmptyWasmOpts []wasmkeeper.Option
-	homePath      string
+	// homePath      string
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
 	ProposalsEnabled = "true"
@@ -314,9 +313,7 @@ func NewBitsongApp(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(orderBeginBlockers()...)
-
 	app.mm.SetOrderEndBlockers(orderEndBlockers()...)
-
 	app.mm.SetOrderInitGenesis(orderInitBlockers()...)
 
 	app.mm.RegisterInvariants(app.AppKeepers.CrisisKeeper)
@@ -358,10 +355,14 @@ func NewBitsongApp(
 	}
 
 	// initialize BaseApp
-	app.SetAnteHandler(anteHandler)
 	app.SetInitChainer(app.InitChainer)
+	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
+	app.SetAnteHandler(anteHandler)
+	app.SetPostHandler(NewPostHandler(appCodec, app.AppKeepers.SmartAccountKeeper, app.AppKeepers.AccountKeeper, encodingConfig.TxConfig.SignModeHandler()))
 	app.SetEndBlocker(app.EndBlocker)
+	app.SetPrecommiter(app.Precommitter)
+	app.SetPrepareCheckStater(app.PrepareCheckStater)
 
 	if manager := app.SnapshotManager(); manager != nil {
 		err = manager.RegisterExtensions(
@@ -379,25 +380,6 @@ func NewBitsongApp(
 	}
 	// upgrade info
 	app.setupUpgradeStoreLoaders()
-	// In v0.46, the SDK introduces _postHandlers_. PostHandlers are like
-	// antehandlers, but are run _after_ the `runMsgs` execution. They are also
-	// defined as a chain, and have the same signature as antehandlers.
-	//
-	// In baseapp, postHandlers are run in the same store branch as `runMsgs`,
-	// meaning that both `runMsgs` and `postHandler` state will be committed if
-	// both are successful, and both will be reverted if any of the two fails.
-	//
-	// The SDK exposes a default postHandlers chain, which comprises of only
-	// one decorator: the Transaction Tips decorator. However, some chains do
-	// not need it by default, so feel free to comment the next line if you do
-	// not need tips.
-	// To read more about tips:
-	// https://docs.cosmos.network/main/core/tips.html
-	//
-	// Please note that changing any of the anteHandler or postHandler chain is
-	// likely to be a state-machine breaking change, which needs a coordinated
-	// upgrade.
-	app.setPostHandler()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -433,22 +415,24 @@ func NewBitsongApp(
 	return app
 }
 
-func (app *BitsongApp) setPostHandler() {
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	app.SetPostHandler(postHandler)
-}
-
 // Name returns the name of the App
 func (app *BitsongApp) Name() string { return app.BaseApp.Name() }
 
 func (app *BitsongApp) GetBaseApp() *baseapp.BaseApp {
 	return app.BaseApp
+}
+
+// PreBlocker application updates before each begin block.
+func (app *BitsongApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+	// Set gas meter to the free gas meter.
+	// This is because there is currently non-deterministic gas usage in the
+	// pre-blocker, e.g. due to hydration of in-memory data structures.
+	//
+	// Note that we don't need to reset the gas meter after the pre-blocker
+	// because Go is pass by value.
+	ctx = ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
+	mm := app.ModuleManager()
+	return mm.PreBlock(ctx)
 }
 
 // BeginBlocker application updates every begin block
@@ -462,12 +446,19 @@ func (app *BitsongApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 }
 
 // Precommitter application updates before the commital of a block after all transactions have been delivered.
-// func (app *BitsongApp) Precommitter(ctx sdk.Context) {
-// 	mm := app.ModuleManager()
-// 	if err := mm.Precommit(ctx); err != nil {
-// 		panic(err)
-// 	}
-// }
+func (app *BitsongApp) Precommitter(ctx sdk.Context) {
+	mm := app.ModuleManager()
+	if err := mm.Precommit(ctx); err != nil {
+		panic(err)
+	}
+}
+
+func (app *BitsongApp) PrepareCheckStater(ctx sdk.Context) {
+	mm := app.ModuleManager()
+	if err := mm.PrepareCheckState(ctx); err != nil {
+		panic(err)
+	}
+}
 
 // InitChainer application update at chain initialization
 func (app *BitsongApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {

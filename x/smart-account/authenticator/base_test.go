@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"math/rand"
 
+	storetypes "cosmossdk.io/store/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/stretchr/testify/suite"
 
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
@@ -21,12 +24,12 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app"
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
-	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 )
 
 type BaseAuthenticatorSuite struct {
-	apptesting.KeeperTestHelper
+	suite.Suite
 	BitsongApp                   *app.BitsongApp
+	Ctx                          sdk.Context
 	EncodingConfig               params.EncodingConfig
 	SigVerificationAuthenticator authenticator.SignatureVerification
 	TestKeys                     []string
@@ -43,9 +46,10 @@ func (s *BaseAuthenticatorSuite) SetupKeys() {
 		"49006a359803f0602a7ec521df88bf5527579da79112bb71f285dd3e7d438033",
 	}
 	s.HomeDir = fmt.Sprintf("%d", rand.Int())
-	s.Setup()
-	s.BitsongApp = s.App
+	s.BitsongApp = app.SetupWithCustomHome(false, s.HomeDir)
 	s.EncodingConfig = app.MakeEncodingConfig()
+	s.Ctx = s.BitsongApp.NewContextLegacy(false, tmproto.Header{})
+	s.Ctx = s.Ctx.WithGasMeter(storetypes.NewGasMeter(1_000_000))
 
 	// Set up test accounts
 	for _, key := range TestKeys {

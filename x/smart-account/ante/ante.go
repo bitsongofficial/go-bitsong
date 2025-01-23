@@ -12,7 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	storetypes "cosmossdk.io/store/types"
@@ -29,7 +29,7 @@ type AuthenticatorDecorator struct {
 	smartAccountKeeper *smartaccountkeeper.Keeper
 	accountKeeper      authante.AccountKeeper
 	sigModeHandler     *txsigning.HandlerMap
-	deductFeeDecorator ante.DeductFeeDecorator
+	deductFeeDecorator authante.DeductFeeDecorator
 	cdc                codec.Codec
 }
 
@@ -39,7 +39,7 @@ func NewAuthenticatorDecorator(
 	smartAccountKeeper *smartaccountkeeper.Keeper,
 	accountKeeper authante.AccountKeeper,
 	sigModeHandler *txsigning.HandlerMap,
-	deductFeeDecorator ante.DeductFeeDecorator,
+	deductFeeDecorator authante.DeductFeeDecorator,
 ) AuthenticatorDecorator {
 	return AuthenticatorDecorator{
 		smartAccountKeeper: smartAccountKeeper,
@@ -175,16 +175,16 @@ func (ad AuthenticatorDecorator) AnteHandle(
 				errorsmod.Wrapf(err, "failed to generate authentication data (account = %s, authenticator id = %d, msg index = %d, msg type url = %s)", account, selectedAuthenticator.Id, msgIndex, sdk.MsgTypeURL(msg))
 		}
 
-		a11r := selectedAuthenticator.Authenticator
+		ath := selectedAuthenticator.Authenticator
 		stringId := strconv.FormatUint(selectedAuthenticator.Id, 10)
 		authenticationRequest.AuthenticatorId = stringId
 
 		// Consume the authenticator's static gas
-		ctx.GasMeter().ConsumeGas(a11r.StaticGas(), "authenticator static gas")
+		ctx.GasMeter().ConsumeGas(ath.StaticGas(), "authenticator static gas")
 
 		// Authenticate should never modify state. That's what track is for
 		neverWriteCtx, _ := ctx.CacheContext()
-		authErr := a11r.Authenticate(neverWriteCtx, authenticationRequest)
+		authErr := ath.Authenticate(neverWriteCtx, authenticationRequest)
 
 		// If authentication is successful, continue
 		if authErr == nil {
@@ -220,7 +220,7 @@ func (ad AuthenticatorDecorator) AnteHandle(
 			// loop variable inside the closure.
 			currentMsgTypeURL := sdk.MsgTypeURL(msg)
 			tracks = append(tracks, func() error {
-				err := a11r.Track(ctx, authenticationRequest)
+				err := ath.Track(ctx, authenticationRequest)
 				if err != nil {
 					// track should not fail in normal circumstances, since it is intended to update track state before execution.
 					// If it does fail, we log the error.
@@ -228,7 +228,7 @@ func (ad AuthenticatorDecorator) AnteHandle(
 					ad.smartAccountKeeper.Logger(ctx).Error(
 						"track failed", "account", account, "feePayer", feePayer, "msg", currentMsgTypeURL, "authenticatorId", stringId, "error", err)
 
-					return errorsmod.Wrapf(err, "track failed (account = %s, authenticator id = %s, authenticator type, %s, msg index = %d)", account, stringId, a11r.Type(), msgIndex)
+					return errorsmod.Wrapf(err, "track failed (account = %s, authenticator id = %s, authenticator type, %s, msg index = %d)", account, stringId, ath.Type(), msgIndex)
 				}
 				return nil
 			})
@@ -285,8 +285,8 @@ func (ad AuthenticatorDecorator) ValidateAuthenticatorFeePayer(ctx sdk.Context, 
 
 	if !bytes.Equal(feePayer, signers[0]) {
 		// check if feegrant exists
-		if feeGrant, err := ad.smartAccountKeeper.FeegrantKeeper.GetAllowance(ctx, feePayer, signers[0]); err != nil {
-			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer, or have an active feegrant allowance")
+		if feeGrant, err := ad.smartAccountKeeper.FeegrantKeeper.GetAllowance(ctx, feePayer, signers[0]); err != nil || feeGrant == nil {
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer, or signer must have an active feegrant allowance from feepayer")
 		} else if _, err := feeGrant.Accept(ctx, feeTx.GetFee(), msgs); err != nil {
 			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee grant not accepted")
 
