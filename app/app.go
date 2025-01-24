@@ -391,9 +391,9 @@ func NewBitsongApp(
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
-		// if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
-		// 	tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
-		// }
+		if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
+			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
+		}
 		// Initialize and seal the capability keeper so all persistent capabilities
 		// are loaded in-memory and prevent any further modules from creating scoped
 		// sub-keepers.
@@ -557,7 +557,7 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		// RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
 
 }

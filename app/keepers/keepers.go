@@ -305,17 +305,15 @@ func NewAppKeepers(
 	)
 
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
-		appCodec,
-		keys[packetforwardtypes.StoreKey],
-		appKeepers.TransferKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.DistrKeeper,
+		appCodec,                           // cdc codec.BinaryCodec,
+		keys[packetforwardtypes.StoreKey],  // key storetypes.StoreKey,
+		appKeepers.TransferKeeper,          // transferKeeper types.TransferKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper, // channelKeeper types.ChannelKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		govModAddress,
 	)
 
-	// Create Transfer Keepers
 	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
 		//app.IBCKeeper.ChannelKeeper,
@@ -380,13 +378,13 @@ func NewAppKeepers(
 	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
 	transferStack = ibc_hooks.NewIBCMiddleware(transferStack, &appKeepers.HooksICS4Wrapper)
 	transferStack = packetforward.NewIBCMiddleware(
-		transferStack,
-		appKeepers.PacketForwardKeeper,
-		middlewareTimeoutRetry, // retries on timeout
+		transferStack,                  // app porttypes.IBCModule,
+		appKeepers.PacketForwardKeeper, // k *keeper.Keeper,
+		middlewareTimeoutRetry,         // retries on timeout
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, // forward timeout
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,  // refund timeout
 	)
 
+	// forwardTimeout time.Duration,
 	// ICQ Keeper
 	icqKeeper := icqkeeper.NewKeeper(
 		appCodec,
@@ -508,6 +506,9 @@ func NewAppKeepers(
 func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
 	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
 
+	keytable := ibcclienttypes.ParamKeyTable()
+	keytable.RegisterParamSet(&ibcconnectiontypes.Params{})
+
 	paramsKeeper.Subspace(authtypes.ModuleName)
 	paramsKeeper.Subspace(banktypes.ModuleName)
 	paramsKeeper.Subspace(stakingtypes.ModuleName)
@@ -521,7 +522,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(wasmtypes.ModuleName)
 	paramsKeeper.Subspace(icqtypes.ModuleName)
 	paramsKeeper.Subspace(ibchookstypes.ModuleName)
-	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	paramsKeeper.Subspace(smartaccounttypes.ModuleName).WithKeyTable(smartaccounttypes.ParamKeyTable())
 	paramsKeeper.Subspace(fantokentypes.ModuleName)
 
