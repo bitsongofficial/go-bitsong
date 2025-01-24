@@ -101,10 +101,10 @@ func MainnetGenesisParams() GenesisParams {
 		appparams.MicroCoinUnit,
 		math.NewInt(512_000_000),
 	))
-	genParams.GovParams.TallyParams.Quorum = math.LegacyMustNewDecFromStr("0.4")          // 40%
-	genParams.GovParams.TallyParams.Threshold = math.LegacyMustNewDecFromStr("0.5")       // 50%
-	genParams.GovParams.TallyParams.VetoThreshold = math.LegacyMustNewDecFromStr("0.334") // 33.40%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Hour * 24 * 7                    // 7 days
+	genParams.GovParams.Params.Quorum = math.LegacyMustNewDecFromStr("0.4").String()          // 40%
+	genParams.GovParams.Params.Threshold = math.LegacyMustNewDecFromStr("0.5").String()       // 50%
+	genParams.GovParams.Params.VetoThreshold = math.LegacyMustNewDecFromStr("0.334").String() // 33.40%
+	genParams.GovParams.Params.VotingPeriod = &maxVotingPeriod                                // 7 days
 
 	genParams.SlashingParams = slashingtypes.DefaultParams()
 	genParams.SlashingParams.SignedBlocksWindow = int64(10000)                              // 10000 blocks (~13.8 hr at 5 second blocks)
@@ -127,6 +127,7 @@ func TestnetGenesisParams() GenesisParams {
 	genParams := MainnetGenesisParams()
 
 	genParams.GenesisTime = time.Now()
+	testnetVotingPeriod := time.Second * 300
 
 	genParams.StakingParams.UnbondingTime = time.Hour * 24 * 7 * 2 // 2 weeks
 
@@ -134,8 +135,8 @@ func TestnetGenesisParams() GenesisParams {
 		appparams.MicroCoinUnit,
 		math.NewInt(1000000), // 1 BTSG
 	))
-	genParams.GovParams.TallyParams.Quorum = math.LegacyMustNewDecFromStr("0.0000000001") // 0.00000001%
-	genParams.GovParams.VotingParams.VotingPeriod = time.Second * 300                     // 300 seconds
+	genParams.GovParams.Params.Quorum = math.LegacyMustNewDecFromStr("0.0000000001").String() // 0.00000001%
+	genParams.GovParams.Params.VotingPeriod = &testnetVotingPeriod                            // 300 seconds
 
 	return genParams
 }
