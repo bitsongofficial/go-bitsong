@@ -16,7 +16,7 @@ After launching the main BitSong blockchain in August 2020, the bitsong-2b mainn
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
-**Note**: Requires [Go 1.22.x+](https://golang.org/dl/)
+**Note**: Requires [Go 1.23.x+](https://golang.org/dl/)
 
 # Install BitSong Blockchain
 

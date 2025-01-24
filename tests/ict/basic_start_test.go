@@ -32,24 +32,6 @@ func TestBasicBtsgStart(t *testing.T) {
 
 	bitsongconformance.ConformanceCosmWasm(t, ctx, bitsong, chainUser)
 
-	// grpc query
-	// bitsongGrpc := bitsong.GetGRPCAddress()
-	// dialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
-	// conn, err := grpc.NewClient(bitsongGrpc, dialOpts)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println(conn)
-	// defer conn.Close()
-	// client := wasmtypes.NewQueryClient(conn)
-	// req6 := &wasmtypes.QueryParamsRequest{}
-	// resp6, err6 := client.Params(ctx, req6)
-	// if err6 != nil {
-	// 	log.Fatal(err)
-	// }
-	// require.NotNil(t, resp6)
-
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)
 

@@ -2,7 +2,7 @@
 package e2e
 
 import (
-	w "github.com/CosmWasm/wasmvm/types"
+	w "github.com/CosmWasm/wasmvm/v2/types"
 )
 
 // these types are copied from ../simtests/contract.go. you'll need to

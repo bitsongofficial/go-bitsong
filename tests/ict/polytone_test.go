@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	w "github.com/CosmWasm/wasmvm/types"
+	w "github.com/CosmWasm/wasmvm/v2/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )

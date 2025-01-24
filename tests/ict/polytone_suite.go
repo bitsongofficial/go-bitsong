@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	w "github.com/CosmWasm/wasmvm/types"
+	w "github.com/CosmWasm/wasmvm/v2/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"

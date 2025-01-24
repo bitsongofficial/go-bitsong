@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-
 	"github.com/docker/docker/client"
 	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -88,7 +86,7 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 
 	// register custom types
 	ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	// wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	// fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
