@@ -28,7 +28,7 @@ There are many ways you can install BitSong Blockchain Testnet node on your mach
 	sudo apt update
 	sudo apt install -y curl git jq lz4 build-essential
     wget -q -O - https://git.io/vQhTU | bash -s -- --remove
-    wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.22.9
+    wget -q -O - https://git.io/vQhTU | bash -s -- --version 1.23.5
     ```
 2. **Clone BitSong source code to your machine**
     ```bash

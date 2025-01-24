@@ -1,6 +1,6 @@
 # docker build . -t bitsongofficial/go-bitsong:latest
 # docker run --rm -it bitsongofficial/go-bitsong:latest /bin/sh
-FROM golang:1.22-alpine AS go-builder
+FROM golang:1.23-alpine AS go-builder
 
 # this comes from standard alpine nightly file
 #  https://github.com/rust-lang/docker-rust-nightly/blob/master/alpine3.12/Dockerfile
