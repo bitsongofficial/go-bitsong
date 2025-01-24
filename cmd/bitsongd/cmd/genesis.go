@@ -20,7 +20,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	v1beta1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	v1govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -36,7 +36,7 @@ type GenesisParams struct {
 	StakingParams      stakingtypes.Params
 	MintParams         minttypes.Params
 	DistributionParams distributiontypes.Params
-	GovParams          v1beta1govtypes.GenesisState
+	GovParams          v1govtypes.GenesisState
 	SlashingParams     slashingtypes.Params
 
 	CrisisConstantFee sdk.Coin
@@ -92,8 +92,12 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.DistributionParams.CommunityTax = math.LegacyMustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
-	genParams.GovParams.DepositParams.MaxDepositPeriod = time.Hour * 24 * 15 // 15 days
-	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+	maxDepositPeriod := time.Hour * 24 * 15
+	maxVotingPeriod := time.Hour * 24 * 7
+
+	genParams.GovParams.Params.MaxDepositPeriod = &maxDepositPeriod
+
+	genParams.GovParams.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(
 		appparams.MicroCoinUnit,
 		math.NewInt(512_000_000),
 	))
@@ -167,7 +171,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 	}
 	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
-	govGenState := v1beta1govtypes.DefaultGenesisState()
+	govGenState := v1govtypes.DefaultGenesisState()
 	govGenState.DepositParams = genesisParams.GovParams.DepositParams
 	govGenState.TallyParams = genesisParams.GovParams.TallyParams
 	govGenState.VotingParams = genesisParams.GovParams.VotingParams
