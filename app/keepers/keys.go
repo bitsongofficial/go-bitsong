@@ -36,30 +36,32 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		authtypes.StoreKey,
 		banktypes.StoreKey,
 		stakingtypes.StoreKey,
-		crisistypes.StoreKey,
 		minttypes.StoreKey,
 		distrtypes.StoreKey,
 		slashingtypes.StoreKey,
 		govtypes.StoreKey,
+		crisistypes.StoreKey,
 		paramstypes.StoreKey,
 		consensusparamtypes.StoreKey,
 		upgradetypes.StoreKey,
 		feegrant.StoreKey,
 		evidencetypes.StoreKey,
-		authzkeeper.StoreKey,
-		packetforwardtypes.StoreKey,
-		ibcexported.StoreKey,
-		ibchookstypes.StoreKey,
 		ibctransfertypes.StoreKey,
 		ibcwasmtypes.StoreKey,
-		icqtypes.StoreKey,
-		fantokentypes.StoreKey,
-		wasmtypes.StoreKey,
 		capabilitytypes.StoreKey,
+		authzkeeper.StoreKey,
+		wasmtypes.StoreKey,
+		ibchookstypes.StoreKey,
+		icqtypes.StoreKey,
+		packetforwardtypes.StoreKey,
+		ibcexported.StoreKey,
+		fantokentypes.StoreKey,
 		cadancetypes.StoreKey,
 		smartaccounttypes.StoreKey,
 	)
+
 	appKeepers.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	// memkeys are info stored  in RAM
 	appKeepers.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 

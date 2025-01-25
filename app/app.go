@@ -37,8 +37,6 @@ import (
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/gorilla/mux"
 
-	// "github.com/rakyll/statik/fs"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/spf13/cast"
@@ -242,6 +240,7 @@ func NewBitsongApp(
 		tkeys:             storetypes.NewTransientStoreKeys(paramstypes.TStoreKey),
 		memKeys:           storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey),
 	}
+
 	app.homePath = homePath
 	dataDir := filepath.Join(homePath, "data")
 	wasmDir := filepath.Join(homePath, "wasm")
@@ -292,21 +291,17 @@ func NewBitsongApp(
 		panic(err)
 	}
 
-	// wasm max size
-
-	// upgrade handlers
-	app.configurator = module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	// upgrade info
+	app.setupUpgradeStoreLoaders()
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
 	// we prefer to be more strict in what arguments the modules expect.
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
-
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(appModules(app, encodingConfig, skipGenesisInvariants)...)
-	app.mm.RegisterServices(app.configurator)
 
-	// NOTE: upgrade module is required to be prioritized
+	// NOTE: upgrade module is prioritized in preblock
 	app.mm.SetOrderPreBlockers(upgradetypes.ModuleName)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -317,20 +312,32 @@ func NewBitsongApp(
 	app.mm.SetOrderInitGenesis(orderInitBlockers()...)
 
 	app.mm.RegisterInvariants(app.AppKeepers.CrisisKeeper)
-	// initialize stores
-	app.MountKVStores(app.keys)
-	app.MountTransientStores(app.AppKeepers.GetTransientStoreKey())
-	app.MountMemoryStores(app.AppKeepers.GetMemoryStoreKey())
+
+	// upgrade handlers
+	app.configurator = module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+	err = app.mm.RegisterServices(app.configurator)
+	if err != nil {
+		panic(err)
+	}
 
 	// register upgrade
 	app.setupUpgradeHandlers(app.configurator)
 
+	app.sm = module.NewSimulationManager(simulationModules(app, encodingConfig, skipGenesisInvariants)...)
+
+	app.sm.RegisterStoreDecoders()
+
 	autocliv1.RegisterQueryServer(app.GRPCQueryRouter(), runtimeservices.NewAutoCLIQueryService(app.mm.Modules))
-	reflectionSvc, err := runtimeservices.NewReflectionService()
-	if err != nil {
-		panic(err)
-	}
+
+	reflectionSvc := getReflectionService()
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
+
+	app.sm.RegisterStoreDecoders()
+
+	// initialize stores
+	app.MountKVStores(app.keys)
+	app.MountTransientStores(app.AppKeepers.GetTransientStoreKey())
+	app.MountMemoryStores(app.AppKeepers.GetMemoryStoreKey())
 
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
@@ -344,7 +351,7 @@ func NewBitsongApp(
 			SmartAccount:      app.AppKeepers.SmartAccountKeeper,
 			GovKeeper:         app.AppKeepers.GovKeeper,
 			IBCKeeper:         app.AppKeepers.IBCKeeper,
-			TxCounterStoreKey: runtime.NewKVStoreService(app.AppKeepers.GetKey(wasmtypes.StoreKey)), // app.AppKeepers.GetKey(wasmtypes.StoreKey),
+			TxCounterStoreKey: runtime.NewKVStoreService(app.AppKeepers.GetKey(wasmtypes.StoreKey)),
 			WasmConfig:        wasmConfig,
 			Cdc:               appCodec,
 			TxEncoder:         app.txConfig.TxEncoder(),
@@ -378,8 +385,6 @@ func NewBitsongApp(
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
 	}
-	// upgrade info
-	app.setupUpgradeStoreLoaders()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -403,12 +408,6 @@ func NewBitsongApp(
 		// `loadLatest` is set to true.
 		app.AppKeepers.CapabilityKeeper.Seal()
 	}
-
-	// create the simulation manager and define the order of the modules for deterministic simulations
-	//
-	// NOTE: this is not required apps that don't use the simulator for fuzz testing
-	// transactions
-	app.sm = module.NewSimulationManager(simulationModules(app, encodingConfig, skipGenesisInvariants)...)
 
 	app.sm.RegisterStoreDecoders()
 
@@ -549,9 +548,6 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	// Register new tendermint queries routes from grpc-gateway.
 	cmtservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
-	// Register legacy and grpc-gateway routes for all application modules.
-	AppModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-
 	// Register new tendermint queries routes from grpc-gateway.
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
@@ -629,5 +625,21 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 	}
 
 	staticServer := http.FileServer(statikFS)
+	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
 	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+}
+
+// we cache the reflectionService to save us time within tests.
+var cachedReflectionService *runtimeservices.ReflectionService = nil
+
+func getReflectionService() *runtimeservices.ReflectionService {
+	if cachedReflectionService != nil {
+		return cachedReflectionService
+	}
+	reflectionSvc, err := runtimeservices.NewReflectionService()
+	if err != nil {
+		panic(err)
+	}
+	cachedReflectionService = reflectionSvc
+	return reflectionSvc
 }
