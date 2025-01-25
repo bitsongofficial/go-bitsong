@@ -390,14 +390,6 @@ func NewAppKeepers(
 		BlockedAddrs(),
 	)
 
-	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
-		appKeepers.keys[cadancetypes.StoreKey],
-		appCodec,
-		appKeepers.WasmKeeper,
-		appKeepers.ContractKeeper,
-		govModAddress,
-	)
-
 	// Stargate Queries
 	acceptedStargateQueries := wasmkeeper.AcceptedQueries{
 		// ibc
@@ -450,6 +442,14 @@ func NewAppKeepers(
 	// set the contract keeper for ICS4Wrappers (IBC Middleware)
 	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
 	appKeepers.Ics20WasmHooks.ContractKeeper = &appKeepers.WasmKeeper
+
+	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
+		appKeepers.keys[cadancetypes.StoreKey],
+		appCodec,
+		appKeepers.WasmKeeper,
+		appKeepers.ContractKeeper,
+		govModAddress,
+	)
 
 	// register CosmWasm authenticator
 	appKeepers.AuthenticatorManager.RegisterAuthenticator(
