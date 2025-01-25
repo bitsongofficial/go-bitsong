@@ -382,7 +382,7 @@ On cosmos SDK versions before 0.50 it was possible to have multiple signers for 
 the case after v0.50, and we have introduced this restriction here as it makes it more clear which account a message
 is associated with.
 
-### The fee payer must be the first signer of the first message
+### The fee payer must be the first signer of the first message (or, feegrant exist for first sender)
 
 The cosmos SDK allows for the fee payer to be any signer of the transaction but defaults to the first signer of the first
 message. This module will enforce this restriction to simplify the gas management and authentication process.

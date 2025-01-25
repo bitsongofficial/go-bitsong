@@ -121,11 +121,12 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnte() {
 func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnteWithSenderNotSigner() {
 	btsgToken := "bitsong"
 	coins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}
-
+	testAcc3 := s.TestAccAddress[4]
+	testAcc2 := s.TestAccAddress[3]
 	// Create a test message with a sender that is not a signer
 	testMsg1 := &banktypes.MsgSend{
-		FromAddress: sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[4]),
-		ToAddress:   sdk.MustBech32ifyAddressBytes(btsgToken, s.TestAccAddress[3]),
+		FromAddress: sdk.MustBech32ifyAddressBytes(btsgToken, testAcc3),
+		ToAddress:   sdk.MustBech32ifyAddressBytes(btsgToken, testAcc2),
 		Amount:      coins,
 	}
 	feeCoins := sdk.Coins{sdk.NewInt64Coin(btsgToken, 2500)}

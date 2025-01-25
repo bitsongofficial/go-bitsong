@@ -24,7 +24,6 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app/params"
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
-	// "github.com/bitsongofficial/go-bitsong/tests/bitsongibctesting"¸
 )
 
 type AuthenticatorSuite struct {
@@ -449,6 +448,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAnyOf() {
 // TestCompositeAuthenticatorAllOf tests an AllOf authenticator with signature verification authenticator and message filter
 func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 	coins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 50))
+
 	sendMsg := &banktypes.MsgSend{
 		FromAddress: sdk.MustBech32ifyAddressBytes("bitsong", s.Account.GetAddress()),
 		ToAddress:   sdk.MustBech32ifyAddressBytes("bitsong", s.Account.GetAddress()),
@@ -457,11 +457,13 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 
 	allOf := authenticator.NewAllOf(s.app.AppKeepers.AuthenticatorManager)
 
+	// set 2nd test suite key sig required for tx
 	initDataPrivKey1 := authenticator.SubAuthenticatorInitData{
 		Type:   "SignatureVerification",
 		Config: s.PrivKeys[1].PubKey().Bytes(),
 	}
 
+	// set msgfilter data to include for adding an authenticator
 	initMessageFilter := authenticator.SubAuthenticatorInitData{
 		Type: "MessageFilter",
 		Config: []byte(
@@ -474,6 +476,7 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 		initDataPrivKey1,
 		initMessageFilter,
 	})
+	s.Require().NoError(err)
 
 	// Set the authenticator to our account
 	allOfAuthId, err := s.app.AppKeepers.SmartAccountKeeper.AddAuthenticator(s.chainA.GetContext(), s.Account.GetAddress(), allOf.Type(), compositeData)
@@ -481,13 +484,13 @@ func (s *AuthenticatorSuite) TestCompositeAuthenticatorAllOf() {
 
 	// Send from account 1 using the AllOf authenticator
 	_, err = s.chainA.SendMsgsFromPrivKeysWithAuthenticator(
-		pks{s.PrivKeys[1]}, pks{s.PrivKeys[1]}, []uint64{1}, sendMsg,
+		pks{s.PrivKeys[1]}, pks{s.PrivKeys[1]}, []uint64{allOfAuthId}, sendMsg,
 	)
 	s.Require().NoError(err, "Failed to authenticate using the AllOf authenticator key 1")
 
 	// Send from account 2 using the AllOf authenticator
 	_, err = s.chainA.SendMsgsFromPrivKeysWithAuthenticator(
-		pks{s.PrivKeys[0]}, pks{s.PrivKeys[0]}, []uint64{1}, sendMsg,
+		pks{s.PrivKeys[0]}, pks{s.PrivKeys[0]}, []uint64{allOfAuthId}, sendMsg,
 	)
 	s.Require().Error(err, "Failed to authenticate using the AllOf authenticator account key")
 
@@ -581,7 +584,11 @@ func (s *AuthenticatorSuite) TestAuthenticatorAddRemove() {
 func (s *AuthenticatorSuite) TestFeeDeduction() {
 	address1 := sdk.AccAddress(s.PrivKeys[0].PubKey().Address())
 	address2 := sdk.AccAddress(s.PrivKeys[1].PubKey().Address())
-	s.CreateAccount(s.PrivKeys[1], 500_000)
+
+	addres1PrivateKey := s.PrivKeys[0]
+	addres2PrivateKey := s.PrivKeys[1]
+
+	s.CreateAccount(addres2PrivateKey, 500_000)
 
 	alwaysAuth := testutils.TestingAuthenticator{Approve: testutils.Always}
 	neverAuth := testutils.TestingAuthenticator{Approve: testutils.Never}
@@ -609,7 +616,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 		{
 			name:                   "single message, authenticated, fee deducted + tx succeeded",
-			signers:                []cryptotypes.PrivKey{s.PrivKeys[0]},
+			signers:                []cryptotypes.PrivKey{addres1PrivateKey},
 			selectedAuthenticators: []uint64{payerYes},
 			messages: []sdk.Msg{
 				&banktypes.MsgSend{
@@ -623,7 +630,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 		{
 			name:                   "single message, not authenticated, fee not deducted + tx failed",
-			signers:                []cryptotypes.PrivKey{s.PrivKeys[0]},
+			signers:                []cryptotypes.PrivKey{addres1PrivateKey},
 			selectedAuthenticators: []uint64{payerNo},
 			messages: []sdk.Msg{
 				&banktypes.MsgSend{
@@ -638,7 +645,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 		{
 			name:                   "multiple messages, all authenticated, fee deducted + tx succeeded",
-			signers:                []cryptotypes.PrivKey{s.PrivKeys[0], s.PrivKeys[1]},
+			signers:                []cryptotypes.PrivKey{addres1PrivateKey, addres2PrivateKey},
 			selectedAuthenticators: []uint64{payerYes, otherYes},
 			messages: []sdk.Msg{
 				&banktypes.MsgSend{
@@ -657,7 +664,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 		{
 			name:                   "multiple messages, fee payer authenticated but other not, fee deducted + tx failed",
-			signers:                []cryptotypes.PrivKey{s.PrivKeys[0], s.PrivKeys[1]},
+			signers:                []cryptotypes.PrivKey{addres1PrivateKey, addres2PrivateKey},
 			selectedAuthenticators: []uint64{payerYes, otherNo},
 			messages: []sdk.Msg{
 				&banktypes.MsgSend{
@@ -677,7 +684,7 @@ func (s *AuthenticatorSuite) TestFeeDeduction() {
 
 		{
 			name:                   "multiple messages, fee payer not authenticated, fee not deducted + tx failed",
-			signers:                []cryptotypes.PrivKey{s.PrivKeys[0], s.PrivKeys[1]},
+			signers:                []cryptotypes.PrivKey{addres1PrivateKey, addres2PrivateKey},
 			selectedAuthenticators: []uint64{payerNo, otherNo},
 			messages: []sdk.Msg{
 				&banktypes.MsgSend{
