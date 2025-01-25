@@ -146,6 +146,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		smartaccountante.NewAuthenticatorDecorator(options.Cdc, options.SmartAccount, options.AccountKeeper, options.SignModeHandler, deductFeeDecorator),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 	)
+
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),
 		NewMinValCommissionDecorator(options.Cdc),
@@ -156,11 +157,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		deductFeeDecorator,
-		// SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewSetPubKeyDecorator(options.AccountKeeper),
-		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
 		smartaccountante.NewCircuitBreakerDecorator(
 			options.SmartAccount,
 			authenticatorVerificationDecorator,
