@@ -7,6 +7,8 @@ import (
 
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/math"
+
+	// simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -167,3 +169,9 @@ func (am AppModule) SimulatorGenesisState(simState *module.SimulationState) {
 	ftDefaultGenJson := simState.Cdc.MustMarshalJSON(ftDefaultGen)
 	simState.GenState[types.ModuleName] = ftDefaultGenJson
 }
+
+// // GenerateGenesisState creates a randomized GenState of the module.
+// func (a AppModule) GenerateGenesisState(_ *module.SimulationState) {}
+
+// // RegisterStoreDecoder registers a decoder for module simulation testing
+// func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {}
