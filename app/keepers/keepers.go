@@ -319,7 +319,7 @@ func NewAppKeepers(
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		keys[packetforwardtypes.StoreKey],
-		appKeepers.TransferKeeper,
+		nil, // transfer keeper starts nil, gets set below with SetTransferKeeper
 		appKeepers.IBCKeeper.ChannelKeeper,
 		appKeepers.BankKeeper,
 		// The ICS4Wrapper is replaced by the HooksICS4Wrapper instead of the channel so that sending can be overridden by the middleware
