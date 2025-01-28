@@ -134,20 +134,20 @@ type AppKeepers struct {
 	StakingKeeper        *stakingkeeper.Keeper
 	DistrKeeper          distrkeeper.Keeper
 	SlashingKeeper       slashingkeeper.Keeper
+	MintKeeper           mintkeeper.Keeper
 	IBCKeeper            *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCHooksKeeper       *ibchookskeeper.Keeper
-	IBCFeeKeeper         ibcfeekeeper.Keeper
-	ICQKeeper            *icqkeeper.Keeper
 	TransferKeeper       ibctransferkeeper.Keeper
-	IBCWasmClientKeeper  *ibcwasmkeeper.Keeper
+	ICQKeeper            *icqkeeper.Keeper
 	EvidenceKeeper       evidencekeeper.Keeper
-	MintKeeper           mintkeeper.Keeper
+	FanTokenKeeper       fantokenkeeper.Keeper
+	WasmKeeper           wasmkeeper.Keeper
+	CadanceKeeper        cadancekeeper.Keeper
+	IBCFeeKeeper         ibcfeekeeper.Keeper
+	IBCWasmClientKeeper  *ibcwasmkeeper.Keeper
 	FeeGrantKeeper       feegrantkeeper.Keeper
 	GovKeeper            govkeeper.Keeper
-	WasmKeeper           wasmkeeper.Keeper
 	ContractKeeper       *wasmkeeper.PermissionedKeeper
-	CadanceKeeper        cadancekeeper.Keeper
-	FanTokenKeeper       fantokenkeeper.Keeper
 	SmartAccountKeeper   *smartaccountkeeper.Keeper
 	AuthenticatorManager *authenticator.AuthenticatorManager
 
@@ -275,21 +275,21 @@ func NewAppKeepers(
 		appCodec, cdc, runtime.NewKVStoreService(appKeepers.keys[slashingtypes.StoreKey]), stakingKeeper, govModAddress,
 	)
 
+	appKeepers.MintKeeper = mintkeeper.NewKeeper(
+		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
+		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
+	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(appKeepers.DistrKeeper.Hooks(), appKeepers.SlashingKeeper.Hooks()),
 	)
+
 	appKeepers.StakingKeeper = &stakingKeeper
 
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, keys[ibcexported.StoreKey], appKeepers.GetSubspace(ibcexported.ModuleName),
 		appKeepers.StakingKeeper, appKeepers.UpgradeKeeper, appKeepers.ScopedIBCKeeper, govModAddress,
-	)
-
-	appKeepers.MintKeeper = mintkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
-		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
 	)
 
 	// Configure the ibchooks keeper
@@ -316,14 +316,6 @@ func NewAppKeepers(
 		appKeepers.Ics20WasmHooks,
 	)
 
-	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec, keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
-		appKeepers.PacketForwardKeeper,
-		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.AccountKeeper, appKeepers.BankKeeper,
-		appKeepers.ScopedTransferKeeper, govModAddress,
-	)
-
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		keys[packetforwardtypes.StoreKey],
@@ -333,6 +325,14 @@ func NewAppKeepers(
 		// The ICS4Wrapper is replaced by the HooksICS4Wrapper instead of the channel so that sending can be overridden by the middleware
 		appKeepers.HooksICS4Wrapper,
 		govModAddress,
+	)
+
+	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec, keys[ibctransfertypes.StoreKey], appKeepers.GetSubspace(ibctransfertypes.ModuleName),
+		appKeepers.PacketForwardKeeper,
+		appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.PortKeeper,
+		appKeepers.AccountKeeper, appKeepers.BankKeeper,
+		appKeepers.ScopedTransferKeeper, govModAddress,
 	)
 
 	appKeepers.PacketForwardKeeper.SetTransferKeeper(appKeepers.TransferKeeper)
@@ -362,7 +362,6 @@ func NewAppKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	appKeepers.ICQKeeper = &icqKeeper
-
 	// Create Async ICQ module
 	icqModule := icq.NewIBCModule(*appKeepers.ICQKeeper)
 
