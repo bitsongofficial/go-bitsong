@@ -16,7 +16,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	icqkeeper "github.com/cosmos/ibc-apps/modules/async-icq/v8/keeper"
-	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
+	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 )
@@ -25,6 +25,13 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
+
+		// Run migrations first
+		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
+		versionMap, err := mm.RunMigrations(ctx, configurator, vm)
+		if err != nil {
+			return nil, err
+		}
 
 		// reapplies v018 patch after removing delegations with 0 power, letting us revert back upstream to cosmos-sdk library
 		vals, _ := k.StakingKeeper.GetAllValidators(ctx)
@@ -104,9 +111,10 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 		// set wasm client as an allowed client.
 		// https://github.com/cosmos/ibc-go/blob/main/docs/docs/03-light-clients/04-wasm/03-integration.md
-		ibcCLientParams := ibcclient.DefaultParams()
-		ibcCLientParams.AllowedClients = DefaultAllowedClients
-		k.IBCKeeper.ClientKeeper.SetParams(sdkCtx, ibcCLientParams)
+		// ibcCLientParams := ibcclient.DefaultParams()
+		params := k.IBCKeeper.ClientKeeper.GetParams(sdkCtx)
+		params.AllowedClients = append(params.AllowedClients, wasmlctypes.Wasm)
+		k.IBCKeeper.ClientKeeper.SetParams(sdkCtx, params)
 
 		// configure expidited proposals
 		govparams, _ := k.GovKeeper.Params.Get(sdkCtx)
@@ -116,23 +124,10 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		govparams.ExpeditedThreshold = "0.75" // 75% voting threshold
 		k.GovKeeper.Params.Set(sdkCtx, govparams)
 
-		// Run migrations
-		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
-		versionMap, err := mm.RunMigrations(ctx, configurator, vm)
-		if err != nil {
-			return nil, err
-		}
-
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
 		return versionMap, err
 	}
 }
-
-// remove delegations with 0 power to any jailed validators
-// func removeZeroDelegationFromStore(ctx sdk.Context, k *keepers.AppKeepers) error {
-
-// 	return nil
-// }
 
 func setICQParams(ctx sdk.Context, icqKeeper *icqkeeper.Keeper) {
 	icqparams := icqtypes.DefaultParams()
