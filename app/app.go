@@ -68,7 +68,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
+	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	// unnamed import of statik for swagger UI support
@@ -249,7 +249,7 @@ func NewBitsongApp(
 		panic("error while reading wasm config: " + err.Error())
 	}
 
-	ibcWasmConfig := ibcwasmtypes.WasmConfig{
+	ibcWasmConfig := wasmlctypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
 		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
 		ContractDebugMode:     false,

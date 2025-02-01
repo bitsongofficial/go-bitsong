@@ -74,7 +74,8 @@ func (s *KeeperTestHelper) setupGeneral() {
 }
 
 func (s *KeeperTestHelper) setupGeneralCustomChainId(chainId string) {
-	s.Ctx = s.App.BaseApp.NewContextLegacy(false, cmtproto.Header{Height: 1, ChainID: chainId, Time: defaultTestStartTime})
+	s.Ctx = s.App.BaseApp.NewContextLegacy(false,
+		cmtproto.Header{Height: 1, ChainID: chainId, Time: defaultTestStartTime})
 	if s.withCaching {
 		s.Ctx, _ = s.Ctx.CacheContext()
 	}

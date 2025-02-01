@@ -127,7 +127,6 @@ func CreateV18UpgradeHandler(mm *module.Manager, configurator module.Configurato
 		bankParams := keepers.BankKeeper.GetParams(ctx)
 		bankParams.DefaultSendEnabled = true
 		bankParams.SendEnabled = []*banktypes.SendEnabled{}
-		logger.Info(fmt.Sprintf("bankParamaters: %v ", bankParams))
 		keepers.BankKeeper.SetParams(ctx, bankParams)
 
 		// Run migrations

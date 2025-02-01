@@ -3,12 +3,16 @@ package v021_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
-	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
-
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/core/header"
 	"cosmossdk.io/math"
+	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -16,10 +20,12 @@ const dummyUpgradeHeight = 5
 
 type UpgradeTestSuite struct {
 	apptesting.KeeperTestHelper
+	preModule appmodule.HasPreBlocker
 }
 
 func (s *UpgradeTestSuite) SetupTest() {
 	s.Setup()
+	s.preModule = upgrade.NewAppModule(s.App.AppKeepers.UpgradeKeeper, addresscodec.NewBech32Codec("bitsong"))
 }
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -27,27 +33,35 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 func (s *UpgradeTestSuite) TestUpgrade() {
-	upgradeSetup := func() {
-		// create delegations with 0 power
-		validators, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
-		// del2 := s.TestAccs[1]
-		for _, val := range validators {
+	upgradeSetup := func(shares, slash math.LegacyDec, jailed bool) {
+		// create delegations with smallest non 0 value
+		vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		for _, val := range vals {
+			if !slash.IsZero() {
+				val.Tokens = math.LegacyNewDecFromInt(val.Tokens).MulTruncate(math.LegacyOneDec().Sub(slash)).RoundInt() // 1 % slash
+			}
+			if jailed {
+				val.Jailed = jailed
+			}
+			s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
+
 			dels, _ := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
-
-			// log the current delegations
-			log := fmt.Sprintf("Current delegations for validator %s: %#v", val.OperatorAddress, dels)
-			fmt.Println(log)
-
-			// update delegation with 0 shares
 			for _, del := range dels {
-				del.Shares = math.LegacyZeroDec()
+				del.Shares = shares
+				err := s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, del)
+				s.Require().NoError(err)
+
 			}
 
-			// s.Ctx.Logger().Info(fmt.Sprintf("Current delegations for validator %s: %#v", val.OperatorAddress, dels))
-			// // create another delegator
-			// s.FundAcc(del2, types.NewCoins(types.NewCoin("ubtsg", math.NewInt(1000000))))
-			// s.StakingHelper.Delegate(del2, valAddr, math.NewInt(1000000))
 		}
+		// create delegations with smallest non 0 value
+		vals, _ = s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		for _, val := range vals {
+			dels, _ := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
+			fmt.Printf("real dels: %q", dels)
+
+		}
+
 	}
 
 	testCases := []struct {
@@ -57,25 +71,81 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		post_upgrade func()
 	}{
 		{
-			"Test that the upgrade succeeds",
+			"test app module params",
 			func() {
-				upgradeSetup()
+				upgradeSetup(math.LegacyOneDec(), math.LegacyZeroDec(), true)
 			},
 			func() {
-				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-				plan := upgradetypes.Plan{Name: "v021", Height: dummyUpgradeHeight}
-				err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
-				s.Require().NoError(err)
-				_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
-				s.Require().NoError(err)
-				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight)
+				dummyUpgrade(s)
 				s.Require().NotPanics(func() {
-					s.App.BeginBlocker(s.Ctx)
+					_, err := s.preModule.PreBlock(s.Ctx)
+					s.Require().NoError(err)
 				})
 
 			},
 			func() {
-				// confirm 0 delegation does not exists
+				//  cheeck icq params
+				params := s.App.AppKeepers.ICQKeeper.GetParams(s.Ctx)
+				fmt.Println(params.HostEnabled)
+				s.Require().Equal(len(params.AllowQueries), 1)
+				s.Require().True(params.HostEnabled)
+
+				// check smart account params
+				smartAccParams := s.App.AppKeepers.SmartAccountKeeper.GetParams(s.Ctx)
+				authManagers := s.App.AppKeepers.AuthenticatorManager.GetRegisteredAuthenticators()
+				s.Require().Greater(len(authManagers), 1)
+				s.Require().True(smartAccParams.IsSmartAccountActive)
+
+				//check ibchook params
+				ibcwasmparams := s.App.AppKeepers.IBCKeeper.ClientKeeper.GetParams(s.Ctx)
+				s.Require().Equal(len(ibcwasmparams.AllowedClients), 2)
+
+				// check cadance params
+				cadanceParams := s.App.AppKeepers.CadanceKeeper.GetParams(s.Ctx)
+				s.Require().Equal(cadanceParams.ContractGasLimit, uint64(1000000))
+
+				// expidited proposal
+				govparams, _ := s.App.AppKeepers.GovKeeper.Params.Get(s.Ctx)
+				newExpeditedVotingPeriod := time.Minute * 60 * 24
+				s.Require().Equal(govparams.ExpeditedVotingPeriod.Seconds(), newExpeditedVotingPeriod.Seconds())
+				s.Require().Equal(govparams.ExpeditedThreshold, "0.75")
+			},
+		},
+		{
+			"0 shares, jailed",
+			func() {
+				upgradeSetup(math.LegacyZeroDec(), math.LegacyZeroDec(), true)
+			},
+			func() {
+				dummyUpgrade(s)
+				s.Require().NotPanics(func() {
+					_, err := s.preModule.PreBlock(s.Ctx)
+					s.Require().NoError(err)
+				})
+
+			},
+			func() {
+				dels, _ := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
+				for _, del := range dels {
+					s.Require().NotZero(del.Shares)
+				}
+
+			},
+		},
+		{
+			"test distribution reward invariants patched",
+			func() {
+				upgradeSetup(math.LegacyOneDec(), math.LegacyNewDecWithPrec(1, 3), true) // 1% slash
+			},
+			func() {
+				dummyUpgrade(s)
+				s.Require().NotPanics(func() {
+					_, err := s.preModule.PreBlock(s.Ctx)
+					s.Require().NoError(err)
+				})
+
+			},
+			func() {
 				dels, _ := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
 				for _, del := range dels {
 					s.Require().NotZero(del.Shares)
@@ -93,4 +163,15 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			tc.post_upgrade()
 		})
 	}
+}
+
+func dummyUpgrade(s *UpgradeTestSuite) {
+	s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
+	plan := upgradetypes.Plan{Name: "v021", Height: dummyUpgradeHeight}
+	err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
+	s.Require().NoError(err)
+	_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+	s.Require().NoError(err)
+
+	s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: dummyUpgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(dummyUpgradeHeight)
 }
