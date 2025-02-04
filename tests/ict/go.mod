@@ -9,7 +9,7 @@ replace (
 
 require (
 	cosmossdk.io/math v1.4.0
-	github.com/CosmWasm/wasmvm/v2 v2.2.1
+	github.com/CosmWasm/wasmvm/v2 v2.1.5
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/ibc-go/v8 v8.3.1
 	github.com/docker/docker v25.0.6+incompatible
