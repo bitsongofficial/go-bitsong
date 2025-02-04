@@ -88,7 +88,7 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			Validator: consensusParams.Validator,
 			Version:   consensusParams.Version,
 			Abci: &cmtproto.ABCIParams{
-				VoteExtensionsEnableHeight: sdkCtx.BlockHeight(),
+				VoteExtensionsEnableHeight: sdkCtx.BlockHeight() + 1,
 			},
 		})
 		if err != nil {
