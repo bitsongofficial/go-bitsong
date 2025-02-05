@@ -1,6 +1,8 @@
 package keepers
 
 import (
+	"fmt"
+
 	"github.com/spf13/cast"
 
 	"cosmossdk.io/x/feegrant"
@@ -80,6 +82,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+
+	wasmvm "github.com/CosmWasm/wasmvm/v2"
 )
 
 var (
@@ -298,16 +302,6 @@ func NewAppKeepers(
 	)
 	appKeepers.IBCHooksKeeper = &hooksKeeper
 
-	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithConfig(
-		appCodec,
-		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
-		appKeepers.IBCKeeper.ClientKeeper,
-		govModAddress,
-		ibcWasmConfig,
-		bApp.GRPCQueryRouter(),
-	)
-	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
-
 	// Setup the ICS4Wrapper used by the hooks middleware
 	wasmHooks := ibchooks.NewWasmHooks(appKeepers.IBCHooksKeeper, &appKeepers.WasmKeeper, Bech32Prefix)
 	appKeepers.Ics20WasmHooks = &wasmHooks
@@ -417,6 +411,17 @@ func NewAppKeepers(
 		&wasmkeeper.QueryPlugins{Stargate: wasmkeeper.AcceptListStargateQuerier(acceptedStargateQueries, bApp.GRPCQueryRouter(), appCodec)})
 	wasmOpts = append(wasmOpts, querierOpts)
 
+	// create wasmvm to use for both x/wasm and wasm-light-client
+	wasmVm, err := wasmvm.NewVM(wasmDir, wasmCapabilities, 32, wasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create bitsong wasm vm: %s", err))
+	}
+
+	lcWasmer, err := wasmvm.NewVM(ibcWasmConfig.DataDir, wasmCapabilities, 32, ibcWasmConfig.ContractDebugMode, wasmConfig.MemoryCacheSize)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create bitsong wasm vm for 08-wasm: %s", err))
+	}
+
 	appKeepers.WasmKeeper = wasmkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[wasmtypes.StoreKey]),
@@ -435,8 +440,18 @@ func NewAppKeepers(
 		wasmConfig,
 		wasmCapabilities,
 		govModAddress,
-		wasmOpts...,
+		append(wasmOpts, wasmkeeper.WithWasmEngine(wasmVm))...,
 	)
+
+	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithVM(
+		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
+		appKeepers.IBCKeeper.ClientKeeper,
+		govModAddress,
+		lcWasmer,
+		bApp.GRPCQueryRouter(),
+	)
+	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
 	// set the contract keeper for ICS4Wrappers (IBC Middleware)
 	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)

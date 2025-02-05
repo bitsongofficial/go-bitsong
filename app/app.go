@@ -378,6 +378,7 @@ func NewBitsongApp(
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
+		//  takes care of persisting the external state from wasm code when snapshot is created
 		err = manager.RegisterExtensions(
 			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
 		)
