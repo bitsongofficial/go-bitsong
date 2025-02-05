@@ -177,7 +177,7 @@ func NewAppKeepers(
 	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec, keys[feegrant.StoreKey], appKeepers.AccountKeeper,
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	stakingKeeper := *stakingkeeper.NewKeeper(
 		appCodec, keys[stakingtypes.StoreKey], appKeepers.AccountKeeper, appKeepers.BankKeeper, govModAddress,
 	)
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
@@ -214,7 +214,7 @@ func NewAppKeepers(
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(appKeepers.DistrKeeper.Hooks(), appKeepers.SlashingKeeper.Hooks()),
 	)
-	appKeepers.StakingKeeper = stakingKeeper
+	appKeepers.StakingKeeper = &stakingKeeper
 
 	// ... other modules keepers
 
