@@ -12,6 +12,9 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -34,31 +37,23 @@ func TestUpgradeTestSuite(t *testing.T) {
 
 func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func(shares, slash math.LegacyDec, jailed bool) {
-		// create delegations with smallest non 0 value
 		vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
 		for _, val := range vals {
+			// save delegation to distribution store
+			err := s.App.AppKeepers.DistrKeeper.SetDelegatorStartingInfo(s.Ctx, sdktypes.ValAddress(val.OperatorAddress), s.TestAccs[0], distrtypes.NewDelegatorStartingInfo(1, shares, uint64(s.Ctx.BlockHeight())))
+			s.Require().NoError(err)
+
+			// create delegation with smallest non 0 value
+			s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.NewDelegation(s.TestAccs[0].String(), val.OperatorAddress, shares))
+
 			if !slash.IsZero() {
 				val.Tokens = math.LegacyNewDecFromInt(val.Tokens).MulTruncate(math.LegacyOneDec().Sub(slash)).RoundInt() // 1 % slash
 			}
 			if jailed {
 				val.Jailed = jailed
 			}
-			s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
-
-			dels, _ := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
-			for _, del := range dels {
-				del.Shares = shares
-				err := s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, del)
-				s.Require().NoError(err)
-
-			}
-
-		}
-		// create delegations with smallest non 0 value
-		vals, _ = s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
-		for _, val := range vals {
-			dels, _ := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
-			fmt.Printf("real dels: %q", dels)
+			err = s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
+			s.Require().NoError(err)
 
 		}
 

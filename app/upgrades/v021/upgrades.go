@@ -40,11 +40,20 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			dels, _ := k.StakingKeeper.GetValidatorDelegations(ctx, valAddr)
 
 			for _, del := range dels {
-				if del.Shares.IsZero() {
+				if del.Shares == math.LegacyZeroDec() {
+					// remove delegation from staking store
 					if err := k.StakingKeeper.RemoveDelegation(ctx, del); err != nil {
 						return nil, err
 					}
+					// remove reward information from distribution store
+					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil || !exists {
+						return nil, err
+					}
+					if err := k.DistrKeeper.DeleteDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
+						return nil, err
+					}
 				} else {
+					// check if we need to patch distribution by manually claiming rewards again
 					hasInfo, err := k.DistrKeeper.HasDelegatorStartingInfo(ctx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
 					if !hasInfo {
 						return nil, err

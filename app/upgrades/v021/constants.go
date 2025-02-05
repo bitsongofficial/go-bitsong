@@ -7,7 +7,6 @@ import (
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 )
 
@@ -24,13 +23,14 @@ const (
 )
 
 var DefaultAllowedClients = []string{"07-tendermint", "09-localhost", wasmlctypes.Wasm}
+
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateV021UpgradeHandler,
 	StoreUpgrades: store.StoreUpgrades{
 		Added: []string{
 			icqtypes.StoreKey,
-			ibcwasmtypes.StoreKey,
+			wasmlctypes.StoreKey,
 			ibchookstypes.StoreKey,
 			cadancetypes.StoreKey,
 			smartaccounttypes.StoreKey,
