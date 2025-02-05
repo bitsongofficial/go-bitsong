@@ -123,15 +123,6 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
-build: go.sum
-ifeq ($(OS),Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
-else
-	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
-endif
-
-install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
 
 
