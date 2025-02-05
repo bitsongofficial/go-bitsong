@@ -22,44 +22,44 @@ import (
 )
 
 func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
-	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return func(context context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(context)
 		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
 
 		// Run migrations first
 		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
-		versionMap, err := mm.RunMigrations(ctx, configurator, vm)
+		versionMap, err := mm.RunMigrations(sdkCtx, configurator, vm)
 		if err != nil {
 			return nil, err
 		}
 
 		// reapplies v018 patch after removing delegations with 0 power, letting us revert back upstream to cosmos-sdk library
-		vals, _ := k.StakingKeeper.GetAllValidators(ctx)
+		vals, _ := k.StakingKeeper.GetAllValidators(sdkCtx)
 		for _, val := range vals {
 			valAddr := sdk.ValAddress(val.OperatorAddress)
-			dels, _ := k.StakingKeeper.GetValidatorDelegations(ctx, valAddr)
+			dels, _ := k.StakingKeeper.GetValidatorDelegations(sdkCtx, valAddr)
 
 			for _, del := range dels {
 				if del.Shares.LTE(math.LegacySmallestDec()) {
 					// remove delegation from staking store
-					if err := k.StakingKeeper.RemoveDelegation(ctx, del); err != nil {
+					if err := k.StakingKeeper.RemoveDelegation(sdkCtx, del); err != nil {
 						return nil, err
 					}
 					// remove reward information from distribution store
-					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil || !exists {
+					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil || !exists {
 						return nil, err
 					}
-					if err := k.DistrKeeper.DeleteDelegatorStartingInfo(ctx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
+					if err := k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
 						return nil, err
 					}
 				} else {
 					// check if we need to patch distribution by manually claiming rewards again
-					hasInfo, err := k.DistrKeeper.HasDelegatorStartingInfo(ctx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
+					hasInfo, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
 					if !hasInfo {
 						return nil, err
 					}
 					// calculate rewards
-					endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(ctx, val)
+					endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
 					if err != nil {
 						return nil, err
 					}

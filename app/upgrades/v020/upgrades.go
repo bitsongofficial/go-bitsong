@@ -15,8 +15,8 @@ import (
 )
 
 func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
-	return func(ctx context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return func(context context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(context)
 		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
 		logger.Info(`
 		~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -86,7 +86,7 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 		// Run migrations
 		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
-		versionMap, err := mm.RunMigrations(ctx, configurator, vm)
+		versionMap, err := mm.RunMigrations(sdkCtx, configurator, vm)
 		if err != nil {
 			return nil, err
 		}
