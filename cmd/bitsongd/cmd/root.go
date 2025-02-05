@@ -246,13 +246,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		server.StatusCommand(),
 		PrepareGenesisCmd(bitsong.DefaultNodeHome, bitsong.AppModuleBasics),
 		genesisCommand(encodingConfig),
-		// InitFromStateCmd(bitsong.DefaultNodeHome),
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
 	)
-	// add rosetta
-	// rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {

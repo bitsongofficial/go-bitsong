@@ -101,7 +101,7 @@ func NewDefaultGenesisState() GenesisState {
 	return gen
 }
 
-// CloneGenesisState creates a deep clone of the provided GenesisState.
+// cloneGenesisState creates a deep clone of the provided GenesisState.
 func cloneGenesisState(original GenesisState) GenesisState {
 	clone := make(GenesisState, len(original))
 	for key, value := range original {

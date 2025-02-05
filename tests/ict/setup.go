@@ -99,7 +99,7 @@ func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.
 	return CreateICTestBitsongChainCustomConfig(t, numVals, numFull, cfg)
 }
 
-// CreateThisBranchWithValsAndFullNodes generates this branch's chain (ex: from the commit), with a set of validators and full nodes.
+// CreateICTestBitsongChain creates a Bitsong chain for interchain testing with the specified number of validators and full nodes.
 func CreateICTestBitsongChain(t *testing.T, numVals, numFull int) []ibc.Chain {
 	return CreateChain(t, numVals, numFull, BitsongImage)
 }
