@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	tmcfg "github.com/cometbft/cometbft/config"
+	cmttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cometbft/cometbft/libs/cli"
 	tmos "github.com/cometbft/cometbft/libs/os"
@@ -84,22 +87,23 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 				"8542cd7e6bf9d260fef543bc49e59be5a3fa90740@seed.publicnode.com:26656",    // Allnodes team
 				"8defec7d0eec97f507411e02fd2634e3efc997a2@bitsong-seed.panthea.eu:41656", // Panthea EU
 			}
-
-			// Override default settings in config.toml
 			config.P2P.Seeds = strings.Join(seeds, ",")
 			config.P2P.MaxNumInboundPeers = 80
 			config.P2P.MaxNumOutboundPeers = 60
+
+			// Mempool
 			config.Mempool.Size = 10000
+
+			// State Sync
 			config.StateSync.TrustPeriod = 112 * time.Hour
 			config.BlockSync.Version = "v0"
+
 			// // Consensus
 			// config.Consensus.TimeoutCommit = 1500 * time.Millisecond // 1.5s
 
+			//  other
+			config.Moniker = args[0]
 			config.SetRoot(clientCtx.HomeDir)
-			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
-			if chainID == "" {
-				chainID = fmt.Sprintf("test-chain-%v", tmrand.Str(6))
-			}
 
 			// Get bip39 mnemonic
 			var mnemonic string
@@ -121,44 +125,67 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 				return err
 			}
 
-			config.Moniker = args[0]
-			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
-
 			genFile := config.GenesisFile()
-			appState, genDoc, err := genutiltypes.GenesisStateFromGenFile(genFile)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal genesis state: %w", err)
-			}
+			chainID, _ := cmd.Flags().GetString(flags.FlagChainID)
+			overwrite, _ := cmd.Flags().GetBool(FlagOverwrite)
 
 			if !overwrite && tmos.FileExists(genFile) {
 				return fmt.Errorf("genesis.json file already exists: %v", genFile)
 			}
-			// appState, err := json.MarshalIndent(mbm.DefaultGenesis(cdc), "", " ")
 
+			var toPrint printInfo
 			isMainnet := chainID == "" || chainID == "bitsong-2b"
-
+			genesisFileDownloadFailed := false
 			if isMainnet {
 				// download mainnet genesis file, if fail make new one
-			}
-			if err != nil {
-				return errors.Wrap(err, "Failed to marshall default genesis state")
-			}
-
-			appStateJSON, err := json.Marshal(appState)
-			if err != nil {
-				return fmt.Errorf("failed to marshal application genesis state: %w", err)
-			}
-
-			genDoc.ChainID = chainID
-			genDoc.Consensus.Validators = nil
-			genDoc.AppState = appStateJSON
-			if err = genutil.ExportGenesisFile(genDoc, genFile); err != nil {
-				return errors.Wrap(err, "Failed to export gensis file")
+				err := downloadGenesis(config)
+				if err != nil {
+					fmt.Println("Failed to download genesis file, using a random chain ID and genesis file for local testing")
+					genesisFileDownloadFailed = true
+					chainID = fmt.Sprintf("test-chain-%v", tmrand.Str(6))
+				} else {
+					// Set chainID to osmosis-1 in the case of a blank chainID
+					chainID = "bitsong-2b"
+					// We dont print the app state for mainnet nodes because it's massive
+					fmt.Println("Not printing app state for mainnet node due to verbosity")
+					toPrint = newPrintInfo(config.Moniker, chainID, nodeID, "", nil)
+				}
 			}
 
-			toPrint := newPrintInfo(config.Moniker, chainID, nodeID, "", appStateJSON)
+			if genesisFileDownloadFailed || !isMainnet {
+				var genDoc genutiltypes.AppGenesis
+
+				appStateJSON, err := json.MarshalIndent(mbm.DefaultGenesis(clientCtx.Codec), "", " ")
+				if err != nil {
+					return errors.Wrap(err, "Failed to marshall default genesis state")
+				}
+
+				if _, err := os.Stat(genFile); err != nil {
+					if !os.IsNotExist(err) {
+						return err
+					}
+				} else {
+					_, genDocFromFile, err := genutiltypes.GenesisStateFromGenFile(genFile)
+					if err != nil {
+						return fmt.Errorf("failed to unmarshal genesis state: %w", err)
+					}
+					genDoc = *genDocFromFile
+				}
+
+				genDoc.Consensus = &genutiltypes.ConsensusGenesis{}
+				genDoc.ChainID = chainID
+				genDoc.Consensus.Params = cmttypes.DefaultConsensusParams()
+				genDoc.Consensus.Validators = nil
+				genDoc.AppState = appStateJSON
+
+				if err = genutil.ExportGenesisFile(&genDoc, genFile); err != nil {
+					return errors.Wrap(err, "Failed to export gensis file")
+				}
+				toPrint = newPrintInfo(config.Moniker, chainID, nodeID, "", appStateJSON)
+			}
 
 			tmcfg.WriteConfigFile(filepath.Join(config.RootDir, "config", "config.toml"), config)
+
 			return displayInfo(toPrint)
 		},
 	}
@@ -169,4 +196,60 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 	cmd.Flags().String(flags.FlagChainID, "", "genesis file chain-id, if left blank will be randomly created")
 
 	return cmd
+}
+
+// downloadGenesis downloads the genesis file from a predefined URL and writes it to the genesis file path specified in the config.
+// It creates an HTTP client to send a GET request to the genesis file URL. If the request is successful, it reads the response body
+// and writes it to the destination genesis file path. If any step in this process fails, it generates the default genesis.
+//
+// Parameters:
+// - config: A pointer to a tmcfg.Config object that contains the configuration, including the genesis file path.
+//
+// Returns:
+// - An error if the download or file writing fails, otherwise nil.
+func downloadGenesis(config *tmcfg.Config) error {
+	// URL of the genesis file to download
+	genesisURL := "https://raw.githubusercontent.com/bitsongofficial/networks/refs/heads/master/bitsong-2b/genesis.json?download"
+
+	// Determine the destination path for the genesis file
+	genFilePath := config.GenesisFile()
+
+	// Create a new HTTP client with a 30-second timeout
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	// Create a new GET request
+	req, err := http.NewRequest("GET", genesisURL, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to create HTTP request for genesis file")
+	}
+
+	// Send the request
+	fmt.Println("Downloading genesis file from", genesisURL)
+	fmt.Println("If the download is not successful in 30 seconds, we will gracefully continue and the default genesis file will be used")
+	resp, err := client.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to download genesis file")
+	}
+	defer resp.Body.Close()
+
+	// Check if the HTTP request was successful
+	if resp.StatusCode != http.StatusOK {
+		return errors.Errorf("failed to download genesis file: HTTP status %d", resp.StatusCode)
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return errors.Wrap(err, "failed to read genesis file response body")
+	}
+
+	// Write the body to the destination genesis file
+	err = os.WriteFile(genFilePath, body, 0644)
+	if err != nil {
+		return errors.Wrap(err, "failed to write genesis file to destination")
+	}
+
+	return nil
 }

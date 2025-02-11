@@ -8,7 +8,7 @@ import (
 	"cosmossdk.io/math"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cmttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -30,7 +30,7 @@ import (
 
 type GenesisParams struct {
 	GenesisTime     time.Time
-	ConsensusParams *tmtypes.ConsensusParams
+	ConsensusParams *cmttypes.ConsensusParams
 	NativeCoin      []banktypes.Metadata
 
 	StakingParams      stakingtypes.Params
@@ -74,7 +74,7 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.StakingParams.MaxValidators = 100
 	genParams.StakingParams.BondDenom = appparams.MicroCoinUnit
 
-	genParams.ConsensusParams = tmtypes.DefaultConsensusParams()
+	genParams.ConsensusParams = cmttypes.DefaultConsensusParams()
 	genParams.ConsensusParams.Block.MaxBytes = 20 * 1024 * 1024 // 20MB
 	genParams.ConsensusParams.Block.MaxGas = 200_000_000        // 200.000.000 units
 	genParams.ConsensusParams.Evidence.MaxAgeDuration = genParams.StakingParams.UnbondingTime
