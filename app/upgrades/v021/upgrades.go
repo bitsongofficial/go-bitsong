@@ -59,8 +59,11 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 				} else {
 					// check if we need to patch distribution by manually claiming rewards again
 					hasInfo, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
-					if !hasInfo {
+					if err != nil {
 						return nil, err
+					}
+					if !hasInfo {
+						continue
 					}
 					// calculate rewards
 					endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
