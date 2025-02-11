@@ -75,15 +75,16 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
-			// cdc := clientCtx.Codec
-
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			config := serverCtx.Config
 
 			// P2P
 			seeds := []string{
-				"",
+				"ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:16056",      // Polkachu
+				"8542cd7e6bf9d260fef543bc49e59be5a3fa90740@seed.publicnode.com:26656",    // Allnodes team
+				"8defec7d0eec97f507411e02fd2634e3efc997a2@bitsong-seed.panthea.eu:41656", // Panthea EU
 			}
+
 			// Override default settings in config.toml
 			config.P2P.Seeds = strings.Join(seeds, ",")
 			config.P2P.MaxNumInboundPeers = 80
