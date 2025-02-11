@@ -19,7 +19,7 @@ import (
 
 var (
 	VotingPeriod     = "15s"
-	ExpiditedVoting  = "15s"
+	ExpeditedVoting  = "15s"
 	MaxDepositPeriod = "10s"
 	Denom            = "ubtsg"
 

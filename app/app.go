@@ -282,7 +282,7 @@ func NewBitsongApp(
 		txConfigOpts,
 	)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to create textual tx config: %w", err))
 	}
 	app.txConfig = txConfigWithTextual
 

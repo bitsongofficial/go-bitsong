@@ -50,10 +50,6 @@ func (s *IntegrationTestSuite) FundAccount(ctx sdk.Context, addr sdk.AccAddress,
 	return s.bk.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
 }
 
-func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
-}
-
 //go:embed testdata/clock_example.wasm
 var wasmContract []byte
 

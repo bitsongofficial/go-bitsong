@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
@@ -14,6 +15,7 @@ import (
 	sca "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkErr "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	icqkeeper "github.com/cosmos/ibc-apps/modules/async-icq/v8/keeper"
 	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -46,8 +48,10 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 						return nil, err
 					}
 					// remove reward information from distribution store
-					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil || !exists {
+					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
 						return nil, err
+					} else if !exists {
+						return nil, errors.Wrapf(sdkErr.ErrNotFound, "delegator starting info not found for delegator %s", del.DelegatorAddress)
 					}
 					if err := k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
 						return nil, err

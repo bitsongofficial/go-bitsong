@@ -13,10 +13,10 @@ const (
 
 // == MsgUpdateParams ==
 const (
-	TypeMsgRegisterFeePayContract   = "register_cadance_contract"
-	TypeMsgUnregisterFeePayContract = "unregister_cadance_contract"
-	TypeMsgUnjailFeePayContract     = "unjail_cadance_contract"
-	TypeMsgUpdateParams             = "update_cadance_params"
+	TypeMsgRegisterCadanceContract   = "register_cadance_contract"
+	TypeMsgUnregisterCadanceContract = "unregister_cadance_contract"
+	TypeMsgUnjailCadanceContract     = "unjail_cadance_contract"
+	TypeMsgUpdateParams              = "update_cadance_params"
 )
 
 var (
@@ -30,7 +30,7 @@ var (
 func (msg MsgRegisterCadanceContract) Route() string { return RouterKey }
 
 // Type returns the the action
-func (msg MsgRegisterCadanceContract) Type() string { return TypeMsgRegisterFeePayContract }
+func (msg MsgRegisterCadanceContract) Type() string { return TypeMsgRegisterCadanceContract }
 
 // ValidateBasic runs stateless checks on the message
 func (msg MsgRegisterCadanceContract) ValidateBasic() error {
@@ -52,7 +52,7 @@ func (msg MsgRegisterCadanceContract) GetSigners() []sdk.AccAddress {
 func (msg MsgUnregisterCadanceContract) Route() string { return RouterKey }
 
 // Type returns the the action
-func (msg MsgUnregisterCadanceContract) Type() string { return TypeMsgRegisterFeePayContract }
+func (msg MsgUnregisterCadanceContract) Type() string { return TypeMsgUnregisterCadanceContract }
 
 // ValidateBasic runs stateless checks on the message
 func (msg MsgUnregisterCadanceContract) ValidateBasic() error {
@@ -74,7 +74,7 @@ func (msg MsgUnregisterCadanceContract) GetSigners() []sdk.AccAddress {
 func (msg MsgUnjailCadanceContract) Route() string { return RouterKey }
 
 // Type returns the the action
-func (msg MsgUnjailCadanceContract) Type() string { return TypeMsgRegisterFeePayContract }
+func (msg MsgUnjailCadanceContract) Type() string { return TypeMsgUnjailCadanceContract }
 
 // ValidateBasic runs stateless checks on the message
 func (msg MsgUnjailCadanceContract) ValidateBasic() error {

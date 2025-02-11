@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/bitsongofficial/go-bitsong/x/cadance/types"
@@ -53,7 +55,7 @@ func (k Keeper) GetCadanceContract(ctx sdk.Context, contractAddress string) (*ty
 	var contract types.CadanceContract
 	err := k.cdc.Unmarshal(bz, &contract)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal contract %s: %w", contractAddress, err)
 	}
 
 	// Return the contract

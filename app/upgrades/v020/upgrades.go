@@ -55,8 +55,14 @@ func CreateV020UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 						rewardsRaw, patched := CustomCalculateDelegationRewards(sdkCtx, k, val, del, endingPeriod)
 						outstanding, err := k.DistrKeeper.GetValidatorOutstandingRewardsCoins(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()))
+						if err != nil {
+							return nil, err
+						}
 						if patched {
-							V018ManualDelegationRewardsPatch(sdkCtx, rewardsRaw, outstanding, k, val, del, endingPeriod)
+							err = V018ManualDelegationRewardsPatch(sdkCtx, rewardsRaw, outstanding, k, val, del, endingPeriod)
+							if err != nil {
+								return nil, err
+							}
 						}
 					}
 				}
