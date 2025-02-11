@@ -40,7 +40,7 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 			dels, _ := k.StakingKeeper.GetValidatorDelegations(sdkCtx, valAddr)
 
 			for _, del := range dels {
-				if del.Shares.LTE(math.LegacySmallestDec()) {
+				if del.Shares.LTE(math.LegacyNewDecWithPrec(13, -17)) {
 					// remove delegation from staking store
 					if err := k.StakingKeeper.RemoveDelegation(sdkCtx, del); err != nil {
 						return nil, err

@@ -54,7 +54,6 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			}
 			err = s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
 			s.Require().NoError(err)
-
 		}
 
 	}
