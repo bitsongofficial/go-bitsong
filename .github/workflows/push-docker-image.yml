@@ -20,9 +20,9 @@ name: Push Docker Images
 
 env:
   DOCKER_REPOSITORY: bitsongofficial/go-bitsong
-  RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian11
-  RUNNER_BASE_IMAGE_NONROOT: gcr.io/distroless/static-debian11:nonroot
-  RUNNER_BASE_IMAGE_ALPINE: alpine:3.17
+  RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian12
+  RUNNER_BASE_IMAGE_NONROOT: gcr.io/distroless/static-debian12:nonroot
+  RUNNER_BASE_IMAGE_ALPINE: alpine:3.21
 
 on:
   release:

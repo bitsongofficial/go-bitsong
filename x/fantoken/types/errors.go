@@ -1,8 +1,8 @@
-//nolint
+// nolint
 package types
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 )
 
 // fantoken module errors

@@ -93,7 +93,7 @@ func NewDefaultGenesisState() GenesisState {
 	// here we override wasm config to make it permissioned by default
 	wasmGen := wasmtypes.GenesisState{
 		Params: wasmtypes.Params{
-			CodeUploadAccess:             wasmtypes.AllowNobody,
+			CodeUploadAccess:             wasmtypes.AllowEverybody,
 			InstantiateDefaultPermission: wasmtypes.AccessTypeEverybody,
 		},
 	}
@@ -101,7 +101,7 @@ func NewDefaultGenesisState() GenesisState {
 	return gen
 }
 
-// CloneGenesisState creates a deep clone of the provided GenesisState.
+// cloneGenesisState creates a deep clone of the provided GenesisState.
 func cloneGenesisState(original GenesisState) GenesisState {
 	clone := make(GenesisState, len(original))
 	for key, value := range original {

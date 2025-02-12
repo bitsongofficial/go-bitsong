@@ -24,7 +24,7 @@
         },
         "tags": {
           "rename": {
-            "Gaia REST": "Tendermint RPC"
+            "Gaia REST": "CometBft RPC"
           }
         },
         "operationIds": {

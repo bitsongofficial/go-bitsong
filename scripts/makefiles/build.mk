@@ -17,10 +17,16 @@ build-help:
 	@echo "  build-reproducible-arm64               Build reproducible arm64 binary"
 	@echo "  build-generate-tar-and-checksum		Compress reproducable binaries and generate checksums"
 
-# Cross-building for arm64 from amd64 (or vice-versa) takes
-# a lot of time due to QEMU virtualization but it's the only way (afaik)
-# to get a statically linked binary with CosmWasm
-build-reproducible: build-reproducible-amd64 build-reproducible-arm64
+
+build:  build-check-version go.sum
+ifeq ($(OS),Windows_NT)
+	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
+else
+	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
+endif
+
+install: build-check-version go.sum
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
 build-check-version:
 	@echo "Go version: $(GO_MAJOR_VERSION).$(GO_MINOR_VERSION)"
@@ -34,6 +40,11 @@ build-check-version:
 		echo '$(GO_VERSION_ERR_MSG)'; \
 		exit 1; \
 	fi
+	
+# Cross-building for arm64 from amd64 (or vice-versa) takes
+# a lot of time due to QEMU virtualization but it's the only way (afaik)
+# to get a statically linked binary with CosmWasm
+build-reproducible: build-reproducible-amd64 build-reproducible-arm64
 
 build-reproducible-amd64: go.sum
 	mkdir -p $(BUILDDIR)

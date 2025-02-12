@@ -1,24 +1,30 @@
 package v010
 
 import (
+	"context"
+
+	"cosmossdk.io/math"
+	"cosmossdk.io/x/feegrant"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	appparams "github.com/bitsongofficial/go-bitsong/app/params"
+	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
-	ibcconnectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 )
 
-func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurator,
+func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager,
 	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	return func(ctx sdk.Context, _plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-		keepers.IBCKeeper.ConnectionKeeper.SetParams(ctx, ibcconnectiontypes.DefaultParams())
+	return func(ctx context.Context, _plan upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
+		sdkCtx := sdk.UnwrapSDKContext(ctx)
+		// logger := sdkCtx.Logger().With("upgrade", UpgradeName)
+		keepers.IBCKeeper.ConnectionKeeper.SetParams(sdkCtx, ibcconnectiontypes.DefaultParams())
 
 		fromVM := make(map[string]uint64)
 		for moduleName := range mm.Modules {
@@ -42,8 +48,11 @@ func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurato
 
 		// Proposal #5
 		// Force an update of validator min commission
-		validators := keepers.StakingKeeper.GetAllValidators(ctx)
-		minCommissionRate := sdk.NewDecWithPrec(5, 2)
+		validators, err := keepers.StakingKeeper.GetAllValidators(ctx)
+		if err != nil {
+			return nil, err
+		}
+		minCommissionRate := math.LegacyNewDecWithPrec(5, 2)
 		for _, v := range validators {
 			if v.Commission.Rate.LT(minCommissionRate) {
 				if v.Commission.MaxRate.LT(minCommissionRate) {
@@ -51,7 +60,7 @@ func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurato
 				}
 
 				v.Commission.Rate = minCommissionRate
-				v.Commission.UpdateTime = ctx.BlockHeader().Time
+				v.Commission.UpdateTime = sdkCtx.BlockHeader().Time
 
 				// call the before-modification hook since we're about to update the commission
 				// staking.BeforeValidatorModified(ctx, v.GetOperator())
@@ -66,7 +75,7 @@ func CreateV10UpgradeHandler(mm *module.Manager, configurator module.Configurato
 		if err != nil {
 			return nil, err
 		}
-		mintCoins := sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, sdk.NewInt(CassiniMintAmount)))
+		mintCoins := sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, math.NewInt(CassiniMintAmount)))
 
 		// mint coins
 		if err := keepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, mintCoins); err != nil {

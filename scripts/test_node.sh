@@ -59,6 +59,7 @@ from_scratch () {
   # Gov
   update_test_genesis '.app_state["gov"]["params"]["min_deposit"]=[{"denom": "ubtsg","amount": "1000000"}]'
   update_test_genesis '.app_state["gov"]["params"]["voting_period"]="15s"'
+  update_test_genesis '.app_state["gov"]["params"]["expedited_voting_period"]="6s"'
   # staking
   update_test_genesis '.app_state["staking"]["params"]["bond_denom"]="ubtsg"'
   update_test_genesis '.app_state["staking"]["params"]["min_commission_rate"]="0.050000000000000000"'
@@ -70,11 +71,11 @@ from_scratch () {
   # Custom Modules
 
   # Allocate genesis accounts
-  BINARY genesis add-genesis-account $KEY 10000000ubtsg,1000utest --keyring-backend $KEYRING
-  BINARY genesis add-genesis-account $KEY2 1000000ubtsg,1000utest --keyring-backend $KEYRING
-  BINARY genesis add-genesis-account bitsong1e7f6j0006x5csqra593uvm7q850ek72jke37z9 100000000000ubtsg --keyring-backend $KEYRING
+  BINARY genesis add-genesis-account $KEY 10000000ubtsg,1000utest --keyring-backend $KEYRING  
+  BINARY genesis add-genesis-account $KEY2 1000000ubtsg,1000utest --keyring-backend $KEYRING 
+  # BINARY genesis add-genesis-account bitsong1e7f6j0006x5csqra593uvm7q850ek72jke37z9 100000000000ubtsg --keyring-backend $KEYRING --append
 
-  BINARY genesis gentx $KEY 1000000ubtsg --keyring-backend $KEYRING --chain-id $CHAIN_ID
+  BINARY genesis gentx $KEY 1000000ubtsg --keyring-backend $KEYRING --chain-id $CHAIN_ID --sequence 1
 
   # Collect genesis tx
   BINARY genesis collect-gentxs

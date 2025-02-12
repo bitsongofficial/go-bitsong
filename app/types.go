@@ -19,13 +19,13 @@ type CosmosApp interface {
 	LegacyAmino() *codec.LegacyAmino
 
 	// BeginBlocker Application updates every begin block.
-	BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock
+	BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error)
 
 	// EndBlocker Application updates every end block.
-	EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock
+	EndBlocker(ctx sdk.Context) (sdk.EndBlock, error)
 
 	// InitChainer Application update at chain (i.e app) initialization.
-	InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain
+	InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error)
 
 	// LoadHeight Loads the app at a given height.
 	LoadHeight(height int64) error

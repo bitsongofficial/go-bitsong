@@ -1,27 +1,31 @@
 #!/usr/bin/make -f
 
+include contrib/devtools/Makefile
 include scripts/makefiles/build.mk
 include scripts/makefiles/docker.mk
 include scripts/makefiles/e2e.mk
+include scripts/makefiles/format.mk
 include scripts/makefiles/hl.mk
-include scripts/makefiles/proto.mk
 include scripts/makefiles/localnet.mk
-include contrib/devtools/Makefile
+include scripts/makefiles/proto.mk
+include scripts/makefiles/tests.mk
 
 .DEFAULT_GOAL := help
 help:
 	@echo "Available top-level commands:"
 	@echo ""
-	@echo "Usage:"
+	@echo "To run commands, use:"
 	@echo "    make [command]"
 	@echo ""
 	@echo "  make build                 Build Bitsong node binary"
 	@echo "  make docker                Show available docker related commands"
 	@echo "  make e2e                   Show available e2e commands"
+	@echo "  make format                Show available formatting commands"
 	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
 	@echo "  make install               Install Bitsong node binary"
 	@echo "  make localnet              Show available localnet commands"
-	@echo ""
+	@echo "  make proto                 Show available protobuf commands"
+	@echo "  make test					Show available testing commands"
 	@echo "Run 'make [subcommand]' to see the available commands for each subcommand."
 
 APP_DIR = ./app
@@ -119,15 +123,6 @@ ldflags := $(strip $(ldflags))
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
-build: go.sum
-ifeq ($(OS),Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/bitsongd.exe ./cmd/bitsongd
-else
-	go build $(BUILD_FLAGS) -o build/bitsongd ./cmd/bitsongd
-endif
-
-install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/bitsongd
 
 
 
@@ -153,32 +148,6 @@ clean:
 distclean: clean
 	rm -rf vendor/
 
-
-########################################
-### Testing
-
-test: test-unit
-test-all: test-race test-cover
-
-test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' -ldflags '$(ldflags)' ${PACKAGES_UNITTEST}
-
-test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
-
-test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
-
-lint: golangci-lint
-	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./swagger/*/statik.go" -not -path "*.pb.go" | xargs gofmt -d -s
-	go mod verify
-
-benchmark:
-	@go test -mod=readonly -bench=. ./...
-
-# include simulations
-# include sims.mk
 
 .PHONY: all build-linux install install-debug \
 	go-mod-cache draw-deps clean build \

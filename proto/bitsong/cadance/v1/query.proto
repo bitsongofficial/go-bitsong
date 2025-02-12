@@ -1,0 +1,65 @@
+syntax = "proto3";
+package bitsong.cadance.v1;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "bitsong/cadance/v1/genesis.proto";
+import "bitsong/cadance/v1/cadance.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/cadance/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // CadanceContracts
+  rpc CadanceContracts(QueryCadanceContracts)
+      returns (QueryCadanceContractsResponse) {
+    option (google.api.http).get =
+        "/bitsong/cadance/v1/contracts";
+  }
+  // CadanceContract
+  rpc CadanceContract(QueryCadanceContract)
+      returns (QueryCadanceContractResponse) {
+    option (google.api.http).get =
+        "/bitsong/cadance/v1/contracts/{contract_address}";
+  }
+  // Params
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bitsong/cadance/v1/params";
+  }
+}
+
+// QueryCadanceContracts is the request type to get all contracts.
+message QueryCadanceContracts {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryCadanceContractsResponse is the response type for the Query/CadanceContracts RPC method.
+message QueryCadanceContractsResponse {
+  // cadance_contracts are the cadance contract s.
+  repeated CadanceContract cadance_contracts = 1 [ (gogoproto.nullable) = false ];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryCadanceContract is the request type to get a single contract.
+message QueryCadanceContract {
+  // contract_address is the address of the contract to query.
+  string contract_address = 1;
+}
+
+// QueryCadanceContractResponse is the response type for the Query/CadanceContract RPC method.
+message QueryCadanceContractResponse {
+  // contract is the cadance contract .
+  CadanceContract cadance_contract = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParams is the request type to get all module params.
+message QueryParamsRequest {}
+
+// QueryCadanceContractsResponse is the response type for the Query/CadanceContracts RPC method.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.jsontag) = "params", (gogoproto.moretags) = "yaml:\"params\""];
+}

@@ -1,11 +1,11 @@
 package v010
 
 import (
+	store "cosmossdk.io/store/types"
+	"cosmossdk.io/x/feegrant"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
-	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 )
 
 const (

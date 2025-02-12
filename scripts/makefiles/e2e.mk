@@ -18,19 +18,19 @@ e2e-help:
 e2e: e2e-help
 
 e2e-basic: rm-testcache
-	cd e2e/ict && go test -race -v -run TestBasicBtsgStart .
+	cd tests/ict && go test -race -v -run TestBasicBtsgStart .
 
 e2e-upgrade: rm-testcache
-	cd e2e/ict && go test -race -v -run TestBasicBitsongUpgrade .
+	cd tests/ict && go test -race -v -run TestBasicBitsongUpgrade .
 
 e2e-pfm: rm-testcache
-	cd e2e/ict && go test -race -v -run TestPacketForwardMiddlewareRouter .
+	cd tests/ict && go test -race -v -run TestPacketForwardMiddlewareRouter .
 
 e2e-polytone: rm-testcache
-	cd e2e/ict && go test -race -v -run TestPolytoneOnBitsong .
+	cd tests/ict && go test -race -v -run TestPolytoneOnBitsong .
 
 e2e-slashing: rm-testcache
-	cd e2e/ict && go test -race -v -run TestBasicBitsongSlashing .
+	cd tests/ict && go test -race -v -run TestBasicBitsongSlashing .
 
 rm-testcache:
 	go clean -testcache

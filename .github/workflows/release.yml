@@ -21,7 +21,7 @@ jobs:
       - name: Setup Go 🧰
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.23
 
       - name: Unshallow
         run: git fetch --prune --unshallow --tags --force
@@ -49,14 +49,14 @@ jobs:
       - name: Setup Go 🧰
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.23
 
       - name: Build the binary 🏭
         run: |
           LEDGER_ENABLED=true make build
           mv build/bitsongd "build/bitsongd-$VERSION-darwin-amd64"
       - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "darwin-amd64"
           path: "build/*darwin*amd64*"
@@ -80,7 +80,7 @@ jobs:
       - name: Setup Go 🧰
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.23
 
       - name: Compute diff 📜
         uses: technote-space/get-diff-action@v6.1.0
@@ -95,13 +95,13 @@ jobs:
           GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=true make build
           mv build/bitsongd "build/bitsongd-$VERSION-linux-${{ matrix.go-arch }}"
       - name: Upload the linux/amd64 artifact 📤
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "linux-amd64"
           path: "build/*linux*amd64*"
 
       - name: Upload the linux/arm64 artifact 📤
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "linux-arm64"
           path: "build/*linux*arm64*"
@@ -125,7 +125,7 @@ jobs:
       - name: Setup Go 🧰
         uses: actions/setup-go@v3
         with:
-          go-version: 1.22
+          go-version: 1.23
 
       - name: Build the binary 🏭
         run: |
@@ -133,7 +133,7 @@ jobs:
           echo "build/bitsongd-$env:VERSION-$env:COMMIT-windows-amd64.exe"
           mv build/bitsongd.exe "build/bitsongd-$env:VERSION-windows-amd64.exe"
       - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "windows-amd64"
           path: "build/*windows*amd64*"

@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
+	"cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const (
@@ -32,7 +33,7 @@ var (
 // ValidateDenom checks if the given denom is valid
 func ValidateDenom(denom string) error {
 	if !strings.HasPrefix(denom, "ft") {
-		return sdkerrors.Wrapf(ErrInvalidDenom, "invalid denom: %s, denom starts with ft", denom)
+		return errors.Wrapf(ErrInvalidDenom, "invalid denom: %s, denom starts with ft", denom)
 	}
 
 	return sdk.ValidateDenom(denom)
@@ -41,7 +42,7 @@ func ValidateDenom(denom string) error {
 // ValidateName verifies whether the given name is valid
 func ValidateName(name string) error {
 	if len(strings.TrimSpace(name)) > MaximumNameLen {
-		return sdkerrors.Wrapf(ErrInvalidName, "invalid fantoken name %s, only accepts length [%d, %d]", name, MinimumNameLen, MaximumNameLen)
+		return errors.Wrapf(ErrInvalidName, "invalid fantoken name %s, only accepts length [%d, %d]", name, MinimumNameLen, MaximumNameLen)
 	}
 
 	return nil
@@ -54,16 +55,16 @@ func ValidateSymbol(symbol string) error {
 	}
 
 	if !regexpSymbol(strings.TrimSpace(symbol)) {
-		return sdkerrors.Wrapf(ErrInvalidSymbol, "invalid symbol: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", symbol, MinimumSymbolLen, MaximumSymbolLen, regexpSymbolFmt)
+		return errors.Wrapf(ErrInvalidSymbol, "invalid symbol: %s, only accepts english lowercase letters and numbers, length [%d, %d], and begin with an english letter, regexp: %s", symbol, MinimumSymbolLen, MaximumSymbolLen, regexpSymbolFmt)
 	}
 
 	return nil
 }
 
 // ValidateAmount checks if the given amount is positive amount
-func ValidateAmount(amount sdk.Int) error {
+func ValidateAmount(amount math.Int) error {
 	if amount.IsZero() || amount.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidMaxSupply, "invalid fantoken amount %d, only accepts positive amount", amount)
+		return errors.Wrapf(ErrInvalidMaxSupply, "invalid fantoken amount %d, only accepts positive amount", amount)
 	}
 	return nil
 }
@@ -71,7 +72,7 @@ func ValidateAmount(amount sdk.Int) error {
 // ValidateUri checks if the given uri is valid
 func ValidateUri(uri string) error {
 	if len(strings.TrimSpace(uri)) > MaximumUriLen {
-		return sdkerrors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length [%d, %d]", uri, MinimumUriLen, MaximumUriLen)
+		return errors.Wrapf(ErrInvalidUri, "invalid uri: %s, uri only accepts length [%d, %d]", uri, MinimumUriLen, MaximumUriLen)
 	}
 
 	return nil

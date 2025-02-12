@@ -1,0 +1,25 @@
+version: "4"
+
+services:
+  bitsongd:
+    image: local:bitsong
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+      args:
+        RUNNER_IMAGE: golang:1.23.0-alpine3.21
+        GO_VERSION: "1.23.0"
+    volumes:
+      - ./scripts/setup.sh:/bitsong/setup.sh
+      - $HOME/.bitsongd-local/:/bitsongd/.bitsongd/
+    entrypoint:
+      - /bitsong/setup.sh
+    command:
+      - $STATE
+    ports:
+      - 26657:26657
+      - 1317:1317
+      - 9090:9090
+      - 9091:9091
+      - 6060:6060
+      - 9092:9092

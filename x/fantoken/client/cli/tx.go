@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
@@ -78,7 +79,7 @@ func GetCmdIssue() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			maxSupply, ok := sdk.NewIntFromString(maxSupplyStr)
+			maxSupply, ok := math.NewIntFromString(maxSupplyStr)
 			if !ok {
 				return fmt.Errorf("failed to parse max supply: %s", maxSupplyStr)
 			}
@@ -447,9 +448,9 @@ Where proposal.json contains:
 				return err
 			}
 
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
+			// if err := msg.ValidateBasic(); err != nil {
+			// 	return err
+			// }
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/math"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
 	tokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cometbft/cometbft/libs/cli"
@@ -24,7 +25,7 @@ var (
 	name      = "Bitcoin"
 	symbol    = "btc"
 	uri       = "ipfs://"
-	maxSupply = sdk.NewInt(200000000)
+	maxSupply = math.NewInt(200000000)
 )
 
 type IntegrationTestSuite struct {
@@ -56,7 +57,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
-func issueCmd(s *IntegrationTestSuite, ctx client.Context, name, symbol string, maxSupply sdk.Int, uri string, from sdk.AccAddress) string {
+func issueCmd(s *IntegrationTestSuite, ctx client.Context, name, symbol string, maxSupply math.Int, uri string, from sdk.AccAddress) string {
 	//------test GetCmdIssue()-------------
 	args := []string{
 		fmt.Sprintf("--%s=%s", tokencli.FlagSymbol, symbol),
@@ -66,7 +67,7 @@ func issueCmd(s *IntegrationTestSuite, ctx client.Context, name, symbol string, 
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 	respType := proto.Message(&sdk.TxResponse{})
@@ -90,7 +91,7 @@ func mintCmd(s *IntegrationTestSuite, ctx client.Context, coin string, rcpt, fro
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 	respType := proto.Message(&sdk.TxResponse{})
@@ -110,7 +111,7 @@ func burnCmd(s *IntegrationTestSuite, ctx client.Context, coin string, from sdk.
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 	respType := proto.Message(&sdk.TxResponse{})
@@ -131,7 +132,7 @@ func setAuthorityCmd(s *IntegrationTestSuite, ctx client.Context, denom, new, ol
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, old),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 
@@ -153,7 +154,7 @@ func setMinterCmd(s *IntegrationTestSuite, ctx client.Context, denom, new, old s
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, old),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 
@@ -174,7 +175,7 @@ func disableMintCmd(s *IntegrationTestSuite, ctx client.Context, denom, from str
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 
@@ -196,7 +197,7 @@ func setUriCmd(s *IntegrationTestSuite, ctx client.Context, denom, uri, from str
 
 		fmt.Sprintf("--%s=%s", flags.FlagFrom, from),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastSync),
-		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, sdk.NewInt(10))).String()),
+		fmt.Sprintf("--%s=%s", flags.FlagFees, sdk.NewCoins(sdk.NewCoin(s.cfg.BondDenom, math.NewInt(10))).String()),
 		fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 	}
 
@@ -422,9 +423,9 @@ func (s *IntegrationTestSuite) TestCmdQueryParams() {
 	resp, err := clitestutil.ExecTestCLICmd(clientCtx, tokencli.GetCmdQueryParams(), args)
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &params))
-	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(1000000000)), params.IssueFee)
-	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()), params.MintFee)
-	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt()), params.BurnFee)
+	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1000000000)), params.IssueFee)
+	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, math.ZeroInt()), params.MintFee)
+	s.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, math.ZeroInt()), params.BurnFee)
 }
 
 /*
@@ -460,7 +461,7 @@ func (s *IntegrationTestSuite) TestCmdQueryTotalBurn() {
 	s.Require().NoError(err)
 	s.Require().NoError(clientCtx.Codec.UnmarshalJSON(resp.Bytes(), &totalBurn))
 	s.Require().GreaterOrEqual(len(totalBurn.BurnedCoins), 1)
-	s.Require().Equal(sdk.NewInt(10), totalBurn.BurnedCoins[0].Amount)
+	s.Require().Equal(math.NewInt(10), totalBurn.BurnedCoins[0].Amount)
 	s.Require().Equal(denom, totalBurn.BurnedCoins[0].Denom)
 }
 */

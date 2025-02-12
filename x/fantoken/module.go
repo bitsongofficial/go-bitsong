@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/math"
+
+	// simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-
-	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/client/cli"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
@@ -22,8 +24,14 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModuleBasic = (*AppModule)(nil)
+	// _ module.AppModuleSimulation = (*AppModule)(nil)
+	_ module.HasGenesis = (*AppModule)(nil)
+
+	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
+	_ appmodule.HasEndBlocker   = (*AppModule)(nil)
+	_ appmodule.AppModule       = AppModule{}
+	_ module.AppModuleBasic     = AppModuleBasic{}
 )
 
 // AppModuleBasic defines the basic application module used by the fantoken module.
@@ -98,6 +106,12 @@ func NewAppModule(cdc codec.Codec, keeper keeper.Keeper, bk types.BankKeeper) Ap
 	}
 }
 
+// IsAppModule implements the appmodule.AppModule interface.
+func (am AppModule) IsAppModule() {}
+
+// IsOnePerModuleType is a marker function just indicates that this is a one-per-module type.
+func (am AppModule) IsOnePerModuleType() {}
+
 // Name returns the fantoken module's name.
 func (AppModule) Name() string { return types.ModuleName }
 
@@ -120,13 +134,13 @@ func (AppModule) QuerierRoute() string { return types.RouterKey }
 
 // InitGenesis performs genesis initialization for the fantoken module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) {
 	var genesisState types.GenesisState
 
 	cdc.MustUnmarshalJSON(data, &genesisState)
 
 	InitGenesis(ctx, am.keeper, genesisState)
-	return []abci.ValidatorUpdate{}
+	return
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the fantoken module.
@@ -139,9 +153,25 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // BeginBlock performs a no-op.
-func (AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+func (AppModule) BeginBlock(_ context.Context) error {
+	return nil
+}
 
 // EndBlock returns the end blocker for the fantoken module. It returns no validator updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+func (AppModule) EndBlock(_ context.Context) error {
+	return nil
 }
+
+// GenerateGenesisState creates a randomized GenState of the valset module.
+func (am AppModule) SimulatorGenesisState(simState *module.SimulationState) {
+	ftDefaultGen := types.DefaultGenesisState()
+	ftDefaultGen.Params.IssueFee = sdk.NewCoin("stake", math.NewInt(10000000))
+	ftDefaultGenJson := simState.Cdc.MustMarshalJSON(ftDefaultGen)
+	simState.GenState[types.ModuleName] = ftDefaultGenJson
+}
+
+// // GenerateGenesisState creates a randomized GenState of the module.
+// func (a AppModule) GenerateGenesisState(_ *module.SimulationState) {}
+
+// // RegisterStoreDecoder registers a decoder for module simulation testing
+// func (am AppModule) RegisterStoreDecoder(sdr simtypes.StoreDecoderRegistry) {}

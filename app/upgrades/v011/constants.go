@@ -1,9 +1,9 @@
 package v011
 
 import (
+	store "cosmossdk.io/store/types"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
-	store "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 const (

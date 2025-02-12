@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	gogotypes "github.com/gogo/protobuf/types"
-
+	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
+	db "github.com/cosmos/cosmos-db"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	gogotypes "github.com/cosmos/gogoproto/types"
 
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 )
@@ -13,9 +15,9 @@ import (
 func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens []types.FanToken) {
 	store := ctx.KVStore(k.storeKey)
 
-	var it sdk.Iterator
+	var it db.Iterator
 	if owner == nil {
-		it = sdk.KVStorePrefixIterator(store, types.PrefixFanTokenForDenom)
+		it = storetypes.KVStorePrefixIterator(store, types.PrefixFanTokenForDenom)
 		defer it.Close()
 
 		for ; it.Valid(); it.Next() {
@@ -27,7 +29,7 @@ func (k Keeper) GetFanTokens(ctx sdk.Context, owner sdk.AccAddress) (fantokens [
 		return
 	}
 
-	it = sdk.KVStorePrefixIterator(store, types.KeyFanTokens(owner, ""))
+	it = storetypes.KVStorePrefixIterator(store, types.KeyFanTokens(owner, ""))
 	defer it.Close()
 
 	for ; it.Valid(); it.Next() {
@@ -50,13 +52,13 @@ func (k Keeper) GetFanToken(ctx sdk.Context, denom string) (*types.FanToken, err
 		return &fantoken, nil
 	}
 
-	return nil, sdkerrors.Wrapf(types.ErrFanTokenNotExists, "denom %s does not exist", denom)
+	return nil, sdkerrors.ErrAppConfig.Wrapf(types.ErrFanTokenNotExists.Error(), "denom %s does not exist", denom)
 }
 
 // AddFanToken saves a new token
 func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 	if k.HasFanToken(ctx, token.GetDenom()) {
-		return sdkerrors.Wrapf(types.ErrDenomAlreadyExists, "denom already exists: %s", token.GetDenom())
+		return sdkerrors.ErrAppConfig.Wrapf(types.ErrDenomAlreadyExists.Error(), "denom already exists: %s", token.GetDenom())
 	}
 
 	// set token
@@ -71,6 +73,6 @@ func (k Keeper) AddFanToken(ctx sdk.Context, token *types.FanToken) error {
 }
 
 // getFanTokenSupply queries the fantoken supply from the total supply
-func (k Keeper) getFanTokenSupply(ctx sdk.Context, denom string) sdk.Int {
+func (k Keeper) getFanTokenSupply(ctx sdk.Context, denom string) math.Int {
 	return k.bankKeeper.GetSupply(ctx, denom).Amount
 }

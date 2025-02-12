@@ -3,9 +3,7 @@ package app
 import (
 	"fmt"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	"github.com/bitsongofficial/go-bitsong/app/params"
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -22,6 +20,7 @@ import (
 // testing requirements.
 func DefaultConfig() network.Config {
 	encCfg := MakeEncodingConfig()
+	chainId := "bitsong-test-1"
 
 	return network.Config{
 		Codec:             encCfg.Marshaler,
@@ -29,10 +28,10 @@ func DefaultConfig() network.Config {
 		LegacyAmino:       encCfg.Amino,
 		InterfaceRegistry: encCfg.InterfaceRegistry,
 		AccountRetriever:  authtypes.AccountRetriever{},
-		AppConstructor:    NewAppConstructor(encCfg),
+		AppConstructor:    NewAppConstructor(chainId),
 		GenesisState:      AppModuleBasics.DefaultGenesis(encCfg.Marshaler),
 		TimeoutCommit:     1 * time.Second / 2,
-		ChainID:           "bitsong-test-1",
+		ChainID:           chainId,
 		NumValidators:     1,
 		BondDenom:         sdk.DefaultBondDenom,
 		MinGasPrices:      fmt.Sprintf("0.000006%s", sdk.DefaultBondDenom),
@@ -46,11 +45,14 @@ func DefaultConfig() network.Config {
 	}
 }
 
-func NewAppConstructor(encodingCfg params.EncodingConfig, opts ...wasmkeeper.Option) network.AppConstructor {
+func NewAppConstructor(chainId string) network.AppConstructor {
 	return func(val network.ValidatorI) servertypes.Application {
+		valCtx := val.GetCtx()
+		appConfig := val.GetAppConfig()
+
 		return NewBitsongApp(
-			val.GetCtx().Logger, dbm.NewMemDB(), nil, true, EmptyAppOptions{}, opts,
-			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
+			valCtx.Logger, dbm.NewMemDB(), nil, true, valCtx.Config.RootDir, EmptyAppOptions{}, EmptyWasmOpts,
+			baseapp.SetMinGasPrices(appConfig.MinGasPrices), baseapp.SetChainID(chainId),
 		)
 	}
 }

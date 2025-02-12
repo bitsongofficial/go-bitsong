@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/errors"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gogotypes "github.com/gogo/protobuf/types"
 )
 
@@ -32,7 +32,7 @@ func (k Keeper) getFanTokenByDenom(ctx sdk.Context, denom string) (fantoken type
 
 	bz := store.Get(types.KeyDenom(denom))
 	if bz == nil {
-		return fantoken, sdkerrors.Wrap(types.ErrFanTokenNotExists, fmt.Sprintf("fantoken denom %s does not exist", denom))
+		return fantoken, errors.Wrap(types.ErrFanTokenNotExists, fmt.Sprintf("fantoken denom %s does not exist", denom))
 	}
 
 	k.cdc.MustUnmarshal(bz, &fantoken)

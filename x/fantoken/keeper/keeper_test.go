@@ -1,7 +1,9 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	simapp "github.com/bitsongofficial/go-bitsong/app"
+	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,25 +13,24 @@ import (
 	"testing"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 )
 
 var (
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("tokenTest")))
 	uri      = "ipfs://"
-	initAmt  = sdk.NewIntFromUint64(1000000000)
+	initAmt  = math.NewIntFromUint64(1000000000)
 	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 	symbol   = "btc"
 	name     = "Bitcoin Network"
 
-	maxSupply = sdk.NewInt(200000000)
+	maxSupply = math.NewInt(200000000)
 	// mintable  = true
 	// height    = int64(1)
 )
 
 type KeeperTestSuite struct {
-	suite.Suite
+	apptesting.KeeperTestHelper
 
 	legacyAmino *codec.LegacyAmino
 	ctx         sdk.Context
@@ -39,13 +40,13 @@ type KeeperTestSuite struct {
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
-	app := simapp.Setup(suite.T())
+	suite.Setup()
 
-	suite.legacyAmino = app.LegacyAmino()
-	suite.ctx = app.BaseApp.NewContext(false, tmproto.Header{ChainID: "testing"})
+	app := suite.App
 	suite.keeper = app.AppKeepers.FanTokenKeeper
 	suite.bk = app.AppKeepers.BankKeeper
 	suite.app = app
+	suite.ctx = suite.Ctx
 
 	// set params
 	suite.keeper.SetParamSet(suite.ctx, fantokentypes.DefaultParams())
@@ -85,25 +86,25 @@ func (suite *KeeperTestSuite) TestMint() {
 
 	// check actual fantoken balance
 	balance := suite.bk.GetBalance(suite.ctx, owner, denom)
-	suite.Equal(sdk.ZeroInt(), balance.Amount)
-	suite.NotEqual(sdk.NewInt(2), balance.Amount)
+	suite.Equal(math.ZeroInt(), balance.Amount)
+	suite.NotEqual(math.NewInt(2), balance.Amount)
 
 	// check the fantoken supply
 	supply := suite.bk.GetSupply(suite.ctx, denom)
-	suite.Equal(sdk.ZeroInt(), supply.Amount)
+	suite.Equal(math.ZeroInt(), supply.Amount)
 	suite.Equal(denom, supply.Denom)
 
 	// mint some token
-	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, sdk.NewInt(10)))
+	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, math.NewInt(10)))
 
 	// check the fantoken balance once a time
 	balance = suite.bk.GetBalance(suite.ctx, owner, denom)
-	suite.Equal(sdk.NewInt(10), balance.Amount)
-	suite.NotEqual(sdk.ZeroInt(), balance.Amount)
+	suite.Equal(math.NewInt(10), balance.Amount)
+	suite.NotEqual(math.ZeroInt(), balance.Amount)
 
 	// check the fantoken supply once a time
 	supply = suite.bk.GetSupply(suite.ctx, denom)
-	suite.Equal(sdk.NewInt(10), supply.Amount)
+	suite.Equal(math.NewInt(10), supply.Amount)
 	suite.Equal(denom, supply.Denom)
 }
 
@@ -113,19 +114,19 @@ func (suite *KeeperTestSuite) TestBurn() {
 	suite.NoError(err)
 
 	// mint some token
-	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, sdk.NewInt(10)))
+	suite.keeper.Mint(suite.ctx, owner, owner, sdk.NewCoin(denom, math.NewInt(10)))
 
 	// burn some token
-	suite.keeper.Burn(suite.ctx, sdk.NewCoin(denom, sdk.NewInt(6)), owner)
+	suite.keeper.Burn(suite.ctx, sdk.NewCoin(denom, math.NewInt(6)), owner)
 
 	// check the fantoken balance
 	balance := suite.bk.GetBalance(suite.ctx, owner, denom)
-	suite.Equal(sdk.NewInt(4), balance.Amount)
-	suite.NotEqual(sdk.ZeroInt(), balance.Amount)
+	suite.Equal(math.NewInt(4), balance.Amount)
+	suite.NotEqual(math.ZeroInt(), balance.Amount)
 
 	// check the fantoken supply once a time
 	supply := suite.bk.GetSupply(suite.ctx, denom)
-	suite.Equal(sdk.NewInt(4), supply.Amount)
+	suite.Equal(math.NewInt(4), supply.Amount)
 	suite.Equal(denom, supply.Denom)
 }
 
