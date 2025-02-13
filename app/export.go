@@ -2,12 +2,15 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
+	"cosmossdk.io/math"
+	v020 "github.com/bitsongofficial/go-bitsong/app/upgrades/v020"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -70,15 +73,68 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	}
 
 	/* Just to be safe, assert the invariants on current state. */
-	app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
+	// app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
 
 	/* Handle fee distribution state. */
+	app.AppKeepers.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+		dels := app.AppKeepers.StakingKeeper.GetValidatorDelegations(ctx, val.GetOperator())
+
+		for _, del := range dels {
+			ctx.Logger().Info(fmt.Sprintf("del_info: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
+			if del.Shares.LTE(math.LegacyZeroDec()) {
+				ctx.Logger().Info(fmt.Sprintf("removing negative delegations: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
+				// remove reward information from distribution store
+				if app.AppKeepers.DistrKeeper.HasDelegatorStartingInfo(ctx, val.GetOperator(), sdk.AccAddress(del.DelegatorAddress)) {
+					app.AppKeepers.DistrKeeper.DeleteDelegatorStartingInfo(ctx, val.GetOperator(), sdk.AccAddress(del.DelegatorAddress))
+				}
+				// remove delegation from staking store
+				if err := app.AppKeepers.StakingKeeper.RemoveDelegation(ctx, del); err != nil {
+					panic(err)
+				}
+			} else {
+				if !app.AppKeepers.DistrKeeper.HasDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr()) {
+					panic(distrtypes.ErrEmptyDelegationDistInfo)
+				}
+				endingPeriod := app.AppKeepers.DistrKeeper.IncrementValidatorPeriod(ctx, val)
+				rewardsRaw, patched := v020.CustomCalculateDelegationRewards(ctx, &app.AppKeepers, val, del, endingPeriod)
+				outstanding := app.AppKeepers.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, del.GetValidatorAddr())
+
+				if patched {
+					ctx.Logger().Info("~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~")
+					ctx.Logger().Info(fmt.Sprintf("PATCHED: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
+					err := v020.V018ManualDelegationRewardsPatch(ctx, rewardsRaw, outstanding, &app.AppKeepers, val, del, endingPeriod)
+					if err != nil {
+						panic(err)
+					}
+				}
+			}
+
+		}
+
+		return false
+	})
+
+	/*  ensure no delegations exist without starting info*/
+	for _, del := range app.AppKeepers.StakingKeeper.GetAllDelegations(ctx) {
+		if !app.AppKeepers.DistrKeeper.HasDelegatorStartingInfo(ctx, del.GetValidatorAddr(), del.GetDelegatorAddr()) {
+			panic(distrtypes.ErrEmptyDelegationDistInfo)
+		}
+
+		/* ensure all rewards are patched */
+		val := app.AppKeepers.StakingKeeper.Validator(ctx, del.GetValidatorAddr())
+		endingPeriod := app.AppKeepers.DistrKeeper.IncrementValidatorPeriod(ctx, val)
+		/* will error if still broken */
+		app.AppKeepers.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+		// ctx.Logger().Info(fmt.Sprintf("delegator reward: %q %v %q", val.GetOperator().String(), del.GetDelegatorAddr().String(), reward))
+	}
 
 	// withdraw all validator commission
 	app.AppKeepers.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+
 		_, err := app.AppKeepers.DistrKeeper.WithdrawValidatorCommission(ctx, val.GetOperator())
 		if err != nil {
-			panic(err)
+			ctx.Logger().Info(fmt.Sprintf("attempted to withdraw commission from validator with none, skipping: %q", val.GetOperator().String()))
+			return false
 		}
 		return false
 	})
@@ -164,11 +220,17 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	counter := int16(0)
 
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.ValAddress(iter.Key()[1:])
+		key := iter.Key()[1:]
+		addr := sdk.ValAddress(key)
 		validator, found := app.AppKeepers.StakingKeeper.GetValidator(ctx, addr)
 		if !found {
-			panic("expected validator, not found")
+			ctx.Logger().Info(fmt.Sprintf("expected validator, not found: %q. removing key from store...", addr.String()))
+			store.Delete(key)
+			counter++
+			continue
 		}
+		ctx.Logger().Info("-==-=-=-==---=-=-=-=-=--=-=-=-")
+		ctx.Logger().Info(fmt.Sprintf("found: %q,  %q", addr.String(), validator.OperatorAddress))
 
 		validator.UnbondingHeight = 0
 		if applyAllowedAddrs && !allowedAddrsMap[addr.String()] {
@@ -180,11 +242,6 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	}
 
 	iter.Close()
-
-	if _, err := app.AppKeepers.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx); err != nil {
-		panic(err)
-	}
-
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
@@ -197,3 +254,25 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 		},
 	)
 }
+
+// /* remove any remaining validator keys from store.This runs after we retrieve all current validators from staking keeper store,
+//  preventing us from deleting active validators store. */
+// store := sdkCtx.KVStore(k.GetKey(stakingtypes.StoreKey))
+// iter := storetypes.KVStoreReversePrefixIterator(store, stakingtypes.ValidatorsKey)
+// counter := int16(0)
+
+// for ; iter.Valid(); iter.Next() {
+// 	key := iter.Key()[1:]
+// 	addr := sdk.ValAddress(key)
+// 	validator, err := k.StakingKeeper.GetValidator(sdkCtx, addr)
+// 	if err != nil {
+// 		sdkCtx.Logger().Info(fmt.Sprintf("expected validator, not found: %q", addr.String()))
+// 		store.Delete(key)
+// 		counter++
+// 		continue
+// 	} else {
+// 		sdkCtx.Logger().Info("-==-=-=-==---=-=-=-=-=--=-=-=-")
+// 		sdkCtx.Logger().Info(fmt.Sprintf("found: %q", validator.OperatorAddress))
+// 	}
+// 	counter++
+// }
