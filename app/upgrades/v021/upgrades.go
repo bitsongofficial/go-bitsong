@@ -89,24 +89,26 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		}
 
 		/*  ensure no delegations exist without starting info*/
-		allDels, err := k.StakingKeeper.GetAllDelegations(sdkCtx)
+		allVals, err := k.StakingKeeper.GetAllValidators(sdkCtx)
 		if err != nil {
 			panic(err)
 		}
-		for _, del := range allDels {
+		for _, val := range allVals {
 			/* ensure all rewards are patched */
-			val, err := k.StakingKeeper.Validator(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()))
+			dels, err := k.StakingKeeper.GetValidatorDelegations(sdkCtx, sdk.ValAddress(val.OperatorAddress))
 			if err != nil {
 				panic(err)
 			}
-			endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
-			if err != nil {
-				panic(err)
-			}
-			/* will error if still broken */
-			_, err = k.DistrKeeper.CalculateDelegationRewards(sdkCtx, val, del, endingPeriod)
-			if err != nil {
-				panic(err)
+			for _, del := range dels {
+				endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
+				if err != nil {
+					panic(err)
+				}
+				/* will error if still broken */
+				_, err = k.DistrKeeper.CalculateDelegationRewards(sdkCtx, val, del, endingPeriod)
+				if err != nil {
+					panic(err)
+				}
 			}
 		}
 
