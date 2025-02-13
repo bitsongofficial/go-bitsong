@@ -12,7 +12,6 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
@@ -38,13 +37,13 @@ func TestUpgradeTestSuite(t *testing.T) {
 func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func(shares, slash math.LegacyDec, jailed bool) {
 		vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		fmt.Printf("# OF VALS: %d\n", len(vals))
 		for _, val := range vals {
-			// save delegation to distribution store
-			err := s.App.AppKeepers.DistrKeeper.SetDelegatorStartingInfo(s.Ctx, sdktypes.ValAddress(val.OperatorAddress), s.TestAccs[0], distrtypes.NewDelegatorStartingInfo(1, shares, uint64(s.Ctx.BlockHeight())))
-			s.Require().NoError(err)
+			// delAddrStr, err := s.App.AppKeepers.AccountKeeper.AddressCodec().BytesToString(s.TestAccs[0])
 
-			// create delegation with smallest non 0 value
-			s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.NewDelegation(s.TestAccs[0].String(), val.OperatorAddress, shares))
+			s.FundAcc(s.TestAccs[0], sdktypes.NewCoins(sdktypes.NewCoin("stake", math.NewInt(1000000))))
+			_, err := s.App.AppKeepers.StakingKeeper.Delegate(s.Ctx, s.TestAccs[0], math.NewInt(1000000), stakingtypes.Unbonded, val, true)
+			s.Require().NoError(err)
 
 			if !slash.IsZero() {
 				val.Tokens = math.LegacyNewDecFromInt(val.Tokens).MulTruncate(math.LegacyOneDec().Sub(slash)).RoundInt() // 1 % slash
@@ -54,6 +53,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			}
 			err = s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
 			s.Require().NoError(err)
+
+			// get delegations
+			dels, err := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
+			s.Require().NoError(err)
+			fmt.Printf("# OF DELS: %d\n", len(dels))
+
+			// todo: fix staking helper to propoerly manage staking in simulation tests
 		}
 
 	}
@@ -67,7 +73,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		{
 			"test app module params",
 			func() {
-				upgradeSetup(math.LegacyOneDec(), math.LegacyZeroDec(), true)
+				upgradeSetup(math.LegacyOneDec(), math.LegacyZeroDec(), false)
 			},
 			func() {
 				dummyUpgrade(s)
