@@ -34,7 +34,7 @@ var (
 	BitsongImage = ibc.DockerImage{
 		Repository: bitsongRepo,
 		Version:    bitsongVersion,
-		UIDGID:     "1025:1025",
+		UidGid:     "1025:1025",
 	}
 
 	// SDK v47 Genesis
