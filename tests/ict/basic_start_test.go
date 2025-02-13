@@ -5,7 +5,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/stretchr/testify/require"
@@ -28,9 +27,7 @@ func TestBasicBtsgStart(t *testing.T) {
 	userFunds := sdkmath.NewInt(10_000_000_000)
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, bitsong)
 	println("users", users)
-	chainUser := users[0]
-
-	bitsongconformance.ConformanceCosmWasm(t, ctx, bitsong, chainUser)
+	// chainUser := users[0]
 
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)

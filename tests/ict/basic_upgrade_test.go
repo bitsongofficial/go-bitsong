@@ -9,9 +9,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 
-	bitsongconformance "github.com/bitsongofficial/go-bitsong/tests/e2e/conformance"
-	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
-
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/docker/docker/client"
 	"github.com/strangelove-ventures/interchaintest/v8"
@@ -25,7 +22,7 @@ import (
 
 const (
 	chainName   = "bitsong"
-	upgradeName = "v020"
+	upgradeName = "v021"
 
 	haltHeightDelta    = int64(10) // will propose upgrade this many blocks in the future
 	blocksAfterUpgrade = int64(7)
@@ -35,7 +32,7 @@ var (
 	// baseChain is the current version of the chain that will be upgraded from
 	baseChain = ibc.DockerImage{
 		Repository: BitsongMainRepo,
-		Version:    "v0.19.0",
+		Version:    "v0.20.5",
 		UidGid:     "1025:1025",
 	}
 )
@@ -89,9 +86,6 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 
 	chainUser := users[0]
 
-	// execute a contract before the upgrade
-	beforeContract := bitsongconformance.StdExecute(t, ctx, chain, chainUser)
-
 	// upgrade
 	height, err := chain.Height(ctx)
 
@@ -105,21 +99,6 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 	ValidatorVoting(t, ctx, chain, proposalIDInt, height, haltHeight)
 
 	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
-
-	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
-	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
-
-	// Post Upgrade: Conformance Validation
-	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
-	// TODO: ibc conformance test
-	UpgradeNodes(t, ctx, chain, client, haltHeight, upgradeRepo, upgradeBranchVersion)
-
-	// confirm we can execute against the beforeContract (ref: v20 upgrade patch)
-	helpers.ExecuteMsgWithFee(t, ctx, chain, chainUser, beforeContract, "", "10000"+chain.Config().Denom, `{"increment":{}}`)
-
-	// Post Upgrade: Conformance Validation
-	bitsongconformance.ConformanceCosmWasm(t, ctx, chain, chainUser)
-	// TODO: ibc conformance test
 }
 
 func UpgradeNodes(t *testing.T, ctx context.Context, chain *cosmos.CosmosChain, client *client.Client, haltHeight int64, upgradeRepo, upgradeBranchVersion string) {

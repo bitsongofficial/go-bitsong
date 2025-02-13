@@ -10,7 +10,6 @@ replace (
 require (
 	cosmossdk.io/math v1.4.0
 	cosmossdk.io/x/upgrade v0.1.3
-	github.com/CosmWasm/wasmvm/v2 v2.1.5
 	github.com/cosmos/cosmos-sdk v0.50.11
 	github.com/cosmos/ibc-go/v8 v8.3.1
 	github.com/docker/docker v25.0.6+incompatible
@@ -203,7 +202,6 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
-	github.com/shamaton/msgpack/v2 v2.2.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
