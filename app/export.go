@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"cosmossdk.io/math"
 	v020 "github.com/bitsongofficial/go-bitsong/app/upgrades/v020"
@@ -15,6 +16,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
+
+type DelegationInfo struct {
+	ValidatorAddr string
+	DelegatorAddr string
+}
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
@@ -75,14 +81,25 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 	/* Just to be safe, assert the invariants on current state. */
 	// app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
 
+	/* - count number of patched delegators*/
+	var patchedCount int
+	var patchedDelegations []DelegationInfo
+	var deletedDelegations []DelegationInfo
+
 	/* Handle fee distribution state. */
 	app.AppKeepers.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 		dels := app.AppKeepers.StakingKeeper.GetValidatorDelegations(ctx, val.GetOperator())
 
+		/* - print patched delegations to file in json format*/
+		/* - print deleted delegations to file in json format*/
 		for _, del := range dels {
 			ctx.Logger().Info(fmt.Sprintf("del_info: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
 			if del.Shares.LTE(math.LegacyZeroDec()) {
 				ctx.Logger().Info(fmt.Sprintf("removing negative delegations: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
+				deletedDelegations = append(deletedDelegations, DelegationInfo{
+					ValidatorAddr: val.GetOperator().String(),
+					DelegatorAddr: del.GetDelegatorAddr().String(),
+				})
 				// remove reward information from distribution store
 				if app.AppKeepers.DistrKeeper.HasDelegatorStartingInfo(ctx, val.GetOperator(), sdk.AccAddress(del.DelegatorAddress)) {
 					app.AppKeepers.DistrKeeper.DeleteDelegatorStartingInfo(ctx, val.GetOperator(), sdk.AccAddress(del.DelegatorAddress))
@@ -100,6 +117,11 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 				outstanding := app.AppKeepers.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, del.GetValidatorAddr())
 
 				if patched {
+					patchedCount++
+					patchedDelegations = append(patchedDelegations, DelegationInfo{
+						ValidatorAddr: del.GetValidatorAddr().String(),
+						DelegatorAddr: del.GetDelegatorAddr().String(),
+					})
 					ctx.Logger().Info("~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~")
 					ctx.Logger().Info(fmt.Sprintf("PATCHED: %q %v", val.GetOperator().String(), del.GetDelegatorAddr().String()))
 					err := v020.V018ManualDelegationRewardsPatch(ctx, rewardsRaw, outstanding, &app.AppKeepers, val, del, endingPeriod)
@@ -113,6 +135,15 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 
 		return false
 	})
+
+	// Write patched and deleted delegations to JSON files
+	if len(patchedDelegations) > 0 {
+		writeDelegationInfoToJSON(ctx, patchedDelegations, "v021_patched_delegations.json")
+	}
+	if len(deletedDelegations) > 0 {
+		writeDelegationInfoToJSON(ctx, deletedDelegations, "v021_deleted_delegations.json")
+	}
+	ctx.Logger().Info(fmt.Sprintf("Patched %d delegations", patchedCount))
 
 	/*  ensure no delegations exist without starting info*/
 	for _, del := range app.AppKeepers.StakingKeeper.GetAllDelegations(ctx) {
@@ -253,6 +284,19 @@ func (app *BitsongApp) prepForZeroHeightGenesis(ctx sdk.Context, jailAllowedAddr
 			return false
 		},
 	)
+}
+
+func writeDelegationInfoToJSON(ctx sdk.Context, delegations []DelegationInfo, filename string) {
+	jsonBytes, err := json.MarshalIndent(delegations, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.WriteFile(filename, jsonBytes, 0644)
+	if err != nil {
+		panic(err)
+	}
+	ctx.Logger().Info(fmt.Sprintf("Wrote %d entries to %s", len(delegations), filename))
 }
 
 // /* remove any remaining validator keys from store.This runs after we retrieve all current validators from staking keeper store,
