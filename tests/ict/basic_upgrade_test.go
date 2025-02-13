@@ -33,7 +33,7 @@ var (
 	baseChain = ibc.DockerImage{
 		Repository: BitsongMainRepo,
 		Version:    "v0.20.5",
-		UIDGID:     "1025:1025",
+		UidGid:     "1025:1025",
 	}
 )
 
