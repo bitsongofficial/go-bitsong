@@ -27,9 +27,6 @@ func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bp
 		}
 
 		// Set the wasm data into the correct position
-		// cp -R $HOME/.bitsongd/data/wasm $HOME/.bitsongd/wasm
-		// Get the home directory
-		// Move WASM files to the new directory
 		if err := moveWasmFolder(sdkCtx); err != nil {
 			return nil, fmt.Errorf("failed to move WASM folder: %w", err)
 		}
@@ -46,9 +43,8 @@ func moveWasmFolder(sdkCtx sdk.Context) error {
 	}
 
 	// Define source and destination paths
-	srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
 	destDir := filepath.Join(homeDir, ".bitsongd", "wasm")
-
+	srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
 	// Create destination directory if it doesn't exist
 	if err := os.MkdirAll(destDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create destination directory: %w", err)
@@ -61,6 +57,9 @@ func moveWasmFolder(sdkCtx sdk.Context) error {
 	}
 
 	sdkCtx.Logger().Info("Successfully moved WASM directory to the new location")
+
+	// now we can prune the old directory
+	os.RemoveAll(srcDir)
 
 	return nil
 }

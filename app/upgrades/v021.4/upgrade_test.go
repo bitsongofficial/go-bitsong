@@ -1,7 +1,10 @@
+// TAKE CAUTION RUNNING THIS TEST! IT WILL MODIFY YOUR .BITSONGD DIRECTORY. DO NOT RUN IF USING PRODUCTION MACHINE.
 package v0214_test
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,6 +19,7 @@ import (
 )
 
 const dummyUpgradeHeight = 5
+const upgradeName = "v0214"
 
 type UpgradeTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -33,9 +37,46 @@ func TestUpgradeTestSuite(t *testing.T) {
 
 func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func() {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
+		if err := os.MkdirAll(srcDir, 0o755); err != nil {
+			panic(err)
+		}
 
-		// TODO:  set simulated wasm file contents to legacy wasm dir location
+		// Create cache/modules directory
+		cacheDir := filepath.Join(srcDir, "cache", "modules")
+		if err := os.MkdirAll(cacheDir, 0o755); err != nil {
+			panic(err)
+		}
 
+		// Create state/wasm directory and populate it with test wasm files
+		stateDir := filepath.Join(srcDir, "state", "wasm")
+		if err := os.MkdirAll(stateDir, 0o755); err != nil {
+			panic(err)
+		}
+
+		// Create 73 simulated wasm files each of 0.5MB
+		wasmContents := make([]byte, 500000) // 0.5 MB
+		for i := 0; i < 73; i++ {
+			filename := fmt.Sprintf("wasm_%d.wasm", i)
+			filePath := filepath.Join(stateDir, filename)
+			if err := os.WriteFile(filePath, wasmContents, 0o644); err != nil {
+				panic(err)
+			}
+		}
+
+		// Confirm that all 73 wasm fileswere created
+		for i := 0; i < 73; i++ {
+			filename := fmt.Sprintf("wasm_%d.wasm", i)
+			filePath := filepath.Join(stateDir, filename)
+			if _, err := os.Stat(filePath); err != nil {
+				panic(fmt.Sprintf("Failed to find wasm file: %s - %v", filename, err))
+			}
+		}
+		fmt.Printf("Successfully created 73 wasm files\n")
 	}
 
 	testCases := []struct {
@@ -58,18 +99,51 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 			},
 			func() {
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					panic(err)
+				}
+				oldWasmDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
+				newWasmDir := filepath.Join(homeDir, ".bitsongd", "wasm")
+				stateDir := filepath.Join(newWasmDir, "state", "wasm")
 
-				// todo: ensure wasm directory was moved to correct path
+				// confirm old wasm directory was removed
+				if _, err := os.Stat(oldWasmDir); err == nil {
+					panic("directory still exists after upgrade")
+				}
 
-				// todo: ensure legacy wasm directory location was removed
+				// confirm new wasm directory exists
+				if _, err := os.Stat(newWasmDir); err != nil {
+					panic("new directory does not exists")
+				}
+
+				// confirm exclusive.lock exists
+				exclusiveLock := filepath.Join(newWasmDir, "exclusive.lock")
+				if _, err := os.Stat(exclusiveLock); err != nil {
+					panic("exclusive.lock for cosmwasmVM does not exists in updated wasm data path")
+				}
+				// confirm caching directory exists
+				caching := filepath.Join(newWasmDir, "cache", "modules")
+				if _, err := os.Stat(caching); err != nil {
+					panic("caching file does not exists in updated wasm data path")
+				}
+
+				// Verify all 73 wasm files were moved correctly
+				// Confirm that all 73 wasm files exist
+				for i := 0; i < 73; i++ {
+					filename := fmt.Sprintf("wasm_%d.wasm", i)
+					filePath := filepath.Join(stateDir, filename)
+					if _, err := os.Stat(filePath); err != nil {
+						panic(fmt.Sprintf("Failed to find wasm file: %s - %v", filename, err))
+					}
+				}
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(fmt.Sprintf("Case %s", tc.name), func() {
-			s.SetupTest() // reset
-
+			s.SetupTest()
 			tc.pre_upgrade()
 			tc.upgrade()
 			tc.post_upgrade()
@@ -79,11 +153,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 func dummyUpgrade(s *UpgradeTestSuite) {
 	s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-	plan := upgradetypes.Plan{Name: "v021", Height: dummyUpgradeHeight}
+	plan := upgradetypes.Plan{Name: upgradeName, Height: dummyUpgradeHeight}
 	err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 	s.Require().NoError(err)
 	_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
 	s.Require().NoError(err)
-
 	s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: dummyUpgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(dummyUpgradeHeight)
 }
