@@ -12,13 +12,13 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/spf13/viper"
 )
 
 func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
 	return func(context context.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 		sdkCtx := sdk.UnwrapSDKContext(context)
 		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
-
 		// Run migrations first
 		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
 		versionMap, err := mm.RunMigrations(sdkCtx, configurator, vm)
@@ -26,8 +26,20 @@ func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bp
 			return nil, err
 		}
 
-		// Set the wasm data into the correct position
-		if err := moveWasmFolder(sdkCtx); err != nil {
+		// using viper to grab home variable
+		// Get the home directory from the SDK configuration
+		nodeHomeDir := viper.GetString("home")
+
+		if nodeHomeDir == "" {
+			// use default
+			homedir, err := os.UserHomeDir()
+			if err != nil {
+				panic(err)
+			}
+			nodeHomeDir = filepath.Join(homedir, ".bitsongd")
+		}
+
+		if err := moveWasmFolder(sdkCtx, nodeHomeDir); err != nil {
 			return nil, fmt.Errorf("failed to move WASM folder: %w", err)
 		}
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
@@ -36,11 +48,7 @@ func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bp
 }
 
 // Function to move the entire WASM directory to the new location
-func moveWasmFolder(sdkCtx sdk.Context) error {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
-	}
+func moveWasmFolder(sdkCtx sdk.Context, homeDir string) error {
 
 	// Define source and destination paths
 	destDir := filepath.Join(homeDir, ".bitsongd", "wasm")
@@ -51,7 +59,7 @@ func moveWasmFolder(sdkCtx sdk.Context) error {
 	}
 
 	// Copy the entire directory
-	err = copyDirectory(srcDir, destDir)
+	err := copyDirectory(srcDir, destDir)
 	if err != nil {
 		return fmt.Errorf("failed to copy WASM directory: %w", err)
 	}

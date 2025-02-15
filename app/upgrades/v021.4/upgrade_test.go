@@ -36,11 +36,8 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 func (s *UpgradeTestSuite) TestUpgrade() {
-	upgradeSetup := func() {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
+	upgradeSetup := func(homeDir string) {
+
 		srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
 		if err := os.MkdirAll(srcDir, 0o755); err != nil {
 			panic(err)
@@ -86,9 +83,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		post_upgrade func()
 	}{
 		{
-			"test moving the wasm directory correctly",
+			"using default home directory",
 			func() {
-				upgradeSetup()
+				homeDir, err := os.UserHomeDir()
+				if err != nil {
+					panic(err)
+				}
+				upgradeSetup(homeDir)
 			},
 			func() {
 				dummyUpgrade(s)
@@ -138,6 +139,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					}
 				}
 			},
+		},
+		{
+			"using default home directory",
+			func() {},
+			func() {},
+			func() {},
 		},
 	}
 
