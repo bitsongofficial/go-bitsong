@@ -7,6 +7,7 @@ import (
 
 const (
 	UpgradeName = "v0214"
+	NodeDir     = ".bitsongd"
 )
 
 var Upgrade = upgrades.Upgrade{

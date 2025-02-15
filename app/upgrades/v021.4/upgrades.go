@@ -12,7 +12,10 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/spf13/viper"
+)
+
+var (
+	DefaultNodeHome = os.ExpandEnv("$HOME/") + NodeDir
 )
 
 func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bpm upgrades.BaseAppParamManager, k *keepers.AppKeepers) upgradetypes.UpgradeHandler {
@@ -25,19 +28,8 @@ func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bp
 		if err != nil {
 			return nil, err
 		}
-
-		// using viper to grab home variable
-		// Get the home directory from the SDK configuration
-		nodeHomeDir := viper.GetString("home")
-
-		if nodeHomeDir == "" {
-			// use default
-			homedir, err := os.UserHomeDir()
-			if err != nil {
-				panic(err)
-			}
-			nodeHomeDir = filepath.Join(homedir, ".bitsongd")
-		}
+		nodeHomeDir := DefaultNodeHome
+		fmt.Printf("Using home directory derived from $HOME variable: %s = %v\n", "path", nodeHomeDir)
 
 		if err := moveWasmFolder(sdkCtx, nodeHomeDir); err != nil {
 			return nil, fmt.Errorf("failed to move WASM folder: %w", err)
@@ -51,8 +43,8 @@ func CreateV0214Handler(mm *module.Manager, configurator module.Configurator, bp
 func moveWasmFolder(sdkCtx sdk.Context, homeDir string) error {
 
 	// Define source and destination paths
-	destDir := filepath.Join(homeDir, ".bitsongd", "wasm")
-	srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
+	srcDir := filepath.Join(homeDir, "data", "wasm")
+	destDir := filepath.Join(homeDir, "wasm")
 	// Create destination directory if it doesn't exist
 	if err := os.MkdirAll(destDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create destination directory: %w", err)

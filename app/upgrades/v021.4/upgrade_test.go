@@ -13,13 +13,18 @@ import (
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
+	"github.com/spf13/viper"
 
 	"github.com/stretchr/testify/suite"
 )
 
-const dummyUpgradeHeight = 5
-const upgradeName = "v0214"
+const (
+	dummyUpgradeHeight = 5
+	upgradeName        = "v0214"
+	TestCustomNodeDir  = ".custom-bitsong"
+)
 
 type UpgradeTestSuite struct {
 	apptesting.KeeperTestHelper
@@ -38,7 +43,7 @@ func TestUpgradeTestSuite(t *testing.T) {
 func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func(homeDir string) {
 
-		srcDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
+		srcDir := filepath.Join(homeDir, "data", "wasm")
 		if err := os.MkdirAll(srcDir, 0o755); err != nil {
 			panic(err)
 		}
@@ -83,12 +88,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		post_upgrade func()
 	}{
 		{
-			"using default home directory",
+			"test_using_default_home",
 			func() {
 				homeDir, err := os.UserHomeDir()
 				if err != nil {
 					panic(err)
 				}
+				homeDir = filepath.Join(homeDir, ".bitsongd")
 				upgradeSetup(homeDir)
 			},
 			func() {
@@ -104,8 +110,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				if err != nil {
 					panic(err)
 				}
-				oldWasmDir := filepath.Join(homeDir, ".bitsongd", "data", "wasm")
-				newWasmDir := filepath.Join(homeDir, ".bitsongd", "wasm")
+				homeDir = filepath.Join(homeDir, ".bitsongd")
+				oldWasmDir := filepath.Join(homeDir, "data", "wasm")
+				newWasmDir := filepath.Join(homeDir, "wasm")
 				stateDir := filepath.Join(newWasmDir, "state", "wasm")
 
 				// confirm old wasm directory was removed
@@ -141,10 +148,33 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			},
 		},
 		{
-			"using default home directory",
-			func() {},
-			func() {},
-			func() {},
+			"test_using_custom_home",
+			func() {
+				appOptions := viper.New()
+				testHomeDir := os.ExpandEnv("$HOME/") + TestCustomNodeDir
+				if err := os.MkdirAll(testHomeDir, 0o755); err != nil {
+					panic(err)
+				}
+
+				// set viper variables for test home director
+				appOptions.SetDefault(flags.FlagHome, testHomeDir)
+				homeDir := filepath.Join(testHomeDir, ".bitsongd")
+				upgradeSetup(homeDir)
+			},
+			func() {
+				dummyUpgrade(s)
+				s.Require().NotPanics(func() {
+					_, err := s.preModule.PreBlock(s.Ctx)
+					s.Require().NoError(err)
+				})
+			},
+			func() {
+				// confirm old wasm directory was removed
+				// confirm new wasm directory exists
+				// confirm exclusive.lock exists
+				// confirm caching directory exists
+				// Confirm that all 73 wasm files exist
+			},
 		},
 	}
 
