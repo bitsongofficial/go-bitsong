@@ -64,7 +64,12 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.Seal()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
+
 	tempDir := tempDir()
+	// cleanup temp dir after we are done with the tempApp, so we don't leave behind a
+	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
+	defer os.RemoveAll(tempDir)
+
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
 		cosmosdb.NewMemDB(),
@@ -137,8 +142,6 @@ func tempDir() string {
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temp directory: %s", err.Error()))
 	}
-	defer os.RemoveAll(dir)
-
 	return dir
 }
 
