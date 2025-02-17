@@ -142,6 +142,7 @@ func tempDir() string {
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temp directory: %s", err.Error()))
 	}
+
 	return dir
 }
 
