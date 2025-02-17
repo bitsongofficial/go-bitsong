@@ -63,6 +63,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 	tempDir := tempDir()
+	defer os.RemoveAll(tempDir)
+
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
 		cosmosdb.NewMemDB(),
@@ -135,7 +137,6 @@ func tempDir() string {
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temp directory: %s", err.Error()))
 	}
-	defer os.RemoveAll(dir)
 
 	return dir
 }
