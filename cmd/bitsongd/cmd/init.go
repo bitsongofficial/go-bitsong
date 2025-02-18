@@ -144,7 +144,7 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 					genesisFileDownloadFailed = true
 					chainID = fmt.Sprintf("test-chain-%v", tmrand.Str(6))
 				} else {
-					// Set chainID to osmosis-1 in the case of a blank chainID
+					// Set chainID to bitsong-2b in the case of a blank chainID
 					chainID = "bitsong-2b"
 					// We dont print the app state for mainnet nodes because it's massive
 					fmt.Println("Not printing app state for mainnet node due to verbosity")

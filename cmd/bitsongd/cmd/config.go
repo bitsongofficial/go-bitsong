@@ -45,6 +45,7 @@ func ConfigCmd() *cobra.Command {
 
 func runConfigCmd(cmd *cobra.Command, args []string) error {
 	clientCtx := client.GetClientContextFromCmd(cmd)
+
 	configPath := filepath.Join(clientCtx.HomeDir, "config")
 
 	conf, err := getClientConfig(configPath, clientCtx.Viper)
