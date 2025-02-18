@@ -268,15 +268,13 @@ and recipient, the pattern would look like this:
 Note that there are other fields in MsgSend that are not specified in the pattern. This is because the pattern only
 matches the fields that are specified; all other fields are ignored.
 
-Similarly, to match a `MsgSwapExactIn` message with a specific sender and token, the pattern would look like this:
+Similarly, to match a `MsgMint` message with a specific sender and token, the pattern would look like this:
 
 ```json
 {
-   "@type":"/osmosis.poolmanager.v1beta1.MsgSwapExactAmountIn",
+   "@type":"/bitsong.fantoken.v1beta1.MsgMint",
    "sender":"bitsong1...", 
-   "token_in":{
-      "denom":"inputDenom"
-   }
+   // ...
 }
 ```
 
