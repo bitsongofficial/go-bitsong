@@ -66,10 +66,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 
 	tempDir := tempDir()
-	// cleanup temp dir after we are done with the tempApp, so we don't leave behind a
-	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
-	defer os.RemoveAll(tempDir)
-
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
 		cosmosdb.NewMemDB(),
@@ -79,6 +75,16 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		appOptions,
 		[]wasmkeeper.Option{},
 	)
+	// cleanup temp dir after we are done with the tempApp, so we don't leave behind a
+	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
+	defer func() {
+		if err := tempApp.Close(); err != nil {
+			panic(err)
+		}
+		if tempDir != bitsong.DefaultNodeHome {
+			os.RemoveAll(tempDir)
+		}
+	}()
 
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
