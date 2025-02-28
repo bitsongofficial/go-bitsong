@@ -169,7 +169,6 @@ func NewAppKeepers(
 	maccPerms map[string][]string,
 	appOpts servertypes.AppOptions,
 	wasmOpts []wasmkeeper.Option,
-	dataDir string,
 	wasmDir string,
 	wasmConfig wasmtypes.WasmConfig,
 	ibcWasmConfig ibcwasmtypes.WasmConfig,

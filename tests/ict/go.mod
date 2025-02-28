@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/math v1.5.0
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/cosmos/cosmos-sdk v0.50.11
-	github.com/cosmos/ibc-go/v8 v8.5.3
+	github.com/cosmos/ibc-go/v8 v8.6.1
 	github.com/docker/docker v24.0.9+incompatible
 	github.com/strangelove-ventures/interchaintest/v8 v8.4.0
 	github.com/stretchr/testify v1.10.0

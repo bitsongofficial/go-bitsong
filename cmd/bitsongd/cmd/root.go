@@ -66,10 +66,6 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	appOptions := make(simtestutil.AppOptionsMap, 0)
 
 	tempDir := tempDir()
-	// cleanup temp dir after we are done with the tempApp, so we don't leave behind a
-	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
-	defer os.RemoveAll(tempDir)
-
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
 		cosmosdb.NewMemDB(),
@@ -79,6 +75,37 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		appOptions,
 		[]wasmkeeper.Option{},
 	)
+	// cleanup temp dir & remove empty data dir after we are done with the tempApp, so we don't leave behind a
+	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
+	defer func() {
+		if err := tempApp.Close(); err != nil {
+			panic(err)
+		}
+		if tempDir != bitsong.DefaultNodeHome {
+			os.RemoveAll(tempDir)
+		}
+
+		// Get current working directory
+		currentDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		dataDir := filepath.Join(currentDir, "data")
+
+		// Check if data directory exists
+		if _, err := os.Stat(dataDir); err == nil {
+			// Directory exists, check if it's empty
+			dirEntries, err := os.ReadDir(dataDir)
+			if err != nil {
+				panic(err)
+			} else if len(dirEntries) == 0 {
+				// Directory is empty, remove it
+				if err := os.RemoveAll(dataDir); err != nil {
+					panic(err)
+				}
+			}
+		}
+	}()
 
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).

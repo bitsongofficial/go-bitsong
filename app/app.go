@@ -250,7 +250,6 @@ func NewBitsongApp(
 	}
 
 	app.homePath = homePath
-	dataDir := filepath.Join(homePath, "data")
 	wasmDir := filepath.Join(homePath, "wasm")
 	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
 	if err != nil {
@@ -272,7 +271,6 @@ func NewBitsongApp(
 		keepers.GetMaccPerms(),
 		appOpts,
 		wasmOpts,
-		dataDir,
 		wasmDir,
 		wasmConfig,
 		ibcWasmConfig,
