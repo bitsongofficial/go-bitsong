@@ -124,21 +124,34 @@ func V018ManualDelegationRewardsPatch(sdkCtx sdk.Context, rewardsRaw, outstandin
 	// add coins to user account
 	if !finalRewards.IsZero() {
 		withdrawAddr, err := k.DistrKeeper.GetDelegatorWithdrawAddr(sdkCtx, sdk.AccAddress(del.GetDelegatorAddr()))
+		if err != nil {
+			return err
+		}
 		err = k.BankKeeper.SendCoinsFromModuleToAccount(sdkCtx, distrtypes.ModuleName, withdrawAddr, finalRewards)
 		if err != nil {
 			return err
 		}
+		sdkCtx.Logger().Info(fmt.Sprintf("Rewards %v manually claimed for: %q", finalRewards, del.GetDelegatorAddr()))
 	}
 
 	// update the outstanding rewards and the community pool only if the
 	// transaction was successful
 	k.DistrKeeper.SetValidatorOutstandingRewards(sdkCtx, sdk.ValAddress(valAddr), distrtypes.ValidatorOutstandingRewards{Rewards: outstanding.Sub(rewards)})
-	feePool, _ := k.DistrKeeper.FeePool.Get(sdkCtx)
+	feePool, err := k.DistrKeeper.FeePool.Get(sdkCtx)
+	if err != nil {
+		return err
+	}
 	feePool.CommunityPool = feePool.CommunityPool.Add(remainder...)
-	k.DistrKeeper.FeePool.Set(sdkCtx, feePool)
+	err = k.DistrKeeper.FeePool.Set(sdkCtx, feePool)
+	if err != nil {
+		return err
+	}
 
 	// decrement reference count of starting period
-	startingInfo, _ := k.DistrKeeper.GetDelegatorStartingInfo(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
+	startingInfo, err := k.DistrKeeper.GetDelegatorStartingInfo(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
+	if err != nil {
+		return err
+	}
 	startingPeriod := startingInfo.PreviousPeriod
 	customDecrementReferenceCount(sdkCtx, k, sdk.ValAddress(del.GetValidatorAddr()), startingPeriod)
 
@@ -146,15 +159,10 @@ func V018ManualDelegationRewardsPatch(sdkCtx sdk.Context, rewardsRaw, outstandin
 	k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, sdk.ValAddress(del.GetValidatorAddr()), sdk.AccAddress(del.GetDelegatorAddr()))
 
 	if finalRewards.IsZero() {
-		baseDenom, _ := sdk.GetBaseDenom()
-		if baseDenom == "" {
-			baseDenom = sdk.DefaultBondDenom
-		}
-
 		// Note, we do not call the NewCoins constructor as we do not want the zero
 		// coin removed.
-		finalRewards = sdk.Coins{sdk.NewCoin(baseDenom, math.ZeroInt())}
-		sdkCtx.Logger().Info("No final rewards", finalRewards)
+		sdkCtx.Logger().Info("~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~~=~=~=~=~")
+		sdkCtx.Logger().Info(fmt.Sprintf("No final rewards: %q %v", val.GetOperator(), del.GetDelegatorAddr()))
 	}
 
 	// reinitialize the delegation

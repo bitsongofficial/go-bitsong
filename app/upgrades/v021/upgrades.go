@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
@@ -15,7 +14,6 @@ import (
 	sca "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkErr "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	icqkeeper "github.com/cosmos/ibc-apps/modules/async-icq/v8/keeper"
 	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
@@ -40,29 +38,32 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		for _, val := range vals {
 			valAddr := sdk.ValAddress(val.OperatorAddress)
 			dels, _ := k.StakingKeeper.GetValidatorDelegations(sdkCtx, valAddr)
-
 			for _, del := range dels {
-				if del.Shares.LTE(math.LegacyNewDecWithPrec(13, -17)) {
+				if del.Shares.LTE(math.LegacyZeroDec()) {
+					sdkCtx.Logger().Info(fmt.Sprintf("removing negative delegation from store: %q %v", val.GetOperator(), del.GetDelegatorAddr())) // remove reward information from distribution store
+					if exists, _ := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); exists {
+						sdkCtx.Logger().Info("delegation info found, deleting...")
+						if err := k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
+							return nil, err
+						}
+						sdkCtx.Logger().Info("removed negative delegation from store successfully!")
+					}
 					// remove delegation from staking store
+					sdkCtx.Logger().Info("~-~-~~-~-~~-~-~~-~-~~-~-~~-~-~~-~-~")
+					sdkCtx.Logger().Info("removing negative delegation from staking keeper store")
 					if err := k.StakingKeeper.RemoveDelegation(sdkCtx, del); err != nil {
 						return nil, err
-					}
-					// remove reward information from distribution store
-					if exists, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
-						return nil, err
-					} else if !exists {
-						return nil, errors.Wrapf(sdkErr.ErrNotFound, "delegator starting info not found for delegator %s", del.DelegatorAddress)
-					}
-					if err := k.DistrKeeper.DeleteDelegatorStartingInfo(sdkCtx, valAddr, sdk.AccAddress(del.DelegatorAddress)); err != nil {
-						return nil, err
+					} else {
+						sdkCtx.Logger().Info("removed negative delegation store value successfully!")
 					}
 				} else {
-					// check if we need to patch distribution by manually claiming rewards again
+					// check if we need to patch distribution by manually claiming rewards for any impaced delegations once again...
 					hasInfo, err := k.DistrKeeper.HasDelegatorStartingInfo(sdkCtx, sdk.ValAddress(valAddr), sdk.AccAddress(del.GetDelegatorAddr()))
 					if err != nil {
 						return nil, err
 					}
 					if !hasInfo {
+						sdkCtx.Logger().Info(fmt.Sprintf("delegation does not have starting info: val: %q, del: %v", val.GetOperator(), del.GetDelegatorAddr()))
 						continue
 					}
 					// calculate rewards
@@ -85,7 +86,30 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 					}
 				}
 			}
+		}
 
+		/*  ensure no delegations exist without starting info*/
+		allVals, err := k.StakingKeeper.GetAllValidators(sdkCtx)
+		if err != nil {
+			panic(err)
+		}
+		for _, val := range allVals {
+			/* ensure all rewards are patched */
+			dels, err := k.StakingKeeper.GetValidatorDelegations(sdkCtx, sdk.ValAddress(val.OperatorAddress))
+			if err != nil {
+				panic(err)
+			}
+			for _, del := range dels {
+				endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, val)
+				if err != nil {
+					panic(err)
+				}
+				/* will error if still broken */
+				_, err = k.DistrKeeper.CalculateDelegationRewards(sdkCtx, val, del, endingPeriod)
+				if err != nil {
+					panic(err)
+				}
+			}
 		}
 
 		// setup vote extension

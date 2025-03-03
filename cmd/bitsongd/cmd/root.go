@@ -27,6 +27,8 @@ import (
 
 	"cosmossdk.io/log"
 	tmcfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/libs/bytes"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 
 	// rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
@@ -62,6 +64,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.Seal()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
+
 	tempDir := tempDir()
 	tempApp := bitsong.NewBitsongApp(
 		log.NewNopLogger(),
@@ -72,6 +75,37 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		appOptions,
 		[]wasmkeeper.Option{},
 	)
+	// cleanup temp dir & remove empty data dir after we are done with the tempApp, so we don't leave behind a
+	// new temporary directory for every invocation. See https://github.com/CosmWasm/wasmd/issues/2017
+	defer func() {
+		if err := tempApp.Close(); err != nil {
+			panic(err)
+		}
+		if tempDir != bitsong.DefaultNodeHome {
+			os.RemoveAll(tempDir)
+		}
+
+		// Get current working directory
+		currentDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		dataDir := filepath.Join(currentDir, "data")
+
+		// Check if data directory exists
+		if _, err := os.Stat(dataDir); err == nil {
+			// Directory exists, check if it's empty
+			dirEntries, err := os.ReadDir(dataDir)
+			if err != nil {
+				panic(err)
+			} else if len(dirEntries) == 0 {
+				// Directory is empty, remove it
+				if err := os.RemoveAll(dataDir); err != nil {
+					panic(err)
+				}
+			}
+		}
+	}()
 
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
@@ -135,7 +169,6 @@ func tempDir() string {
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temp directory: %s", err.Error()))
 	}
-	defer os.RemoveAll(dir)
 
 	return dir
 }
@@ -224,21 +257,16 @@ func SetCustomEnvVariablesFromClientToml(ctx client.Context) {
 }
 
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
-	ac := appCreator{
-		encCfg: encodingConfig,
-	}
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		ConfigCmd(),
-		pruning.Cmd(ac.newApp, bitsong.DefaultNodeHome),
-		// NewTestnetCmd(bitsong.ModuleBasics, banktypes.GenesisBalancesIterator{}),
-		// AddGenesisIcaCmd(bitsong.DefaultNodeHome),
-		// DebugCmd(),
+		pruning.Cmd(newApp, bitsong.DefaultNodeHome),
 	)
 
-	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, ac.newApp, ac.appExport, addModuleInitFlags)
+	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
+	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -314,12 +342,12 @@ func txCommand() *cobra.Command {
 	return cmd
 }
 
-type appCreator struct {
-	encCfg params.EncodingConfig
-}
+// type appCreator struct {
+// 	encCfg params.EncodingConfig
+// }
 
 // newApp creates the application
-func (ac appCreator) newApp(
+func newApp(
 	logger log.Logger,
 	db cosmosdb.DB,
 	traceStore io.Writer,
@@ -351,8 +379,39 @@ func (ac appCreator) newApp(
 	)
 }
 
+// newTestnetApp starts by running the normal newApp method. From there, the app interface returned is modified in order
+// for a testnet to be created from the provided app.
+func newTestnetApp(logger log.Logger, db cosmosdb.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	// Create an app and type cast to an BitsongApp
+	app := newApp(logger, db, traceStore, appOpts)
+	bitsongApp, ok := app.(*bitsong.BitsongApp)
+	if !ok {
+		panic("app created from newApp is not of type bitsongApp")
+	}
+
+	newValAddr, ok := appOpts.Get(server.KeyNewValAddr).(bytes.HexBytes)
+	if !ok {
+		panic("newValAddr is not of type bytes.HexBytes")
+	}
+	newValPubKey, ok := appOpts.Get(server.KeyUserPubKey).(crypto.PubKey)
+	if !ok {
+		panic("newValPubKey is not of type crypto.PubKey")
+	}
+	newOperatorAddress, ok := appOpts.Get(server.KeyNewOpAddr).(string)
+	if !ok {
+		panic("newOperatorAddress is not of type string")
+	}
+	upgradeToTrigger, ok := appOpts.Get(server.KeyTriggerTestnetUpgrade).(string)
+	if !ok {
+		panic("upgradeToTrigger is not of type string")
+	}
+	// Make modifications to the normal BitsongApp required to run the network locally
+	return bitsong.InitBitsongAppForTestnet(bitsongApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
+
+}
+
 // appExport creates a new wasm app (optionally at a given height) and exports state.
-func (ac appCreator) appExport(
+func appExport(
 	logger log.Logger,
 	db cosmosdb.DB,
 	traceStore io.Writer,
