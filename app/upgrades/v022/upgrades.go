@@ -31,7 +31,7 @@ func CreateV022UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		}
 
 		// apply logic patch
-		CustomV0215PatchLogic(sdkCtx, k, false)
+		CustomV022PatchLogic(sdkCtx, k, false)
 
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
 		return versionMap, err
@@ -39,7 +39,7 @@ func CreateV022UpgradeHandler(mm *module.Manager, configurator module.Configurat
 }
 
 // / Fetches all validators from x/staking, and query rewards for each of their delegations.
-func CustomV0215PatchLogic(ctx sdk.Context, k *keepers.AppKeepers, simulated bool) error {
+func CustomV022PatchLogic(ctx sdk.Context, k *keepers.AppKeepers, simulated bool) error {
 
 	err := CustomValPatch(ctx, k, simulated)
 	if err != nil {
