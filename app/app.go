@@ -70,15 +70,8 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
-	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
-	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
-	v013 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
-	v014 "github.com/bitsongofficial/go-bitsong/app/upgrades/v014"
-	v015 "github.com/bitsongofficial/go-bitsong/app/upgrades/v015"
-	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
-	v018 "github.com/bitsongofficial/go-bitsong/app/upgrades/v018"
-	v020 "github.com/bitsongofficial/go-bitsong/app/upgrades/v020"
-	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
+
+	v022 "github.com/bitsongofficial/go-bitsong/app/upgrades/v022"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -98,11 +91,7 @@ var (
 	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
 	EnableSpecificProposals = ""
 
-	Upgrades = []upgrades.Upgrade{
-		v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
-		v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
-		v021.Upgrade,
-	}
+	Upgrades = []upgrades.Upgrade{v022.Upgrade}
 )
 
 func init() {
