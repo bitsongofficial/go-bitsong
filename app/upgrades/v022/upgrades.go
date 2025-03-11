@@ -52,10 +52,11 @@ func CustomV022PatchLogic(ctx sdk.Context, k *keepers.AppKeepers, simulated bool
 // withdraws all rewards to delegations for this val.
 func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) error {
 	condJSON := ConditionalJSON{
-		PatchDelegationCount: 0,
-		PatchedHistRewards:   make([]distrtypes.ValidatorHistoricalRewardsRecord, 0),
-		PatchedDelegation:    make([]PatchedDelegation, 0),
-		ZeroSharesDelegation: make([]ZeroSharesDelegation, 0),
+		PatchDelegationCount:     0,
+		PatchedHistRewards:       make([]distrtypes.ValidatorHistoricalRewardsRecord, 0),
+		PatchedDelegation:        make([]PatchedDelegation, 0),
+		ZeroSharesDelegation:     make([]ZeroSharesDelegation, 0),
+		NilDelegationCalculation: make([]NilDelegationCalculation, 0),
 	}
 
 	allVals, err := k.StakingKeeper.GetAllValidators(sdkCtx)
@@ -115,19 +116,16 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 					PatchedDelegation: delegationRewards.AmountOf("ubtsg").String(),
 				})
 				if delegationRewards == nil {
-					fmt.Printf("del.DelegatorAddress: %v\n", del.DelegatorAddress)
-					fmt.Printf("del.ValidatorAddress: %v\n", del.ValidatorAddress)
-					panic("nil delegationRewards found on patched delegation")
+					condJSON.NilDelegationCalculation = append(condJSON.NilDelegationCalculation, NilDelegationCalculation{
+						OperatorAddress:  del.ValidatorAddress,
+						DelegatorAddress: del.DelegatorAddress,
+					})
 				}
 				_, err := CustomWithdrawDelegationRewards(sdkCtx, k, validator, del, endingPeriod)
 
 				if err != nil {
-					if simulated {
-						fmt.Printf("err.Error(): %v\n", err.Error())
-						continue
-					} else {
-						panic(err)
-					}
+					panic(err)
+
 				}
 
 				// reinitialize the delegation
@@ -135,26 +133,12 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 				if err != nil {
 					panic(err)
 				}
-
 			}
-
-			// if delegationRewards == nil && !patched {
-			// 	fmt.Printf("validator: %v\n with delegator: %v\n is unpatched and unable to calculate rewards", del.ValidatorAddress, del.DelegatorAddress)
-			// 	key := stakingtypes.GetDelegationKey(delAddr, valAddr)
-			// 	xStake.Delete(key)
-			// 	condJSON.PatchDelegationCount++
-			// 	condJSON.PatchedDelegation = append(condJSON.PatchedDelegation, PatchedDelegation{
-			// 		OperatorAddress:   del.ValidatorAddress,
-			// 		DelegatorAddress:  del.DelegatorAddress,
-			// 		PatchedDelegation: delegationRewards.AmountOf("ubtsg").String(),
-			// 	})
-			// 	// panic("no delegations found on unpatched delegation, can be removed from store")
-			// }
 
 		}
 
-		if val.OperatorAddress == "bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr" ||
-			val.OperatorAddress == "bitsongvaloper1xnc32z84cc9vwftvv4w0v02a2slug3tjt6qyct" {
+		if val.OperatorAddress == PatchVal1 ||
+			val.OperatorAddress == PatchVal2 {
 			rewards, err := k.DistrKeeper.GetValidatorCurrentRewards(sdkCtx, valAddr)
 			if err != nil {
 				panic(err)
@@ -169,8 +153,8 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 
 	k.DistrKeeper.IterateValidatorHistoricalRewards(sdkCtx,
 		func(val sdk.ValAddress, period uint64, rewards distrtypes.ValidatorHistoricalRewards) (stop bool) {
-			if val.String() == "bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr" ||
-				val.String() == "bitsongvaloper1xnc32z84cc9vwftvv4w0v02a2slug3tjt6qyct" {
+			if val.String() == PatchVal1 ||
+				val.String() == PatchVal2 {
 				//    print to logs and update validator reward reference to 1
 				condJSON.PatchedHistRewards = append(condJSON.PatchedHistRewards, distrtypes.ValidatorHistoricalRewardsRecord{
 					ValidatorAddress: val.String(),
@@ -258,7 +242,7 @@ func CustomCalculateDelegationRewards(ctx context.Context, k *keepers.AppKeepers
 	currentStake := val.TokensFromShares(del.GetShares())
 
 	if stake.GT(currentStake) {
-		marginOfErr := currentStake.Mul(math.LegacyNewDecWithPrec(10, 2)) // 5.0%
+		marginOfErr := currentStake.Mul(math.LegacyNewDecWithPrec(95, 3)) // 0.095
 		if stake.LTE(currentStake.Add(marginOfErr)) {
 			fmt.Printf("PATCH APPLIED TO DELEGATOR: %v\n FOR VALIDATOR:  %v\n", del.GetDelegatorAddr(), del.GetValidatorAddr())
 			fmt.Printf("distribution store: %v\n", stake)
@@ -267,6 +251,7 @@ func CustomCalculateDelegationRewards(ctx context.Context, k *keepers.AppKeepers
 			stake = currentStake
 			patched = true
 		} else {
+			fmt.Printf("marginOfErr: %v\n", marginOfErr)
 			panic(fmt.Sprintf("calculated final stake for delegator %s,to validator %s, greater than current stake"+
 				"\n\tfinal stake:\t%s"+
 				"\n\tcurrent stake:\t%s",

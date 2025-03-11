@@ -8,6 +8,8 @@ import (
 
 const (
 	UpgradeName = "v022"
+	PatchVal1   = "bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr"
+	PatchVal2   = "bitsongvaloper1xnc32z84cc9vwftvv4w0v02a2slug3tjt6qyct"
 )
 
 var Upgrade = upgrades.Upgrade{
@@ -17,11 +19,12 @@ var Upgrade = upgrades.Upgrade{
 }
 
 type ConditionalJSON struct {
-	PatchDelegationCount uint
-	PatchedHistRewards   []distrtypes.ValidatorHistoricalRewardsRecord
-	ZeroSharesDelegation []ZeroSharesDelegation
-	PatchedDelegation    []PatchedDelegation
-	DistSlashStore       DistrSlashObject
+	PatchDelegationCount     uint
+	PatchedHistRewards       []distrtypes.ValidatorHistoricalRewardsRecord
+	ZeroSharesDelegation     []ZeroSharesDelegation
+	PatchedDelegation        []PatchedDelegation
+	DistSlashStore           DistrSlashObject
+	NilDelegationCalculation []NilDelegationCalculation
 }
 
 type DistrSlashObject struct {
@@ -46,4 +49,8 @@ type PatchedDelegation struct {
 	OperatorAddress   string `json:"val_addr"`
 	DelegatorAddress  string `json:"del_addr"`
 	PatchedDelegation string `json:"patch"`
+}
+type NilDelegationCalculation struct {
+	OperatorAddress  string `json:"val_addr"`
+	DelegatorAddress string `json:"del_addr"`
 }
