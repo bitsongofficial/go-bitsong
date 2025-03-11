@@ -31,7 +31,7 @@ func CreateV022UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		}
 
 		// apply logic patch
-		CustomV022PatchLogic(sdkCtx, k, false)
+		err = CustomV022PatchLogic(sdkCtx, k, false)
 
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
 		return versionMap, err
@@ -43,7 +43,7 @@ func CustomV022PatchLogic(ctx sdk.Context, k *keepers.AppKeepers, simulated bool
 
 	err := CustomValPatch(ctx, k, simulated)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil
@@ -61,18 +61,18 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 
 	allVals, err := k.StakingKeeper.GetAllValidators(sdkCtx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	for _, val := range allVals {
 		valAddr, err := k.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.OperatorAddress)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		dels, err := k.StakingKeeper.GetValidatorDelegations(sdkCtx, sdk.ValAddress(valAddr))
 		if err != nil {
-			panic(err)
+			return err
 		}
 		/* patch all delegators rewards */
 		for _, del := range dels {
@@ -85,27 +85,27 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 					DelegatorAddress: del.DelegatorAddress,
 				})
 				if err != nil {
-					panic(err)
+					return err
 				}
 				continue
 			}
 			val, err := sdk.ValAddressFromBech32(del.ValidatorAddress)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			delAddr, err := k.AccountKeeper.AddressCodec().StringToBytes(del.GetDelegatorAddr())
 			if err != nil {
-				panic(err)
+				return err
 			}
 			validator, err := k.StakingKeeper.Validator(sdkCtx, val)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			// end current period and calculate rewards
 			endingPeriod, err := k.DistrKeeper.IncrementValidatorPeriod(sdkCtx, validator)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			delegationRewards, patched := CustomCalculateDelegationRewards(sdkCtx, k, validator, del, endingPeriod)
 			if patched {
@@ -124,38 +124,36 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 				_, err := CustomWithdrawDelegationRewards(sdkCtx, k, validator, del, endingPeriod)
 
 				if err != nil {
-					panic(err)
+					return err
 
 				}
 
 				// reinitialize the delegation
 				err = customInitializeDelegation(sdkCtx, *k, val, delAddr)
 				if err != nil {
-					panic(err)
+					return err
 				}
 			}
 
 		}
 
-		if val.OperatorAddress == PatchVal1 ||
-			val.OperatorAddress == PatchVal2 {
+		if val.OperatorAddress == PatchVal1 || val.OperatorAddress == PatchVal2 {
 			rewards, err := k.DistrKeeper.GetValidatorCurrentRewards(sdkCtx, valAddr)
 			if err != nil {
-				panic(err)
+				return err
 			}
 			// set ghost slash event
 			err = k.DistrKeeper.SetValidatorSlashEvent(sdkCtx, valAddr, 1, rewards.Period, distrtypes.NewValidatorSlashEvent(rewards.Period, math.LegacySmallestDec()))
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 	}
 
 	k.DistrKeeper.IterateValidatorHistoricalRewards(sdkCtx,
 		func(val sdk.ValAddress, period uint64, rewards distrtypes.ValidatorHistoricalRewards) (stop bool) {
-			if val.String() == PatchVal1 ||
-				val.String() == PatchVal2 {
-				//    print to logs and update validator reward reference to 1
+			if val.String() == PatchVal1 || val.String() == PatchVal2 {
+				// print to logs and update validator reward reference to 1
 				condJSON.PatchedHistRewards = append(condJSON.PatchedHistRewards, distrtypes.ValidatorHistoricalRewardsRecord{
 					ValidatorAddress: val.String(),
 					Period:           period,
@@ -172,10 +170,8 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 		},
 	)
 
-	err = PrintConditionalJsonLogs(condJSON, "conditionalsUpgradeHandler.json")
-	if err != nil {
-		panic(err)
-	}
+	PrintConditionalJsonLogs(condJSON, "conditionalsUpgradeHandler.json")
+
 	return nil
 }
 
@@ -183,12 +179,12 @@ func PrintConditionalJsonLogs(condJSON ConditionalJSON, fileName string) error {
 	// Marshal the ConditionalJSON object to JSON
 	jsonBytes, err := json.MarshalIndent(condJSON, "", "  ")
 	if err != nil {
-		panic(err)
+		fmt.Printf("Failed to marshal and indent conditional logs, continuing with upgrade... %s\n", fileName)
 	}
 	// Write the JSON to a file
 	err = os.WriteFile(fileName, jsonBytes, 0644)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Failed to write debugging log, continuing with upgrade... %s\n", fileName)
 	}
 	fmt.Printf("Wrote conditionals to %s\n", fileName)
 	return nil

@@ -53,9 +53,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			)
 
 			err := s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
-			if err != nil {
-				panic(err)
-			}
+			s.Require().NoError(err)
 			// store 0 share delegation to fist validator if test requires
 			if i == 0 && zeroDel {
 				s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.NewDelegation(s.TestAccs[0].String(), val.OperatorAddress, math.LegacyZeroDec()))
@@ -72,26 +70,17 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		// }
 		// withdraw all delegator rewards
 		dels, err := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
-		if err != nil {
-			panic(err)
-		}
+		s.Require().NoError(err)
 		for _, delegation := range dels {
 			valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
-			if err != nil {
-				panic(err)
-			}
-
+			s.Require().NoError(err)
 			delAddr, err := sdk.AccAddressFromBech32(delegation.DelegatorAddress)
-			if err != nil {
-				panic(err)
-			}
+			s.Require().NoError(err)
 			fmt.Println("~~~~~~~~~ POST UPGRADE DEBUG ~~~~~~~~~~~~")
 			fmt.Printf("delAddr: %v\n", delAddr)
 			fmt.Printf("valAddr: %v\n", valAddr)
 			_, err = s.App.AppKeepers.DistrKeeper.WithdrawDelegationRewards(s.Ctx, delAddr, valAddr)
-			if err != nil {
-				panic(err)
-			}
+			s.Require().NoError(err)
 		}
 	}
 
