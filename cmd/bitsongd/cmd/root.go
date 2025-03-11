@@ -34,6 +34,7 @@ import (
 	// rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 
 	bitsong "github.com/bitsongofficial/go-bitsong/app"
+	testnetserver "github.com/bitsongofficial/go-bitsong/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -266,7 +267,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	)
 
 	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
-	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
+	testnetserver.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
