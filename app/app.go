@@ -47,7 +47,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
-	"cosmossdk.io/api/cosmos/crypto/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
