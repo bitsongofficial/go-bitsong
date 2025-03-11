@@ -140,8 +140,6 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		})
 	condJSON.DistSlashStore.SlashEventCount = slashCount
 
-	// Marshal the ConditionalJSON object to JSON
-	v022.PrintConditionalJsonLogs(condJSON, "conditional.json")
 	// /* Just to be safe, assert the invariants on current state. */
 	app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
 
@@ -159,45 +157,11 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		if err != nil {
 			panic(err)
 		}
-		rewardsRaw, patched := v022.CustomCalculateDelegationRewards(ctx, &app.AppKeepers, val, del, endingPeriod)
-
-		if patched {
-			condJSON.PatchedDelegation = append(condJSON.PatchedDelegation, v022.PatchedDelegation{
-				OperatorAddress:   val.OperatorAddress,
-				DelegatorAddress:  del.DelegatorAddress,
-				PatchedDelegation: rewardsRaw.AmountOf("ubtsg").String(),
-			})
-
-			//export logic omits assertion of error, as shown here: https://github.com/permissionlessweb/bitsong-cosmos-sdk/blob/92e7f67f9601e5f2dc7b1daebd24e8a37efbcc72/simapp/export.go#L106
-			_, err := v022.CustomWithdrawDelegationRewards(ctx, &app.AppKeepers, val, del, endingPeriod)
-
-			if err != nil {
-				fmt.Printf("err: %v\n", err)
-				return false
-			}
-
-		} else {
-			fmt.Printf("val.OperatorAddress: %v\n", val.OperatorAddress)
-			fmt.Printf("del.DelegatorAddress: %v\n", del.DelegatorAddress)
-			return false
-
+		_, err = app.AppKeepers.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+		if err != nil {
+			panic(err)
 		}
-		if val.OperatorAddress == "bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr" ||
-			val.OperatorAddress == "bitsongvaloper1xnc32z84cc9vwftvv4w0v02a2slug3tjt6qyct" {
 
-			// // end current period and calculate rewards
-			// endingPeriod, err := app.AppKeepers.DistrKeeper.IncrementValidatorPeriod(ctx, val)
-			// if err != nil {
-			// 	panic(err)
-			// }
-
-			// panic if we cannot calculate rewards for impacted validators
-			_, err = app.AppKeepers.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
-			if err != nil {
-				panic(err)
-			}
-
-		}
 		return false
 
 	})
@@ -207,9 +171,6 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 	if err != nil {
 		panic(err)
 	}
-
-	// Marshal the ConditionalJSON object to JSON
-	v022.PrintConditionalJsonLogs(condJSON, "conditional.json")
 
 	// clear validator slash events
 	app.AppKeepers.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
@@ -330,5 +291,8 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 			return false
 		},
 	)
+
+	// Marshal the ConditionalJSON object to JSON
+	v022.PrintConditionalJsonLogs(condJSON, "conditional.json")
 
 }
