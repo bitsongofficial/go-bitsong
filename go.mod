@@ -241,13 +241,14 @@ replace (
 
 // v022 debug:
 // comment:
-// replace github.com/cosmos/cosmos-sdk => github.com/permissionlessweb/cosmos-sdk v0.50.12 // bumps cometbft to v0.38.17 for all deps
+replace github.com/cosmos/cosmos-sdk => github.com/permissionlessweb/cosmos-sdk v0.50.12 // bumps cometbft to v0.38.17 for all deps
+
 //
 // run: git clone -b v0.38.17.logs https://github.com/permissionlessweb/cometbft
 // run: git clone -b v0.50.11.bitsong https://github.com/permissionlessweb/cosmos-sdk
 //
 // uncomment:
 // replace github.com/cometbft/cometbft => ./cometbft
-replace github.com/cosmos/cosmos-sdk => ./cosmos-sdk
+// replace github.com/cosmos/cosmos-sdk => ./cosmos-sdk
 
 exclude github.com/gogo/protobuf v1.3.3
