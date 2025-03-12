@@ -227,21 +227,27 @@ require (
 )
 
 replace (
-	// dragonberry
-	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
+	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
+	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
+	// Fix upstream GHSA-h395-qcrw-5vmq vulnerability.
+	// See: https://github.com/cosmos/cosmos-sdk/issues/10409
+	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.8.1
+
+	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
 // v022 debug:
 // comment:
-replace github.com/cosmos/cosmos-sdk => github.com/permissionlessweb/cosmos-sdk v0.50.12 // bumps cometbft to v0.38.17 for all deps
-
+// replace github.com/cosmos/cosmos-sdk => github.com/permissionlessweb/cosmos-sdk v0.50.12 // bumps cometbft to v0.38.17 for all deps
 //
 // run: git clone -b v0.38.17.logs https://github.com/permissionlessweb/cometbft
 // run: git clone -b v0.50.11.bitsong https://github.com/permissionlessweb/cosmos-sdk
 //
 // uncomment:
 // replace github.com/cometbft/cometbft => ./cometbft
-// replace github.com/cosmos/cosmos-sdk => ./cosmos-sdk
+replace github.com/cosmos/cosmos-sdk => ./cosmos-sdk
 
 exclude github.com/gogo/protobuf v1.3.3
