@@ -260,7 +260,7 @@ func (s *AuthenticatorSuite) TestKeyRotation() {
 	s.Require().Error(err, "Should fail as authenticator was removed from store")
 }
 
-// TestingAuthenticatorState tests that the Authenticate, Track and ConfirmExecution functions work correctly,
+// TestAuthenticatorState tests that the Authenticate, Track and ConfirmExecution functions work correctly,
 // it increments a test authenticator state by 1 on each successful pass through the Ante and Post handlers.
 func (s *AuthenticatorSuite) TestAuthenticatorState() {
 	successSendMsg := &banktypes.MsgSend{
@@ -322,7 +322,7 @@ func (s *AuthenticatorSuite) TestAuthenticatorMultiMsg() {
 	s.Require().Equal(int64(2_000), maxAmount.GetAmount(s.chainA.GetContext()).Int64())
 }
 
-// TestingAuthenticatorGas tests the gas limit panics when not reduced, then tests
+// TestAuthenticatorGas tests the gas limit panics when not reduced, then tests
 // that the gas limit is reset after the fee payer is authenticated.
 func (s *AuthenticatorSuite) TestAuthenticatorGas() {
 	sendFromAcc1 := &banktypes.MsgSend{

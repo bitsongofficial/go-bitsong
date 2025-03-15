@@ -145,7 +145,7 @@ func (s *AuthenticatorPostSuite) TestAuthenticatorPostHandlerSuccess() {
 	s.Require().NoError(err, "Failed but should have passed as ConfirmExecution passed")
 }
 
-// TestAutenticatorPostHandlerReturnEarly tests that the post handler fails early on IsCircuitBreakActive
+// TestAuthenticatorPostHandlerReturnEarly tests that the post handler fails early on IsCircuitBreakActive
 // the transaction should pass through the normal flow.
 func (s *AuthenticatorPostSuite) TestAuthenticatorPostHandlerReturnEarly() {
 	bitsongToken := "bitsong"
