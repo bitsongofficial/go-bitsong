@@ -21,7 +21,7 @@ func NewQuerier(k Keeper) Querier {
 	}
 }
 
-// ContractModules returns contract addresses which are using the cadance
+// CadanceContracts returns contract addresses which are using the cadance
 func (q Querier) CadanceContracts(stdCtx context.Context, req *types.QueryCadanceContracts) (*types.QueryCadanceContractsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(stdCtx)
 
