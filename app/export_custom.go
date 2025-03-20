@@ -58,10 +58,7 @@ func (app *BitsongApp) CustomExportAppStateAndValidators(
 	}, nil
 }
 
-// prepare for fresh start at zero height
-// NOTE zero height genesis is a temporary feature which will be deprecated
-//
-//	in favour of export at a block height
+// prepare for fresh start at zero height. prints logs for debugging into json file.
 func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
 
@@ -86,7 +83,7 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		allowedAddrsMap[addr] = true
 
 	}
-	// // debug module
+	// debug module
 	err := v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
 	if err != nil {
 		panic(err)
