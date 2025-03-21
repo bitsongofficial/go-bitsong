@@ -725,7 +725,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	iterator.Close()
 
-	// Remove all validators from validators store except the one we want to retain
+	// Remove all validators from validators store
 	iterator = storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.ValidatorsKey)
 	for ; iterator.Valid(); iterator.Next() {
 		stakingStore.Delete(iterator.Key())
@@ -744,14 +744,20 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+	// Add retainedValidator to power and last validators store
+	err = app.AppKeepers.StakingKeeper.SetValidator(ctx, retainedValidator)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
 	err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	// err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, retainedValidator)
-	// if err != nil {
-	// 	tmos.Exit(err.Error())
-	// }
+	err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, retainedValidator)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+
 	err = app.AppKeepers.StakingKeeper.SetValidatorByPowerIndex(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
@@ -761,17 +767,12 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	// err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, retainedValAddr, 0)
-	// if err != nil {
-	// 	tmos.Exit(err.Error())
-	// }
+
 	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 0)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	// if err := app.AppKeepers.StakingKeeper.Hooks().AfterValidatorCreated(ctx, retainedValAddr); err != nil {
-	// 	panic(err)
-	// }
+
 	if err := app.AppKeepers.StakingKeeper.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 		panic(err)
 	}
@@ -810,12 +811,6 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-
-	//
-	// Optional Changes:
-	//
-
-	// GOV
 
 	newExpeditedVotingPeriod := time.Minute
 	newVotingPeriod := time.Minute * 2

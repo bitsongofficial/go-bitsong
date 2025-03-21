@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"context"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -764,18 +763,14 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 		// valAddrStr = strings.TrimSpace(valAddrStr)
 
 		// Decode the validator address
-		valAddr, err := hex.DecodeString(brokenValidators)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode validator address %s: %w", brokenValidators, err)
-		}
 
 		// Create a validator with very low voting power (1)
-		brokenVal := &cmttypes.Validator{
-			Address:     valAddr,
-			PubKey:      nil, // You might want to fetch the actual pubkey if needed
-			VotingPower: 1,   // Minimal voting power to keep the validator in the set
-		}
-		newValidators = append(newValidators, brokenVal)
+		// brokenVal := &cmttypes.Validator{
+		// 	Address:     valAddr,
+		// 	PubKey:      nil, // You might want to fetch the actual pubkey if needed
+		// 	VotingPower: 1,   // Minimal voting power to keep the validator in the set
+		// }
+		// newValidators = append(newValidators, brokenVal)
 		// }
 	}
 
