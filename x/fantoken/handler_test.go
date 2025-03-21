@@ -23,8 +23,8 @@ type HandlerTestSuite struct {
 
 func (suite *HandlerTestSuite) SetupTest() {
 	suite.Setup()
-	// suite.ctx = suite.app.BaseApp.NewContext(false)
-	suite.govHandler = params.NewParamChangeProposalHandler(suite.App.AppKeepers.ParamsKeeper)
+	// suite.ctx = suite.App.BaseApp.NewContext(false)
+	suite.govHandler = params.NewParamChangeProposalHandler(suite.App.ParamsKeeper)
 }
 
 func TestHandlerTestSuite(t *testing.T) {
@@ -52,7 +52,7 @@ func (suite *HandlerTestSuite) TestParamChangeProposal() {
 
 func (suite *HandlerTestSuite) TestProposalHandlerPassed() {
 
-	params := suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	params := suite.App.FanTokenKeeper.GetParamSet(suite.Ctx)
 	require.Equal(suite.T(), params, fantokentypes.DefaultParams())
 
 	newIssueFee := sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(1))
@@ -67,10 +67,10 @@ func (suite *HandlerTestSuite) TestProposalHandlerPassed() {
 		newBurnFee,
 	)
 
-	h := fantoken.NewProposalHandler(suite.App.AppKeepers.FanTokenKeeper)
+	h := fantoken.NewProposalHandler(suite.App.FanTokenKeeper)
 	require.NoError(suite.T(), h(suite.Ctx, proposal))
 
-	params = suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	params = suite.App.FanTokenKeeper.GetParamSet(suite.Ctx)
 	require.Equal(suite.T(), newIssueFee, params.IssueFee)
 	require.Equal(suite.T(), newMintFee, params.MintFee)
 	require.Equal(suite.T(), newBurnFee, params.BurnFee)
@@ -78,7 +78,7 @@ func (suite *HandlerTestSuite) TestProposalHandlerPassed() {
 
 func (suite *HandlerTestSuite) TestProposalHandlerFailed() {
 
-	params := suite.App.AppKeepers.FanTokenKeeper.GetParamSet(suite.Ctx)
+	params := suite.App.FanTokenKeeper.GetParamSet(suite.Ctx)
 	require.Equal(suite.T(), params, fantokentypes.DefaultParams())
 
 	newIssueFee := sdk.Coin{
@@ -96,6 +96,6 @@ func (suite *HandlerTestSuite) TestProposalHandlerFailed() {
 		newBurnFee,
 	)
 
-	h := fantoken.NewProposalHandler(suite.App.AppKeepers.FanTokenKeeper)
+	h := fantoken.NewProposalHandler(suite.App.FanTokenKeeper)
 	require.Error(suite.T(), h(suite.Ctx, proposal))
 }

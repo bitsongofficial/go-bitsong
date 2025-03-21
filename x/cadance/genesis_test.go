@@ -55,14 +55,14 @@ func (suite *CadanceModuleSuite) TestClockInitGenesis() {
 
 			if tc.success {
 				suite.Require().NotPanics(func() {
-					cadance.InitGenesis(suite.Ctx, suite.App.AppKeepers.CadanceKeeper, tc.genesis)
+					cadance.InitGenesis(suite.Ctx, suite.App.CadanceKeeper, tc.genesis)
 				})
 
-				params := suite.App.AppKeepers.CadanceKeeper.GetParams(suite.Ctx)
+				params := suite.App.CadanceKeeper.GetParams(suite.Ctx)
 				suite.Require().Equal(tc.genesis.Params, params)
 			} else {
 				suite.Require().Panics(func() {
-					cadance.InitGenesis(suite.Ctx, suite.App.AppKeepers.CadanceKeeper, tc.genesis)
+					cadance.InitGenesis(suite.Ctx, suite.App.CadanceKeeper, tc.genesis)
 				})
 			}
 		})

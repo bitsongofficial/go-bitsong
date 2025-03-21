@@ -34,7 +34,7 @@ func (s *SigVerifyAuthenticationSuite) SetupTest() {
 	s.SetupKeys()
 
 	s.EncodingConfig = app.MakeEncodingConfig()
-	ak := s.BitsongApp.AppKeepers.AccountKeeper
+	ak := s.BitsongApp.AccountKeeper
 
 	// Create a new Secp256k1SignatureAuthenticator for testing
 	s.SigVerificationAuthenticator = authenticator.NewSignatureVerification(
@@ -261,7 +261,7 @@ func (s *SigVerifyAuthenticationSuite) TestSignatureAuthenticator() {
 				tc.TestData.Signers,
 				tc.TestData.Signatures,
 			)
-			ak := s.BitsongApp.AppKeepers.AccountKeeper
+			ak := s.BitsongApp.AccountKeeper
 			sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 
 			// Only the first message is tested for authenticate

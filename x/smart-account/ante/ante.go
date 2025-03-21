@@ -285,12 +285,12 @@ func (ad AuthenticatorDecorator) ValidateAuthenticatorFeePayer(ctx sdk.Context, 
 
 	if !bytes.Equal(feePayer, signers[0]) {
 		// check if feegrant exists
-		if feeGrant, err := ad.smartAccountKeeper.FeegrantKeeper.GetAllowance(ctx, feePayer, signers[0]); err != nil || feeGrant == nil {
-			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer, or signer must have an active feegrant allowance from feepayer")
-		} else if _, err := feeGrant.Accept(ctx, feeTx.GetFee(), msgs); err != nil {
-			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee grant not accepted")
+		return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee payer must be the first signer, or signer must have an active feegrant allowance from feepayer")
+		// if feeGrant, err := ad.smartAccountKeeper.FeegrantKeeper.GetAllowance(ctx, feePayer, signers[0]); err != nil || feeGrant == nil {
+		// } else if _, err := feeGrant.Accept(ctx, feeTx.GetFee(), msgs); err != nil {
+		// 	return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "fee grant not accepted")
 
-		}
+		// }
 	}
 	return nil
 }

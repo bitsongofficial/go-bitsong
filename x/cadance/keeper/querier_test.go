@@ -34,7 +34,7 @@ func (s *IntegrationTestSuite) TestQueryClockParams() {
 		tc := tc
 		s.Run(tc.desc, func() {
 			// Set params
-			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, tc.params)
+			err := s.App.CadanceKeeper.SetParams(s.Ctx, tc.params)
 			s.Require().NoError(err)
 
 			// Query params
@@ -98,7 +98,7 @@ func (s *IntegrationTestSuite) TestQueryCadanceContracts() {
 
 			// Remove all contracts
 			for _, contract := range tc.contracts {
-				s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contract)
+				s.App.CadanceKeeper.RemoveContract(s.Ctx, contract)
 			}
 		})
 	}
@@ -155,7 +155,7 @@ func (s *IntegrationTestSuite) TestQueryJailedCadanceContracts() {
 
 			// Remove all contracts
 			for _, contract := range tc.contracts {
-				s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contract)
+				s.App.CadanceKeeper.RemoveContract(s.Ctx, contract)
 			}
 		})
 	}
@@ -170,13 +170,13 @@ func (s *IntegrationTestSuite) TestQueryCadanceContract() {
 	s.StoreCode()
 
 	unjailedContract := s.InstantiateContract(addr.String(), "")
-	_ = s.App.AppKeepers.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
+	_ = s.App.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
 		ContractAddress: unjailedContract,
 		IsJailed:        false,
 	})
 
 	jailedContract := s.InstantiateContract(addr.String(), "")
-	_ = s.App.AppKeepers.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
+	_ = s.App.CadanceKeeper.SetCadanceContract(s.Ctx, types.CadanceContract{
 		ContractAddress: jailedContract,
 		IsJailed:        true,
 	})

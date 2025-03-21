@@ -65,7 +65,7 @@ func (s *AggregatedAuthenticatorsTest) SetupTest() {
 		Confirm:        testutils.Always,
 	}
 	s.spyAuth = testutils.NewSpyAuthenticator(
-		s.BitsongApp.AppKeepers.GetKVStoreKey()[smartaccounttypes.StoreKey],
+		s.BitsongApp.GetKVStoreKey()[smartaccounttypes.StoreKey],
 	)
 
 	am.RegisterAuthenticator(s.AnyOfAuth)
@@ -201,7 +201,7 @@ func (s *AggregatedAuthenticatorsTest) TestAnyOf() {
 				s.Require().NoError(err)
 
 				// Generate authentication request
-				ak := s.BitsongApp.AppKeepers.AccountKeeper
+				ak := s.BitsongApp.AccountKeeper
 				sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 				// sample msg
 				msg := &bank.MsgSend{FromAddress: s.TestAccAddress[0].String(), ToAddress: "to", Amount: sdk.NewCoins(sdk.NewInt64Coin("foo", 1))}
@@ -343,7 +343,7 @@ func (s *AggregatedAuthenticatorsTest) TestAllOf() {
 				s.Require().NoError(err)
 
 				// Generate authentication request
-				ak := s.BitsongApp.AppKeepers.AccountKeeper
+				ak := s.BitsongApp.AccountKeeper
 				sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 
 				// sample msg
@@ -441,7 +441,7 @@ func (s *AggregatedAuthenticatorsTest) TestComposedAuthenticator() {
 			s.Require().NoError(err)
 
 			// Generate authentication request
-			ak := s.BitsongApp.AppKeepers.AccountKeeper
+			ak := s.BitsongApp.AccountKeeper
 			sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 			// sample msg
 			msg := &bank.MsgSend{FromAddress: s.TestAccAddress[0].String(), ToAddress: "to", Amount: sdk.NewCoins(sdk.NewInt64Coin("foo", 1))}

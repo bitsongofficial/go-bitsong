@@ -76,13 +76,13 @@ func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 		s.Run(tc.desc, func() {
 			// Set params
 			params := types.DefaultParams()
-			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
+			err := s.App.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Jail contract if needed
 			if tc.isJailed {
 				s.RegisterCadanceContract(tc.sender, tc.contract)
-				err := s.App.AppKeepers.CadanceKeeper.SetJailStatus(s.Ctx, tc.contract, true)
+				err := s.App.CadanceKeeper.SetJailStatus(s.Ctx, tc.contract, true)
 				s.Require().NoError(err)
 			}
 
@@ -100,8 +100,8 @@ func (s *IntegrationTestSuite) TestRegisterCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }
@@ -166,7 +166,7 @@ func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 
 			// Set params
 			params := types.DefaultParams()
-			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
+			err := s.App.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Try to register all contracts
@@ -183,8 +183,8 @@ func (s *IntegrationTestSuite) TestUnregisterCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }
@@ -300,7 +300,7 @@ func (s *IntegrationTestSuite) TestUnjailCadanceContract() {
 
 			// Set params
 			params := types.DefaultParams()
-			err := s.App.AppKeepers.CadanceKeeper.SetParams(s.Ctx, params)
+			err := s.App.CadanceKeeper.SetParams(s.Ctx, params)
 			s.Require().NoError(err)
 
 			// Try to register all contracts
@@ -317,8 +317,8 @@ func (s *IntegrationTestSuite) TestUnjailCadanceContract() {
 			}
 
 			// Ensure contract is unregistered
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
-			s.App.AppKeepers.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddress)
+			s.App.CadanceKeeper.RemoveContract(s.Ctx, contractAddressWithAdmin)
 		})
 	}
 }

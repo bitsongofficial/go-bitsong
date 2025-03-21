@@ -83,12 +83,12 @@ func (s *AuthenticatorAnteSuite) SetupTest() {
 		s.TestAccAddress = append(s.TestAccAddress, accAddress)
 	}
 
-	deductFeeDecorator := sdkante.NewDeductFeeDecorator(s.BitsongApp.AppKeepers.AccountKeeper, s.BitsongApp.AppKeepers.BankKeeper, s.BitsongApp.AppKeepers.FeeGrantKeeper, nil)
+	deductFeeDecorator := sdkante.NewDeductFeeDecorator(s.BitsongApp.AccountKeeper, s.BitsongApp.BankKeeper, s.BitsongApp.FeeGrantKeeper, nil)
 
 	s.AuthenticatorDecorator = ante.NewAuthenticatorDecorator(
 		s.BitsongApp.AppCodec(),
-		s.BitsongApp.AppKeepers.SmartAccountKeeper,
-		s.BitsongApp.AppKeepers.AccountKeeper,
+		s.BitsongApp.SmartAccountKeeper,
+		s.BitsongApp.AccountKeeper,
 		s.EncodingConfig.TxConfig.SignModeHandler(),
 		deductFeeDecorator,
 	)
@@ -144,7 +144,7 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationWithAuthenticatorInSto
 	// Ensure the feepayer has funds
 	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 	feePayer := s.TestPrivKeys[0].PubKey().Address()
-	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, feePayer.Bytes(), fees)
+	err := testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, feePayer.Bytes(), fees)
 	s.Require().NoError(err)
 
 	// Create a test messages for signing
@@ -160,7 +160,7 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationWithAuthenticatorInSto
 	}
 	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
-	id, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	id, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[0],
 		"SignatureVerification",
@@ -169,7 +169,7 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationWithAuthenticatorInSto
 	s.Require().NoError(err)
 	s.Require().Equal(id, uint64(1), "Adding authenticator returning incorrect id")
 
-	id, err = s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	id, err = s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[1],
 		"SignatureVerification",
@@ -203,14 +203,14 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 	coins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
-	maxUnauthenticatedGasLimit := s.BitsongApp.AppKeepers.SmartAccountKeeper.GetParams(s.Ctx).MaximumUnauthenticatedGas
+	maxUnauthenticatedGasLimit := s.BitsongApp.SmartAccountKeeper.GetParams(s.Ctx).MaximumUnauthenticatedGas
 	specifiedGasLimit := uint64(300_000)
 
 	// Ensure the feepayers have funds
 	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
-	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
+	err := testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
-	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)
+	err = testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 
 	// This message will have several authenticators for s.TestPrivKeys[0] and one for s.TestPrivKeys[1] at the end
@@ -221,7 +221,7 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 	}
 
 	// fee payer is authenticated
-	sigId, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	sigId, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[1],
 		"SignatureVerification",
@@ -231,9 +231,9 @@ func (s *AuthenticatorAnteSuite) TestSignatureVerificationOutOfGas() {
 	s.Require().Equal(sigId, uint64(1), "Adding authenticator returning incorrect id")
 
 	alwaysHigher := testutils.TestingAuthenticator{Approve: testutils.Always, GasConsumption: int(maxUnauthenticatedGasLimit + 1)}
-	s.BitsongApp.AppKeepers.AuthenticatorManager.RegisterAuthenticator(alwaysHigher)
+	s.BitsongApp.AuthenticatorManager.RegisterAuthenticator(alwaysHigher)
 
-	excessGasId, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	excessGasId, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[0],
 		alwaysHigher.Type(),
@@ -292,7 +292,7 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 
 	// Ensure the feepayer has funds
 	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
-	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
+	err := testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 
 	// Create two messages to ensure that the fee payer code path is reached twice
@@ -309,7 +309,7 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 	}
 
 	// Add a signature verification authenticator to the account
-	sigId, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	sigId, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[0],
 		"SignatureVerification",
@@ -319,7 +319,7 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 	s.Require().Equal(sigId, uint64(1), "Adding authenticator returning incorrect id")
 
 	// Check balances before transaction
-	balances := s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
+	balances := s.BitsongApp.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
 	s.Require().Equal(fees[0], balances, "Fees incorrect before transaction")
 
 	tx, _ := GenTx(s.Ctx, s.EncodingConfig.TxConfig, []sdk.Msg{
@@ -336,7 +336,7 @@ func (s *AuthenticatorAnteSuite) TestFeePayerGasComsumption() {
 	s.Require().NoError(err)
 
 	// Check balances after transaction
-	balances = s.BitsongApp.AppKeepers.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
+	balances = s.BitsongApp.BankKeeper.GetBalance(s.Ctx, sdk.AccAddress(s.TestPrivKeys[0].PubKey().Address()), bitsongToken)
 	emptyFees := sdk.NewInt64Coin(bitsongToken, 0)
 	s.Require().Equal(emptyFees, balances, "Fees incorrect after transaction")
 }
@@ -353,7 +353,7 @@ func (s *AuthenticatorAnteSuite) TestSpecificAuthenticator() {
 	}
 	feeCoins := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2500)}
 
-	sig1Id, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	sig1Id, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[1],
 		"SignatureVerification",
@@ -362,7 +362,7 @@ func (s *AuthenticatorAnteSuite) TestSpecificAuthenticator() {
 	s.Require().NoError(err)
 	s.Require().Equal(sig1Id, uint64(1), "Adding authenticator returning incorrect id")
 
-	sig2Id, err := s.BitsongApp.AppKeepers.SmartAccountKeeper.AddAuthenticator(
+	sig2Id, err := s.BitsongApp.SmartAccountKeeper.AddAuthenticator(
 		s.Ctx,
 		s.TestAccAddress[1],
 		"SignatureVerification",
@@ -389,9 +389,9 @@ func (s *AuthenticatorAnteSuite) TestSpecificAuthenticator() {
 
 	// Ensure the feepayer has funds
 	fees := sdk.Coins{sdk.NewInt64Coin(bitsongToken, 2_500_000)}
-	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
+	err = testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, s.TestPrivKeys[0].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
-	err = testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)
+	err = testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, s.TestPrivKeys[1].PubKey().Address().Bytes(), fees)
 	s.Require().NoError(err)
 
 	for _, tc := range testCases {

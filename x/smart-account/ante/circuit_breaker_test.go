@@ -132,16 +132,16 @@ func (s *AuthenticatorCircuitBreakerAnteSuite) TestCircuitBreakerAnte() {
 
 	// Create a CircuitBreaker AnteDecorator
 	cbd := ante.NewCircuitBreakerDecorator(
-		s.BitsongApp.AppKeepers.SmartAccountKeeper,
+		s.BitsongApp.SmartAccountKeeper,
 		sdk.ChainAnteDecorators(mockTestAuthenticator),
 		sdk.ChainAnteDecorators(mockTestClassic),
 	)
 	anteHandler := sdk.ChainAnteDecorators(cbd)
 
 	// Deactivate smart accounts
-	params := s.BitsongApp.AppKeepers.SmartAccountKeeper.GetParams(s.Ctx)
+	params := s.BitsongApp.SmartAccountKeeper.GetParams(s.Ctx)
 	params.IsSmartAccountActive = false
-	s.BitsongApp.AppKeepers.SmartAccountKeeper.SetParams(s.Ctx, params)
+	s.BitsongApp.SmartAccountKeeper.SetParams(s.Ctx, params)
 
 	// Here we test when smart accounts are deactivated
 	ctx, err := anteHandler(s.Ctx, tx, false)
@@ -149,9 +149,9 @@ func (s *AuthenticatorCircuitBreakerAnteSuite) TestCircuitBreakerAnte() {
 	s.Require().Equal(int64(1), ctx.Priority(), "Should have disabled the full authentication flow")
 
 	// Reactivate smart accounts
-	params = s.BitsongApp.AppKeepers.SmartAccountKeeper.GetParams(ctx)
+	params = s.BitsongApp.SmartAccountKeeper.GetParams(ctx)
 	params.IsSmartAccountActive = true
-	s.BitsongApp.AppKeepers.SmartAccountKeeper.SetParams(ctx, params)
+	s.BitsongApp.SmartAccountKeeper.SetParams(ctx, params)
 
 	// Here we test when smart accounts are active and there is not selected authenticator
 	ctx, err = anteHandler(ctx, tx, false)

@@ -38,7 +38,7 @@ RUN LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build \
   && (file /code/build/bitsongd | grep "statically linked")
 
 # --------------------------------------------------------
-FROM alpine:3.16
+FROM alpine:3.17
 
 COPY --from=go-builder /code/build/bitsongd /usr/bin/bitsongd
 
