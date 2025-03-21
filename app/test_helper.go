@@ -165,7 +165,7 @@ func CreateTestPubKeys(numPubKeys int) []cryptotypes.PubKey {
 
 func CheckBalance(t *testing.T, app *BitsongApp, addr sdk.AccAddress, balances sdk.Coins) {
 	ctxCheck := app.BaseApp.NewContext(true)
-	require.True(t, balances.Equal(app.AppKeepers.BankKeeper.GetAllBalances(ctxCheck, addr)))
+	require.True(t, balances.Equal(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
 func GenesisStateWithValSet(app *BitsongApp) GenesisState {

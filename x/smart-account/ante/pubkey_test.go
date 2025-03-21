@@ -109,7 +109,7 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnte() {
 	}, []uint64{})
 
 	// Create a SetPubKey AnteDecorator
-	spkd := ante.NewEmitPubKeyDecoratorEvents(s.BitsongApp.AppKeepers.AccountKeeper)
+	spkd := ante.NewEmitPubKeyDecoratorEvents(s.BitsongApp.AccountKeeper)
 	antehandler := sdk.ChainAnteDecorators(spkd)
 
 	// Run the AnteDecorator on the transaction
@@ -141,7 +141,7 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnteWithSenderNotSigner()
 	}, []uint64{})
 
 	// Create a SetPubKey AnteDecorator
-	spkd := ante.NewEmitPubKeyDecoratorEvents(s.BitsongApp.AppKeepers.AccountKeeper)
+	spkd := ante.NewEmitPubKeyDecoratorEvents(s.BitsongApp.AccountKeeper)
 	antehandler := sdk.ChainAnteDecorators(spkd)
 
 	// Run the AnteDecorator on the transaction
@@ -149,6 +149,6 @@ func (s *AuthenticatorSetPubKeyAnteSuite) TestSetPubKeyAnteWithSenderNotSigner()
 	s.Require().NoError(err)
 
 	// Ensure that the public key has not been set for a non-signer sender
-	pk, err := s.BitsongApp.AppKeepers.AccountKeeper.GetPubKey(ctx, s.TestAccAddress[4])
+	pk, err := s.BitsongApp.AccountKeeper.GetPubKey(ctx, s.TestAccAddress[4])
 	s.Require().Equal(pk, nil, "Public Key has not been set")
 }

@@ -33,13 +33,13 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 func (s *IntegrationTestSuite) SetupTest() {
 	s.Setup()
-	s.bk = s.App.AppKeepers.BankKeeper
-	s.wk = s.App.AppKeepers.WasmKeeper
+	s.bk = s.App.BankKeeper
+	s.wk = s.App.WasmKeeper
 
 	// encCfg := app.MakeEncodingConfig()
 	// types.RegisterInterfaces(encCfg.InterfaceRegistry)
 	s.queryClient = types.NewQueryClient(s.QueryHelper)
-	s.cadanceMsgServer = keeper.NewMsgServerImpl(s.App.AppKeepers.CadanceKeeper)
+	s.cadanceMsgServer = keeper.NewMsgServerImpl(s.App.CadanceKeeper)
 }
 
 func (s *IntegrationTestSuite) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
@@ -57,9 +57,9 @@ var wasmContract []byte
 func (s *IntegrationTestSuite) StoreCode() {
 	_, _, sender := testdata.KeyTestPubAddr()
 
-	params := s.App.AppKeepers.WasmKeeper.GetParams(s.Ctx)
+	params := s.App.WasmKeeper.GetParams(s.Ctx)
 	params.InstantiateDefaultPermission = wasmtypes.AccessTypeEverybody
-	err := s.App.AppKeepers.WasmKeeper.SetParams(s.Ctx, params)
+	err := s.App.WasmKeeper.SetParams(s.Ctx, params)
 	s.Require().NoError(err)
 	msg := wasmtypes.MsgStoreCodeFixture(func(m *wasmtypes.MsgStoreCode) {
 		m.WASMByteCode = wasmContract
@@ -73,7 +73,7 @@ func (s *IntegrationTestSuite) StoreCode() {
 	expHash := sha256.Sum256(wasmContract)
 	s.Require().Equal(expHash[:], result.Checksum)
 	// and
-	info := s.App.AppKeepers.WasmKeeper.GetCodeInfo(s.Ctx, 1)
+	info := s.App.WasmKeeper.GetCodeInfo(s.Ctx, 1)
 	s.Require().NotNil(info)
 	s.Require().Equal(expHash[:], info.CodeHash)
 	s.Require().Equal(sender.String(), info.Creator)
@@ -97,7 +97,7 @@ func (s *IntegrationTestSuite) InstantiateContract(sender string, admin string) 
 	s.Require().NoError(err)
 	var result wasmtypes.MsgInstantiateContractResponse
 	s.Require().NoError(s.App.AppCodec().Unmarshal(resp.Data, &result))
-	contractInfo := s.App.AppKeepers.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
+	contractInfo := s.App.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
 	s.Require().Equal(contractInfo.CodeID, uint64(1))
 	s.Require().Equal(contractInfo.Admin, admin)
 	s.Require().Equal(contractInfo.Creator, sender)
@@ -107,24 +107,24 @@ func (s *IntegrationTestSuite) InstantiateContract(sender string, admin string) 
 
 // Helper method for quickly registering a cadance contract
 func (s *IntegrationTestSuite) RegisterCadanceContract(senderAddress string, contractAddress string) {
-	err := s.App.AppKeepers.CadanceKeeper.RegisterContract(s.Ctx, senderAddress, contractAddress)
+	err := s.App.CadanceKeeper.RegisterContract(s.Ctx, senderAddress, contractAddress)
 	s.Require().NoError(err)
 }
 
 // Helper method for quickly unregistering a cadance contract
 func (s *IntegrationTestSuite) UnregisterCadanceContract(senderAddress string, contractAddress string) {
-	err := s.App.AppKeepers.CadanceKeeper.UnregisterContract(s.Ctx, senderAddress, contractAddress)
+	err := s.App.CadanceKeeper.UnregisterContract(s.Ctx, senderAddress, contractAddress)
 	s.Require().NoError(err)
 }
 
 // Helper method for quickly jailing a cadance contract
 func (s *IntegrationTestSuite) JailCadanceContract(contractAddress string) {
-	err := s.App.AppKeepers.CadanceKeeper.SetJailStatus(s.Ctx, contractAddress, true)
+	err := s.App.CadanceKeeper.SetJailStatus(s.Ctx, contractAddress, true)
 	s.Require().NoError(err)
 }
 
 // Helper method for quickly unjailing a cadance contract
 func (s *IntegrationTestSuite) UnjailCadanceContract(senderAddress string, contractAddress string) {
-	err := s.App.AppKeepers.CadanceKeeper.SetJailStatusBySender(s.Ctx, senderAddress, contractAddress, false)
+	err := s.App.CadanceKeeper.SetJailStatusBySender(s.Ctx, senderAddress, contractAddress, false)
 	s.Require().NoError(err)
 }

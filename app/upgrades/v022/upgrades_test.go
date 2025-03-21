@@ -28,7 +28,7 @@ type UpgradeTestSuite struct {
 
 func (s *UpgradeTestSuite) SetupTest() {
 	s.Setup()
-	s.preModule = upgrade.NewAppModule(s.App.AppKeepers.UpgradeKeeper, addresscodec.NewBech32Codec("bitsong"))
+	s.preModule = upgrade.NewAppModule(s.App.UpgradeKeeper, addresscodec.NewBech32Codec("bitsong"))
 }
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -39,37 +39,37 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func(zeroDel bool) {
 		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 2)
 
-		vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		vals, _ := s.App.StakingKeeper.GetAllValidators(s.Ctx)
 		for i, val := range vals {
 
 			valAddr, _ := sdk.ValAddressFromBech32(val.OperatorAddress)
 			val.Tokens = math.LegacyNewDecFromInt(val.Tokens).MulTruncate(math.LegacyOneDec().Sub(math.LegacyNewDecWithPrec(1, 3))).RoundInt() // 1 % slash
 			//manually set validator historic rewards
-			s.App.AppKeepers.DistrKeeper.SetValidatorHistoricalRewards(
+			s.App.DistrKeeper.SetValidatorHistoricalRewards(
 				s.Ctx,
 				valAddr,
 				1,
 				types.NewValidatorHistoricalRewards(sdk.NewDecCoins(sdk.NewDecCoin("ubtsg", math.OneInt())), 2),
 			)
 
-			err := s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
+			err := s.App.StakingKeeper.SetValidator(s.Ctx, val)
 			s.Require().NoError(err)
 			// store 0 share delegation to fist validator if test requires
 			if i == 0 && zeroDel {
-				s.App.AppKeepers.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.NewDelegation(s.TestAccs[0].String(), val.OperatorAddress, math.LegacyZeroDec()))
+				s.App.StakingKeeper.SetDelegation(s.Ctx, stakingtypes.NewDelegation(s.TestAccs[0].String(), val.OperatorAddress, math.LegacyZeroDec()))
 			}
 		}
 	}
 
 	postUpgrade := func() {
 		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight + 1)
-		// vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		// vals, _ := s.App.StakingKeeper.GetAllValidators(s.Ctx)
 
 		// for i, val := range vals {
 
 		// }
 		// withdraw all delegator rewards
-		dels, err := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
+		dels, err := s.App.StakingKeeper.GetAllDelegations(s.Ctx)
 		s.Require().NoError(err)
 		for _, delegation := range dels {
 			valAddr, err := sdk.ValAddressFromBech32(delegation.ValidatorAddress)
@@ -79,7 +79,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			fmt.Println("~~~~~~~~~ POST UPGRADE DEBUG ~~~~~~~~~~~~")
 			fmt.Printf("delAddr: %v\n", delAddr)
 			fmt.Printf("valAddr: %v\n", valAddr)
-			_, err = s.App.AppKeepers.DistrKeeper.WithdrawDelegationRewards(s.Ctx, delAddr, valAddr)
+			_, err = s.App.DistrKeeper.WithdrawDelegationRewards(s.Ctx, delAddr, valAddr)
 			s.Require().NoError(err)
 		}
 	}
@@ -143,9 +143,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 func dummyUpgrade(s *UpgradeTestSuite) {
 	s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
 	plan := upgradetypes.Plan{Name: "v022", Height: dummyUpgradeHeight}
-	err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
+	err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 	s.Require().NoError(err)
-	_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+	_, err = s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
 	s.Require().NoError(err)
 
 	s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: dummyUpgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(dummyUpgradeHeight)
