@@ -654,6 +654,7 @@ func getReflectionService() *runtimeservices.ReflectionService {
 }
 
 // source: https://github.com/osmosis-labs/osmosis/blob/7b1a78d397b632247fe83f51867f319adf3a858c/app/app.go#L786
+// one-liner: cd ../bitsong-snapshots && bitsongd comet unsafe-reset-all && cp ~/.bitsongd/data/priv_validator_state.json ~/.bitsongd/priv_validator_state.json && lz4 -c -d <bitsong-snapshot>.tar.lz4 | tar -x -C $HOME/.bitsongd && cp ~/.bitsongd/priv_validator_state.json ~/.bitsongd/data/priv_validator_state.json && cd ../go-bitsong && make install && bitsongd in-place-testnet test1 bitsong1mt3wj088jvurp3vlh2yfar6vqrqp0llnsj8lar bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr
 func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger, brokenVals string) *BitsongApp { // newValsPower []testnetserver.ValidatorInfo
 
 	ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
@@ -674,6 +675,17 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	fmt.Printf("retainedValidator: %v\n", retainedValidator)
 
+	retainedValDels, err := app.AppKeepers.StakingKeeper.GetValidatorDelegations(ctx, brokeValAddr)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	fmt.Printf("retainedValDels: %v\n", retainedValDels)
+
+	// run patch logic prior to resett app state. simulates upgradehandler logic
+	err = v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
+	if err != nil {
+		panic(err)
+	}
 	// Create Validator struct for our new validator.
 	_, bz, err := bech32.DecodeAndConvert(newOperatorAddress)
 	if err != nil {
@@ -725,6 +737,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	iterator.Close()
 
+	//  TODO: retain validator from store
 	// Remove all validators from validators store
 	iterator = storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.ValidatorsKey)
 	for ; iterator.Valid(); iterator.Next() {
@@ -768,7 +781,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 		tmos.Exit(err.Error())
 	}
 
-	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 0)
+	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 1)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}

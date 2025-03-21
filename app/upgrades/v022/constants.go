@@ -23,13 +23,13 @@ type ConditionalJSON struct {
 	PatchedHistRewards       []distrtypes.ValidatorHistoricalRewardsRecord
 	ZeroSharesDelegation     []ZeroSharesDelegation
 	PatchedDelegation        []PatchedDelegation
-	DistSlashStore           DistrSlashObject
 	NilDelegationCalculation []NilDelegationCalculation
+	DistSlashStore           DistrSlashObject
 }
 
 type DistrSlashObject struct {
-	SlashEventCount uint64            `json:"total_slashes"`
-	DistrSlashEvent []DistrSlashEvent `json:"events"`
+	SlashEventCount uint64               `json:"total_slashes"`
+	DistrSlashEvent []map[string][]Slash `json:"events"`
 }
 type DistrSlashEvent struct {
 	Val             string  `json:"val_addr"`
@@ -37,6 +37,7 @@ type DistrSlashEvent struct {
 	Slashes         []Slash `json:"slash_events"`
 }
 type Slash struct {
+	Height   uint64 `json:"height"`
 	Fraction string `json:"fraction"`
 	Period   uint64 `json:"period"`
 }
