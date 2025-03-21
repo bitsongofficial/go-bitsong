@@ -12,7 +12,6 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -58,19 +57,9 @@ func (app *BitsongApp) CustomExportAppStateAndValidators(
 	}, nil
 }
 
-// prepare for fresh start at zero height
-// NOTE zero height genesis is a temporary feature which will be deprecated
-//
-//	in favour of export at a block height
+// prepare for fresh start at zero height. prints logs for debugging into json file.
 func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, jailAllowedAddrs []string) {
 	applyAllowedAddrs := false
-
-	condJSON := v022.ConditionalJSON{
-		PatchDelegationCount: 0,
-		ZeroSharesDelegation: make([]v022.ZeroSharesDelegation, 0),
-		PatchedDelegation:    make([]v022.PatchedDelegation, 0),
-		DistSlashStore:       v022.DistrSlashObject{},
-	}
 
 	// check if there is a allowed address list
 	if len(jailAllowedAddrs) > 0 {
@@ -86,7 +75,7 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		allowedAddrsMap[addr] = true
 
 	}
-	// // debug module
+	// debug upgradeHandler
 	err := v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
 	if err != nil {
 		panic(err)
@@ -105,40 +94,6 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 	if err != nil {
 		panic(err)
 	}
-
-	// count slashes  for all current  validators
-	slashCount := uint64(0)
-	app.AppKeepers.DistrKeeper.IterateValidatorSlashEvents(ctx,
-		func(val sdk.ValAddress, _ uint64, vse distrtypes.ValidatorSlashEvent) (stop bool) {
-			var existing *v022.DistrSlashEvent
-			for i, obj := range condJSON.DistSlashStore.DistrSlashEvent {
-				if obj.Val == val.String() {
-					existing = &condJSON.DistSlashStore.DistrSlashEvent[i]
-					break
-				}
-			} // Create a new DistrSlashEvent from the current event
-			event := v022.Slash{
-				Fraction: vse.Fraction.String(),
-				Period:   vse.ValidatorPeriod,
-			}
-
-			// If existing object found, append the event and increment count
-			if existing != nil {
-				existing.Slashes = append(existing.Slashes, event)
-				existing.SlashEventCount++
-			} else {
-				// Create a new DistrSlashObject
-				newSlashObj := v022.DistrSlashEvent{
-					Val:             val.String(),
-					SlashEventCount: 1,
-					Slashes:         []v022.Slash{event},
-				}
-				condJSON.DistSlashStore.DistrSlashEvent = append(condJSON.DistSlashStore.DistrSlashEvent, newSlashObj)
-			}
-			slashCount++
-			return false
-		})
-	condJSON.DistSlashStore.SlashEventCount = slashCount
 
 	// /* Just to be safe, assert the invariants on current state. */
 	app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
@@ -291,8 +246,5 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 			return false
 		},
 	)
-
-	// Marshal the ConditionalJSON object to JSON
-	v022.PrintConditionalJsonLogs(condJSON, "conditional.json")
 
 }

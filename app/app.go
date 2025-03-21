@@ -24,8 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -33,9 +31,13 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 
+	// testnetserver "github.com/bitsongofficial/go-bitsong/server"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sigtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
@@ -652,7 +654,8 @@ func getReflectionService() *runtimeservices.ReflectionService {
 }
 
 // source: https://github.com/osmosis-labs/osmosis/blob/7b1a78d397b632247fe83f51867f319adf3a858c/app/app.go#L786
-func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger string) *BitsongApp {
+// one-liner: cd ../bitsong-snapshots && bitsongd comet unsafe-reset-all && cp ~/.bitsongd/data/priv_validator_state.json ~/.bitsongd/priv_validator_state.json && lz4 -c -d <bitsong-snapshot>.tar.lz4 | tar -x -C $HOME/.bitsongd && cp ~/.bitsongd/priv_validator_state.json ~/.bitsongd/data/priv_validator_state.json && cd ../go-bitsong && make install && bitsongd in-place-testnet test1 bitsong1mt3wj088jvurp3vlh2yfar6vqrqp0llnsj8lar bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr
+func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger, brokenVals string) *BitsongApp { // newValsPower []testnetserver.ValidatorInfo
 
 	ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 	pubkey := &ed25519.PubKey{Key: newValPubKey.Bytes()}
@@ -662,7 +665,27 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 
 	// STAKING
+	brokeValAddr, err := sdk.ValAddressFromBech32(brokenVals)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	retainedValidator, err := app.AppKeepers.StakingKeeper.GetValidator(ctx, brokeValAddr)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	fmt.Printf("retainedValidator: %v\n", retainedValidator)
 
+	retainedValDels, err := app.AppKeepers.StakingKeeper.GetValidatorDelegations(ctx, brokeValAddr)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	fmt.Printf("retainedValDels: %v\n", retainedValDels)
+
+	// run patch logic prior to resett app state. simulates upgradehandler logic
+	err = v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
+	if err != nil {
+		panic(err)
+	}
 	// Create Validator struct for our new validator.
 	_, bz, err := bech32.DecodeAndConvert(newOperatorAddress)
 	if err != nil {
@@ -714,6 +737,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	iterator.Close()
 
+	//  TODO: retain validator from store
 	// Remove all validators from validators store
 	iterator = storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.ValidatorsKey)
 	for ; iterator.Valid(); iterator.Next() {
@@ -733,28 +757,39 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+	// Add retainedValidator to power and last validators store
+	err = app.AppKeepers.StakingKeeper.SetValidator(ctx, retainedValidator)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
 	err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+	err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, retainedValidator)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+
 	err = app.AppKeepers.StakingKeeper.SetValidatorByPowerIndex(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+
 	valAddr, err := sdk.ValAddressFromBech32(newVal.GetOperator())
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 0)
+
+	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 1)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+
 	if err := app.AppKeepers.StakingKeeper.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 		panic(err)
 	}
 
-	// DISTRIBUTION
-	// Initialize records for this validator across all distribution stores
 	// Initialize records for this validator across all distribution stores
 	valAddr, err = sdk.ValAddressFromBech32(newVal.GetOperator())
 	if err != nil {
@@ -789,12 +824,6 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-
-	//
-	// Optional Changes:
-	//
-
-	// GOV
 
 	newExpeditedVotingPeriod := time.Minute
 	newVotingPeriod := time.Minute * 2

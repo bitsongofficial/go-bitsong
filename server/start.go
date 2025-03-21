@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -102,6 +103,8 @@ const (
 	// testnet keys
 	KeyIsTestnet             = "is-testnet"
 	KeyNewChainID            = "new-chain-ID"
+	KeyBrokenValidator       = "broken-vals"
+	KeyNewValsPowerJson      = "new-vals-json"
 	KeyNewOpAddr             = "new-operator-addr"
 	KeyNewValAddr            = "new-validator-addr"
 	KeyUserPubKey            = "user-pub-key"
@@ -111,6 +114,9 @@ const (
 // InPlaceTestnetCreator utilizes the provided chainID and operatorAddress as well as the local private validator key to
 // control the network represented in the data folder. This is useful to create testnets nearly identical to your
 // mainnet environment.
+
+// If the --new-vals-json flag is set, the server expects a string path to a json file in the form:
+// [{"val":  "bitsong1val...", "num_dels": 20, "num_tokens": 200000000000,"jailed": false}]
 func InPlaceTestnetCreator(testnetAppCreator types.AppCreator) *cobra.Command {
 	opts := server.StartCmdOptions{}
 	if opts.DBOpener == nil {
@@ -122,12 +128,15 @@ func InPlaceTestnetCreator(testnetAppCreator types.AppCreator) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "in-place-testnet [newChainID] [newOperatorAddress]",
+		Use:   "in-place-testnet [newChainID] [newOperatorAddress] ",
 		Short: "Create and start a testnet from current local state",
 		Long: `Create and start a testnet from current local state.
 After utilizing this command the network will start. If the network is stopped,
 the normal "start" command should be used. Re-using this command on state that
 has already been modified by this command could result in unexpected behavior.
+
+If the --broken-vals flag is set, the server expects a bitsong1val... addr that has broken delegations.
+The server will retain this p
 
 Additionally, the first block may take up to one minute to be committed, depending
 on how old the block is. For instance, if a snapshot was taken weeks ago and we want
@@ -142,8 +151,8 @@ Regardless of whether the flag is set or not, if any new stores are introduced i
 those stores will be registered in order to prevent panics. Therefore, you only need to set the flag if
 you want to test the upgrade handler itself.
 `,
-		Example: "in-place-testnet localosmosis osmo12smx2wdlyttvyzvzg54y2vnqwq2qjateuf7thj",
-		Args:    cobra.ExactArgs(2),
+		Example: "in-place-testnet sub-1 bitsong12smx2wdlyttvyzvzg54y2vnqwq2qjatecmlnr0",
+		Args:    cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)
 			_, err := server.GetPruningOptionsFromFlags(serverCtx.Viper)
@@ -163,6 +172,7 @@ you want to test the upgrade handler itself.
 
 			newChainID := args[0]
 			newOperatorAddress := args[1]
+			brokenValidator := args[2]
 
 			skipConfirmation, _ := cmd.Flags().GetBool("skip-confirmation")
 
@@ -183,6 +193,7 @@ you want to test the upgrade handler itself.
 			serverCtx.Viper.Set(KeyIsTestnet, true)
 			serverCtx.Viper.Set(KeyNewChainID, newChainID)
 			serverCtx.Viper.Set(KeyNewOpAddr, newOperatorAddress)
+			serverCtx.Viper.Set(KeyBrokenValidator, brokenValidator)
 
 			err = wrapCPUProfile(serverCtx, func() error {
 				return opts.StartCommandHandler(serverCtx, clientCtx, testnetAppCreator, withCMT, opts)
@@ -547,6 +558,14 @@ func getCtx(svrCtx *server.Context, block bool) (*errgroup.Group, context.Contex
 func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.DB, traceWriter io.WriteCloser) (types.Application, error) {
 	config := ctx.Config
 
+	// Get the comma-separated string of validators to migrate consensus state
+	brokenValidators, ok := ctx.Viper.Get(KeyBrokenValidator).(string)
+	if !ok {
+		return nil, fmt.Errorf("expected comma-separated list of validators to patch info for %s", KeyNewChainID)
+	}
+
+	fmt.Printf("validators to retain: %v\n", brokenValidators)
+
 	newChainID, ok := ctx.Viper.Get(KeyNewChainID).(string)
 	if !ok {
 		return nil, fmt.Errorf("expected string for key %s", KeyNewChainID)
@@ -616,8 +635,6 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 	testnetApp := testnetAppCreator(ctx.Logger, db, traceWriter, ctx.Viper)
 
 	// We need to create a temporary proxyApp to get the initial state of the application.
-	// Depending on how the node was stopped, the application height can differ from the blockStore height.
-	// This height difference changes how we go about modifying the state.
 	cmtApp := server.NewCometABCIWrapper(testnetApp)
 	_, context := getCtx(ctx, true)
 	clientCreator := proxy.NewLocalClientCreator(cmtApp)
@@ -642,7 +659,6 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 	switch {
 	case appHeight == blockStore.Height():
 		block = blockStore.LoadBlock(blockStore.Height())
-		// If the state's last blockstore height does not match the app and blockstore height, we likely stopped with the halt height flag.
 		if state.LastBlockHeight != appHeight {
 			state.LastBlockHeight = appHeight
 			block.AppHash = appHash
@@ -726,18 +742,45 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 	blockStore.DeleteLatestBlock()
 	blockStore.SaveBlockWithExtendedCommit(block, blockParts, ec)
 
-	// Create ValidatorSet struct containing just our valdiator.
+	// Create a list to store validators
+	var newValidators []*cmttypes.Validator
+
+	// Add our validator with high voting power
 	newVal := &cmttypes.Validator{
 		Address:     validatorAddress,
 		PubKey:      userPubKey,
 		VotingPower: 900000000000000,
 	}
-	newValSet := &cmttypes.ValidatorSet{
-		Validators: []*cmttypes.Validator{newVal},
-		Proposer:   newVal,
+	newValidators = append(newValidators, newVal)
+
+	// Parse and add other validators with low voting power
+	if brokenValidators != "" {
+		// Split the comma-separated list of validators
+		// validatorAddrs := strings.Split(brokenValidators, ",")
+		// for _, valAddrStr := range validatorAddrs {
+
+		// Trim any whitespace
+		// valAddrStr = strings.TrimSpace(valAddrStr)
+
+		// Decode the validator address
+
+		// Create a validator with very low voting power (1)
+		// brokenVal := &cmttypes.Validator{
+		// 	Address:     valAddr,
+		// 	PubKey:      nil, // You might want to fetch the actual pubkey if needed
+		// 	VotingPower: 1,   // Minimal voting power to keep the validator in the set
+		// }
+		// newValidators = append(newValidators, brokenVal)
+		// }
 	}
 
-	// Replace all valSets in state to be the valSet with just our validator.
+	// Create new validator set
+	newValSet := &cmttypes.ValidatorSet{
+		Validators: newValidators,
+		Proposer:   newVal, // Our validator remains the proposer
+	}
+
+	// Replace all valSets in state to be the new valSet
 	state.Validators = newValSet
 	state.LastValidators = newValSet
 	state.NextValidators = newValSet
@@ -748,7 +791,7 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 		return nil, err
 	}
 
-	// Create a ValidatorsInfo struct to store in stateDB.
+	// Create a ValidatorsInfo struct to store in stateDB
 	valSet, err := state.Validators.ToProto()
 	if err != nil {
 		return nil, err
@@ -762,25 +805,15 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 		return nil, err
 	}
 
-	// Modfiy Validators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height())), buf)
-	if err != nil {
-		return nil, err
+	// Modify Validators stateDB entries
+	for _, height := range []int64{blockStore.Height(), blockStore.Height() - 1, blockStore.Height() + 1} {
+		err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", height)), buf)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	// Modify LastValidators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height()-1)), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	// Modify NextValidators stateDB entry.
-	err = stateDB.Set([]byte(fmt.Sprintf("validatorsKey:%v", blockStore.Height()+1)), buf)
-	if err != nil {
-		return nil, err
-	}
-
-	// Since we modified the chainID, we set the new genesisDoc in the stateDB.
+	// Since we modified the chainID, we set the new genesisDoc in the stateDB
 	b, err := cmtjson.Marshal(genDoc)
 	if err != nil {
 		return nil, err
@@ -790,6 +823,21 @@ func testnetify(ctx *server.Context, testnetAppCreator types.AppCreator, db dbm.
 	}
 
 	return testnetApp, err
+}
+
+func ParseValidatorInfos(jsonPath string) ([]ValidatorInfo, error) {
+	data, err := os.ReadFile(jsonPath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading JSON file: %v", err)
+	}
+
+	var validatorInfos []ValidatorInfo
+	err = json.Unmarshal(data, &validatorInfos)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshaling JSON: %v", err)
+	}
+
+	return validatorInfos, nil
 }
 
 func setupTraceWriter(svrCtx *server.Context) (traceWriter io.WriteCloser, cleanup func(), err error) {

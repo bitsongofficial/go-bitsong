@@ -407,8 +407,32 @@ func newTestnetApp(logger log.Logger, db cosmosdb.DB, traceStore io.Writer, appO
 	if !ok {
 		panic("upgradeToTrigger is not of type string")
 	}
+
+	//get the comma separated string of validators to migrate app state
+	brokenVal, ok := appOpts.Get(testnetserver.KeyBrokenValidator).(string)
+	if !ok {
+		panic("cannot parse broken validators strings")
+	}
+
+	// brokenVals := strings.Split(brokenValidators, ",")
+	// fmt.Printf("brokenVals: %v\n", brokenVals)
+
+	// get the json file to additional vals powers
+	// newValsPowerJson, ok := appOpts.Get(testnetserver.KeyNewValsPowerJson).(string)
+	// if !ok {
+	// 	panic(fmt.Errorf("expected path to new validators json %s", testnetserver.KeyNewValsPowerJson))
+	// }
+
+	//  parse json to get list of validators
+	// [{"val":  "bitsong1val...", "num_dels": , "num_tokens": ,"jailed": }]
+	// newValsPower, err := testnetserver.ParseValidatorInfos(newValsPowerJson)
+	// if err != nil {
+	// 	panic(fmt.Errorf("error parsing validator infos %v ", err))
+	// }
+	// fmt.Printf("newValsPower: %v\n", newValsPower)
+
 	// Make modifications to the normal BitsongApp required to run the network locally
-	return bitsong.InitBitsongAppForTestnet(bitsongApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
+	return bitsong.InitBitsongAppForTestnet(bitsongApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger, brokenVal) //newValsPower
 
 }
 

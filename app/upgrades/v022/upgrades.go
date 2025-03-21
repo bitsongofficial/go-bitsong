@@ -57,6 +57,7 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 		PatchedDelegation:        make([]PatchedDelegation, 0),
 		ZeroSharesDelegation:     make([]ZeroSharesDelegation, 0),
 		NilDelegationCalculation: make([]NilDelegationCalculation, 0),
+		DistSlashStore:           DistrSlashObject{},
 	}
 
 	allVals, err := k.StakingKeeper.GetAllValidators(sdkCtx)
@@ -107,6 +108,7 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 			if err != nil {
 				return err
 			}
+
 			delegationRewards, patched := CustomCalculateDelegationRewards(sdkCtx, k, validator, del, endingPeriod)
 			if patched {
 				condJSON.PatchDelegationCount++
@@ -142,6 +144,7 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 			if err != nil {
 				return err
 			}
+			fmt.Printf("rewards: %v\n", rewards)
 			// set ghost slash event
 			err = k.DistrKeeper.SetValidatorSlashEvent(sdkCtx, valAddr, 1, rewards.Period, distrtypes.NewValidatorSlashEvent(rewards.Period, math.LegacySmallestDec()))
 			if err != nil {
@@ -170,7 +173,32 @@ func CustomValPatch(sdkCtx sdk.Context, k *keepers.AppKeepers, simulated bool) e
 		},
 	)
 
-	PrintConditionalJsonLogs(condJSON, "conditionalsUpgradeHandler.json")
+	// count slashes for all current validators
+	// Create a map to track validators and their slash events
+	validatorSlashMap := make(map[string][]Slash)
+	slashCount := uint64(0)
+	k.DistrKeeper.IterateValidatorSlashEvents(sdkCtx,
+		func(val sdk.ValAddress, height uint64, vse distrtypes.ValidatorSlashEvent) (stop bool) {
+			valAddr := val.String()
+			event := Slash{
+				Height:   height,
+				Fraction: vse.Fraction.String(),
+				Period:   vse.ValidatorPeriod,
+			}
+			validatorSlashMap[valAddr] = append(validatorSlashMap[valAddr], event)
+			slashCount++
+
+			return false
+		})
+
+	condJSON.DistSlashStore.DistrSlashEvent = make([]map[string][]Slash, 0, len(validatorSlashMap))
+	for valAddr, slashes := range validatorSlashMap {
+		condJSON.DistSlashStore.DistrSlashEvent = append(condJSON.DistSlashStore.DistrSlashEvent,
+			map[string][]Slash{valAddr: slashes})
+	}
+	condJSON.DistSlashStore.SlashEventCount = slashCount
+
+	PrintConditionalJsonLogs(condJSON, "upgradeHandlerDebug.json")
 
 	return nil
 }
@@ -318,7 +346,7 @@ func CustomWithdrawDelegationRewards(ctx context.Context, k *keepers.AppKeepers,
 			fmt.Printf("distrBal: %v\n", distrBal)
 			fmt.Printf("delAddr: %v\n", del.GetDelegatorAddr())
 			fmt.Printf("senderAddr.String(): %v\n", senderAddr.String())
-			// panic("distribution module has less than what it should ")
+			// panic("distribution module has less than what it should have")
 			return nil, err
 		}
 	}
@@ -385,8 +413,8 @@ func customCalculateDelegationRewardsBetween(ctx context.Context, k *keepers.App
 	if startingPeriod > endingPeriod {
 		panic("startingPeriod cannot be greater than endingPeriod")
 	}
-	fmt.Printf("startingPeriod: %v\n", startingPeriod)
-	fmt.Printf("endingPeriod: %v\n", endingPeriod)
+	// fmt.Printf("startingPeriod: %v\n", startingPeriod)
+	// fmt.Printf("endingPeriod: %v\n", endingPeriod)
 	// sanity check
 	if stake.IsNegative() {
 		panic("stake should not be negative")
@@ -410,11 +438,11 @@ func customCalculateDelegationRewardsBetween(ctx context.Context, k *keepers.App
 	if difference.IsAnyNegative() {
 		panic("negative rewards should not be possible")
 	}
-	fmt.Printf("starting: %v\n", ending)
-	fmt.Printf("ending: %v\n", starting)
-	fmt.Printf("stake: %v\n", stake)
-	fmt.Printf("difference: %v\n", difference)
-	fmt.Printf("rewards: %v\n", rewards)
+	// fmt.Printf("starting: %v\n", ending)
+	// fmt.Printf("ending: %v\n", starting)
+	// fmt.Printf("stake: %v\n", stake)
+	// fmt.Printf("difference: %v\n", difference)
+	// fmt.Printf("rewards: %v\n", rewards)
 	// note: necessary to truncate so we don't allow withdrawing more rewards than owed
 	rewards = difference.MulDecTruncate(stake)
 	return rewards
