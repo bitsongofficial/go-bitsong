@@ -43,9 +43,9 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.Setup()
 
 	app := suite.App
-	suite.keeper = app.AppKeepers.FanTokenKeeper
-	suite.bk = app.AppKeepers.BankKeeper
-	suite.app = app
+	suite.keeper = app.FanTokenKeeper
+	suite.bk = app.BankKeeper
+	suite.App = app
 	suite.ctx = suite.Ctx
 
 	// set params

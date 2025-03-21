@@ -52,7 +52,7 @@ func (s *EndBlockerTestSuite) StoreCode(wasmContract []byte) {
 	expHash := sha256.Sum256(wasmContract)
 	s.Require().Equal(expHash[:], result.Checksum)
 	// and
-	info := s.App.AppKeepers.WasmKeeper.GetCodeInfo(s.Ctx, 1)
+	info := s.App.WasmKeeper.GetCodeInfo(s.Ctx, 1)
 	s.Require().NotNil(info)
 	s.Require().Equal(expHash[:], info.CodeHash)
 	s.Require().Equal(sender.String(), info.Creator)
@@ -76,7 +76,7 @@ func (s *EndBlockerTestSuite) InstantiateContract(sender string, admin string) s
 	s.Require().NoError(err)
 	var result wasmtypes.MsgInstantiateContractResponse
 	s.Require().NoError(s.App.AppCodec().Unmarshal(resp.Data, &result))
-	contractInfo := s.App.AppKeepers.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
+	contractInfo := s.App.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
 	s.Require().Equal(contractInfo.CodeID, uint64(1))
 	s.Require().Equal(contractInfo.Admin, admin)
 	s.Require().Equal(contractInfo.Creator, sender)
@@ -85,11 +85,11 @@ func (s *EndBlockerTestSuite) InstantiateContract(sender string, admin string) s
 }
 
 func (s *EndBlockerTestSuite) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
-	if err := s.App.AppKeepers.BankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+	if err := s.App.BankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err
 	}
 
-	return s.App.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+	return s.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
 }
 
 // Register a contract. You must store the contract code before registering.
@@ -104,7 +104,7 @@ func (s *EndBlockerTestSuite) registerContract() string {
 	contractAddress := s.InstantiateContract(sender.String(), admin.String())
 
 	// Register contract
-	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.CadanceKeeper
 	err := cadanceKeeper.RegisterContract(s.Ctx, admin.String(), contractAddress)
 	s.Require().NoError(err)
 
@@ -123,7 +123,7 @@ func (s *EndBlockerTestSuite) registerContract() string {
 // too little gas, and also ensures the unjailing process functions.
 func (s *EndBlockerTestSuite) TestEndBlocker() {
 	// Setup test
-	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.CadanceKeeper
 	s.StoreCode(cadanceContract)
 	contractAddress := s.registerContract()
 
@@ -175,7 +175,7 @@ func (s *EndBlockerTestSuite) TestEndBlocker() {
 // Test a contract which does not handle the sudo EndBlock msg.
 func (s *EndBlockerTestSuite) TestInvalidContract() {
 	// Setup test
-	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.CadanceKeeper
 	s.StoreCode(burnContract)
 	contractAddress := s.registerContract()
 
@@ -201,7 +201,7 @@ func (s *EndBlockerTestSuite) TestPerformance() {
 	}
 
 	// Ensure contracts exist
-	cadanceKeeper := s.App.AppKeepers.CadanceKeeper
+	cadanceKeeper := s.App.CadanceKeeper
 	contracts, err := cadanceKeeper.GetAllContracts(s.Ctx)
 	s.Require().NoError(err)
 	s.Require().Len(contracts, numContracts)
@@ -221,7 +221,7 @@ func (s *EndBlockerTestSuite) TestPerformance() {
 func (s *EndBlockerTestSuite) updateGasLimit(gasLimit uint64) {
 	params := types.DefaultParams()
 	params.ContractGasLimit = gasLimit
-	k := s.App.AppKeepers.CadanceKeeper
+	k := s.App.CadanceKeeper
 
 	store := s.Ctx.KVStore(k.GetStore())
 	bz := k.GetCdc().MustMarshal(&params)
@@ -232,14 +232,14 @@ func (s *EndBlockerTestSuite) updateGasLimit(gasLimit uint64) {
 
 // Call the end blocker, incrementing the block height
 func (s *EndBlockerTestSuite) callEndBlocker() {
-	cadance.EndBlocker(s.Ctx, s.App.AppKeepers.CadanceKeeper)
+	cadance.EndBlocker(s.Ctx, s.App.CadanceKeeper)
 	s.Ctx = s.Ctx.WithBlockHeight(s.Ctx.BlockHeight() + 1)
 }
 
 // Query the cadance contract
 func (s *EndBlockerTestSuite) queryContract(contractAddress string) int64 {
 	query := `{"get_config":{}}`
-	output, err := s.App.AppKeepers.WasmKeeper.QuerySmart(s.Ctx, sdk.MustAccAddressFromBech32(contractAddress), []byte(query))
+	output, err := s.App.WasmKeeper.QuerySmart(s.Ctx, sdk.MustAccAddressFromBech32(contractAddress), []byte(query))
 	s.Require().NoError(err)
 
 	var val struct {

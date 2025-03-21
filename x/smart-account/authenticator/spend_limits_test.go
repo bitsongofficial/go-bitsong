@@ -80,24 +80,24 @@ func (s *SpendLimitAuthenticatorTest) SetupTest() {
 	s.Ctx = s.Ctx.WithBlockTime(time.Now())
 	s.EncodingConfig = app.MakeEncodingConfig()
 
-	s.CosmwasmAuth = authenticator.NewCosmwasmAuthenticator(s.BitsongApp.AppKeepers.ContractKeeper, s.BitsongApp.AppKeepers.AccountKeeper, s.BitsongApp.AppCodec())
+	s.CosmwasmAuth = authenticator.NewCosmwasmAuthenticator(s.BitsongApp.ContractKeeper, s.BitsongApp.AccountKeeper, s.BitsongApp.AppCodec())
 
 	s.AlwaysPassAuth = testutils.TestingAuthenticator{Approve: testutils.Always, Confirm: testutils.Always, GasConsumption: 0}
-	s.BitsongApp.AppKeepers.SmartAccountKeeper.AuthenticatorManager.RegisterAuthenticator(s.AlwaysPassAuth)
+	s.BitsongApp.SmartAccountKeeper.AuthenticatorManager.RegisterAuthenticator(s.AlwaysPassAuth)
 
-	deductFeeDecorator := sdkante.NewDeductFeeDecorator(s.BitsongApp.AppKeepers.AccountKeeper, s.BitsongApp.AppKeepers.BankKeeper, s.BitsongApp.AppKeepers.FeeGrantKeeper, nil)
+	deductFeeDecorator := sdkante.NewDeductFeeDecorator(s.BitsongApp.AccountKeeper, s.BitsongApp.BankKeeper, s.BitsongApp.FeeGrantKeeper, nil)
 	s.AuthenticatorAnteDecorator = ante.NewAuthenticatorDecorator(
 		s.BitsongApp.AppCodec(),
-		s.BitsongApp.AppKeepers.SmartAccountKeeper,
-		s.BitsongApp.AppKeepers.AccountKeeper,
+		s.BitsongApp.SmartAccountKeeper,
+		s.BitsongApp.AccountKeeper,
 		s.EncodingConfig.TxConfig.SignModeHandler(),
 		deductFeeDecorator,
 	)
 
 	s.AuthenticatorPostDecorator = post.NewAuthenticatorPostDecorator(
 		s.BitsongApp.AppCodec(),
-		s.BitsongApp.AppKeepers.SmartAccountKeeper,
-		s.BitsongApp.AppKeepers.AccountKeeper,
+		s.BitsongApp.SmartAccountKeeper,
+		s.BitsongApp.AccountKeeper,
 		s.EncodingConfig.TxConfig.SignModeHandler(),
 		// Add an empty handler here to enable a circuit breaker pattern
 		sdk.ChainPostDecorators(sdk.Terminator{}), //nolint
@@ -120,7 +120,7 @@ func (s *SpendLimitAuthenticatorTest) TestSpendLimit() {
 	// contractAddr := s.InstantiateContract(string(bz), codeId)
 
 	// add new authenticator
-	// ak := s.BitsongApp.AppKeepers.SmartAccountKeeper
+	// ak := s.BitsongApp.SmartAccountKeeper
 
 	// authAcc := s.TestAccAddress[1]
 	// authAccPriv := s.TestPrivKeys[1]
@@ -200,8 +200,8 @@ func (s *SpendLimitAuthenticatorTest) TestSpendLimit() {
 
 func (s *SpendLimitAuthenticatorTest) StoreContractCode(path string) uint64 {
 	btsgApp := s.BitsongApp
-	govKeeper := wasmkeeper.NewGovPermissionKeeper(btsgApp.AppKeepers.WasmKeeper)
-	creator := btsgApp.AppKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	govKeeper := wasmkeeper.NewGovPermissionKeeper(btsgApp.WasmKeeper)
+	creator := btsgApp.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
 	wasmCode, err := os.ReadFile(path)
 	s.Require().NoError(err)
@@ -213,8 +213,8 @@ func (s *SpendLimitAuthenticatorTest) StoreContractCode(path string) uint64 {
 
 func (s *SpendLimitAuthenticatorTest) InstantiateContract(msg string, codeID uint64) sdk.AccAddress {
 	btsgApp := s.BitsongApp
-	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(btsgApp.AppKeepers.WasmKeeper)
-	creator := btsgApp.AppKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(btsgApp.WasmKeeper)
+	creator := btsgApp.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 	addr, _, err := contractKeeper.Instantiate(s.Ctx, codeID, creator, creator, []byte(msg), "contract", nil)
 	s.Require().NoError(err)
 	return addr

@@ -45,7 +45,7 @@ func (app *BitsongApp) CustomExportAppStateAndValidators(
 		return servertypes.ExportedApp{}, err
 	}
 
-	validators, err := staking.WriteValidators(ctx, app.AppKeepers.StakingKeeper)
+	validators, err := staking.WriteValidators(ctx, app.StakingKeeper)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}
@@ -83,12 +83,12 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 
 	// simapp export for 0 height state logic:
 	// withdraw all validator commission
-	err = app.AppKeepers.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		valBz, err := app.AppKeepers.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
 		}
-		_, _ = app.AppKeepers.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
+		_, _ = app.DistrKeeper.WithdrawValidatorCommission(ctx, valBz)
 		return false
 	})
 	if err != nil {
@@ -96,23 +96,23 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 	}
 
 	// /* Just to be safe, assert the invariants on current state. */
-	app.AppKeepers.CrisisKeeper.AssertInvariants(ctx)
+	app.CrisisKeeper.AssertInvariants(ctx)
 
-	app.AppKeepers.StakingKeeper.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) (stop bool) {
+	app.StakingKeeper.IterateAllDelegations(ctx, func(del stakingtypes.Delegation) (stop bool) {
 		valAddr, err := sdk.ValAddressFromBech32(del.ValidatorAddress)
 		if err != nil {
 			panic(err)
 		}
 		// delAddr := sdk.AccAddress(del.DelegatorAddress)
-		val, err := app.AppKeepers.StakingKeeper.GetValidator(ctx, valAddr)
+		val, err := app.StakingKeeper.GetValidator(ctx, valAddr)
 		if err != nil {
 			panic(err)
 		}
-		endingPeriod, err := app.AppKeepers.DistrKeeper.IncrementValidatorPeriod(ctx, val)
+		endingPeriod, err := app.DistrKeeper.IncrementValidatorPeriod(ctx, val)
 		if err != nil {
 			panic(err)
 		}
-		_, err = app.AppKeepers.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
+		_, err = app.DistrKeeper.CalculateDelegationRewards(ctx, val, del, endingPeriod)
 		if err != nil {
 			panic(err)
 		}
@@ -122,38 +122,38 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 	})
 
 	// withdraw all delegator rewards
-	dels, err := app.AppKeepers.StakingKeeper.GetAllDelegations(ctx)
+	dels, err := app.StakingKeeper.GetAllDelegations(ctx)
 	if err != nil {
 		panic(err)
 	}
 
 	// clear validator slash events
-	app.AppKeepers.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
+	app.DistrKeeper.DeleteAllValidatorSlashEvents(ctx)
 
 	// clear validator historical rewards
-	app.AppKeepers.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
+	app.DistrKeeper.DeleteAllValidatorHistoricalRewards(ctx)
 
 	// reinitialize all validators
-	err = app.AppKeepers.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		valBz, err := app.AppKeepers.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+	err = app.StakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+		valBz, err := app.StakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
 		if err != nil {
 			panic(err)
 		}
 		// donate any unwithdrawn outstanding reward fraction tokens to the community pool
-		scraps, err := app.AppKeepers.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, valBz)
+		scraps, err := app.DistrKeeper.GetValidatorOutstandingRewardsCoins(ctx, valBz)
 		if err != nil {
 			panic(err)
 		}
-		feePool, err := app.AppKeepers.DistrKeeper.FeePool.Get(ctx)
+		feePool, err := app.DistrKeeper.FeePool.Get(ctx)
 		if err != nil {
 			panic(err)
 		}
 		feePool.CommunityPool = feePool.CommunityPool.Add(scraps...)
-		if err := app.AppKeepers.DistrKeeper.FeePool.Set(ctx, feePool); err != nil {
+		if err := app.DistrKeeper.FeePool.Set(ctx, feePool); err != nil {
 			panic(err)
 		}
 
-		if err := app.AppKeepers.DistrKeeper.Hooks().AfterValidatorCreated(ctx, valBz); err != nil {
+		if err := app.DistrKeeper.Hooks().AfterValidatorCreated(ctx, valBz); err != nil {
 			panic(err)
 		}
 		return false
@@ -170,33 +170,33 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		}
 		delAddr := sdk.MustAccAddressFromBech32(del.DelegatorAddress)
 
-		if err := app.AppKeepers.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr); err != nil {
+		if err := app.DistrKeeper.Hooks().BeforeDelegationCreated(ctx, delAddr, valAddr); err != nil {
 			// never called as BeforeDelegationCreated always returns nil
 			panic(fmt.Errorf("error while incrementing period: %w", err))
 		}
 
-		if err := app.AppKeepers.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr); err != nil {
+		if err := app.DistrKeeper.Hooks().AfterDelegationModified(ctx, delAddr, valAddr); err != nil {
 			// never called as AfterDelegationModified always returns nil
 			panic(fmt.Errorf("error while creating a new delegation period record: %w", err))
 		}
 	}
 	// iterate through redelegations, reset creation height
-	app.AppKeepers.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
+	app.StakingKeeper.IterateRedelegations(ctx, func(_ int64, red stakingtypes.Redelegation) (stop bool) {
 		for i := range red.Entries {
 			red.Entries[i].CreationHeight = 0
 		}
-		err = app.AppKeepers.StakingKeeper.SetRedelegation(ctx, red)
+		err = app.StakingKeeper.SetRedelegation(ctx, red)
 		if err != nil {
 			panic(err)
 		}
 		return false
 	})
 	// iterate through unbonding delegations, reset creation height
-	app.AppKeepers.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+	app.StakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
 		for i := range ubd.Entries {
 			ubd.Entries[i].CreationHeight = 0
 		}
-		err = app.AppKeepers.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
+		err = app.StakingKeeper.SetUnbondingDelegation(ctx, ubd)
 		if err != nil {
 			panic(err)
 		}
@@ -211,7 +211,7 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.ValAddress(stakingtypes.AddressFromValidatorsKey(iter.Key()))
-		validator, err := app.AppKeepers.StakingKeeper.GetValidator(ctx, addr)
+		validator, err := app.StakingKeeper.GetValidator(ctx, addr)
 		if err != nil {
 			panic("expected validator, not found")
 		}
@@ -221,7 +221,7 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 			validator.Jailed = true
 		}
 
-		app.AppKeepers.StakingKeeper.SetValidator(ctx, validator)
+		app.StakingKeeper.SetValidator(ctx, validator)
 		counter++
 	}
 
@@ -230,7 +230,7 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 		return
 	}
 
-	_, err = app.AppKeepers.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
+	_, err = app.StakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -238,11 +238,11 @@ func (app *BitsongApp) customTestUpgradeHandlerLogicViaExport(ctx sdk.Context, j
 	/* Handle slashing state. */
 
 	// reset start height on signing infos
-	app.AppKeepers.SlashingKeeper.IterateValidatorSigningInfos(
+	app.SlashingKeeper.IterateValidatorSigningInfos(
 		ctx,
 		func(addr sdk.ConsAddress, info slashingtypes.ValidatorSigningInfo) (stop bool) {
 			info.StartHeight = 0
-			app.AppKeepers.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
+			app.SlashingKeeper.SetValidatorSigningInfo(ctx, addr, info)
 			return false
 		},
 	)
