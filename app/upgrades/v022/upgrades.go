@@ -264,6 +264,8 @@ func CustomCalculateDelegationRewards(ctx context.Context, k *keepers.AppKeepers
 	}
 
 	currentStake := val.TokensFromShares(del.GetShares())
+	fmt.Printf("currentStake: %v\n", currentStake)
+	fmt.Printf("stake: %v\n", stake)
 
 	if stake.GT(currentStake) {
 		marginOfErr := currentStake.Mul(math.LegacyNewDecWithPrec(95, 3)) // 0.095
