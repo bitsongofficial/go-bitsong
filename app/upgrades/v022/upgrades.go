@@ -32,7 +32,9 @@ func CreateV022UpgradeHandler(mm *module.Manager, configurator module.Configurat
 
 		// apply logic patch
 		err = CustomV022PatchLogic(sdkCtx, k, false)
-
+		if err != nil {
+			return nil, err
+		}
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
 		return versionMap, err
 	}
