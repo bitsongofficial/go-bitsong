@@ -178,7 +178,6 @@ func setICQParams(ctx sdk.Context, icqKeeper *icqkeeper.Keeper) {
 	//nolint:errcheck
 	icqKeeper.SetParams(ctx, icqparams)
 }
-
 func V018ManualDelegationRewardsPatch(sdkCtx sdk.Context, rewardsRaw, outstanding sdk.DecCoins, k *keepers.AppKeepers, val stakingtypes.ValidatorI, del stakingtypes.DelegationI, endingPeriod uint64) error {
 
 	valAddr := del.GetValidatorAddr()
