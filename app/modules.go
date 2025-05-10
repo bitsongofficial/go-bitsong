@@ -9,11 +9,11 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	encparams "github.com/bitsongofficial/go-bitsong/app/params"
-	"github.com/bitsongofficial/go-bitsong/x/cadance"
+	"github.com/bitsongofficial/go-bitsong/x/cadence"
 	"github.com/cosmos/cosmos-sdk/client"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
-	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenclient "github.com/bitsongofficial/go-bitsong/x/fantoken/client"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
@@ -44,6 +44,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/cosmos-sdk/x/protocolpool"
+	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -103,7 +105,7 @@ var AppModuleBasics = module.NewBasicManager(
 	wasm.AppModuleBasic{},
 	icq.AppModuleBasic{},
 	ibc_hooks.AppModuleBasic{},
-	cadance.AppModuleBasic{},
+	cadence.AppModuleBasic{},
 	ibcwasm.AppModuleBasic{},
 	smartaccount.AppModuleBasic{},
 )
@@ -143,7 +145,8 @@ func appModules(
 		transfer.NewAppModule(app.TransferKeeper),
 		ibc_hooks.NewAppModule(*app.AccountKeeper),
 		icq.NewAppModule(*app.ICQKeeper, app.GetSubspace(icqtypes.ModuleName)),
-		cadance.NewAppModule(appCodec, app.CadanceKeeper),
+		cadence.NewAppModule(appCodec, app.CadenceKeeper),
+		protocolpool.NewAppModule(app.ProtocolPoolKeeper, app.AccountKeeper, app.BankKeeper),
 		smartaccount.NewAppModule(appCodec, *app.SmartAccountKeeper),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
@@ -152,10 +155,11 @@ func appModules(
 func orderBeginBlockers() []string {
 	return []string{
 		capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
-		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
+		banktypes.ModuleName, distrtypes.ModuleName, protocolpooltypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
 		icqtypes.ModuleName, authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
-		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
+		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadencetypes.ModuleName,
+		ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -163,8 +167,10 @@ func orderEndBlockers() []string {
 	return []string{
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName,
 		packetforwardtypes.ModuleName, icqtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
+		protocolpooltypes.ModuleName, // must be before bank
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
-		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadancetypes.ModuleName, ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
+		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadencetypes.ModuleName,
+		ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
 	}
 }
 
@@ -197,7 +203,8 @@ func orderInitBlockers() []string {
 		ibcwasmtypes.ModuleName,
 		ibchookstypes.ModuleName,
 		icqtypes.ModuleName,
-		cadancetypes.ModuleName,
+		cadencetypes.ModuleName,
+		protocolpooltypes.ModuleName,
 	}
 }
 
@@ -211,12 +218,12 @@ func simulationModules(
 	return []module.AppModuleSimulation{
 		auth.NewAppModule(appCodec, *app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		// fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.AccountKeeper, app.BankKeeper),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, &app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(stakingtypes.ModuleName)), // todo: replace nil w/ inflation reward calculation function
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(stakingtypes.ModuleName)),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),

@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
@@ -18,8 +19,9 @@ type Keeper struct {
 	cdc      codec.Codec
 	// accountKeeper types.AccountKeeper
 	bankKeeper   types.BankKeeper
-	distrKeeper  types.DistrKeeper
+	poolKeeper   types.ProtocolPoolKeeper
 	paramSpace   types.ParamSubspace
+	Schema       collections.Schema
 	blockedAddrs map[string]bool
 }
 
@@ -29,7 +31,7 @@ func NewKeeper(
 	paramSpace types.ParamSubspace,
 	ak types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	distrKeeper types.DistrKeeper,
+	poolKeeper types.ProtocolPoolKeeper,
 	blockedAddrs map[string]bool,
 ) Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -46,7 +48,7 @@ func NewKeeper(
 		cdc:          cdc,
 		paramSpace:   paramSpace,
 		bankKeeper:   bankKeeper,
-		distrKeeper:  distrKeeper,
+		poolKeeper:   poolKeeper,
 		blockedAddrs: blockedAddrs,
 	}
 }

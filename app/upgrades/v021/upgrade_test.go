@@ -100,9 +100,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				ibcwasmparams := s.App.IBCKeeper.ClientKeeper.GetParams(s.Ctx)
 				s.Require().Equal(len(ibcwasmparams.AllowedClients), 2)
 
-				// check cadance params
-				cadanceParams := s.App.CadanceKeeper.GetParams(s.Ctx)
-				s.Require().Equal(cadanceParams.ContractGasLimit, uint64(1000000))
+				// check cadence params
+				cadenceParams := s.App.CadenceKeeper.GetParams(s.Ctx)
+				s.Require().Equal(cadenceParams.ContractGasLimit, uint64(1000000))
 
 				// expidited proposal
 				govparams, _ := s.App.GovKeeper.Params.Get(s.Ctx)

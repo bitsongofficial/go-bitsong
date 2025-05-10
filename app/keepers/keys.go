@@ -5,11 +5,12 @@ import (
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
 
 	evidencetypes "cosmossdk.io/x/evidence/types"
@@ -56,8 +57,9 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		wasmtypes.StoreKey,
 		icqtypes.StoreKey,
 		fantokentypes.StoreKey,
-		cadancetypes.StoreKey,
+		cadencetypes.StoreKey,
 		smartaccounttypes.StoreKey,
+		protocolpooltypes.StoreKey,
 	)
 
 	appKeepers.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)

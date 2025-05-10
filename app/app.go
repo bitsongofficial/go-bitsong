@@ -86,7 +86,6 @@ var (
 	NodeDir       = ".bitsongd"
 	Bech32Prefix  = "bitsong"
 	EmptyWasmOpts []wasmkeeper.Option
-	// homePath      string
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
 	ProposalsEnabled = "true"
@@ -303,7 +302,10 @@ func NewBitsongApp(
 	app.mm = module.NewManager(appModules(app, encodingConfig, skipGenesisInvariants)...)
 
 	// NOTE: upgrade module is prioritized in preblock
-	app.mm.SetOrderPreBlockers(upgradetypes.ModuleName)
+	app.mm.SetOrderPreBlockers(
+		upgradetypes.ModuleName,
+		authtypes.ModuleName,
+	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.

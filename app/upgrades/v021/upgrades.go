@@ -9,7 +9,7 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
-	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	sca "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -138,10 +138,10 @@ func CreateV021UpgradeHandler(mm *module.Manager, configurator module.Configurat
 		// interchain query params (ICQ)
 		setICQParams(sdkCtx, k.ICQKeeper)
 
-		// set x/cadance params
-		cadanceParams := cadancetypes.DefaultParams()
-		cadanceParams.ContractGasLimit = 1000000 // 1mb
-		if err := k.CadanceKeeper.SetParams(sdkCtx, cadanceParams); err != nil {
+		// set x/cadence params
+		cadenceParams := cadencetypes.DefaultParams()
+		cadenceParams.ContractGasLimit = 1000000 // 1mb
+		if err := k.CadenceKeeper.SetParams(sdkCtx, cadenceParams); err != nil {
 			return nil, err
 		}
 

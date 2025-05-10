@@ -4,6 +4,7 @@ import (
 	store "cosmossdk.io/store/types"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 )
 
 const (
@@ -15,7 +16,9 @@ const (
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateV022UpgradeHandler,
-	StoreUpgrades:        store.StoreUpgrades{Added: []string{}, Deleted: []string{}},
+	StoreUpgrades: store.StoreUpgrades{Added: []string{
+		protocolpooltypes.StoreKey,
+	}, Deleted: []string{}},
 }
 
 type ConditionalJSON struct {
