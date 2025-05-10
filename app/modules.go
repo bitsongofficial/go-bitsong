@@ -108,6 +108,7 @@ var AppModuleBasics = module.NewBasicManager(
 	cadence.AppModuleBasic{},
 	ibcwasm.AppModuleBasic{},
 	smartaccount.AppModuleBasic{},
+	protocolpool.AppModule{},
 )
 
 func appModules(
