@@ -280,6 +280,15 @@ func NewAppKeepers(
 		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	)
 
+	// TODO: implement custom mint function to split inflation rewards to incentivize cdn:
+	appKeepers.ProtocolPoolKeeper = protocolpoolkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[protocolpooltypes.StoreKey]),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[distrtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper,
@@ -295,15 +304,6 @@ func NewAppKeepers(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
 		// mintkeeper.WithMintFn(myCustomMintFunc), // Use custom minting function
-	)
-
-	// TODO: implement custom mint function to split inflation rewards to incentivize cdn:
-	appKeepers.ProtocolPoolKeeper = protocolpoolkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[protocolpooltypes.StoreKey]),
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// register the staking hookshttps://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
