@@ -48,51 +48,51 @@ func TestBasicBtsgStart(t *testing.T) {
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)
 
-	// superAdmin, err := interchaintest.GetAndFundTestUserWithMnemonic(ctx, "acc0", mnemonic, genesisAmt, bitsong)
-	// require.NoError(t, err)
+	superAdmin, err := interchaintest.GetAndFundTestUserWithMnemonic(ctx, "acc0", mnemonic, genesisAmt, bitsong)
+	require.NoError(t, err)
 
-	// t.Run("authz", func(t *testing.T) {
-	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-	// 	testAuthz(ctx, t, bitsong, users)
-	// })
+	t.Run("authz", func(t *testing.T) {
+		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+		testAuthz(ctx, t, bitsong, users)
+	})
 
-	// t.Run("bank", func(t *testing.T) {
-	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-	// 	testBank(ctx, t, bitsong, users)
-	// })
+	t.Run("bank", func(t *testing.T) {
+		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+		testBank(ctx, t, bitsong, users)
+	})
 
 	t.Run("distribution", func(t *testing.T) {
 		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
 		testDistribution(ctx, t, bitsong, users)
 	})
 
-	// t.Run("feegrant", func(t *testing.T) {
-	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong, bitsong)
-	// 	testFeeGrant(ctx, t, bitsong, users)
-	// })
+	t.Run("feegrant", func(t *testing.T) {
+		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong, bitsong)
+		testFeeGrant(ctx, t, bitsong, users)
+	})
 
-	// t.Run("gov", func(t *testing.T) {
-	// 	// users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-	// 	// testGov(ctx, t, bitsong, users)
-	// })
+	t.Run("gov", func(t *testing.T) {
+		// users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+		// testGov(ctx, t, bitsong, users)
+	})
 
-	// t.Run("auth-vesting", func(t *testing.T) {
-	// 	testAuth(ctx, t, bitsong)
-	// 	testVesting(ctx, t, bitsong, superAdmin)
-	// })
+	t.Run("auth-vesting", func(t *testing.T) {
+		testAuth(ctx, t, bitsong)
+		testVesting(ctx, t, bitsong, superAdmin)
+	})
 
-	// t.Run("upgrade", func(t *testing.T) {
-	// 	// testUpgrade(ctx, t, bitsong)
-	// })
+	t.Run("upgrade", func(t *testing.T) {
+		// testUpgrade(ctx, t, bitsong)
+	})
 
-	// t.Run("staking", func(t *testing.T) {
-	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-	// 	testStaking(ctx, t, bitsong, users)
-	// })
+	t.Run("staking", func(t *testing.T) {
+		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+		testStaking(ctx, t, bitsong, users)
+	})
 
-	// t.Run("slashing", func(t *testing.T) {
-	// 	testSlashing(ctx, t, bitsong)
-	// })
+	t.Run("slashing", func(t *testing.T) {
+		testSlashing(ctx, t, bitsong)
+	})
 
 	t.Cleanup(func() {
 		_ = ic.Close()
