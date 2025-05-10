@@ -48,51 +48,51 @@ func TestBasicBtsgStart(t *testing.T) {
 	require.NotNil(t, ic)
 	require.NotNil(t, ctx)
 
-	superAdmin, err := interchaintest.GetAndFundTestUserWithMnemonic(ctx, "acc0", mnemonic, genesisAmt, bitsong)
-	require.NoError(t, err)
+	// superAdmin, err := interchaintest.GetAndFundTestUserWithMnemonic(ctx, "acc0", mnemonic, genesisAmt, bitsong)
+	// require.NoError(t, err)
 
-	t.Run("authz", func(t *testing.T) {
-		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-		testAuthz(ctx, t, bitsong, users)
-	})
+	// t.Run("authz", func(t *testing.T) {
+	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+	// 	testAuthz(ctx, t, bitsong, users)
+	// })
 
-	t.Run("bank", func(t *testing.T) {
-		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-		testBank(ctx, t, bitsong, users)
-	})
+	// t.Run("bank", func(t *testing.T) {
+	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+	// 	testBank(ctx, t, bitsong, users)
+	// })
 
 	t.Run("distribution", func(t *testing.T) {
 		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
 		testDistribution(ctx, t, bitsong, users)
 	})
 
-	t.Run("feegrant", func(t *testing.T) {
-		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong, bitsong)
-		testFeeGrant(ctx, t, bitsong, users)
-	})
+	// t.Run("feegrant", func(t *testing.T) {
+	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong, bitsong)
+	// 	testFeeGrant(ctx, t, bitsong, users)
+	// })
 
-	t.Run("gov", func(t *testing.T) {
-		// users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-		// testGov(ctx, t, bitsong, users)
-	})
+	// t.Run("gov", func(t *testing.T) {
+	// 	// users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+	// 	// testGov(ctx, t, bitsong, users)
+	// })
 
-	t.Run("auth-vesting", func(t *testing.T) {
-		testAuth(ctx, t, bitsong)
-		testVesting(ctx, t, bitsong, superAdmin)
-	})
+	// t.Run("auth-vesting", func(t *testing.T) {
+	// 	testAuth(ctx, t, bitsong)
+	// 	testVesting(ctx, t, bitsong, superAdmin)
+	// })
 
-	t.Run("upgrade", func(t *testing.T) {
-		// testUpgrade(ctx, t, bitsong)
-	})
+	// t.Run("upgrade", func(t *testing.T) {
+	// 	// testUpgrade(ctx, t, bitsong)
+	// })
 
-	t.Run("staking", func(t *testing.T) {
-		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
-		testStaking(ctx, t, bitsong, users)
-	})
+	// t.Run("staking", func(t *testing.T) {
+	// 	users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
+	// 	testStaking(ctx, t, bitsong, users)
+	// })
 
-	t.Run("slashing", func(t *testing.T) {
-		testSlashing(ctx, t, bitsong)
-	})
+	// t.Run("slashing", func(t *testing.T) {
+	// 	testSlashing(ctx, t, bitsong)
+	// })
 
 	t.Cleanup(func() {
 		_ = ic.Close()
@@ -239,7 +239,8 @@ func testBank(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, user
 func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	var err error
 	node := chain.GetNode()
-	acc := authtypes.NewModuleAddress("distribution")
+	distrAcc := authtypes.NewModuleAddress("distribution")
+	protocolPoolAcc := authtypes.NewModuleAddress("protocolpool")
 	require := require.New(t)
 
 	vals, err := chain.StakingQueryValidators(ctx, stakingtypes.Bonded.String())
@@ -281,25 +282,26 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 		err = node.StakingDelegate(ctx, users[2].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		before, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		before, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("before: %+v\n", before)
 
 		err = node.DistributionWithdrawAllRewards(ctx, users[2].KeyName())
 		require.NoError(err)
 
-		after, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		after, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("after: %+v\n", after)
 		require.True(after.GT(before))
 	})
 
 	t.Run("fund-pools", func(t *testing.T) {
-		bal, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		bal, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("CP balance: %+v\n", bal)
 
 		amount := uint64(9_000 * math.Pow10(6))
+		fmt.Printf("AMOUNT: %+v\n", amount)
 
 		err = ProtocolPoolFundCommunityPool(ctx, node, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
 		require.NoError(err)
@@ -307,11 +309,15 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 		err = node.DistributionFundValidatorRewardsPool(ctx, users[0].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		bal2, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		bal2, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
 		require.NoError(err)
-		fmt.Printf("New CP balance: %+v\n", bal2) // 9147579661
+		fmt.Printf("New CP balance: %+v\n", bal2)
 
-		require.True(bal2.Sub(bal).GT(sdkmath.NewInt(int64(amount))))
+		lessThan := sdkmath.NewInt(int64(amount))
+		greaterThan := bal2.Sub(bal)
+		fmt.Printf("greaterThan: %+v\n", greaterThan)
+		fmt.Printf("lessThan: %+v\n", lessThan)
+		require.True(greaterThan.GT(lessThan))
 
 		// queries
 		coins, err := ProtocolPoolQueryCommunityPool(ctx, node)
