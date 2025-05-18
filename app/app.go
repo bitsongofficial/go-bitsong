@@ -24,8 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
-	"github.com/cosmos/cosmos-sdk/server/api"
-	"github.com/cosmos/cosmos-sdk/server/config"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -33,9 +31,13 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 
+	// testnetserver "github.com/bitsongofficial/go-bitsong/server"
+	"github.com/cosmos/cosmos-sdk/server/api"
+	"github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sigtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
@@ -47,7 +49,7 @@ import (
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
 
-	"cosmossdk.io/api/cosmos/crypto/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
@@ -61,7 +63,7 @@ import (
 	"github.com/cometbft/cometbft/libs/bytes"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmos "github.com/cometbft/cometbft/libs/os"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
@@ -70,15 +72,9 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
-	v010 "github.com/bitsongofficial/go-bitsong/app/upgrades/v010"
-	v011 "github.com/bitsongofficial/go-bitsong/app/upgrades/v011"
-	v013 "github.com/bitsongofficial/go-bitsong/app/upgrades/v013"
-	v014 "github.com/bitsongofficial/go-bitsong/app/upgrades/v014"
-	v015 "github.com/bitsongofficial/go-bitsong/app/upgrades/v015"
-	v016 "github.com/bitsongofficial/go-bitsong/app/upgrades/v016"
-	v018 "github.com/bitsongofficial/go-bitsong/app/upgrades/v018"
-	v020 "github.com/bitsongofficial/go-bitsong/app/upgrades/v020"
+
 	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
+	v022 "github.com/bitsongofficial/go-bitsong/app/upgrades/v022"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -90,7 +86,6 @@ var (
 	NodeDir       = ".bitsongd"
 	Bech32Prefix  = "bitsong"
 	EmptyWasmOpts []wasmkeeper.Option
-	// homePath      string
 	// If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
 	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
 	ProposalsEnabled = "true"
@@ -99,9 +94,9 @@ var (
 	EnableSpecificProposals = ""
 
 	Upgrades = []upgrades.Upgrade{
-		v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
-		v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
-		v021.Upgrade,
+		// v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
+		// v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
+		v021.Upgrade, v022.Upgrade,
 	}
 )
 
@@ -176,6 +171,7 @@ var (
 // capabilities aren't needed for testing.
 type BitsongApp struct {
 	*baseapp.BaseApp
+	keepers.AppKeepers
 
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
@@ -186,8 +182,6 @@ type BitsongApp struct {
 	keys    map[string]*storetypes.KVStoreKey
 	tkeys   map[string]*storetypes.TransientStoreKey
 	memKeys map[string]*storetypes.MemoryStoreKey
-
-	AppKeepers keepers.AppKeepers
 
 	// the module manager
 	mm *module.Manager
@@ -275,13 +269,13 @@ func NewBitsongApp(
 		wasmConfig,
 		ibcWasmConfig,
 	)
-	app.keys = app.AppKeepers.GetKVStoreKey()
+	app.keys = app.GetKVStoreKey()
 
 	// cosmos-sdk@v0.50: textual signature for ledger devices
 	enabledSignModes := append(authtx.DefaultSignModes, sigtypes.SignMode_SIGN_MODE_TEXTUAL)
 	txConfigOpts := authtx.ConfigOptions{
 		EnabledSignModes:           enabledSignModes,
-		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.AppKeepers.BankKeeper),
+		TextualCoinMetadataQueryFn: txmodule.NewBankKeeperCoinMetadataQueryFn(app.BankKeeper),
 	}
 	txConfigWithTextual, err := authtx.NewTxConfigWithOptions(
 		appCodec,
@@ -308,7 +302,10 @@ func NewBitsongApp(
 	app.mm = module.NewManager(appModules(app, encodingConfig, skipGenesisInvariants)...)
 
 	// NOTE: upgrade module is prioritized in preblock
-	app.mm.SetOrderPreBlockers(upgradetypes.ModuleName)
+	app.mm.SetOrderPreBlockers(
+		upgradetypes.ModuleName,
+		authtypes.ModuleName,
+	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
 	// CanWithdrawInvariant invariant.
@@ -317,7 +314,7 @@ func NewBitsongApp(
 	app.mm.SetOrderEndBlockers(orderEndBlockers()...)
 	app.mm.SetOrderInitGenesis(orderInitBlockers()...)
 
-	app.mm.RegisterInvariants(app.AppKeepers.CrisisKeeper)
+	app.mm.RegisterInvariants(app.CrisisKeeper)
 
 	// upgrade handlers
 	app.configurator = module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
@@ -342,22 +339,22 @@ func NewBitsongApp(
 
 	// initialize stores
 	app.MountKVStores(app.keys)
-	app.MountTransientStores(app.AppKeepers.GetTransientStoreKey())
-	app.MountMemoryStores(app.AppKeepers.GetMemoryStoreKey())
+	app.MountTransientStores(app.GetTransientStoreKey())
+	app.MountMemoryStores(app.GetMemoryStoreKey())
 
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
 			HandlerOptions: ante.HandlerOptions{
-				AccountKeeper:   app.AppKeepers.AccountKeeper,
-				BankKeeper:      app.AppKeepers.BankKeeper,
-				FeegrantKeeper:  app.AppKeepers.FeeGrantKeeper,
+				AccountKeeper:   app.AccountKeeper,
+				BankKeeper:      app.BankKeeper,
+				FeegrantKeeper:  app.FeeGrantKeeper,
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			SmartAccount:      app.AppKeepers.SmartAccountKeeper,
-			GovKeeper:         app.AppKeepers.GovKeeper,
-			IBCKeeper:         app.AppKeepers.IBCKeeper,
-			TxCounterStoreKey: runtime.NewKVStoreService(app.AppKeepers.GetKey(wasmtypes.StoreKey)),
+			SmartAccount:      app.SmartAccountKeeper,
+			GovKeeper:         app.GovKeeper,
+			IBCKeeper:         app.IBCKeeper,
+			TxCounterStoreKey: runtime.NewKVStoreService(app.GetKey(wasmtypes.StoreKey)),
 			WasmConfig:        wasmConfig,
 			Cdc:               appCodec,
 			TxEncoder:         app.txConfig.TxEncoder(),
@@ -372,21 +369,21 @@ func NewBitsongApp(
 	app.SetPreBlocker(app.PreBlocker)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetAnteHandler(anteHandler)
-	app.SetPostHandler(NewPostHandler(appCodec, app.AppKeepers.SmartAccountKeeper, app.AppKeepers.AccountKeeper, encodingConfig.TxConfig.SignModeHandler()))
+	app.SetPostHandler(NewPostHandler(appCodec, app.SmartAccountKeeper, app.AccountKeeper, encodingConfig.TxConfig.SignModeHandler()))
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetPrecommiter(app.Precommitter)
 	app.SetPrepareCheckStater(app.PrepareCheckStater)
 
 	if manager := app.SnapshotManager(); manager != nil {
 		err = manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.AppKeepers.WasmKeeper),
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
 		//  takes care of persisting the external state from wasm code when snapshot is created
 		err = manager.RegisterExtensions(
-			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.AppKeepers.IBCWasmClientKeeper),
+			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
@@ -397,9 +394,9 @@ func NewBitsongApp(
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+		ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 		// Initialize pinned codes in wasmvm as they are not persisted there
-		if err := app.AppKeepers.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
+		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
@@ -413,7 +410,7 @@ func NewBitsongApp(
 		// that in-memory capabilities get regenerated on app restart.
 		// Note that since this reads from the store, we can only perform it when
 		// `loadLatest` is set to true.
-		app.AppKeepers.CapabilityKeeper.Seal()
+		app.CapabilityKeeper.Seal()
 	}
 
 	app.sm.RegisterStoreDecoders()
@@ -472,7 +469,7 @@ func (app *BitsongApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) 
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
-	app.AppKeepers.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -540,7 +537,7 @@ func (app *BitsongApp) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 //
 // NOTE: This is solely to be used for testing purposes.
 func (app *BitsongApp) GetSubspace(moduleName string) paramstypes.Subspace {
-	subspace, _ := app.AppKeepers.ParamsKeeper.GetSubspace(moduleName)
+	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
@@ -597,12 +594,12 @@ func (app *BitsongApp) SimulationManager() *module.SimulationManager {
 }
 
 func (app *BitsongApp) setupUpgradeStoreLoaders() {
-	upgradeInfo, err := app.AppKeepers.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
 	}
 
-	if app.AppKeepers.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		return
 	}
 
@@ -618,7 +615,7 @@ func (app *BitsongApp) setupUpgradeStoreLoaders() {
 
 func (app *BitsongApp) setupUpgradeHandlers(cfg module.Configurator) {
 	for _, upgrade := range Upgrades {
-		app.AppKeepers.UpgradeKeeper.SetUpgradeHandler(
+		app.UpgradeKeeper.SetUpgradeHandler(
 			upgrade.UpgradeName,
 			upgrade.CreateUpgradeHandler(
 				app.mm,
@@ -658,9 +655,10 @@ func getReflectionService() *runtimeservices.ReflectionService {
 }
 
 // source: https://github.com/osmosis-labs/osmosis/blob/7b1a78d397b632247fe83f51867f319adf3a858c/app/app.go#L786
-func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger string) *BitsongApp {
+// one-liner: cd ../bitsong-snapshots && bitsongd comet unsafe-reset-all && cp ~/.bitsongd/data/priv_validator_state.json ~/.bitsongd/priv_validator_state.json && lz4 -c -d <bitsong-snapshot>.tar.lz4 | tar -x -C $HOME/.bitsongd && cp ~/.bitsongd/priv_validator_state.json ~/.bitsongd/data/priv_validator_state.json && cd ../go-bitsong && make install && bitsongd in-place-testnet test1 bitsong1mt3wj088jvurp3vlh2yfar6vqrqp0llnsj8lar bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr
+func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger, brokenVals string) *BitsongApp { // newValsPower []testnetserver.ValidatorInfo
 
-	ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+	ctx := app.BaseApp.NewUncachedContext(true, cmtproto.Header{})
 	pubkey := &ed25519.PubKey{Key: newValPubKey.Bytes()}
 	pubkeyAny, err := types.NewAnyWithValue(pubkey)
 	if err != nil {
@@ -668,7 +666,27 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 
 	// STAKING
+	brokeValAddr, err := sdk.ValAddressFromBech32(brokenVals)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	retainedValidator, err := app.StakingKeeper.GetValidator(ctx, brokeValAddr)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	fmt.Printf("retainedValidator: %v\n", retainedValidator)
 
+	retainedValDels, err := app.StakingKeeper.GetValidatorDelegations(ctx, brokeValAddr)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	fmt.Printf("retainedValDels: %v\n", retainedValDels)
+
+	// run patch logic prior to resett app state. simulates upgradehandler logic
+	err = v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
+	if err != nil {
+		panic(err)
+	}
 	// Create Validator struct for our new validator.
 	_, bz, err := bech32.DecodeAndConvert(newOperatorAddress)
 	if err != nil {
@@ -701,7 +719,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	// Remove all validators from power store
 	stakingKey := app.GetKey(stakingtypes.ModuleName)
 	stakingStore := ctx.KVStore(stakingKey)
-	iterator, err := app.AppKeepers.StakingKeeper.ValidatorsPowerStoreIterator(ctx)
+	iterator, err := app.StakingKeeper.ValidatorsPowerStoreIterator(ctx)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -711,7 +729,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	iterator.Close()
 
 	// Remove all valdiators from last validators store
-	iterator, err = app.AppKeepers.StakingKeeper.LastValidatorsIterator(ctx)
+	iterator, err = app.StakingKeeper.LastValidatorsIterator(ctx)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -720,6 +738,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	iterator.Close()
 
+	//  TODO: retain validator from store
 	// Remove all validators from validators store
 	iterator = storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.ValidatorsKey)
 	for ; iterator.Valid(); iterator.Next() {
@@ -735,50 +754,61 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	iterator.Close()
 
 	// Add our validator to power and last validators store
-	err = app.AppKeepers.StakingKeeper.SetValidator(ctx, newVal)
+	err = app.StakingKeeper.SetValidator(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.StakingKeeper.SetValidatorByConsAddr(ctx, newVal)
+	// Add retainedValidator to power and last validators store
+	err = app.StakingKeeper.SetValidator(ctx, retainedValidator)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.StakingKeeper.SetValidatorByPowerIndex(ctx, newVal)
+	err = app.StakingKeeper.SetValidatorByConsAddr(ctx, newVal)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
+	err = app.StakingKeeper.SetValidatorByConsAddr(ctx, retainedValidator)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+
+	err = app.StakingKeeper.SetValidatorByPowerIndex(ctx, newVal)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+
 	valAddr, err := sdk.ValAddressFromBech32(newVal.GetOperator())
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 0)
+
+	err = app.StakingKeeper.SetLastValidatorPower(ctx, valAddr, 1)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	if err := app.AppKeepers.StakingKeeper.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
+
+	if err := app.StakingKeeper.Hooks().AfterValidatorCreated(ctx, valAddr); err != nil {
 		panic(err)
 	}
 
-	// DISTRIBUTION
-	// Initialize records for this validator across all distribution stores
 	// Initialize records for this validator across all distribution stores
 	valAddr, err = sdk.ValAddressFromBech32(newVal.GetOperator())
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, 0, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1))
+	err = app.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, 0, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1))
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.DistrKeeper.SetValidatorCurrentRewards(ctx, valAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1))
+	err = app.DistrKeeper.SetValidatorCurrentRewards(ctx, valAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1))
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.DistrKeeper.SetValidatorAccumulatedCommission(ctx, valAddr, distrtypes.InitialValidatorAccumulatedCommission())
+	err = app.DistrKeeper.SetValidatorAccumulatedCommission(ctx, valAddr, distrtypes.InitialValidatorAccumulatedCommission())
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	err = app.AppKeepers.DistrKeeper.SetValidatorOutstandingRewards(ctx, valAddr, distrtypes.ValidatorOutstandingRewards{Rewards: sdk.DecCoins{}})
+	err = app.DistrKeeper.SetValidatorOutstandingRewards(ctx, valAddr, distrtypes.ValidatorOutstandingRewards{Rewards: sdk.DecCoins{}})
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -791,21 +821,15 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 		StartHeight: app.LastBlockHeight() - 1,
 		Tombstoned:  false,
 	}
-	err = app.AppKeepers.SlashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, newValidatorSigningInfo)
+	err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, newValidatorSigningInfo)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
 
-	//
-	// Optional Changes:
-	//
-
-	// GOV
-
 	newExpeditedVotingPeriod := time.Minute
 	newVotingPeriod := time.Minute * 2
 
-	govParams, err := app.AppKeepers.GovKeeper.Params.Get(ctx)
+	govParams, err := app.GovKeeper.Params.Get(ctx)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -814,7 +838,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	govParams.VotingPeriod = &newVotingPeriod
 	govParams.MinDeposit = sdk.NewCoins(sdk.NewInt64Coin("ubtsg", 100000000))
 	govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewInt64Coin("ubtsg", 150000000))
-	err = app.AppKeepers.GovKeeper.Params.Set(ctx, govParams)
+	err = app.GovKeeper.Params.Set(ctx, govParams)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
@@ -832,7 +856,7 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 			Name:   upgradeToTrigger,
 			Height: app.LastBlockHeight() + 10,
 		}
-		err = app.AppKeepers.UpgradeKeeper.ScheduleUpgrade(ctx, upgradePlan)
+		err = app.UpgradeKeeper.ScheduleUpgrade(ctx, upgradePlan)
 		if err != nil {
 			panic(err)
 		}

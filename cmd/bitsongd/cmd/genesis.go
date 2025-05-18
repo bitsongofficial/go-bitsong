@@ -87,8 +87,6 @@ func MainnetGenesisParams() GenesisParams {
 	genParams.MintParams.MintDenom = appparams.MicroCoinUnit
 
 	genParams.DistributionParams = distributiontypes.DefaultParams()
-	genParams.DistributionParams.BaseProposerReward = math.LegacyMustNewDecFromStr("0.01")
-	genParams.DistributionParams.BonusProposerReward = math.LegacyMustNewDecFromStr("0.04")
 	genParams.DistributionParams.CommunityTax = math.LegacyMustNewDecFromStr("0.02")
 	genParams.DistributionParams.WithdrawAddrEnabled = true
 
@@ -131,7 +129,7 @@ func TestnetGenesisParams() GenesisParams {
 
 	genParams.StakingParams.UnbondingTime = time.Hour * 24 * 7 * 2 // 2 weeks
 
-	genParams.GovParams.DepositParams.MinDeposit = sdk.NewCoins(sdk.NewCoin(
+	genParams.GovParams.Params.MinDeposit = sdk.NewCoins(sdk.NewCoin(
 		appparams.MicroCoinUnit,
 		math.NewInt(1000000), // 1 BTSG
 	))
@@ -173,9 +171,7 @@ func PrepareGenesis(clientCtx client.Context, appState map[string]json.RawMessag
 	appState[distributiontypes.ModuleName] = distributionGenStateBz
 
 	govGenState := v1govtypes.DefaultGenesisState()
-	govGenState.DepositParams = genesisParams.GovParams.DepositParams
-	govGenState.TallyParams = genesisParams.GovParams.TallyParams
-	govGenState.VotingParams = genesisParams.GovParams.VotingParams
+	govGenState.Params = genesisParams.GovParams.Params
 	govGenStateBz, err := depCdc.MarshalJSON(govGenState)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to marshal gov genesis state: %w", err)

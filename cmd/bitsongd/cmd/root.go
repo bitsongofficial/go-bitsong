@@ -34,6 +34,7 @@ import (
 	// rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 
 	bitsong "github.com/bitsongofficial/go-bitsong/app"
+	testnetserver "github.com/bitsongofficial/go-bitsong/server"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -184,22 +185,9 @@ func initAppConfig() (string, interface{}) {
 		Wasm wasmtypes.WasmConfig `mapstructure:"wasm"`
 	}
 
-	// Optionally allow the chain developer to overwrite the SDK's default
-	// server config.
+	// modify the default server configuration
 	srvCfg := serverconfig.DefaultConfig()
-	// The SDK's default minimum gas price is set to "" (empty value) inside
-	// app.toml. If left empty by validators, the node will halt on startup.
-	// However, the chain developer can set a default app.toml value for their
-	// validators here.
-	//
-	// In summary:
-	// - if you leave srvCfg.MinGasPrices = "", all validators MUST tweak their
-	//   own app.toml config,
-	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
-	//   own app.toml to override, or use this default value.
-	//
-	// In simapp, we set the min gas prices to 0.
-	srvCfg.MinGasPrices = "0.001ubtsg"
+	srvCfg.MinGasPrices = "0.00069ubtsg"
 	srvCfg.API.Enable = true
 	srvCfg.API.Swagger = true
 	// srvCfg.BaseConfig.IAVLDisableFastNode = true // disable fastnode by default
@@ -266,7 +254,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	)
 
 	server.AddCommands(rootCmd, bitsong.DefaultNodeHome, newApp, appExport, addModuleInitFlags)
-	server.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
+	testnetserver.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
@@ -277,6 +265,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
+		CustomExportCmd(customAppExport, bitsong.DefaultNodeHome),
 	)
 }
 
@@ -405,8 +394,32 @@ func newTestnetApp(logger log.Logger, db cosmosdb.DB, traceStore io.Writer, appO
 	if !ok {
 		panic("upgradeToTrigger is not of type string")
 	}
+
+	//get the comma separated string of validators to migrate app state
+	brokenVal, ok := appOpts.Get(testnetserver.KeyBrokenValidator).(string)
+	if !ok {
+		panic("cannot parse broken validators strings")
+	}
+
+	// brokenVals := strings.Split(brokenValidators, ",")
+	// fmt.Printf("brokenVals: %v\n", brokenVals)
+
+	// get the json file to additional vals powers
+	// newValsPowerJson, ok := appOpts.Get(testnetserver.KeyNewValsPowerJson).(string)
+	// if !ok {
+	// 	panic(fmt.Errorf("expected path to new validators json %s", testnetserver.KeyNewValsPowerJson))
+	// }
+
+	//  parse json to get list of validators
+	// [{"val":  "bitsong1val...", "num_dels": , "num_tokens": ,"jailed": }]
+	// newValsPower, err := testnetserver.ParseValidatorInfos(newValsPowerJson)
+	// if err != nil {
+	// 	panic(fmt.Errorf("error parsing validator infos %v ", err))
+	// }
+	// fmt.Printf("newValsPower: %v\n", newValsPower)
+
 	// Make modifications to the normal BitsongApp required to run the network locally
-	return bitsong.InitBitsongAppForTestnet(bitsongApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
+	return bitsong.InitBitsongAppForTestnet(bitsongApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger, brokenVal) //newValsPower
 
 }
 
@@ -455,6 +468,54 @@ func appExport(
 
 	return wasmApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
 }
+
+// customAppExport creates a new wasm app (optionally at a given height) and exports state.
+func customAppExport(
+	logger log.Logger,
+	db cosmosdb.DB,
+	traceStore io.Writer,
+	height int64,
+	forZeroHeight bool,
+	jailAllowedAddrs []string,
+	appOpts servertypes.AppOptions,
+	modulesToExport []string,
+) (servertypes.ExportedApp, error) {
+	var wasmApp *bitsong.BitsongApp
+	homePath, ok := appOpts.Get(flags.FlagHome).(string)
+	if !ok || homePath == "" {
+		return servertypes.ExportedApp{}, errors.New("application home is not set")
+	}
+
+	viperAppOpts, ok := appOpts.(*viper.Viper)
+	if !ok {
+		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
+	}
+
+	// overwrite the FlagInvCheckPeriod
+	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
+	appOpts = viperAppOpts
+
+	var emptyWasmOpts []wasmkeeper.Option
+	wasmApp = bitsong.NewBitsongApp(
+		logger,
+		db,
+		traceStore,
+		height == -1,
+		cast.ToString(appOpts.Get(flags.FlagHome)),
+		appOpts,
+		emptyWasmOpts,
+	)
+
+	if height != -1 {
+		if err := wasmApp.LoadHeight(height); err != nil {
+			return servertypes.ExportedApp{}, err
+		}
+	}
+
+	return wasmApp.CustomExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
+
+}
+
 func autoCliOpts(initClientCtx client.Context, tempApp *bitsong.BitsongApp) autocli.AppOptions {
 	modules := make(map[string]appmodule.AppModule, 0)
 	for _, m := range tempApp.ModuleManager().Modules {

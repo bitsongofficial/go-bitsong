@@ -73,7 +73,7 @@ func (s *BaseAuthenticatorSuite) GenSimpleTx(msgs []sdk.Msg, signers []cryptotyp
 	var accNums []uint64
 	var accSeqs []uint64
 
-	ak := s.BitsongApp.AppKeepers.AccountKeeper
+	ak := s.BitsongApp.AccountKeeper
 
 	for _, signer := range signers {
 		var account sdk.AccountI
@@ -111,7 +111,7 @@ func (s *BaseAuthenticatorSuite) GenSimpleTxWithSelectedAuthenticators(msgs []sd
 	var accNums []uint64
 	var accSeqs []uint64
 
-	ak := s.BitsongApp.AppKeepers.AccountKeeper
+	ak := s.BitsongApp.AccountKeeper
 
 	for _, signer := range signers {
 		account := ak.GetAccount(s.Ctx, sdk.AccAddress(signer.PubKey().Address()))
@@ -155,6 +155,6 @@ func (s *BaseAuthenticatorSuite) GenSimpleTxWithSelectedAuthenticators(msgs []sd
 
 // FundAcc funds target address with specified amount.
 func (s *BaseAuthenticatorSuite) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
-	err := testutil.FundAccount(s.Ctx, s.BitsongApp.AppKeepers.BankKeeper, acc, amounts)
+	err := testutil.FundAccount(s.Ctx, s.BitsongApp.BankKeeper, acc, amounts)
 	s.Require().NoError(err)
 }

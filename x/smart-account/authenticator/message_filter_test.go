@@ -171,7 +171,7 @@ func (s *MessageFilterTest) TestBankSend() {
 			filter, err := s.MessageFilter.Initialize([]byte(tt.pattern))
 			s.Require().NoError(err)
 
-			ak := s.BitsongApp.AppKeepers.AccountKeeper
+			ak := s.BitsongApp.AccountKeeper
 			sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 			tx, err := s.GenSimpleTx([]sdk.Msg{tt.msg}, []cryptotypes.PrivKey{s.TestPrivKeys[0]})
 			s.Require().NoError(err)
@@ -370,7 +370,7 @@ func (s *MessageFilterTest) TestLimitOrder() {
 			filter, err := s.MessageFilter.Initialize([]byte(tt.pattern))
 			s.Require().NoError(err)
 
-			ak := s.BitsongApp.AppKeepers.AccountKeeper
+			ak := s.BitsongApp.AccountKeeper
 			sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 			tx, err := s.GenSimpleTx([]sdk.Msg{tt.msg}, []cryptotypes.PrivKey{s.TestPrivKeys[0]})
 			s.Require().NoError(err)
