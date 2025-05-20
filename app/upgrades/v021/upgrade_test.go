@@ -27,7 +27,7 @@ type UpgradeTestSuite struct {
 
 func (s *UpgradeTestSuite) SetupTest() {
 	s.Setup()
-	s.preModule = upgrade.NewAppModule(s.App.AppKeepers.UpgradeKeeper, addresscodec.NewBech32Codec("bitsong"))
+	s.preModule = upgrade.NewAppModule(s.App.UpgradeKeeper, addresscodec.NewBech32Codec("bitsong"))
 }
 
 func TestUpgradeTestSuite(t *testing.T) {
@@ -36,13 +36,13 @@ func TestUpgradeTestSuite(t *testing.T) {
 
 func (s *UpgradeTestSuite) TestUpgrade() {
 	upgradeSetup := func(shares, slash math.LegacyDec, jailed bool) {
-		vals, _ := s.App.AppKeepers.StakingKeeper.GetAllValidators(s.Ctx)
+		vals, _ := s.App.StakingKeeper.GetAllValidators(s.Ctx)
 		fmt.Printf("# OF VALS: %d\n", len(vals))
 		for _, val := range vals {
-			// delAddrStr, err := s.App.AppKeepers.AccountKeeper.AddressCodec().BytesToString(s.TestAccs[0])
+			// delAddrStr, err :=s.App.AccountKeeper.AddressCodec().BytesToString(s.TestAccs[0])
 
 			s.FundAcc(s.TestAccs[0], sdktypes.NewCoins(sdktypes.NewCoin("stake", math.NewInt(1000000))))
-			_, err := s.App.AppKeepers.StakingKeeper.Delegate(s.Ctx, s.TestAccs[0], math.NewInt(1000000), stakingtypes.Unbonded, val, true)
+			_, err := s.App.StakingKeeper.Delegate(s.Ctx, s.TestAccs[0], math.NewInt(1000000), stakingtypes.Unbonded, val, true)
 			s.Require().NoError(err)
 
 			if !slash.IsZero() {
@@ -51,11 +51,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			if jailed {
 				val.Jailed = jailed
 			}
-			err = s.App.AppKeepers.StakingKeeper.SetValidator(s.Ctx, val)
+			err = s.App.StakingKeeper.SetValidator(s.Ctx, val)
 			s.Require().NoError(err)
 
 			// get delegations
-			dels, err := s.App.AppKeepers.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
+			dels, err := s.App.StakingKeeper.GetValidatorDelegations(s.Ctx, sdktypes.ValAddress(val.OperatorAddress))
 			s.Require().NoError(err)
 			fmt.Printf("# OF DELS: %d\n", len(dels))
 
@@ -85,27 +85,27 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			},
 			func() {
 				//  cheeck icq params
-				params := s.App.AppKeepers.ICQKeeper.GetParams(s.Ctx)
+				params := s.App.ICQKeeper.GetParams(s.Ctx)
 				fmt.Println(params.HostEnabled)
 				s.Require().Equal(len(params.AllowQueries), 1)
 				s.Require().True(params.HostEnabled)
 
 				// check smart account params
-				smartAccParams := s.App.AppKeepers.SmartAccountKeeper.GetParams(s.Ctx)
-				authManagers := s.App.AppKeepers.AuthenticatorManager.GetRegisteredAuthenticators()
+				smartAccParams := s.App.SmartAccountKeeper.GetParams(s.Ctx)
+				authManagers := s.App.AuthenticatorManager.GetRegisteredAuthenticators()
 				s.Require().Greater(len(authManagers), 1)
 				s.Require().True(smartAccParams.IsSmartAccountActive)
 
 				//check ibchook params
-				ibcwasmparams := s.App.AppKeepers.IBCKeeper.ClientKeeper.GetParams(s.Ctx)
+				ibcwasmparams := s.App.IBCKeeper.ClientKeeper.GetParams(s.Ctx)
 				s.Require().Equal(len(ibcwasmparams.AllowedClients), 2)
 
-				// check cadance params
-				cadanceParams := s.App.AppKeepers.CadanceKeeper.GetParams(s.Ctx)
-				s.Require().Equal(cadanceParams.ContractGasLimit, uint64(1000000))
+				// check cadence params
+				cadenceParams := s.App.CadenceKeeper.GetParams(s.Ctx)
+				s.Require().Equal(cadenceParams.ContractGasLimit, uint64(1000000))
 
 				// expidited proposal
-				govparams, _ := s.App.AppKeepers.GovKeeper.Params.Get(s.Ctx)
+				govparams, _ := s.App.GovKeeper.Params.Get(s.Ctx)
 				newExpeditedVotingPeriod := time.Minute * 60 * 24
 				s.Require().Equal(govparams.ExpeditedVotingPeriod.Seconds(), newExpeditedVotingPeriod.Seconds())
 				s.Require().Equal(govparams.ExpeditedThreshold, "0.75")
@@ -125,7 +125,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 			},
 			func() {
-				dels, _ := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
+				dels, _ := s.App.StakingKeeper.GetAllDelegations(s.Ctx)
 				for _, del := range dels {
 					s.Require().NotZero(del.Shares)
 				}
@@ -146,7 +146,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 			},
 			func() {
-				dels, _ := s.App.AppKeepers.StakingKeeper.GetAllDelegations(s.Ctx)
+				dels, _ := s.App.StakingKeeper.GetAllDelegations(s.Ctx)
 				for _, del := range dels {
 					s.Require().NotZero(del.Shares)
 				}
@@ -168,9 +168,9 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 func dummyUpgrade(s *UpgradeTestSuite) {
 	s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
 	plan := upgradetypes.Plan{Name: "v021", Height: dummyUpgradeHeight}
-	err := s.App.AppKeepers.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
+	err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 	s.Require().NoError(err)
-	_, err = s.App.AppKeepers.UpgradeKeeper.GetUpgradePlan(s.Ctx)
+	_, err = s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
 	s.Require().NoError(err)
 
 	s.Ctx = s.Ctx.WithHeaderInfo(header.Info{Height: dummyUpgradeHeight, Time: s.Ctx.BlockTime().Add(time.Second)}).WithBlockHeight(dummyUpgradeHeight)

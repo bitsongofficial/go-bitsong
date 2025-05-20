@@ -3,7 +3,7 @@ package v021
 import (
 	store "cosmossdk.io/store/types"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
-	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
@@ -32,7 +32,7 @@ var Upgrade = upgrades.Upgrade{
 			icqtypes.StoreKey,
 			wasmlctypes.StoreKey,
 			ibchookstypes.StoreKey,
-			cadancetypes.StoreKey,
+			cadencetypes.StoreKey,
 			smartaccounttypes.StoreKey,
 		},
 		Deleted: []string{},

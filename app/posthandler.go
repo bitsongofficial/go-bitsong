@@ -16,7 +16,6 @@ func NewPostHandler(
 	sigModeHandler *txsigning.HandlerMap,
 ) sdk.PostHandler {
 	return sdk.ChainPostDecorators(
-		// protorevkeeper.NewProtoRevDecorator(*protoRevKeeper),
 		smartaccountpost.NewAuthenticatorPostDecorator(
 			cdc,
 			smartAccountKeeper,

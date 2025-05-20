@@ -44,8 +44,8 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	cadancekeeper "github.com/bitsongofficial/go-bitsong/x/cadance/keeper"
-	cadancetypes "github.com/bitsongofficial/go-bitsong/x/cadance/types"
+	cadencekeeper "github.com/bitsongofficial/go-bitsong/x/cadence/keeper"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -54,6 +54,8 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	protocolpoolkeeper "github.com/cosmos/cosmos-sdk/x/protocolpool/keeper"
+	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -103,15 +105,17 @@ var (
 
 // module account permissions
 var maccPerms = map[string][]string{
-	authtypes.FeeCollectorName:     nil,
-	distrtypes.ModuleName:          nil,
-	minttypes.ModuleName:           {authtypes.Minter},
-	stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-	stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-	govtypes.ModuleName:            {authtypes.Burner},
-	ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-	fantokentypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-	wasmtypes.ModuleName:           {authtypes.Burner},
+	authtypes.FeeCollectorName:                  nil,
+	distrtypes.ModuleName:                       nil,
+	minttypes.ModuleName:                        {authtypes.Minter},
+	stakingtypes.BondedPoolName:                 {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedPoolName:              {authtypes.Burner, authtypes.Staking},
+	govtypes.ModuleName:                         {authtypes.Burner},
+	ibctransfertypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
+	fantokentypes.ModuleName:                    {authtypes.Minter, authtypes.Burner},
+	wasmtypes.ModuleName:                        {authtypes.Burner},
+	protocolpooltypes.ModuleName:                nil,
+	protocolpooltypes.ProtocolPoolEscrowAccount: nil,
 }
 
 type AppKeepers struct {
@@ -146,7 +150,7 @@ type AppKeepers struct {
 	EvidenceKeeper       evidencekeeper.Keeper
 	FanTokenKeeper       fantokenkeeper.Keeper
 	WasmKeeper           wasmkeeper.Keeper
-	CadanceKeeper        cadancekeeper.Keeper
+	CadenceKeeper        cadencekeeper.Keeper
 	IBCFeeKeeper         ibcfeekeeper.Keeper
 	IBCWasmClientKeeper  *ibcwasmkeeper.Keeper
 	FeeGrantKeeper       feegrantkeeper.Keeper
@@ -154,6 +158,7 @@ type AppKeepers struct {
 	ContractKeeper       *wasmkeeper.PermissionedKeeper
 	SmartAccountKeeper   *smartaccountkeeper.Keeper
 	AuthenticatorManager *authenticator.AuthenticatorManager
+	ProtocolPoolKeeper   protocolpoolkeeper.Keeper
 
 	// Middleware wrapper
 	Ics20WasmHooks      *ibchooks.WasmHooks
@@ -224,8 +229,14 @@ func NewAppKeepers(
 
 	// add keepers
 	accountKeeper := authkeeper.NewAccountKeeper(
-		appCodec, runtime.NewKVStoreService(appKeepers.keys[authtypes.StoreKey]), authtypes.ProtoBaseAccount, maccPerms, addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()), Bech32Prefix,
+		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[authtypes.StoreKey]),
+		authtypes.ProtoBaseAccount,
+		maccPerms,
+		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32AccountAddrPrefix()),
+		Bech32Prefix,
 		govModAddress,
+		authkeeper.WithUnorderedTransactions(false),
 	)
 	appKeepers.AccountKeeper = &accountKeeper
 
@@ -269,20 +280,33 @@ func NewAppKeepers(
 		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
 	)
 
+	// TODO: implement custom mint function to split inflation rewards to incentivize cdn:
+	appKeepers.ProtocolPoolKeeper = protocolpoolkeeper.NewKeeper(
+		appCodec,
+		runtime.NewKVStoreService(keys[protocolpooltypes.StoreKey]),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
-		appCodec, runtime.NewKVStoreService(appKeepers.keys[distrtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper,
-		stakingKeeper, authtypes.FeeCollectorName, govModAddress,
+		appCodec,
+		runtime.NewKVStoreService(appKeepers.keys[distrtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper,
+		stakingKeeper, authtypes.FeeCollectorName, govModAddress, distrkeeper.WithExternalCommunityPool(appKeepers.ProtocolPoolKeeper),
 	)
 
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec, cdc, runtime.NewKVStoreService(appKeepers.keys[slashingtypes.StoreKey]), stakingKeeper, govModAddress,
 	)
 
+	// https://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
 	appKeepers.MintKeeper = mintkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
+		// mintkeeper.WithMintFn(myCustomMintFunc), // Use custom minting function
 	)
-	// register the staking hooks
+
+	// register the staking hookshttps://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(appKeepers.DistrKeeper.Hooks(), appKeepers.SlashingKeeper.Hooks()),
@@ -456,8 +480,8 @@ func NewAppKeepers(
 	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
 	appKeepers.Ics20WasmHooks.ContractKeeper = &appKeepers.WasmKeeper
 
-	appKeepers.CadanceKeeper = cadancekeeper.NewKeeper(
-		appKeepers.keys[cadancetypes.StoreKey],
+	appKeepers.CadenceKeeper = cadencekeeper.NewKeeper(
+		appKeepers.keys[cadencetypes.StoreKey],
 		appCodec,
 		appKeepers.WasmKeeper,
 		appKeepers.ContractKeeper,

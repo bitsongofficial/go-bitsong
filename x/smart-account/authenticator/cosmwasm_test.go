@@ -47,7 +47,7 @@ func (s *CosmwasmAuthenticatorTest) SetupTest() {
 
 	s.EncodingConfig = app.MakeEncodingConfig()
 
-	s.CosmwasmAuth = authenticator.NewCosmwasmAuthenticator(s.BitsongApp.AppKeepers.ContractKeeper, s.BitsongApp.AppKeepers.AccountKeeper, s.BitsongApp.AppCodec())
+	s.CosmwasmAuth = authenticator.NewCosmwasmAuthenticator(s.BitsongApp.ContractKeeper, s.BitsongApp.AccountKeeper, s.BitsongApp.AppCodec())
 }
 
 func (s *CosmwasmAuthenticatorTest) TearDownTest() {
@@ -241,9 +241,9 @@ func (s *CosmwasmAuthenticatorTest) TestGeneral() {
 	accounts := apptesting.CreateRandomAccounts(2)
 	for _, acc := range accounts {
 		someCoins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000))
-		err := s.BitsongApp.AppKeepers.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, someCoins)
+		err := s.BitsongApp.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, someCoins)
 		s.Require().NoError(err)
-		err = s.BitsongApp.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, acc, someCoins)
+		err = s.BitsongApp.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, acc, someCoins)
 		s.Require().NoError(err)
 	}
 
@@ -308,7 +308,7 @@ func (s *CosmwasmAuthenticatorTest) TestGeneral() {
 		signatures,
 	)
 
-	ak := s.BitsongApp.AppKeepers.AccountKeeper
+	ak := s.BitsongApp.AccountKeeper
 	sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 	request, err := authenticator.GenerateAuthenticationRequest(s.Ctx, s.BitsongApp.AppCodec(), ak, sigModeHandler, accounts[0], accounts[0], nil, feeCoins, testMsg, tx, 0, false, authenticator.SequenceMatch)
 	s.Require().NoError(err)
@@ -380,9 +380,9 @@ func (s *CosmwasmAuthenticatorTest) TestCosignerContract() {
 	accounts := apptesting.CreateRandomAccounts(2)
 	for _, acc := range accounts {
 		someCoins := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000000))
-		err := s.BitsongApp.AppKeepers.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, someCoins)
+		err := s.BitsongApp.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, someCoins)
 		s.Require().NoError(err)
-		err = s.BitsongApp.AppKeepers.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, acc, someCoins)
+		err = s.BitsongApp.BankKeeper.SendCoinsFromModuleToAccount(s.Ctx, minttypes.ModuleName, acc, someCoins)
 		s.Require().NoError(err)
 	}
 
@@ -440,7 +440,7 @@ func (s *CosmwasmAuthenticatorTest) TestCosignerContract() {
 	// TODO: this currently fails as signatures are stripped from the tx. Should we add them or maybe do a better
 	//  cosigner implementation later?
 	s.T().Skip("TODO: this currently fails as signatures are stripped from the tx. Should we add them or maybe do a better cosigner implementation later?")
-	ak := s.BitsongApp.AppKeepers.AccountKeeper
+	ak := s.BitsongApp.AccountKeeper
 	sigModeHandler := s.EncodingConfig.TxConfig.SignModeHandler()
 	request, err := authenticator.GenerateAuthenticationRequest(s.Ctx, s.BitsongApp.AppCodec(), ak, sigModeHandler, accounts[0], accounts[0], nil, sdk.NewCoins(), testMsg, tx, 0, false, authenticator.SequenceMatch)
 	s.Require().NoError(err)
@@ -454,8 +454,8 @@ func (s *CosmwasmAuthenticatorTest) TestCosignerContract() {
 
 func (s *CosmwasmAuthenticatorTest) StoreContractCode(path string) uint64 {
 	btsgApp := s.BitsongApp
-	govKeeper := wasmkeeper.NewGovPermissionKeeper(btsgApp.AppKeepers.WasmKeeper)
-	creator := btsgApp.AppKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	govKeeper := wasmkeeper.NewGovPermissionKeeper(btsgApp.WasmKeeper)
+	creator := btsgApp.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
 	wasmCode, err := os.ReadFile(path)
 	s.Require().NoError(err)
@@ -467,8 +467,8 @@ func (s *CosmwasmAuthenticatorTest) StoreContractCode(path string) uint64 {
 
 func (s *CosmwasmAuthenticatorTest) InstantiateContract(msg string, codeID uint64) sdk.AccAddress {
 	btsgApp := s.BitsongApp
-	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(btsgApp.AppKeepers.WasmKeeper)
-	creator := btsgApp.AppKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
+	contractKeeper := wasmkeeper.NewDefaultPermissionKeeper(btsgApp.WasmKeeper)
+	creator := btsgApp.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 	addr, _, err := contractKeeper.Instantiate(s.Ctx.WithBlockTime(time.Now()), codeID, creator, creator, []byte(msg), "contract", nil)
 	s.Require().NoError(err)
 	return addr
@@ -477,7 +477,7 @@ func (s *CosmwasmAuthenticatorTest) InstantiateContract(msg string, codeID uint6
 func (s *CosmwasmAuthenticatorTest) QueryContract(msg string, contractAddr sdk.AccAddress) []byte {
 	// Query the contract
 	btsgApp := s.BitsongApp
-	res, err := btsgApp.AppKeepers.WasmKeeper.QuerySmart(s.Ctx.WithBlockTime(time.Now()), contractAddr, []byte(msg))
+	res, err := btsgApp.WasmKeeper.QuerySmart(s.Ctx.WithBlockTime(time.Now()), contractAddr, []byte(msg))
 	s.Require().NoError(err)
 
 	return res
@@ -486,7 +486,7 @@ func (s *CosmwasmAuthenticatorTest) QueryContract(msg string, contractAddr sdk.A
 func (s *CosmwasmAuthenticatorTest) QueryLatestSudoCall(contractAddr sdk.AccAddress) authenticator.SudoMsg {
 	// Query the contract
 	btsgApp := s.BitsongApp
-	res, err := btsgApp.AppKeepers.WasmKeeper.QuerySmart(s.Ctx.WithBlockTime(time.Now()), contractAddr, []byte(`{"latest_sudo_call": {}}`))
+	res, err := btsgApp.WasmKeeper.QuerySmart(s.Ctx.WithBlockTime(time.Now()), contractAddr, []byte(`{"latest_sudo_call": {}}`))
 	s.Require().NoError(err)
 
 	// unmarshal the call as SudoMsg

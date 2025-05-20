@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	pooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -238,7 +239,8 @@ func testBank(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, user
 func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	var err error
 	node := chain.GetNode()
-	acc := authtypes.NewModuleAddress("distribution")
+	distrAcc := authtypes.NewModuleAddress("distribution")
+	protocolPoolAcc := authtypes.NewModuleAddress("protocolpool")
 	require := require.New(t)
 
 	vals, err := chain.StakingQueryValidators(ctx, stakingtypes.Bonded.String())
@@ -280,42 +282,47 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 		err = node.StakingDelegate(ctx, users[2].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		before, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		before, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("before: %+v\n", before)
 
 		err = node.DistributionWithdrawAllRewards(ctx, users[2].KeyName())
 		require.NoError(err)
 
-		after, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		after, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("after: %+v\n", after)
 		require.True(after.GT(before))
 	})
 
 	t.Run("fund-pools", func(t *testing.T) {
-		bal, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		bal, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("CP balance: %+v\n", bal)
 
 		amount := uint64(9_000 * math.Pow10(6))
+		fmt.Printf("AMOUNT: %+v\n", amount)
 
-		err = node.DistributionFundCommunityPool(ctx, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
+		err = ProtocolPoolFundCommunityPool(ctx, node, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
 		require.NoError(err)
 
 		err = node.DistributionFundValidatorRewardsPool(ctx, users[0].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		bal2, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
+		bal2, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
 		require.NoError(err)
-		fmt.Printf("New CP balance: %+v\n", bal2) // 9147579661
+		fmt.Printf("New CP balance: %+v\n", bal2)
 
-		require.True(bal2.Sub(bal).GT(sdkmath.NewInt(int64(amount))))
+		lessThan := sdkmath.NewInt(int64(amount))
+		greaterThan := bal2.Sub(bal)
+		fmt.Printf("greaterThan: %+v\n", greaterThan)
+		fmt.Printf("lessThan: %+v\n", lessThan)
+		require.True(greaterThan.GT(lessThan))
 
 		// queries
-		coins, err := chain.DistributionQueryCommunityPool(ctx)
+		coins, err := ProtocolPoolQueryCommunityPool(ctx, node)
 		require.NoError(err)
-		require.True(coins.AmountOf(chain.Config().Denom).GT(sdkmath.LegacyNewDec(int64(amount))))
+		require.True(coins.AmountOf(chain.Config().Denom).GT(sdkmath.NewInt(int64(amount))))
 	})
 
 	t.Run("set-custiom-withdraw-address", func(t *testing.T) {
@@ -576,4 +583,18 @@ func testAuth(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain) {
 	accInfo, err := chain.AuthQueryAccountInfo(ctx, govAddr)
 	require.NoError(t, err)
 	require.EqualValues(t, govAddr, accInfo.Address)
+}
+
+// DistributionFundCommunityPool funds the community pool with the specified amount of coins.
+func ProtocolPoolFundCommunityPool(ctx context.Context, node *cosmos.ChainNode, keyName, amount string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "protocolpool", "fund-community-pool", amount,
+	)
+	return err
+}
+
+// DistributionCommunityPool returns the community pool
+func ProtocolPoolQueryCommunityPool(ctx context.Context, node *cosmos.ChainNode) (*sdk.Coins, error) {
+	res, err := pooltypes.NewQueryClient(node.GrpcConn).CommunityPool(ctx, &pooltypes.QueryCommunityPoolRequest{})
+	return &res.Pool, err
 }
