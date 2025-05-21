@@ -12,11 +12,13 @@ By looking at numbers, we separate the decimals by point and the thousands by co
 
 ## Fan token
 
-Fan tokens, conceptually based on the [ERC-20 Standard](https://ethereum.org/it/developers/docs/standards/tokens/erc-20), are **fungible tokens** issued for fan communities. They borns to create new connections between fans and any content creator, like star performers, actors, designers, musicians, photographers, writers, models, influencers, etc.
-They enable the growth of a private and (most importantly) custom economy creating new channels for fans' engagement.
-_Fan tokens_ have enormous potential. By using them, you can build myriad applications allowing fans a deeper interaction in the artistic life of their top performers.
+Fan tokens, conceptually based on the [ERC-20 Standard](https://ethereum.org/it/developers/docs/standards/tokens/erc-20), are **fungible tokens** issued for fan communities.
 
-To provide you with some examples, you can think that it is possible to use them for creating loyalty programs to provide privileged access to exclusive content. To allow your fan to crowdfund a tour or studio album and share part of the revenue with your fans. To enable your fans with the opportunity to vote on the cities for an upcoming tour. Or even to accept _fan tokens_ as payment for NFTs.
+ <!-- They borns to create new connections between fans and any content creator, like star performers, actors, designers, musicians, photographers, writers, models, influencers, etc.
+They enable the growth of a private and (most importantly) custom economy creating new channels for fans' engagement.
+_Fan tokens_ have enormous potential. By using them, you can build myriad applications allowing fans a deeper interaction in the artistic life of their top performers. -->
+
+<!-- To provide you with some examples, you can think that it is possible to use them for creating loyalty programs to provide privileged access to exclusive content. To allow your fan to crowdfund a tour or studio album and share part of the revenue with your fans. To enable your fans with the opportunity to vote on the cities for an upcoming tour. Or even to accept _fan tokens_ as payment for NFTs. -->
 
 In the design of the _fan token_ functionalities, big part of the reasonings were based on the [OpenZeppelin standard](https://docs.openzeppelin.com/contracts/4.x/api/token/erc20). For example, the concept of *burning* the tokens lowering the `totalSupply` directly derives from the standard [documentation](https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20-_burn-address-uint256-).
 
