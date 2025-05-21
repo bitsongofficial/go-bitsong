@@ -11,7 +11,8 @@ import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
 // Msg defines the Msg service.
-service Msg {
+service Msg {  
+  option (cosmos.msg.v1.service) = true;
 
   // RegisterCadenceContract defines the endpoint for
   // registering a new cadence contract .
