@@ -24,7 +24,7 @@ once installed, in the root of your project
 ```sh
 # requires buf to be installed: https://buf.build/docs/installation/
 cd ../proto
-buf mod update
+buf dep update
 cd ..
 buf generate
 ```
