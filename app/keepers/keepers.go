@@ -292,7 +292,7 @@ func NewAppKeepers(
 	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[distrtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper,
-		stakingKeeper, authtypes.FeeCollectorName, govModAddress, distrkeeper.WithExternalCommunityPool(appKeepers.ProtocolPoolKeeper),
+		stakingKeeper, authtypes.FeeCollectorName, govModAddress, // distrkeeper.WithExternalCommunityPool(appKeepers.ProtocolPoolKeeper),
 	)
 
 	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
