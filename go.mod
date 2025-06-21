@@ -243,13 +243,4 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
-// v022 debug:
-
-// run: git clone -b v0.38.17.logs https://github.com/permissionlessweb/cometbft
-// run: git clone -b v0.50.11.bitsong https://github.com/permissionlessweb/cosmos-sdk
-//
-// uncomment:
-// replace github.com/cometbft/cometbft => ./cometbft
-// replace github.com/cosmos/cosmos-sdk => ./cosmos-sdk
-
 exclude github.com/gogo/protobuf v1.3.3
