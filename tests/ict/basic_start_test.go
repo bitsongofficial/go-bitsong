@@ -448,7 +448,7 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 	delAddr := del[0].Delegation.DelegatorAddress
 	valAddr := del[0].Delegation.ValidatorAddress
 
-	newWithdrawAddr := "bitsong1hj83l3auyqgy5qcp52l6sp2e67xwq9xx80alju"
+	newWithdrawAddr := "bitsong15llesx99x6upyqlhdtxz9f6grf6rvnf7ege66l"
 
 	t.Run("misc queries", func(t *testing.T) {
 		slashes, err := chain.DistributionQueryValidatorSlashes(ctx, valAddr)
