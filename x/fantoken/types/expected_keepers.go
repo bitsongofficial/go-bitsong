@@ -7,7 +7,7 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-type ProtocolPoolKeeper interface {
+type DistrKeeper interface {
 	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
 

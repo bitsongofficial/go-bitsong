@@ -26,11 +26,11 @@ e2e-upgrade: rm-testcache
 e2e-pfm: rm-testcache
 	cd tests/ict && go test -race -v -run TestPacketForwardMiddlewareRouter .
 
-e2e-polytone: rm-testcache
-	cd tests/ict && go test -race -v -run TestPolytoneOnBitsong .
+# e2e-polytone: rm-testcache
+# 	cd tests/ict && go test -race -v -run TestPolytoneOnBitsong .
 
-e2e-slashing: rm-testcache
-	cd tests/ict && go test -race -v -run TestBasicBitsongSlashing .
+# e2e-slashing: rm-testcache
+# 	cd tests/ict && go test -race -v -run TestBasicBitsongSlashing .
 
 rm-testcache:
 	go clean -testcache

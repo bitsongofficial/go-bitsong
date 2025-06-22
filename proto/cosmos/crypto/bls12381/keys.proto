@@ -1,0 +1,40 @@
+syntax = "proto3";
+package cosmos.crypto.bls12381;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/cosmos/cosmos-sdk/crypto/bls12381";
+
+// PubKey is an bls12381 public key for aggregated
+// It's needed for Any serialization and SDK compatibility.
+// It must not be used in a non Tendermint key context because it doesn't implement
+// ADR-28. Nevertheless, you will like to use bls12381 in app user level
+// then you must create a new proto message and follow ADR-28 for Address construction.
+message PubKey {
+  option (amino.name) = "tendermint/PubKeyBls12381";
+  // The Amino encoding is simply the inner bytes field, and not the Amino
+  // encoding of the whole PubKey struct.
+  //
+  // Example (JSON):
+  // s := PubKey{Key: []byte{0x01}}
+  // out := AminoJSONEncoder(s)
+  //
+  // Then we have:
+  // out == `"MQ=="`
+  // out != `{"key":"MQ=="}`
+  option (amino.message_encoding) = "key_field";
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.compare) = true;
+
+  bytes key = 1;
+}
+
+// PrivKey defines a bls12381 private key.
+// NOTE: bls12381 keys must not be used in SDK apps except in a tendermint validator context.
+message PrivKey {
+  option (amino.name)             = "tendermint/PrivKeyBls12381";
+  option (amino.message_encoding) = "key_field";
+
+  bytes key = 1;
+}

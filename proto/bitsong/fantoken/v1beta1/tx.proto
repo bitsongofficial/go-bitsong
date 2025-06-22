@@ -31,6 +31,7 @@ service Msg {
 
 // MsgIssue defines a message for issuing a new fan token
 message MsgIssue {
+  option (cosmos.msg.v1.signer) = "minter";
 
   // symbol which corresponds to the symbol of the fan token. It is a string and
   // cannot change for the whole life of the fan token
@@ -67,6 +68,7 @@ message MsgIssueResponse {
 
 // MsgDisableMint defines a message for disable the mint function
 message MsgDisableMint {
+  option (cosmos.msg.v1.signer) = "minter";
   string denom = 1;
   string minter = 2;
 }
@@ -78,6 +80,7 @@ message MsgDisableMintResponse {
 
 // MsgMint defines a message for minting a new fan token
 message MsgMint {
+  option (cosmos.msg.v1.signer) = "minter";
   string recipient = 1;
 
   // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
@@ -97,6 +100,7 @@ message MsgMintResponse {
 
 // MsgBurn defines a message for burning some fan tokens
 message MsgBurn {
+  option (cosmos.msg.v1.signer) = "sender";
   // coin mean the amount + denom, eg: 10000ftFADJID34MCDM
   cosmos.base.v1beta1.Coin coin = 1
       [ (gogoproto.moretags) = "yaml:\"coin\"", (gogoproto.nullable) = false ];
@@ -115,7 +119,7 @@ message MsgBurnResponse {
 
 // MsgSetMinter defines a message for changing the fan token minter address
 message MsgSetMinter {
-
+  option (cosmos.msg.v1.signer) = "old_minter";
   // denom the fan token denom
   string denom = 1;
 
@@ -140,7 +144,7 @@ message MsgSetMinterResponse {
 
 // MsgSetAuthority defines a message for changing the fan token minter address
 message MsgSetAuthority {
-
+  option (cosmos.msg.v1.signer) = "old_authority";
   // denom the fan token denom
   string denom = 1;
 
@@ -164,6 +168,7 @@ message MsgSetAuthorityResponse {
 }
 
 message MsgSetUri {
+  option (cosmos.msg.v1.signer) = "authority";
   string authority = 1;
   string denom = 2;
   string uri = 3 [ (gogoproto.customname) = "URI" ];
