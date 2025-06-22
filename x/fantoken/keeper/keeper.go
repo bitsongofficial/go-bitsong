@@ -19,7 +19,7 @@ type Keeper struct {
 	cdc      codec.Codec
 	// accountKeeper types.AccountKeeper
 	bankKeeper   types.BankKeeper
-	poolKeeper   types.ProtocolPoolKeeper
+	poolKeeper   types.DistrKeeper
 	paramSpace   types.ParamSubspace
 	Schema       collections.Schema
 	blockedAddrs map[string]bool
@@ -31,7 +31,7 @@ func NewKeeper(
 	paramSpace types.ParamSubspace,
 	ak types.AccountKeeper,
 	bankKeeper types.BankKeeper,
-	poolKeeper types.ProtocolPoolKeeper,
+	poolKeeper types.DistrKeeper,
 	blockedAddrs map[string]bool,
 ) Keeper {
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
