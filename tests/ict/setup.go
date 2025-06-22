@@ -12,9 +12,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -86,8 +91,10 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 
 	// register custom types
 	ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
-	// wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	// fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	cadencetypes.RegisterInterfaces(cfg.InterfaceRegistry)
+	smartaccounttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg
 }
