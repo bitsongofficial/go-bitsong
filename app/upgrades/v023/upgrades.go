@@ -70,6 +70,16 @@ func transferModuleBalance(ctx sdk.Context, k *keepers.AppKeepers, moduleName, t
 	if balances.Balances.Len() == 0 {
 		return nil
 	}
-
-	return k.BankKeeper.SendCoinsFromModuleToModule(ctx, moduleName, targetModule, balances.Balances)
+	// send tokens from module to module
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, moduleName, targetModule, balances.Balances)
+	if err != nil {
+		return err
+	}
+	// now we need to update the feepool value (mimics logic used in fundCommunityPool, but we must reimplement due to sending tokens from module to module)
+	feePool, err := k.DistrKeeper.FeePool.Get(ctx)
+	if err != nil {
+		return err
+	}
+	feePool.CommunityPool = feePool.CommunityPool.Add(sdk.NewDecCoinsFromCoins(balances.Balances...)...)
+	return k.DistrKeeper.FeePool.Set(ctx, feePool)
 }
