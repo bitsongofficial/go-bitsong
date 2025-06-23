@@ -5,10 +5,14 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"testing"
 	"time"
 
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
+	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -41,7 +45,7 @@ func TestBasicBtsgStart(t *testing.T) {
 	bitsong := chains[0].(*cosmos.CosmosChain)
 
 	userFunds := sdkmath.NewInt(10_000_000_000)
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, bitsong)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), userFunds, bitsong, bitsong, bitsong)
 	println("users", users)
 	// chainUser := users[0]
 
@@ -81,9 +85,9 @@ func TestBasicBtsgStart(t *testing.T) {
 		testVesting(ctx, t, bitsong, superAdmin)
 	})
 
-	t.Run("upgrade", func(t *testing.T) {
-		// testUpgrade(ctx, t, bitsong)
-	})
+	// t.Run("upgrade", func(t *testing.T) {
+	// 	// testUpgrade(ctx, t, bitsong)
+	// })
 
 	t.Run("staking", func(t *testing.T) {
 		users := interchaintest.GetAndFundTestUsers(t, ctx, "default", genesisAmt, bitsong, bitsong, bitsong)
@@ -93,11 +97,85 @@ func TestBasicBtsgStart(t *testing.T) {
 	t.Run("slashing", func(t *testing.T) {
 		testSlashing(ctx, t, bitsong)
 	})
+	t.Run("fantoken", func(t *testing.T) {
+		testFanToken(ctx, t, bitsong, users)
+	})
+	// t.Run("smart-account", func(t *testing.T) {
+	// 	testSmartAccount(ctx, t, bitsong, users)
+	// })
 
 	t.Cleanup(func() {
 		_ = ic.Close()
 	})
 }
+
+// testUpgrade test the queries for upgrade information. Actual upgrades take place in other test.
+// func testUpgrade(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain) {
+// 	v, err := chain.UpgradeQueryAllModuleVersions(ctx)
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, v)
+
+// 	// UpgradeQueryModuleVersion
+// 	authority, err := chain.UpgradeQueryAuthority(ctx)
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, authority)
+
+// 	plan, err := chain.UpgradeQueryPlan(ctx)
+// 	require.NoError(t, err)
+// 	require.Nil(t, plan)
+
+// 	_, err = chain.UpgradeQueryAppliedPlan(ctx, "")
+// 	require.NoError(t, err)
+// }
+
+// func testGov(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
+// 	node := chain.GetNode()
+
+// 	govModule := "cosmos10d07y265gmmuvt4z0w9aw880jnsr700j6zn9kn"
+// 	coin := sdk.NewCoin(chain.Config().Denom, sdkmath.NewInt(1))
+
+// 	bankMsg := &banktypes.MsgSend{
+// 		FromAddress: govModule,
+// 		ToAddress:   users[1].FormattedAddress(),
+// 		Amount:      sdk.NewCoins(coin),
+// 	}
+
+// 	// submit governance proposal
+// 	title := "Test Proposal"
+// 	prop, err := chain.BuildProposal([]cosmos.ProtoMessage{bankMsg}, title, title+" Summary", "none", "500"+chain.Config().Denom, govModule, false)
+// 	require.NoError(t, err)
+
+// 	_, err = node.GovSubmitProposal(ctx, users[0].KeyName(), prop)
+// 	require.NoError(t, err)
+
+// 	proposal, err := chain.GovQueryProposalV1(ctx, 1)
+// 	require.NoError(t, err)
+// 	require.EqualValues(t, proposal.Title, title)
+
+// 	// vote on the proposal
+// 	err = node.VoteOnProposal(ctx, users[0].KeyName(), 1, "yes")
+// 	require.NoError(t, err)
+
+// 	v, err := chain.GovQueryVote(ctx, 1, users[0].FormattedAddress())
+// 	require.NoError(t, err)
+// 	require.EqualValues(t, v.Options[0].Option, govv1.VoteOption_VOTE_OPTION_YES)
+
+// 	// pass vote with all validators
+// 	err = chain.VoteOnProposalAllValidators(ctx, 1, "yes")
+// 	require.NoError(t, err)
+
+// 	// GovQueryProposalsV1
+// 	proposals, err := chain.GovQueryProposalsV1(ctx, govv1.ProposalStatus_PROPOSAL_STATUS_VOTING_PERIOD)
+// 	require.NoError(t, err)
+// 	require.Len(t, proposals, 1)
+
+// 	require.NoError(t, testutil.WaitForBlocks(ctx, 10, chain))
+
+// 	// Proposal fails due to gov not having any funds
+// 	proposals, err = chain.GovQueryProposalsV1(ctx, govv1.ProposalStatus_PROPOSAL_STATUS_FAILED)
+// 	require.NoError(t, err)
+// 	require.Len(t, proposals, 1)
+// }
 
 func testAuthz(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	granter := users[0].FormattedAddress()
@@ -156,6 +234,124 @@ func testAuthz(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, use
 	fmt.Printf("balanceAfter: %+v\n", balanceAfter)
 	require.EqualValues(t, balanceBefore.SubRaw(int64(sendAmt)), balanceAfter)
 }
+
+func testFanToken(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
+	fantokenName := "strang"
+	fantokenSymbol := "symbol"
+	fantokenUri := "ipfs://"
+	fantokenMaxSupply := "21"
+	user0 := users[0].FormattedAddress()
+	user1 := users[1].FormattedAddress()
+	user2 := users[2].FormattedAddress()
+
+	node := chain.GetNode()
+	// protocolPoolAcc := authtypes.NewModuleAddress("protocolpool")
+	// protocolPoolAcc := authtypes.NewModuleAddress("distribution")
+
+	maxSupply, _ := sdkmath.NewIntFromString(fantokenMaxSupply)
+	// issue fantoken
+	err := FantokenIssue(ctx, node, user0, fantokenName, fantokenSymbol, fantokenMaxSupply, fantokenUri)
+	require.NoError(t, err)
+
+	// query fantoken just issued
+	fantokens, err := FantokenQueryFantokenByAuthority(ctx, node, user0)
+	fantoken := fantokens[0]
+
+	require.NoError(t, err)
+	require.Equal(t, fantokenName, fantoken.MetaData.Name)
+	require.Equal(t, fantokenSymbol, fantoken.MetaData.Symbol)
+	require.Equal(t, fantokenUri, fantoken.MetaData.URI)
+	require.Equal(t, maxSupply, fantoken.MaxSupply)
+
+	denom := fantoken.Denom
+	// assert non-owner cannot mint owner's fantoken
+	err = FantokenMint(ctx, node, user1, "21"+denom, user1)
+	require.Equal(t, errors.Wrapf(fantokentypes.ErrInvalidMinter, "transaction failed with code 9: failed to execute message; message index: 0: the address %s is not the minter of the fantoken %s", user1, denom).Error(), err.Error())
+
+	// owner mints fantoken
+	err = FantokenMint(ctx, node, user0, "1"+denom, user1)
+	require.NoError(t, err)
+
+	// ensure token was minted
+	balance, err := chain.GetBalance(ctx, user1, denom)
+	require.NoError(t, err)
+	require.Equal(t, sdkmath.NewInt(1), balance)
+
+	// cannot mint to module account
+	moduleAddr := authtypes.NewModuleAddress("fantoken")
+	err = FantokenMint(ctx, node, user0, "1"+denom, moduleAddr.String())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "is a module account")
+
+	// ensure fee goes to community pool as expected after mint
+	// communityPoolBefore, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), denom)
+	// require.NoError(t, err)
+	// t.Log(communityPoolBefore.String())
+	// err = FantokenMint(ctx, node, user0, "1"+denom, user1)
+	// require.NoError(t, err)
+	// communityPoolAfter, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), denom)
+	// require.NoError(t, err)
+	// t.Log(communityPoolAfter.String())
+	// require.True(t, communityPoolAfter.GT(communityPoolBefore))
+
+	// ensure we do not mint more than max supply
+	err = FantokenMint(ctx, node, user0, "21"+denom, user1)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "the amount exceeds the mintable fantoken amount")
+
+	// ensure token is minted to correct destination
+	err = FantokenMint(ctx, node, user0, "1"+denom, user2)
+	require.NoError(t, err)
+
+	balance, err = chain.BankQueryBalance(ctx, user2, denom)
+	require.NoError(t, err)
+	require.Equal(t, sdkmath.NewInt(1), balance)
+
+	// ensure only current authority can set new authority
+	err = FantokenSetAuthority(ctx, node, user1, denom, user2)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not the authority of the fantoken")
+	err = FantokenSetAuthority(ctx, node, user0, denom, user2)
+	require.NoError(t, err)
+	fantokens, err = FantokenQueryFantokenByAuthority(ctx, node, user2)
+	fantoken = fantokens[0]
+	require.NoError(t, err)
+	require.Equal(t, user2, fantoken.GetAuthority().String())
+
+	// ensure only current authority can set a new minter
+	err = FantokenSetMinter(ctx, node, user1, denom, user0)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not the minter")
+	err = FantokenSetMinter(ctx, node, user0, denom, user2)
+	require.NoError(t, err)
+	fantokens, err = FantokenQueryFantokenByAuthority(ctx, node, user2)
+	require.NoError(t, err)
+	fantoken = fantokens[0]
+	require.Equal(t, user2, fantoken.Minter)
+
+	// ensure uri is set properly
+	fantoken, err = FantokenQueryFantokenByDenom(ctx, node, fantoken.Denom)
+	require.NoError(t, err)
+	require.Equal(t, fantokenUri, fantoken.GetMetaData().URI)
+
+	// todo: ensure we can transfer fantokens
+	// todo: ensure when metadata is set to be immutable we cannot change
+
+}
+
+// func testSmartAccount(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
+// 	user0 := users[0].FormattedAddress()
+// 	node := chain.GetNode()
+// 	t.Log("Signature verification")
+// 	// Only test that we are able to register and unregister any authenticators using the default sk of the account
+// 	SmartAccountAddAuthenticator(ctx, node, "SignatureVerification", user0, string(users[1].Address()))
+// 	SmartAccountRemoveAuthenticator(ctx, node, user0, 1)
+// 	t.Log("AllOf")
+// 	t.Log("AnyOf")
+// 	t.Log("CosmwasmAuthentication")
+// 	t.Log("Bls12381")
+
+// }
 
 func testBank(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	user0 := users[0].FormattedAddress()
@@ -239,8 +435,7 @@ func testBank(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, user
 func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	var err error
 	node := chain.GetNode()
-	distrAcc := authtypes.NewModuleAddress("distribution")
-	protocolPoolAcc := authtypes.NewModuleAddress("protocolpool")
+	acc := authtypes.NewModuleAddress("distribution")
 	require := require.New(t)
 
 	vals, err := chain.StakingQueryValidators(ctx, stakingtypes.Bonded.String())
@@ -253,7 +448,7 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 	delAddr := del[0].Delegation.DelegatorAddress
 	valAddr := del[0].Delegation.ValidatorAddress
 
-	newWithdrawAddr := "bitsong138wd4e3sjpnz28r8t3cjqnq0wvhd02nftxffr4"
+	newWithdrawAddr := "bitsong15llesx99x6upyqlhdtxz9f6grf6rvnf7ege66l"
 
 	t.Run("misc queries", func(t *testing.T) {
 		slashes, err := chain.DistributionQueryValidatorSlashes(ctx, valAddr)
@@ -282,47 +477,42 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 		err = node.StakingDelegate(ctx, users[2].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		before, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
+		before, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("before: %+v\n", before)
 
 		err = node.DistributionWithdrawAllRewards(ctx, users[2].KeyName())
 		require.NoError(err)
 
-		after, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
+		after, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("after: %+v\n", after)
 		require.True(after.GT(before))
 	})
 
 	t.Run("fund-pools", func(t *testing.T) {
-		bal, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
+		bal, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
 		require.NoError(err)
 		fmt.Printf("CP balance: %+v\n", bal)
 
 		amount := uint64(9_000 * math.Pow10(6))
-		fmt.Printf("AMOUNT: %+v\n", amount)
 
-		err = ProtocolPoolFundCommunityPool(ctx, node, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
+		err = node.DistributionFundCommunityPool(ctx, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
 		require.NoError(err)
 
 		err = node.DistributionFundValidatorRewardsPool(ctx, users[0].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
 		require.NoError(err)
 
-		bal2, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
+		bal2, err := chain.BankQueryBalance(ctx, acc.String(), chain.Config().Denom)
 		require.NoError(err)
-		fmt.Printf("New CP balance: %+v\n", bal2)
+		fmt.Printf("New CP balance: %+v\n", bal2) // 9147579661
 
-		lessThan := sdkmath.NewInt(int64(amount))
-		greaterThan := bal2.Sub(bal)
-		fmt.Printf("greaterThan: %+v\n", greaterThan)
-		fmt.Printf("lessThan: %+v\n", lessThan)
-		require.True(greaterThan.GT(lessThan))
+		require.True(bal2.Sub(bal).GT(sdkmath.NewInt(int64(amount))))
 
 		// queries
-		coins, err := ProtocolPoolQueryCommunityPool(ctx, node)
+		coins, err := chain.DistributionQueryCommunityPool(ctx)
 		require.NoError(err)
-		require.True(coins.AmountOf(chain.Config().Denom).GT(sdkmath.NewInt(int64(amount))))
+		require.True(coins.AmountOf(chain.Config().Denom).GT(sdkmath.LegacyNewDec(int64(amount))))
 	})
 
 	t.Run("set-custiom-withdraw-address", func(t *testing.T) {
@@ -350,6 +540,121 @@ func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosCha
 		require.EqualValues(1, rewards.Len())
 	})
 }
+
+// func testDistribution(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
+// 	var err error
+// 	node := chain.GetNode()
+// 	distrAcc := authtypes.NewModuleAddress("distribution")
+// 	protocolPoolAcc := authtypes.NewModuleAddress("protocolpool")
+// 	require := require.New(t)
+
+// 	vals, err := chain.StakingQueryValidators(ctx, stakingtypes.Bonded.String())
+// 	require.NoError(err)
+// 	fmt.Printf("validators: %+v\n", vals)
+
+// 	del, err := chain.StakingQueryDelegationsTo(ctx, vals[0].OperatorAddress)
+// 	require.NoError(err)
+
+// 	delAddr := del[0].Delegation.DelegatorAddress
+// 	valAddr := del[0].Delegation.ValidatorAddress
+
+// 	newWithdrawAddr := "bitsong138wd4e3sjpnz28r8t3cjqnq0wvhd02nftxffr4"
+
+// 	t.Run("misc queries", func(t *testing.T) {
+// 		slashes, err := chain.DistributionQueryValidatorSlashes(ctx, valAddr)
+// 		require.NoError(err)
+// 		require.EqualValues(0, len(slashes))
+
+// 		valDistInfo, err := chain.DistributionQueryValidatorDistributionInfo(ctx, valAddr)
+// 		require.NoError(err)
+// 		fmt.Printf("valDistInfo: %+v\n", valDistInfo)
+// 		require.EqualValues(1, valDistInfo.Commission.Len())
+
+// 		valOutRewards, err := chain.DistributionQueryValidatorOutstandingRewards(ctx, valAddr)
+// 		require.NoError(err)
+// 		require.EqualValues(1, valOutRewards.Rewards.Len())
+
+// 		params, err := chain.DistributionQueryParams(ctx)
+// 		require.NoError(err)
+// 		require.True(params.WithdrawAddrEnabled)
+
+// 		comm, err := chain.DistributionQueryCommission(ctx, valAddr)
+// 		require.NoError(err)
+// 		require.EqualValues(chain.Config().Denom, comm.Commission[0].Denom)
+// 	})
+
+// 	t.Run("withdraw-all-rewards", func(t *testing.T) {
+// 		err = node.StakingDelegate(ctx, users[2].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
+// 		require.NoError(err)
+
+// 		before, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
+// 		require.NoError(err)
+// 		fmt.Printf("before: %+v\n", before)
+
+// 		err = node.DistributionWithdrawAllRewards(ctx, users[2].KeyName())
+// 		require.NoError(err)
+
+// 		after, err := chain.BankQueryBalance(ctx, distrAcc.String(), chain.Config().Denom)
+// 		require.NoError(err)
+// 		fmt.Printf("after: %+v\n", after)
+// 		require.True(after.GT(before))
+// 	})
+
+// 	t.Run("fund-pools", func(t *testing.T) {
+// 		bal, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
+// 		require.NoError(err)
+// 		fmt.Printf("CP balance: %+v\n", bal)
+
+// 		amount := uint64(9_000 * math.Pow10(6))
+// 		fmt.Printf("AMOUNT: %+v\n", amount)
+
+// 		err = ProtocolPoolFundCommunityPool(ctx, node, users[0].KeyName(), fmt.Sprintf("%d%s", amount, chain.Config().Denom))
+// 		require.NoError(err)
+
+// 		err = node.DistributionFundValidatorRewardsPool(ctx, users[0].KeyName(), valAddr, fmt.Sprintf("%d%s", uint64(100*math.Pow10(6)), chain.Config().Denom))
+// 		require.NoError(err)
+
+// 		bal2, err := chain.BankQueryBalance(ctx, protocolPoolAcc.String(), chain.Config().Denom)
+// 		require.NoError(err)
+// 		fmt.Printf("New CP balance: %+v\n", bal2)
+
+// 		lessThan := sdkmath.NewInt(int64(amount))
+// 		greaterThan := bal2.Sub(bal)
+// 		fmt.Printf("greaterThan: %+v\n", greaterThan)
+// 		fmt.Printf("lessThan: %+v\n", lessThan)
+// 		require.True(greaterThan.GT(lessThan))
+
+// 		// queries
+// 		coins, err := ProtocolPoolQueryCommunityPool(ctx, node)
+// 		require.NoError(err)
+// 		require.True(coins.AmountOf(chain.Config().Denom).GT(sdkmath.NewInt(int64(amount))))
+// 	})
+
+// 	t.Run("set-custiom-withdraw-address", func(t *testing.T) {
+// 		err = node.DistributionSetWithdrawAddr(ctx, users[0].KeyName(), newWithdrawAddr)
+// 		require.NoError(err)
+
+// 		withdrawAddr, err := chain.DistributionQueryDelegatorWithdrawAddress(ctx, users[0].FormattedAddress())
+// 		require.NoError(err)
+// 		require.EqualValues(withdrawAddr, newWithdrawAddr)
+// 	})
+
+// 	t.Run("delegator", func(t *testing.T) {
+// 		delRewards, err := chain.DistributionQueryDelegationTotalRewards(ctx, delAddr)
+// 		require.NoError(err)
+// 		r := delRewards.Rewards[0]
+// 		require.EqualValues(valAddr, r.ValidatorAddress)
+// 		require.EqualValues(chain.Config().Denom, r.Reward[0].Denom)
+
+// 		delegatorVals, err := chain.DistributionQueryDelegatorValidators(ctx, delAddr)
+// 		require.NoError(err)
+// 		require.EqualValues(valAddr, delegatorVals.Validators[0])
+
+// 		rewards, err := chain.DistributionQueryRewards(ctx, delAddr, valAddr)
+// 		require.NoError(err)
+// 		require.EqualValues(1, rewards.Len())
+// 	})
+// }
 
 func testFeeGrant(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain, users []ibc.Wallet) {
 	var err error
@@ -585,7 +890,84 @@ func testAuth(ctx context.Context, t *testing.T, chain *cosmos.CosmosChain) {
 	require.EqualValues(t, govAddr, accInfo.Address)
 }
 
-// DistributionFundCommunityPool funds the community pool with the specified amount of coins.
+// FantokenIssue issues a new fantoken.
+func FantokenIssue(ctx context.Context, node *cosmos.ChainNode, keyName, name, symbol, maxSupply, uri string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "fantoken", "issue",
+		"--name", name,
+		"--symbol", symbol,
+		"--max-supply", maxSupply,
+		"--uri", uri,
+		// "--fees", fees,
+		// "--chain-id", node.CliContext().ChainID,
+	)
+	return err
+}
+
+// FantokenMint issues a new fantoken.
+func FantokenMint(ctx context.Context, node *cosmos.ChainNode, keyName, amountWithDenom, recipient string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "fantoken", "mint", amountWithDenom,
+		"--recipient", recipient,
+	)
+	return err
+}
+
+// FantokenSetAuthority sets an  new authority for a fantoken.
+func FantokenSetMinter(ctx context.Context, node *cosmos.ChainNode, keyName, denom, newAuthority string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "fantoken", "set-minter", denom,
+		"--new-minter", newAuthority,
+	)
+	return err
+}
+
+// FantokenSetAuthority sets an  new authority for a fantoken.
+func FantokenSetAuthority(ctx context.Context, node *cosmos.ChainNode, keyName, denom, newAuthority string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "fantoken", "set-authority", denom,
+		"--new-authority", newAuthority,
+	)
+	return err
+}
+
+// FantokenMint issues a new fantoken.
+func FantokenDisableMint(ctx context.Context, node *cosmos.ChainNode, keyName, fantoken string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "fantoken", "disable-mint", fantoken,
+	)
+	return err
+}
+
+// FantokenQueryParams returns the params for the fantoken module
+func FantokenQueryParams(ctx context.Context, node *cosmos.ChainNode) (*fantokentypes.Params, error) {
+	res, err := fantokentypes.NewQueryClient(node.GrpcConn).Params(ctx, &fantokentypes.QueryParamsRequest{})
+	return &res.Params, err
+}
+
+// FantokenQueryParams returns a fantoken given the denom
+func FantokenQueryFantokenByDenom(ctx context.Context, node *cosmos.ChainNode, denom string) (*fantokentypes.FanToken, error) {
+	res, err := fantokentypes.NewQueryClient(node.GrpcConn).FanToken(ctx, &fantokentypes.QueryFanTokenRequest{
+		Denom: denom,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.Fantoken, err
+}
+
+// FantokenQueryParams returns a fantoken given the denom
+func FantokenQueryFantokenByAuthority(ctx context.Context, node *cosmos.ChainNode, denom string) ([]*fantokentypes.FanToken, error) {
+	res, err := fantokentypes.NewQueryClient(node.GrpcConn).FanTokens(ctx, &fantokentypes.QueryFanTokensRequest{
+		Authority: denom, Pagination: nil,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.Fantokens, err
+}
+
+// ProtocolPoolFundCommunityPool funds the community pool with the specified amount of coins.
 func ProtocolPoolFundCommunityPool(ctx context.Context, node *cosmos.ChainNode, keyName, amount string) error {
 	_, err := node.ExecTx(ctx,
 		keyName, "protocolpool", "fund-community-pool", amount,
@@ -597,4 +979,19 @@ func ProtocolPoolFundCommunityPool(ctx context.Context, node *cosmos.ChainNode, 
 func ProtocolPoolQueryCommunityPool(ctx context.Context, node *cosmos.ChainNode) (*sdk.Coins, error) {
 	res, err := pooltypes.NewQueryClient(node.GrpcConn).CommunityPool(ctx, &pooltypes.QueryCommunityPoolRequest{})
 	return &res.Pool, err
+}
+
+// ProtocolPoolFundCommunityPool funds the community pool with the specified amount of coins.
+func SmartAccountAddAuthenticator(ctx context.Context, node *cosmos.ChainNode, authType, keyName, data string) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "smartaccount", "add-authenticator", authType, data,
+	)
+	return err
+}
+
+func SmartAccountRemoveAuthenticator(ctx context.Context, node *cosmos.ChainNode, keyName string, authType uint64) error {
+	_, err := node.ExecTx(ctx,
+		keyName, "smartaccount", "remove-authenticator", strconv.FormatUint(authType, 10),
+	)
+	return err
 }

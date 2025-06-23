@@ -11,7 +11,8 @@ import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 
 // Msg defines the Msg service.
-service Msg {
+service Msg {  
+  option (cosmos.msg.v1.service) = true;
 
   // RegisterCadenceContract defines the endpoint for
   // registering a new cadence contract .
@@ -43,6 +44,7 @@ service Msg {
 
 // MsgRegisterCadenceContract is the Msg/RegisterCadenceContract request type.
 message MsgRegisterCadenceContract {
+  option (cosmos.msg.v1.signer) = "sender_address";
   // The address of the sender.
   string sender_address = 1;
   // The address of the contract to register.
@@ -55,6 +57,7 @@ message MsgRegisterCadenceContractResponse {}
 
 // MsgUnregisterCadenceContract is the Msg/UnregisterCadenceContract request type.
 message MsgUnregisterCadenceContract {
+  option (cosmos.msg.v1.signer) = "sender_address";
   // The address of the sender.
   string sender_address = 1;
   // The address of the contract to unregister.
@@ -67,6 +70,7 @@ message MsgUnregisterCadenceContractResponse {}
 
 // MsgUnjailCadenceContract is the Msg/UnjailCadenceContract request type.
 message MsgUnjailCadenceContract {
+  option (cosmos.msg.v1.signer) = "sender_address";
   // The address of the sender.
   string sender_address = 1;
   // The address of the contract to unjail.

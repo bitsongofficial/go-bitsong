@@ -17,9 +17,7 @@ format: format-help
 
 format-tidy:
 	@go mod tidy
-	@cd ./tests/integration && go mod tidy
-	@cd ./tests/petri && go mod tidy
-	@cd ./tests/simapp && go mod tidy
+	@cd ./tests/ict && go mod tidy
 
 .PHONY: tidy
 
