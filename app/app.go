@@ -76,7 +76,6 @@ import (
 	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
 	v022 "github.com/bitsongofficial/go-bitsong/app/upgrades/v022"
 	v023 "github.com/bitsongofficial/go-bitsong/app/upgrades/v023"
- 
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -684,11 +683,6 @@ func InitBitsongAppForTestnet(app *BitsongApp, newValAddr bytes.HexBytes, newVal
 	}
 	fmt.Printf("retainedValDels: %v\n", retainedValDels)
 
-	// run patch logic prior to resett app state. simulates upgradehandler logic
-	err = v022.CustomV022PatchLogic(ctx, &app.AppKeepers, true)
-	if err != nil {
-		panic(err)
-	}
 	// Create Validator struct for our new validator.
 	_, bz, err := bech32.DecodeAndConvert(newOperatorAddress)
 	if err != nil {

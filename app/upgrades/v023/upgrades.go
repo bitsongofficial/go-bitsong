@@ -61,7 +61,7 @@ func CustomV023PatchLogic(ctx sdk.Context, k *keepers.AppKeepers) error {
 
 func transferModuleBalance(ctx sdk.Context, k *keepers.AppKeepers, moduleName, targetModule string) error {
 	moduleAddr := k.AccountKeeper.GetModuleAddress(moduleName)
-	balances, err := k.BankKeeper.AllBalances(ctx, types.NewQueryAllBalancesRequest(moduleAddr, nil, true))
+	balances, err := k.BankKeeper.AllBalances(ctx, types.NewQueryAllBalancesRequest(moduleAddr, nil, false))
 	if err != nil {
 		return err
 	}
