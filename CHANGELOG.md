@@ -33,6 +33,27 @@ Ref: https://keepachangelog.com/en/1.0.0/
 -->
 
 # Changelog
+## [v0.23.0]
+## Added
+## Fixed
+### Removed 
+### Improvements 
+### Depreceated
+### State Breaking
+## [v0.22.0]
+## Added
+## Fixed
+### Removed 
+### Improvements 
+### Depreceated
+### State Breaking
+## [v0.21.0]
+## Added
+## Fixed
+### Removed 
+### Improvements 
+### Depreceated
+### State Breaking
 ## [v0.20.0]
 
 ## Added
@@ -40,6 +61,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Fixed
 - certain delegators inability to claim rewards after v018 patch 
+### Removed 
+### Improvements 
+### Depreceated
+### State Breaking
 
 ## [v0.19.0]
 ### Added 
