@@ -88,20 +88,11 @@ import (
 	wasmvm "github.com/CosmWasm/wasmvm/v2"
 )
 
-var (
-	wasmCapabilities = []string{
-		"iterator",
-		"staking",
-		"stargate",
-		"cosmwasm_1_1",
-		"cosmwasm_1_2",
-		"cosmwasm_1_3",
-		"cosmwasm_1_4",
-		"cosmwasm_2_0",
-		"cosmwasm_2_1",
-		"bitsong",
-	}
-)
+func ExtendedBuiltInCapabilities() []string {
+	originalCaps := wasmkeeper.BuiltInCapabilities()
+	extendedCaps := append(originalCaps, "bitsong", "cosmwasm_3_0")
+	return extendedCaps
+}
 
 // module account permissions
 var maccPerms = map[string][]string{
@@ -180,9 +171,8 @@ func NewAppKeepers(
 ) AppKeepers {
 	appKeepers := AppKeepers{}
 	Bech32Prefix := "bitsong"
-	// TODO: bitsong specific btsgPrefix := sdk.GetConfig().GetBech32AccountAddrPrefix()
 	govModAddress := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-
+	wasmCapabilities := ExtendedBuiltInCapabilities()
 	// Set keys KVStoreKey, TransientStoreKey, MemoryStoreKey
 	appKeepers.GenerateKeys()
 	keys := appKeepers.GetKVStoreKey()

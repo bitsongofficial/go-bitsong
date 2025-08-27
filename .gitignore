@@ -49,6 +49,7 @@ buf-stamp
 
 data
 state_export.json
+upgradeHandlerDebug.json
 
 github.com*
 gogoproto*
