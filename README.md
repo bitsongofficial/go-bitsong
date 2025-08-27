@@ -12,6 +12,40 @@ _NOTE: This is alpha software. Please contact us if you aim to run it in product
 
 **Note**: Requires [Go 1.23.x+](https://golang.org/dl/)
 
+### Developer CLI
+
+```sh
+# display a list of various developer tooling
+make help 
+```
+
+## Testing 
+## Unit Tests
+```sh
+go test ./...
+```
+## Integration Tests
+```sh
+# todo: provide examples for running integration tests
+```
+
+## E2E Tests
+```sh
+# a. build fresh docker image
+make docker-build
+# b. run default e2e test
+make e2e-basic
+# run `make e2e-help` to view current implemented e2e-tests
+```
+
+## Release
+These are used exclusively when generating the [pre-compiled release images.](https://github.com/bitsongofficial/go-bitsong/releases)
+```sh
+# a. builds reproducible instances of the release
+make build-reproducible
+# b. generates sha256sum hashes for compiled instances
+make build-generate-tar-and-checksum
+```
 # Install BitSong Blockchain
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
@@ -74,7 +108,6 @@ bitsongd start
 
 You can now start `bitsongd` by calling `bitsongd start`. You will see logs begin streaming that represent blocks being produced, this will take a couple of seconds.
 
-
 ## Resources
 - [Official Website](https://bitsong.io)
 
@@ -108,28 +141,3 @@ To provide some stability to BitSong users in these 0.X.X days, the MINOR versio
 to signal breaking changes across a subset of the total public API. This subset includes all
 interfaces exposed to other processes, but does not include the in-process Go APIs.
 
-
-## Testing 
-## Unit Tests
-```sh
-go test ./...
-```
-
-### InterchainTests
-```sh
-# builds a docker image of the current binary
-make docker-build
-# basic coverage of all modules
-make e2e-basic
-# basic coverage of upgrading to the upcoming version
-make e2e-upgrade
-# basic packet-forward-middleware IBC module testing
-make e2e-pfm
-# make e2e-polytone
-# make e2e-slashing
-```   
-### Cw-Orchestrator (Starship)
-```sh
-todo
-```
-### BitsongIBCTesting 
