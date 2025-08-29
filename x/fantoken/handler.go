@@ -2,6 +2,7 @@ package fantoken
 
 import (
 	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -12,46 +13,46 @@ import (
 )
 
 // // NewHandler handles all fantoken type messages.
-// func NewHandler(k keeper.Keeper) sdk.Handler {
-// 	msgServer := keeper.NewMsgServerImpl(&k)
+func NewHandler(k keeper.Keeper) baseapp.MsgServiceHandler {
+	msgServer := keeper.NewMsgServerImpl(&k)
 
-// 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
-// 		ctx = ctx.WithEventManager(sdk.NewEventManager())
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
+		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
-// 		switch msg := msg.(type) {
-// 		case *types.MsgIssue:
-// 			res, err := msgServer.Issue(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		switch msg := msg.(type) {
+		case *types.MsgIssue:
+			res, err := msgServer.Issue(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgDisableMint:
-// 			res, err := msgServer.DisableMint(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgDisableMint:
+			res, err := msgServer.DisableMint(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgMint:
-// 			res, err := msgServer.Mint(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgMint:
+			res, err := msgServer.Mint(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgBurn:
-// 			res, err := msgServer.Burn(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgBurn:
+			res, err := msgServer.Burn(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgSetAuthority:
-// 			res, err := msgServer.SetAuthority(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgSetAuthority:
+			res, err := msgServer.SetAuthority(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgSetMinter:
-// 			res, err := msgServer.SetMinter(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgSetMinter:
+			res, err := msgServer.SetMinter(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		case *types.MsgSetUri:
-// 			res, err := msgServer.SetUri(sdk.WrapSDKContext(ctx), msg)
-// 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgSetUri:
+			res, err := msgServer.SetUri(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
-// 		default:
-// 			return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
-// 		}
-// 	}
-// }
+		default:
+			return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
+		}
+	}
+}
 
 func NewProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 	return func(ctx sdk.Context, content govv1beta1.Content) error {
