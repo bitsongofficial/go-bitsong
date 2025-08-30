@@ -19,7 +19,7 @@ type Keeper struct {
 	storeKey storetypes.StoreKey
 	cdc      codec.BinaryCodec
 
-	wasmKeeper     wasmkeeper.Keeper
+	wasmKeeper     *wasmkeeper.Keeper
 	contractKeeper *wasmkeeper.PermissionedKeeper
 
 	authority string
@@ -28,7 +28,7 @@ type Keeper struct {
 func NewKeeper(
 	key storetypes.StoreKey,
 	cdc codec.BinaryCodec,
-	wasmKeeper wasmkeeper.Keeper,
+	wasmKeeper *wasmkeeper.Keeper,
 	contractKeeper *wasmkeeper.PermissionedKeeper,
 	authority string,
 ) Keeper {

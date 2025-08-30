@@ -129,6 +129,7 @@ func TestPacketForwardMiddlewareRouter(t *testing.T) {
 	const pathAB = "ab"
 	const pathBC = "bc"
 	const pathCD = "cd"
+	const pathDA = "da"
 
 	ic := interchaintest.NewInterchain().
 		AddChain(chainA).

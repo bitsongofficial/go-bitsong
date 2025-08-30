@@ -66,11 +66,11 @@ import (
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 
+	wasmvm "github.com/CosmWasm/wasmvm/v3"
 	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10"
 	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10/keeper"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10/types"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
@@ -80,7 +80,10 @@ import (
 	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
-	wasmvm "github.com/CosmWasm/wasmvm/v3"
+	ibcwlc "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	ibcwlckeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	ibcwlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 func ExtendedBuiltInCapabilities() []string {
@@ -114,7 +117,7 @@ type AppKeepers struct {
 	CapabilityKeeper      *capabilitykeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
-	ConsensusParamsKeeper consensusparamkeeper.Keeper
+	ConsensusParamsKeeper *consensusparamkeeper.Keeper
 
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -122,26 +125,26 @@ type AppKeepers struct {
 
 	// keepers
 	AccountKeeper        *authkeeper.AccountKeeper
-	BankKeeper           bankkeeper.Keeper
-	AuthzKeeper          authzkeeper.Keeper
+	BankKeeper           *bankkeeper.BaseKeeper
+	AuthzKeeper          *authzkeeper.Keeper
 	StakingKeeper        *stakingkeeper.Keeper
-	DistrKeeper          distrkeeper.Keeper
-	SlashingKeeper       slashingkeeper.Keeper
-	MintKeeper           mintkeeper.Keeper
+	DistrKeeper          *distrkeeper.Keeper
+	SlashingKeeper       *slashingkeeper.Keeper
+	MintKeeper           *mintkeeper.Keeper
 	IBCKeeper            *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	IBCHooksKeeper       *ibchookskeeper.Keeper
-	TransferKeeper       ibctransferkeeper.Keeper
-	EvidenceKeeper       evidencekeeper.Keeper
-	FanTokenKeeper       fantokenkeeper.Keeper
-	WasmKeeper           wasmkeeper.Keeper
-	CadenceKeeper        cadencekeeper.Keeper
-	IBCWasmClientKeeper  *ibcwasmkeeper.Keeper
-	FeeGrantKeeper       feegrantkeeper.Keeper
-	GovKeeper            govkeeper.Keeper
+	TransferKeeper       *ibctransferkeeper.Keeper
+	EvidenceKeeper       *evidencekeeper.Keeper
+	FanTokenKeeper       *fantokenkeeper.Keeper
+	WasmKeeper           *wasmkeeper.Keeper
+	CadenceKeeper        *cadencekeeper.Keeper
+	IBCWasmClientKeeper  *ibcwlckeeper.Keeper
+	FeeGrantKeeper       *feegrantkeeper.Keeper
+	GovKeeper            *govkeeper.Keeper
 	ContractKeeper       *wasmkeeper.PermissionedKeeper
 	SmartAccountKeeper   *smartaccountkeeper.Keeper
 	AuthenticatorManager *authenticator.AuthenticatorManager
-	ProtocolPoolKeeper   protocolpoolkeeper.Keeper
+	ProtocolPoolKeeper   *protocolpoolkeeper.Keeper
 
 	// Middleware wrapper
 	Ics20WasmHooks      *ibchooks.WasmHooks
@@ -159,7 +162,7 @@ func NewAppKeepers(
 	wasmOpts []wasmkeeper.Option,
 	wasmDir string,
 	wasmConfig wasmtypes.NodeConfig,
-	ibcWasmConfig ibcwasmtypes.WasmConfig,
+	ibcWasmConfig ibcwlctypes.WasmConfig,
 ) AppKeepers {
 	appKeepers := AppKeepers{}
 	Bech32Prefix := "bitsong"
@@ -173,12 +176,13 @@ func NewAppKeepers(
 	appKeepers.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
-	appKeepers.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(
+	consensusParamsKeeper := consensusparamkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[consensusparamtypes.StoreKey]),
 		govModAddress,
 		runtime.EventService{},
 	)
+	appKeepers.ConsensusParamsKeeper = &consensusParamsKeeper
 	bApp.SetParamStore(&appKeepers.ConsensusParamsKeeper.ParamsStore)
 
 	// grant capabilities for the ibc and ibc-transfer modules
@@ -221,10 +225,11 @@ func NewAppKeepers(
 	)
 	appKeepers.AccountKeeper = &accountKeeper
 
-	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
+	bankKeeper := bankkeeper.NewBaseKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[banktypes.StoreKey]), appKeepers.AccountKeeper, BlockedAddrs(),
 		govModAddress, bApp.Logger(),
 	)
+	appKeepers.BankKeeper = &bankKeeper
 
 	// Initialize authenticators
 	appKeepers.AuthenticatorManager = authenticator.NewAuthenticatorManager()
@@ -238,22 +243,25 @@ func NewAppKeepers(
 	})
 	govModuleAddr := appKeepers.AccountKeeper.GetModuleAddress(govtypes.ModuleName)
 
-	appKeepers.FeeGrantKeeper = feegrantkeeper.NewKeeper(
+	feegrantKeeper := feegrantkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[feegrant.StoreKey]), appKeepers.AccountKeeper,
 	)
+	appKeepers.FeeGrantKeeper = &feegrantKeeper
+
 	smartAccountKeeper := smartaccountkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[smartaccounttypes.StoreKey],
 		govModuleAddr,
 		appKeepers.GetSubspace(smartaccounttypes.ModuleName),
 		appKeepers.AuthenticatorManager,
-		appKeepers.FeeGrantKeeper,
+		*appKeepers.FeeGrantKeeper,
 	)
 	appKeepers.SmartAccountKeeper = &smartAccountKeeper
 
-	appKeepers.AuthzKeeper = authzkeeper.NewKeeper(
+	authzKeeper := authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(appKeepers.keys[authzkeeper.StoreKey]), appCodec, bApp.MsgServiceRouter(), appKeepers.AccountKeeper,
 	)
+	appKeepers.AuthzKeeper = &authzKeeper
 
 	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[stakingtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper, govModAddress,
@@ -262,30 +270,34 @@ func NewAppKeepers(
 	)
 
 	// TODO: implement custom mint function to split inflation rewards to incentivize cdn:
-	appKeepers.ProtocolPoolKeeper = protocolpoolkeeper.NewKeeper(
+	protopoolKeeper := protocolpoolkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[protocolpooltypes.StoreKey]),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
+	appKeepers.ProtocolPoolKeeper = &protopoolKeeper
 
-	appKeepers.DistrKeeper = distrkeeper.NewKeeper(
+	distrKeeper := distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[distrtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper,
 		stakingKeeper, authtypes.FeeCollectorName, govModAddress, // distrkeeper.WithExternalCommunityPool(appKeepers.ProtocolPoolKeeper),
 	)
+	appKeepers.DistrKeeper = &distrKeeper
 
-	appKeepers.SlashingKeeper = slashingkeeper.NewKeeper(
+	slashKeeper := slashingkeeper.NewKeeper(
 		appCodec, cdc, runtime.NewKVStoreService(appKeepers.keys[slashingtypes.StoreKey]), stakingKeeper, govModAddress,
 	)
+	appKeepers.SlashingKeeper = &slashKeeper
 
 	// https://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
-	appKeepers.MintKeeper = mintkeeper.NewKeeper(
+	mintKeeper := mintkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
 		// mintkeeper.WithMintFn(myCustomMintFunc), // Use custom minting function
 	)
+	appKeepers.MintKeeper = &mintKeeper
 
 	// register the staking hookshttps://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
@@ -294,6 +306,17 @@ func NewAppKeepers(
 	)
 
 	appKeepers.StakingKeeper = stakingKeeper
+
+	fantokenKeeper := fantokenkeeper.NewKeeper(
+		appCodec,
+		keys[fantokentypes.StoreKey],
+		appKeepers.GetSubspace(fantokentypes.ModuleName),
+		appKeepers.AccountKeeper,
+		appKeepers.BankKeeper,
+		appKeepers.DistrKeeper,
+		BlockedAddrs(),
+	)
+	appKeepers.FanTokenKeeper = &fantokenKeeper
 
 	appKeepers.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[ibcexported.StoreKey]), appKeepers.GetSubspace(ibcexported.ModuleName),
@@ -306,14 +329,6 @@ func NewAppKeepers(
 	)
 	appKeepers.IBCHooksKeeper = &hooksKeeper
 
-	// Setup the ICS4Wrapper used by the hooks middleware
-	wasmHooks := ibchooks.NewWasmHooks(appKeepers.IBCHooksKeeper, &appKeepers.WasmKeeper, Bech32Prefix)
-	appKeepers.Ics20WasmHooks = &wasmHooks
-	appKeepers.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.Ics20WasmHooks,
-	)
-
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[packetforwardtypes.StoreKey]),
@@ -325,7 +340,7 @@ func NewAppKeepers(
 		govModAddress,
 	)
 
-	appKeepers.TransferKeeper = ibctransferkeeper.NewKeeper(
+	transferKeeper := ibctransferkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[ibctransfertypes.StoreKey]),
 		appKeepers.GetSubspace(ibctransfertypes.ModuleName),
@@ -334,13 +349,14 @@ func NewAppKeepers(
 		appKeepers.AccountKeeper, appKeepers.BankKeeper,
 		govModAddress,
 	)
+	appKeepers.TransferKeeper = &transferKeeper
 
 	appKeepers.PacketForwardKeeper.SetTransferKeeper(appKeepers.TransferKeeper)
 
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
 	const middlewareTimeoutRetry = 0
-	transferStack = transfer.NewIBCModule(appKeepers.TransferKeeper)
+	transferStack = transfer.NewIBCModule(*appKeepers.TransferKeeper)
 	transferStack = ibchooks.NewIBCMiddleware(transferStack, &appKeepers.HooksICS4Wrapper)
 	transferStack = packetforward.NewIBCMiddleware(
 		transferStack,
@@ -355,17 +371,8 @@ func NewAppKeepers(
 		runtime.ProvideCometInfoService(),
 	)
 	// If evidence needs to be handled for the app, set routes in router here and seal
-	appKeepers.EvidenceKeeper = *evidenceKeeper
+	appKeepers.EvidenceKeeper = evidenceKeeper
 
-	appKeepers.FanTokenKeeper = fantokenkeeper.NewKeeper(
-		appCodec,
-		keys[fantokentypes.StoreKey],
-		appKeepers.GetSubspace(fantokentypes.ModuleName),
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.DistrKeeper,
-		BlockedAddrs(),
-	)
 	acceptedStargateQueries := AcceptedQueries()
 	querierOpts := wasmkeeper.WithQueryPlugins(
 		&wasmkeeper.QueryPlugins{Stargate: wasmkeeper.AcceptListStargateQuerier(acceptedStargateQueries, bApp.GRPCQueryRouter(), appCodec)})
@@ -382,13 +389,13 @@ func NewAppKeepers(
 		panic(fmt.Sprintf("failed to create bitsong wasm vm for 08-wasm: %s", err))
 	}
 
-	appKeepers.WasmKeeper = wasmkeeper.NewKeeper(
+	appWasmKeeper := wasmkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[wasmtypes.StoreKey]),
 		appKeepers.AccountKeeper,
 		appKeepers.BankKeeper,
 		appKeepers.StakingKeeper,
-		distrkeeper.NewQuerier(appKeepers.DistrKeeper),
+		distrkeeper.NewQuerier(*appKeepers.DistrKeeper),
 		appKeepers.IBCKeeper.ChannelKeeper,
 		appKeepers.IBCKeeper.ChannelKeeper,
 		appKeepers.IBCKeeper.ChannelKeeperV2,
@@ -402,10 +409,19 @@ func NewAppKeepers(
 		govModAddress,
 		append(wasmOpts, wasmkeeper.WithWasmEngine(wasmVm))...,
 	)
+	appKeepers.WasmKeeper = &appWasmKeeper
 
-	ibcWasmClientKeeper := ibcwasmkeeper.NewKeeperWithVM(
+	// Setup the ICS4Wrapper used by the hooks middleware
+	wasmHooks := ibchooks.NewWasmHooks(appKeepers.IBCHooksKeeper, appKeepers.WasmKeeper, Bech32Prefix)
+	appKeepers.Ics20WasmHooks = &wasmHooks
+	appKeepers.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
+		appKeepers.IBCKeeper.ChannelKeeper,
+		appKeepers.Ics20WasmHooks,
+	)
+
+	ibcWasmClientKeeper := ibcwlckeeper.NewKeeperWithVM(
 		appCodec,
-		runtime.NewKVStoreService(appKeepers.keys[ibcwasmtypes.StoreKey]),
+		runtime.NewKVStoreService(appKeepers.keys[ibcwlctypes.StoreKey]),
 		appKeepers.IBCKeeper.ClientKeeper,
 		govModAddress,
 		lcWasmer,
@@ -414,16 +430,8 @@ func NewAppKeepers(
 	appKeepers.IBCWasmClientKeeper = &ibcWasmClientKeeper
 
 	// set the contract keeper for ICS4Wrappers (IBC Middleware)
-	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
-	appKeepers.Ics20WasmHooks.ContractKeeper = &appKeepers.WasmKeeper
-
-	appKeepers.CadenceKeeper = cadencekeeper.NewKeeper(
-		appKeepers.keys[cadencetypes.StoreKey],
-		appCodec,
-		appKeepers.WasmKeeper,
-		appKeepers.ContractKeeper,
-		govModAddress,
-	)
+	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(appKeepers.WasmKeeper)
+	appKeepers.Ics20WasmHooks.ContractKeeper = appKeepers.WasmKeeper
 
 	// register CosmWasm authenticator
 	appKeepers.AuthenticatorManager.RegisterAuthenticator(
@@ -439,16 +447,24 @@ func NewAppKeepers(
 	// Seal the router
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
+	clientKeeper := appKeepers.IBCKeeper.ClientKeeper
+	storeProvider := appKeepers.IBCKeeper.ClientKeeper.GetStoreProvider()
+
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+	ibcWasmLightClientModule := ibcwlc.NewLightClientModule(*appKeepers.IBCWasmClientKeeper, storeProvider)
+	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+	clientKeeper.AddRoute(ibcwlctypes.ModuleName, ibcWasmLightClientModule)
+
 	// register the proposal types
 	govRouter := govtypesv1.NewRouter()
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypesv1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
-		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(appKeepers.FanTokenKeeper))
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(*appKeepers.FanTokenKeeper))
 
 	govConfig := govtypes.DefaultConfig()
 	govConfig.MaxMetadataLen = 10200
-	appKeepers.GovKeeper = *govkeeper.NewKeeper(
+	appKeepers.GovKeeper = govkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[govtypes.StoreKey]),
 		appKeepers.AccountKeeper,
@@ -461,6 +477,15 @@ func NewAppKeepers(
 	)
 	// Set legacy router for backwards compatibility with gov v1beta1
 	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
+
+	cadeKeeper := cadencekeeper.NewKeeper(
+		appKeepers.keys[cadencetypes.StoreKey],
+		appCodec,
+		appKeepers.WasmKeeper,
+		appKeepers.ContractKeeper,
+		govModAddress,
+	)
+	appKeepers.CadenceKeeper = &cadeKeeper
 
 	return appKeepers
 
