@@ -10,7 +10,7 @@ import (
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	apptesting "github.com/bitsongofficial/go-bitsong/app/testing"
-	v023 "github.com/bitsongofficial/go-bitsong/app/upgrades/v023"
+	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -86,7 +86,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 func dummyUpgrade(s *UpgradeTestSuite) {
 	s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-	plan := upgradetypes.Plan{Name: v023.UpgradeName, Height: dummyUpgradeHeight}
+	plan := upgradetypes.Plan{Name: v024.UpgradeName, Height: dummyUpgradeHeight}
 	err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 	s.Require().NoError(err)
 	_, err = s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
