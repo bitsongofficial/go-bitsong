@@ -72,7 +72,7 @@ import (
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 
-	v023 "github.com/bitsongofficial/go-bitsong/app/upgrades/v023"
+	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -94,8 +94,8 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		// v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
 		// v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
-		// v021.Upgrade, v022.Upgrade,
-		v023.Upgrade,
+		// v021.Upgrade, v022.Upgrade, v023.Upgrade,
+		v024.Upgrade,
 	}
 )
 

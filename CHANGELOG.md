@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
+
+## [unreleased]
+
+---
+## [0.24.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.23.0..v0.24.0) - 2025-08-29
+
+### ⚙️ Miscellaneous
+
+- remove icq support - ([6e30322](https://github.com/bitsongofficial/go-bitsong/commit/6e30322327e85dd6acbc9796429640bc60f91872)) - hard-nett
+-  [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
+
 ---
 ## [0.23.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.22.0..v0.23.0) - 2025-06-23
 

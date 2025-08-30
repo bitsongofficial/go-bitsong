@@ -11,6 +11,6 @@ const (
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateV023UpgradeHandler,
+	CreateUpgradeHandler: CreateV024Upgrade,
 	StoreUpgrades:        store.StoreUpgrades{Added: []string{}, Deleted: []string{"interchainquery"}},
 }
