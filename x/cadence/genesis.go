@@ -46,7 +46,7 @@ func ValidateGenesis(data types.GenesisState) error {
 // InitGenesis import module genesis
 func InitGenesis(
 	ctx sdk.Context,
-	k keeper.Keeper,
+	k *keeper.Keeper,
 	data types.GenesisState,
 ) {
 	// Validate init contents
@@ -61,7 +61,7 @@ func InitGenesis(
 }
 
 // ExportGenesis export module state
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+func ExportGenesis(ctx sdk.Context, k *keeper.Keeper) *types.GenesisState {
 	params := k.GetParams(ctx)
 
 	return &types.GenesisState{

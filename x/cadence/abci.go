@@ -18,7 +18,7 @@ import (
 var endBlockSudoMessage = []byte(types.EndBlockSudoMessage)
 
 // EndBlocker executes on contracts at the end of the block.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
+func EndBlocker(ctx sdk.Context, k *keeper.Keeper) {
 	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
 
 	logger := k.Logger(ctx)
@@ -68,7 +68,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 // Function to handle contract execution errors. Returns true if error is present, false otherwise.
 func handleError(
 	ctx sdk.Context,
-	k keeper.Keeper,
+	k *keeper.Keeper,
 	logger log.Logger,
 	errorExecs []string,
 	errorExists *bool,

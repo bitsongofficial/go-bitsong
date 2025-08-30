@@ -133,7 +133,7 @@ func appModules(
 		evidence.NewAppModule(*app.EvidenceKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, *app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		fantoken.NewAppModule(appCodec, *app.FanTokenKeeper, app.BankKeeper),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		ibcwasm.NewAppModule(*app.IBCWasmClientKeeper),
 		params.NewAppModule(app.ParamsKeeper),
@@ -141,7 +141,7 @@ func appModules(
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		transfer.NewAppModule(*app.TransferKeeper),
 		ibc_hooks.NewAppModule(*app.AccountKeeper),
-		cadence.NewAppModule(appCodec, *app.CadenceKeeper),
+		cadence.NewAppModule(appCodec, app.CadenceKeeper),
 		protocolpool.NewAppModule(*app.ProtocolPoolKeeper, app.AccountKeeper, app.BankKeeper),
 		smartaccount.NewAppModule(appCodec, *app.SmartAccountKeeper),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
@@ -213,7 +213,7 @@ func simulationModules(
 	return []module.AppModuleSimulation{
 		auth.NewAppModule(appCodec, *app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
-		fantoken.NewAppModule(appCodec, *app.FanTokenKeeper, app.BankKeeper),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
 		authzmodule.NewAppModule(appCodec, *app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),

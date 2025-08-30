@@ -15,11 +15,11 @@ var _ types.MsgServer = &msgServer{}
 
 // msgServer is a wrapper of Keeper.
 type msgServer struct {
-	Keeper
+	*Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the x/cadence MsgServer interface.
-func NewMsgServerImpl(k Keeper) types.MsgServer {
+func NewMsgServerImpl(k *Keeper) types.MsgServer {
 	return &msgServer{
 		Keeper: k,
 	}

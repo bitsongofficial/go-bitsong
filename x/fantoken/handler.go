@@ -54,7 +54,7 @@ func NewHandler(k keeper.Keeper) baseapp.MsgServiceHandler {
 	}
 }
 
-func NewProposalHandler(k keeper.Keeper) govv1beta1.Handler {
+func NewProposalHandler(k *keeper.Keeper) govv1beta1.Handler {
 	return func(ctx sdk.Context, content govv1beta1.Content) error {
 		switch c := content.(type) {
 		case *types.UpdateFeesProposal:
@@ -66,7 +66,7 @@ func NewProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 	}
 }
 
-func handleUpdateFeesProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateFeesProposal) error {
+func handleUpdateFeesProposal(ctx sdk.Context, k *keeper.Keeper, p *types.UpdateFeesProposal) error {
 	ctx.Logger().Info("Updating fantoken fees from proposal")
 
 	if err := types.ValidateFees(p.IssueFee, p.MintFee, p.BurnFee); err != nil {

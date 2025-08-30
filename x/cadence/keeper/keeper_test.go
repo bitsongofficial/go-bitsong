@@ -22,7 +22,7 @@ import (
 type IntegrationTestSuite struct {
 	apptesting.KeeperTestHelper
 	bk               minttypes.BankKeeper
-	wk               wasmkeeper.Keeper
+	wk               *wasmkeeper.Keeper
 	cadenceMsgServer types.MsgServer
 	queryClient      types.QueryClient
 }

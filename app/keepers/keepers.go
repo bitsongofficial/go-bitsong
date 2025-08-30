@@ -125,7 +125,7 @@ type AppKeepers struct {
 
 	// keepers
 	AccountKeeper        *authkeeper.AccountKeeper
-	BankKeeper           *bankkeeper.BaseKeeper
+	BankKeeper           bankkeeper.Keeper
 	AuthzKeeper          *authzkeeper.Keeper
 	StakingKeeper        *stakingkeeper.Keeper
 	DistrKeeper          *distrkeeper.Keeper
@@ -225,11 +225,10 @@ func NewAppKeepers(
 	)
 	appKeepers.AccountKeeper = &accountKeeper
 
-	bankKeeper := bankkeeper.NewBaseKeeper(
+	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[banktypes.StoreKey]), appKeepers.AccountKeeper, BlockedAddrs(),
 		govModAddress, bApp.Logger(),
 	)
-	appKeepers.BankKeeper = &bankKeeper
 
 	// Initialize authenticators
 	appKeepers.AuthenticatorManager = authenticator.NewAuthenticatorManager()
@@ -460,7 +459,7 @@ func NewAppKeepers(
 	govRouter.
 		AddRoute(govtypes.RouterKey, govtypesv1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(appKeepers.ParamsKeeper)).
-		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(*appKeepers.FanTokenKeeper))
+		AddRoute(fantokentypes.RouterKey, fantoken.NewProposalHandler(appKeepers.FanTokenKeeper))
 
 	govConfig := govtypes.DefaultConfig()
 	govConfig.MaxMetadataLen = 10200

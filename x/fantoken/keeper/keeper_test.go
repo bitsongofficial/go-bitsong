@@ -34,7 +34,7 @@ type KeeperTestSuite struct {
 
 	legacyAmino *codec.LegacyAmino
 	ctx         sdk.Context
-	keeper      keeper.Keeper
+	keeper      *keeper.Keeper
 	bk          bankkeeper.Keeper
 	app         *simapp.BitsongApp
 }
