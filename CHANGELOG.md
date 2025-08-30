@@ -12,6 +12,12 @@ All notable changes to this project will be documented in this file. See [conven
 
 - remove icq support - ([6e30322](https://github.com/bitsongofficial/go-bitsong/commit/6e30322327e85dd6acbc9796429640bc60f91872)) - hard-nett
 -  [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
+- remove the rest of stale upgradehandler imports - ([f0ed673](https://github.com/bitsongofficial/go-bitsong/commit/f0ed673c6c9b4142f430955d966829e51316b972)) - hard-nett
+
+### 🐛 Bug fixes
+
+- add x/fantoken MsgServiceHandler - ([160f17a](https://github.com/bitsongofficial/go-bitsong/commit/160f17a4014769936848f9aebbd3f7685ab4601e)) - hard-nett
+- wire in v024 upgradehandler - ([ad31d93](https://github.com/bitsongofficial/go-bitsong/commit/ad31d93cb56adac2caf9b84627d5097e98ac243c)) - hard-nett
 
 ---
 ## [0.23.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.22.0..v0.23.0) - 2025-06-23
