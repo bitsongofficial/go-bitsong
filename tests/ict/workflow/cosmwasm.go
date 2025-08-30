@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 	"github.com/stretchr/testify/require"
 )
 

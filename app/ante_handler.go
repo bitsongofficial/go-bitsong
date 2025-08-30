@@ -13,8 +13,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v10/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	smartaccountante "github.com/bitsongofficial/go-bitsong/x/smart-account/ante"
 	smartaccountkeeper "github.com/bitsongofficial/go-bitsong/x/smart-account/keeper"
@@ -29,7 +29,7 @@ type HandlerOptions struct {
 	GovKeeper         govkeeper.Keeper
 	IBCKeeper         *ibckeeper.Keeper
 	TxCounterStoreKey corestoretypes.KVStoreService
-	WasmConfig        wasmTypes.WasmConfig
+	WasmConfig        wasmTypes.NodeConfig
 	Cdc               codec.Codec
 
 	TxEncoder sdk.TxEncoder

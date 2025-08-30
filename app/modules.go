@@ -51,24 +51,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
-	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
-	ibctestingtypes "github.com/cosmos/ibc-go/v8/testing/types"
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
+	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10/types"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/ibc-go/modules/capability"
 	capabilitykeeper "github.com/cosmos/ibc-go/modules/capability/keeper"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	"github.com/cosmos/ibc-go/v8/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v8/modules/core"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
+	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 )
 
 // AppModuleBasics defines the module BasicManager is in charge of setting up basic,
@@ -232,7 +231,7 @@ func simulationModules(
 }
 
 // used for ibctesting with bitsongs simulation app
-func (app *BitsongApp) GetStakingKeeper() ibctestingtypes.StakingKeeper {
+func (app *BitsongApp) GetStakingKeeper() stakingkeeper.Keeper {
 	return *app.StakingKeeper // Dereferencing the pointer
 }
 func (app *BitsongApp) GetSDKStakingKeeper() stakingkeeper.Keeper {

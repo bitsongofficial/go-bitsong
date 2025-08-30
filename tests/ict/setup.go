@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/docker/docker/client"
-	interchaintest "github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
+	interchaintest "github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testreporter"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
@@ -17,7 +17,6 @@ import (
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	ibclocalhost "github.com/cosmos/ibc-go/v8/modules/light-clients/09-localhost"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -90,7 +89,7 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 	cfg := cosmos.DefaultEncoding()
 
 	// register custom types
-	ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
+	// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	cadencetypes.RegisterInterfaces(cfg.InterfaceRegistry)

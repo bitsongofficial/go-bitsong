@@ -182,7 +182,7 @@ func initAppConfig() (string, interface{}) {
 	type CustomAppConfig struct {
 		serverconfig.Config
 
-		Wasm wasmtypes.WasmConfig `mapstructure:"wasm"`
+		Wasm wasmtypes.NodeConfig `mapstructure:"wasm"`
 	}
 
 	// modify the default server configuration
@@ -194,7 +194,7 @@ func initAppConfig() (string, interface{}) {
 
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
-		Wasm:   wasmtypes.DefaultWasmConfig(),
+		Wasm:   wasmtypes.DefaultNodeConfig(),
 	}
 
 	customAppTemplate := serverconfig.DefaultConfigTemplate +
