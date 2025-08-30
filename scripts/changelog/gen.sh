@@ -20,7 +20,7 @@ fi
 
 # Generate the latest changelog and prepend it to CHANGELOG.md
 echo "generating changelog.."
-git-cliff --config scripts/changelog/cliff.toml 
+git-cliff --config scripts/changelog/cliff.toml -u
 echo "changelog generated"
 
 # git cliff --config scripts/changelog/cliff.toml -l --prepend CHANGELOG.md

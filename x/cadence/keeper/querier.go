@@ -12,10 +12,10 @@ import (
 var _ types.QueryServer = &Querier{}
 
 type Querier struct {
-	keeper Keeper
+	keeper *Keeper
 }
 
-func NewQuerier(k Keeper) Querier {
+func NewQuerier(k *Keeper) Querier {
 	return Querier{
 		keeper: k,
 	}

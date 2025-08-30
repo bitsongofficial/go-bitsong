@@ -38,7 +38,9 @@ import (
 
 	storetypes "cosmossdk.io/store/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sigtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -47,10 +49,8 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
+	wasmlckeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	dbm "github.com/cosmos/cosmos-db"
@@ -68,14 +68,11 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
 
-	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
-	v022 "github.com/bitsongofficial/go-bitsong/app/upgrades/v022"
-	v023 "github.com/bitsongofficial/go-bitsong/app/upgrades/v023"
+	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
 )
@@ -97,7 +94,8 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		// v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
 		// v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
-		v021.Upgrade, v022.Upgrade, v023.Upgrade,
+		// v021.Upgrade, v022.Upgrade, v023.Upgrade,
+		v024.Upgrade,
 	}
 )
 
@@ -246,7 +244,7 @@ func NewBitsongApp(
 
 	app.homePath = homePath
 	wasmDir := filepath.Join(homePath, "wasm")
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	wasmConfig, err := wasm.ReadNodeConfig(appOpts)
 	if err != nil {
 		panic("error while reading wasm config: " + err.Error())
 	}
@@ -353,7 +351,6 @@ func NewBitsongApp(
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
 			SmartAccount:      app.SmartAccountKeeper,
-			GovKeeper:         app.GovKeeper,
 			IBCKeeper:         app.IBCKeeper,
 			TxCounterStoreKey: runtime.NewKVStoreService(app.GetKey(wasmtypes.StoreKey)),
 			WasmConfig:        wasmConfig,
@@ -377,14 +374,14 @@ func NewBitsongApp(
 
 	if manager := app.SnapshotManager(); manager != nil {
 		err = manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.WasmKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
 		//  takes care of persisting the external state from wasm code when snapshot is created
 		err = manager.RegisterExtensions(
-			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
+			wasmlckeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
@@ -401,7 +398,7 @@ func NewBitsongApp(
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
-		if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
+		if err := app.IBCWasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 		// Initialize and seal the capability keeper so all persistent capabilities

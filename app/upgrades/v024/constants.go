@@ -1,4 +1,4 @@
-package v023
+package v024
 
 import (
 	store "cosmossdk.io/store/types"
@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	UpgradeName = "v023"
+	UpgradeName = "v024"
 )
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateV023UpgradeHandler,
-	StoreUpgrades:        store.StoreUpgrades{Added: []string{}, Deleted: []string{}},
+	CreateUpgradeHandler: CreateV024Upgrade,
+	StoreUpgrades:        store.StoreUpgrades{Added: []string{}, Deleted: []string{"interchainquery"}},
 }
