@@ -66,7 +66,7 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 		},
 	}
 
-	cfg := baseCfg
+	cfg := BaseCfg
 
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
 	cfg.Images = []ibc.DockerImage{baseChain}
