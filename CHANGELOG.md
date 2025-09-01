@@ -2,22 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
-
 ## [unreleased]
 
 ---
+
 ## [0.24.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.23.0..v0.24.0) - 2025-08-29
 
 ### ⚙️ Miscellaneous
 
 - remove icq support - ([6e30322](https://github.com/bitsongofficial/go-bitsong/commit/6e30322327e85dd6acbc9796429640bc60f91872)) - hard-nett
--  [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
+- [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
 - remove the rest of stale upgradehandler imports - ([f0ed673](https://github.com/bitsongofficial/go-bitsong/commit/f0ed673c6c9b4142f430955d966829e51316b972)) - hard-nett
+- re-wire default export cmd - ([a1a260c](https://github.com/bitsongofficial/go-bitsong/commit/a1a260c96a066f0c13a100e9b306bf317072b2ff)) - hard-nett
+- re-add ibc+wasm e2e tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
 
 ### 🐛 Bug fixes
 
 - add x/fantoken MsgServiceHandler - ([160f17a](https://github.com/bitsongofficial/go-bitsong/commit/160f17a4014769936848f9aebbd3f7685ab4601e)) - hard-nett
 - wire in v024 upgradehandler - ([ad31d93](https://github.com/bitsongofficial/go-bitsong/commit/ad31d93cb56adac2caf9b84627d5097e98ac243c)) - hard-nett
+- wire 08-wasm & 07-tendermint light clients into cilentKeeper, use pointers for our AppKeepers struct - ([d32f36e](https://github.com/bitsongofficial/go-bitsong/commit/d32f36e9068e10ec752aa6f15a1a2cc88649c4c3)) - hard-nett
+- revert bankKeeper pointer for now, improve pointer use throughout app - ([0756c5c](https://github.com/bitsongofficial/go-bitsong/commit/0756c5c45a3ce20abce57be2884d815d97606df8)) - hard-nett
+- revert to proper ics4Middleware keeper initialization sequence - ([54feebf](https://github.com/bitsongofficial/go-bitsong/commit/54feebfbf8432417714309dbae472ec92eb9aa74)) - hard-nett
 
 ---
 ## [0.23.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.22.0..v0.23.0) - 2025-06-23
