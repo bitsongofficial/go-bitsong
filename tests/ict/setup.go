@@ -57,7 +57,7 @@ var (
 		},
 	}
 
-	baseCfg = ibc.ChainConfig{
+	BaseCfg = ibc.ChainConfig{
 		Type:                "cosmos",
 		Name:                "bitsong",
 		ChainID:             "bitsong-2",
@@ -100,7 +100,7 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 
 // CreateChain generates a new chain with a custom image (useful for upgrades)
 func CreateChain(t *testing.T, numVals, numFull int, img ibc.DockerImage) []ibc.Chain {
-	cfg := baseCfg
+	cfg := BaseCfg
 	cfg.Images = []ibc.DockerImage{img}
 	return CreateICTestBitsongChainCustomConfig(t, numVals, numFull, cfg)
 }
