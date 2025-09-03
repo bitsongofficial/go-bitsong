@@ -61,15 +61,15 @@ func (k Keeper) setSupply(ctx sdk.Context, denom string, supply math.Int) error 
 func (k Keeper) incrementSupply(ctx sdk.Context, denom string) error {
 	supply := k.GetSupply(ctx, denom)
 	supply = supply.Add(math.NewInt(1))
-	
+
 	return k.setSupply(ctx, denom, supply)
 }
 
 func (k Keeper) createCollectionDenom(creator sdk.AccAddress, symbol string) string {
 	// TODO: if necessary add a salt field
 
-	bz := []byte(fmt.Sprintf("%s%s", creator.String(), symbol))
-	return "nft" + tmcrypto.AddressHash(bz).String()
+	bz := []byte(fmt.Sprintf("%s/%s", creator.String(), symbol))
+	return fmt.Sprintf("nft%x", tmcrypto.AddressHash(bz))
 }
 
 func (k Keeper) validateCollectionDenom(ctx sdk.Context, creator sdk.AccAddress, symbol string) (string, error) {
@@ -79,7 +79,7 @@ func (k Keeper) validateCollectionDenom(ctx sdk.Context, creator sdk.AccAddress,
 		return "", err
 	}
 
-	if k.bk.HasSupply(ctx, symbol) {
+	if k.bk.HasSupply(ctx, denom) {
 		return "", fmt.Errorf("denom %s already exists", denom)
 	}
 

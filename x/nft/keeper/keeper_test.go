@@ -61,8 +61,9 @@ func (suite *KeeperTestSuite) TestCreateCollection() {
 		Uri:         "ipfs://my-nft-collection-metadata.json",
 	}
 
-	_, err := suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
+	denom, err := suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
 	suite.NoError(err)
+	fmt.Println("denom:", denom)
 
 	_, err = suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
 	suite.Error(err)
