@@ -1,13 +1,18 @@
 syntax = "proto3";
 package bitsong.nft.v1beta1;
 
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
 
 message Collection {
+  option (gogoproto.goproto_getters) = false;
+
   string symbol = 1;
   string name = 2;
   string description = 3;
   string uri = 4;
+
   string creator = 5;
   string minter = 6;
   uint64 num_tokens = 7;
@@ -16,10 +21,16 @@ message Collection {
 }
 
 message Nft {
-  string name = 1;
-  string description = 2;
-  string uri = 3;
-  // string owner = 5;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+
+  string name = 3;
+  string description = 4;
+  string uri = 5;
+
+  string owner = 6;
   // seller_fee_bps
   // payment_address
   // bool is_mutable

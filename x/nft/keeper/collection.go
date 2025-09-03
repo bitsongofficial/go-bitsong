@@ -7,7 +7,6 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 func (k Keeper) CreateCollection(ctx sdk.Context, creator sdk.AccAddress, coll types.Collection) (denom string, err error) {
@@ -17,21 +16,6 @@ func (k Keeper) CreateCollection(ctx sdk.Context, creator sdk.AccAddress, coll t
 	}
 
 	// TODO: charge fee
-
-	metadata := banktypes.Metadata{
-		DenomUnits: []*banktypes.DenomUnit{{
-			Denom:    denom,
-			Exponent: 0,
-		}},
-		Base:        denom,
-		Name:        coll.Name,
-		Description: coll.Description,
-		Symbol:      coll.Symbol,
-		Display:     coll.Symbol,
-		URI:         coll.Uri,
-	}
-
-	k.bk.SetDenomMetaData(ctx, metadata)
 
 	if err := k.setCollection(ctx, denom, coll); err != nil {
 		return "", err
@@ -79,12 +63,7 @@ func (k Keeper) validateCollectionDenom(ctx sdk.Context, creator sdk.AccAddress,
 		return "", err
 	}
 
-	if k.bk.HasSupply(ctx, denom) {
-		return "", fmt.Errorf("denom %s already exists", denom)
-	}
-
-	_, exists := k.bk.GetDenomMetaData(ctx, denom)
-	if exists {
+	if k.HasCollection(ctx, denom) {
 		return "", types.ErrCollectionAlreadyExists
 	}
 
@@ -102,4 +81,9 @@ func (k Keeper) getCollection(ctx sdk.Context, denom string) (types.Collection, 
 	}
 
 	return coll, nil
+}
+
+func (k Keeper) HasCollection(ctx sdk.Context, denom string) bool {
+	has, err := k.Collections.Has(ctx, denom)
+	return has && err == nil
 }

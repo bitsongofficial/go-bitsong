@@ -3,63 +3,53 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/collections"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
-func (k Keeper) MintNFT(ctx sdk.Context, collectionDenom string, minter sdk.AccAddress, owner sdk.AccAddress, metadata types.Nft) (string, error) {
+func (k Keeper) MintNFT(ctx sdk.Context, collectionDenom string, minter sdk.AccAddress, owner sdk.AccAddress, metadata types.Nft) error {
+	nftKey := collections.Join(collectionDenom, metadata.TokenId)
+	has, err := k.NFTs.Has(ctx, nftKey)
+	if err != nil {
+		return fmt.Errorf("failed to check NFT: %w", err)
+	}
+	if has {
+		return fmt.Errorf("NFT with token ID %s already exists in collection %s", metadata.TokenId, collectionDenom)
+	}
+
 	coll, err := k.Collections.Get(ctx, collectionDenom)
 	if err != nil {
-		return "", types.ErrCollectionNotFound
+		return types.ErrCollectionNotFound
 	}
 
 	collectionMinter, err := sdk.AccAddressFromBech32(coll.Minter)
 	if err != nil {
-		return "", fmt.Errorf("invalid minter address: %w", err)
+		return fmt.Errorf("invalid minter address: %w", err)
 	}
 
 	if !minter.Equals(collectionMinter) {
-		return "", fmt.Errorf("only the collection minter can mint NFTs")
+		return fmt.Errorf("only the collection minter can mint NFTs")
 	}
-
-	nftDenom := k.createNftDenom(ctx, collectionDenom)
 
 	// TODO: Charge fee if necessary
 
-	nftMetadata := banktypes.Metadata{
-		DenomUnits: []*banktypes.DenomUnit{{
-			Denom:    nftDenom,
-			Exponent: 0,
-		}},
-		Base:        nftDenom,
-		Name:        metadata.Name,
-		Description: metadata.Description,
-		URI:         metadata.Uri,
-		Symbol:      nftDenom,
-		Display:     nftDenom,
+	metadata.Collection = collectionDenom
+	metadata.Owner = owner.String()
+
+	if err := k.setNft(ctx, collectionDenom, metadata.TokenId, metadata); err != nil {
+		return fmt.Errorf("failed to set NFT: %w", err)
 	}
 
-	k.bk.SetDenomMetaData(ctx, nftMetadata)
-
-	amount := sdk.NewInt64Coin(nftDenom, 1)
-
-	if err := k.bk.MintCoins(ctx, types.ModuleName, sdk.NewCoins(amount)); err != nil {
-		return "", fmt.Errorf("failed to mint NFT: %w", err)
-	}
-
-	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(amount)); err != nil {
-		return "", fmt.Errorf("failed to send NFT to owner: %w", err)
-	}
-
-	if err := k.incrementSupply(ctx, collectionDenom); err != nil {
-		return "", fmt.Errorf("failed to increment supply: %w", err)
-	}
-
-	return nftDenom, nil
+	return k.incrementSupply(ctx, collectionDenom)
 }
 
 func (k Keeper) createNftDenom(ctx sdk.Context, collectionDenom string) string {
 	supply := k.GetSupply(ctx, collectionDenom)
 	return fmt.Sprintf("%s-%d", collectionDenom, supply.Uint64()+1)
+}
+
+func (k Keeper) setNft(ctx sdk.Context, collectionDenom string, tokenId string, nft types.Nft) error {
+	pk := collections.Join(collectionDenom, tokenId)
+	return k.NFTs.Set(ctx, pk, nft)
 }

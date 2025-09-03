@@ -9,6 +9,9 @@ const (
 )
 
 var (
-	CollectionsPrefix = collections.NewPrefix(0)
-	SupplyPrefix      = collections.NewPrefix(1)
+	CollectionsPrefix      = collections.NewPrefix(0)
+	SupplyPrefix           = collections.NewPrefix(1)
+	NFTsPrefix             = collections.NewPrefix(2)
+	NFTsByCollectionPrefix = collections.NewPrefix(3)
+	OwnersPrefix           = collections.NewPrefix(4)
 )

@@ -115,7 +115,6 @@ var maccPerms = map[string][]string{
 	govtypes.ModuleName:                         {authtypes.Burner},
 	ibctransfertypes.ModuleName:                 {authtypes.Minter, authtypes.Burner},
 	fantokentypes.ModuleName:                    {authtypes.Minter, authtypes.Burner},
-	nfttypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
 	wasmtypes.ModuleName:                        {authtypes.Burner},
 	protocolpooltypes.ModuleName:                nil,
 	protocolpooltypes.ProtocolPoolEscrowAccount: nil,
@@ -414,7 +413,6 @@ func NewAppKeepers(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[nfttypes.StoreKey]),
 		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
 		bApp.Logger(),
 	)
 

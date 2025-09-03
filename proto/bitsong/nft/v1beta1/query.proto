@@ -1,0 +1,136 @@
+syntax = "proto3";
+package bitsong.nft.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/query/v1/query.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "bitsong/nft/v1beta1/nft.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+
+service Query {
+  rpc Collection(QueryCollectionRequest) returns (QueryCollectionResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collection/{collection}";
+  }
+
+  rpc OwnerOf(QueryOwnerOfRequest) returns (QueryOwnerOfResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/owner/{collection}/{token_id}";
+  }
+
+  rpc NumTokens(QueryNumTokensRequest) returns (QueryNumTokensResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/num_tokens/{collection}";
+  }
+
+  rpc NftInfo(QueryNftInfoRequest) returns (QueryNftInfoResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/nft_info/{collection}/{token_id}";
+  }
+
+  rpc Nfts(QueryNftsRequest) returns (QueryNftsResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/nfts/{collection}";
+  }
+
+  rpc AllNftsByOwner(QueryAllNftsByOwnerRequest) returns (QueryAllNftsByOwnerResponse) {
+    option (cosmos.query.v1.module_query_safe) = true;
+    option (google.api.http).get = "/bitsong/nft/v1beta1/nfts_by_owner/{owner}";
+  }
+}
+
+message QueryCollectionRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+}
+
+message QueryCollectionResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bitsong.nft.v1beta1.Collection collection = 1;
+}
+
+message QueryOwnerOfRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+}
+
+message QueryOwnerOfResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner = 1;
+}
+
+message QueryNumTokensRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+}
+
+message QueryNumTokensResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 count = 1;
+}
+
+message QueryNftInfoRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+}
+
+message QueryNftInfoResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  bitsong.nft.v1beta1.Nft nft = 1;
+}
+
+message QueryNftsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryNftsResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated bitsong.nft.v1beta1.Nft nfts = 1 [
+    (gogoproto.nullable) = false
+  ];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryAllNftsByOwnerRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner = 1;
+}
+
+message QueryAllNftsByOwnerResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  repeated bitsong.nft.v1beta1.Nft nfts = 1 [
+    (gogoproto.nullable) = false
+  ];
+}
