@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/bitsongofficial/go-bitsong/tests/e2e/helpers"
+	"github.com/bitsongofficial/go-bitsong/tests/ict/helpers"
 	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 	"github.com/stretchr/testify/require"

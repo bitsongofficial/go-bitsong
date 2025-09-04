@@ -33,9 +33,9 @@ go test ./...
 ```sh
 # a. build fresh docker image
 make docker-build
-# b. run default e2e test
-make e2e-basic
-# run `make e2e-help` to view current implemented e2e-tests
+# b. run default ict test
+make ict-basic
+# run `make ict-help` to view current implemented ict-tests
 ```
 
 ## Release

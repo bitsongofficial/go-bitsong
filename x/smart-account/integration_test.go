@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bitsongofficial/go-bitsong/tests/bitsongibctesting"
+	bitsongibctesting "github.com/bitsongofficial/go-bitsong/tests/ibctesting"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/authenticator"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/testutils"
 

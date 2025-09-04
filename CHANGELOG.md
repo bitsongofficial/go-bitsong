@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. See [conven
 - [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
 - remove the rest of stale upgradehandler imports - ([f0ed673](https://github.com/bitsongofficial/go-bitsong/commit/f0ed673c6c9b4142f430955d966829e51316b972)) - hard-nett
 - re-wire default export cmd - ([a1a260c](https://github.com/bitsongofficial/go-bitsong/commit/a1a260c96a066f0c13a100e9b306bf317072b2ff)) - hard-nett
-- re-add ibc+wasm e2e tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
+- re-add ibc+wasm ict tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
 
 ### 🐛 Bug fixes
 - remove x/cadence - ([62c6b84](https://github.com/bitsongofficial/go-bitsong/commit/62c6b8434cc20c97d6d287c72b385ebdaf0dd982)) - hard-nett

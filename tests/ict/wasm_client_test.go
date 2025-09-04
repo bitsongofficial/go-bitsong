@@ -1,4 +1,4 @@
-package e2e
+package ict
 
 // spin up 2 chains
 // upload wasm client contract

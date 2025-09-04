@@ -1,4 +1,4 @@
-package e2e
+package ict
 
 import (
 	"context"
@@ -26,7 +26,7 @@ var (
 	MaxDepositPeriod = "10s"
 	Denom            = "ubtsg"
 
-	BitsongE2eRepo  = "ghcr.io/bitsongofficial/go-bitsong-e2e"
+	BitsongE2eRepo  = "ghcr.io/bitsongofficial/go-bitsong-ict"
 	BitsongMainRepo = "ghcr.io/bitsongofficial/go-bitsong"
 
 	IBCRelayerImage   = "ghcr.io/cosmos/relayer"

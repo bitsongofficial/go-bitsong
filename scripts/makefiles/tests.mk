@@ -7,7 +7,7 @@ test-help:
 	@echo "  make [command]"
 	@echo ""
 	@echo "Available Commands:"
-	@echo "  e2e                	 View e2e tests available to run"
+	@echo "  ict                	 View ict tests available to run"
 	@echo "  test-all                Run all tests"
 	@echo "  test-unit               Run unit tests"
 	@echo "  test-benchmark          Run benchmark tests"

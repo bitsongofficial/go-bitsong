@@ -1,4 +1,4 @@
-module github.com/bitsongofficial/go-bitsong/tests/e2e
+module github.com/bitsongofficial/go-bitsong/tests/ict
 
 go 1.24.5
 

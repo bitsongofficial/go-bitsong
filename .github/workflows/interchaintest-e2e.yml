@@ -51,17 +51,18 @@ jobs:
           name: ${{ env.IMAGE_NAME }}
           path: ${{ env.TAR_PATH }}
 
-  e2e-tests:
+  ict-tests:
     needs: build-docker
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # names of `make` commands to run tests
         test:
-          - "e2e-basic"
-          - "e2e-pfm"
-          - "e2e-polytone"
-          # - "e2e-upgrade"
+          - "ict-basic"
+          - "ict-pfm"
+          - "ict-polytone"
+          - "ict-ibc-hooks"
+          # - "ict-upgrade"
       fail-fast: false
 
     steps:

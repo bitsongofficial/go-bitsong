@@ -3,7 +3,7 @@
 include contrib/devtools/Makefile
 include scripts/makefiles/build.mk
 include scripts/makefiles/docker.mk
-include scripts/makefiles/e2e.mk
+include scripts/makefiles/ict.mk
 include scripts/makefiles/format.mk
 include scripts/makefiles/hl.mk
 include scripts/makefiles/localnet.mk
@@ -19,7 +19,7 @@ help:
 	@echo ""
 	@echo "  make build                 Build Bitsong node binary"
 	@echo "  make docker                Show available docker related commands"
-	@echo "  make e2e                   Show available e2e commands"
+	@echo "  make ict                   Show available ict commands"
 	@echo "  make format                Show available formatting commands"
 	@echo "  make hl                    Show available docker commands (via Strangelove's Heighliner Tooling)"
 	@echo "  make install               Install Bitsong node binary"

@@ -1,5 +1,5 @@
 // source: https://github.com/strangelove-ventures/interchaintest/blob/main/examples/cosmos/chain_core_test.go#L161
-package e2e
+package ict
 
 import (
 	"context"

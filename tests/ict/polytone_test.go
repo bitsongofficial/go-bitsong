@@ -1,5 +1,5 @@
 // source: https://github.com/DA0-DA0/polytone/blob/main/tests/strangelove/incompatible_handshake_test.go
-package e2e
+package ict
 
 import (
 	"context"
