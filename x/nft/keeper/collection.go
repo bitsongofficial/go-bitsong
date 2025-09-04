@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
@@ -10,15 +11,37 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (k Keeper) CreateCollection(ctx context.Context, creator sdk.AccAddress, coll types.Collection) (denom string, err error) {
-	denom, err = k.validateCollectionDenom(ctx, creator, coll.Symbol)
+func (k Keeper) CreateCollection(
+	ctx context.Context,
+	creator,
+	minter sdk.AccAddress,
+	symbol,
+	name,
+	description,
+	uri string,
+) (denom string, err error) {
+	denom, err = k.validateCollectionDenom(ctx, creator, symbol)
 	if err != nil {
 		return "", err
 	}
 
 	// TODO: charge fee
 
-	if err := k.setCollection(ctx, denom, coll); err != nil {
+	if err := k.validateCollectionMetadata(name, description, uri); err != nil {
+		return "", err
+	}
+
+	coll := types.Collection{
+		Denom:       denom,
+		Symbol:      symbol,
+		Name:        name,
+		Description: description,
+		Uri:         uri,
+		Creator:     creator.String(),
+		Minter:      minter.String(),
+	}
+
+	if err := k.setCollection(ctx, coll); err != nil {
 		return "", err
 	}
 
@@ -44,6 +67,19 @@ func (k Keeper) HasCollection(ctx context.Context, denom string) bool {
 	return has && err == nil
 }
 
+func (k Keeper) GetMinter(ctx context.Context, denom string) (sdk.AccAddress, error) {
+	coll, err := k.Collections.Get(ctx, denom)
+	if err != nil {
+		return nil, types.ErrCollectionNotFound
+	}
+
+	if coll.Minter == "" {
+		return nil, fmt.Errorf("minting disabled for this collection")
+	}
+
+	return sdk.AccAddressFromBech32(coll.Minter)
+}
+
 func (k Keeper) setSupply(ctx context.Context, denom string, supply math.Int) error {
 	return k.Supply.Set(ctx, denom, supply)
 }
@@ -55,15 +91,26 @@ func (k Keeper) incrementSupply(ctx context.Context, denom string) error {
 	return k.setSupply(ctx, denom, supply)
 }
 
-func (k Keeper) createCollectionDenom(creator sdk.AccAddress, symbol string) string {
+func (k Keeper) createCollectionDenom(creator sdk.AccAddress, symbol string) (string, error) {
 	// TODO: if necessary add a salt field
 
+	if strings.TrimSpace(symbol) == "" {
+		return "", fmt.Errorf("symbol cannot be blank")
+	}
+
+	if len(symbol) > types.MaxSymbolLength {
+		return "", fmt.Errorf("symbol cannot be longer than %d characters", types.MaxSymbolLength)
+	}
+
 	bz := []byte(fmt.Sprintf("%s/%s", creator.String(), symbol))
-	return fmt.Sprintf("nft%x", tmcrypto.AddressHash(bz))
+	return fmt.Sprintf("nft%x", tmcrypto.AddressHash(bz)), nil
 }
 
 func (k Keeper) validateCollectionDenom(ctx context.Context, creator sdk.AccAddress, symbol string) (string, error) {
-	denom := k.createCollectionDenom(creator, symbol)
+	denom, err := k.createCollectionDenom(creator, symbol)
+	if err != nil {
+		return "", err
+	}
 
 	if err := sdk.ValidateDenom(denom); err != nil {
 		return "", err
@@ -76,8 +123,8 @@ func (k Keeper) validateCollectionDenom(ctx context.Context, creator sdk.AccAddr
 	return denom, nil
 }
 
-func (k Keeper) setCollection(ctx context.Context, denom string, coll types.Collection) error {
-	return k.Collections.Set(ctx, denom, coll)
+func (k Keeper) setCollection(ctx context.Context, coll types.Collection) error {
+	return k.Collections.Set(ctx, coll.Denom, coll)
 }
 
 func (k Keeper) getCollection(ctx context.Context, denom string) (types.Collection, error) {
@@ -87,4 +134,20 @@ func (k Keeper) getCollection(ctx context.Context, denom string) (types.Collecti
 	}
 
 	return coll, nil
+}
+
+func (k Keeper) validateCollectionMetadata(name, description, uri string) error {
+	if len(name) > types.MaxNameLength {
+		return fmt.Errorf("name cannot be longer than %d characters", types.MaxNameLength)
+	}
+
+	if len(description) > types.MaxDescriptionLength {
+		return fmt.Errorf("description cannot be longer than %d characters", types.MaxDescriptionLength)
+	}
+
+	if len(uri) > types.MaxURILength {
+		return fmt.Errorf("uri cannot be longer than %d characters", types.MaxURILength)
+	}
+
+	return nil
 }

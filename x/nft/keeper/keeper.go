@@ -57,10 +57,10 @@ type Keeper struct {
 	logger       log.Logger
 
 	Schema      collections.Schema
-	Collections collections.Map[string, types.Collection]
+	Collections collections.Map[string, types.Collection] // (collectionDenom) -> Collection
 	Supply      collections.Map[string, math.Int]
-	// (collectionDenom, tokenId) -> NFT
-	NFTs *collections.IndexedMap[collections.Pair[string, string], types.Nft, NFTIndexes]
+	NFTs        *collections.IndexedMap[collections.Pair[string, string], types.Nft, NFTIndexes] // (collectionDenom, tokenId) -> NFT
+	Editions    collections.Map[collections.Triple[string, string, uint64], types.Edition]       // (collectionDenom, tokenId, edition) -> Edition
 }
 
 func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, storeService store.KVStoreService, ak types.AccountKeeper, logger log.Logger) Keeper {
@@ -81,8 +81,19 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, storeService stor
 		ak:           ak,
 		logger:       logger,
 		// TODO: fix the store once we add queries
-		Collections: collections.NewMap(sb, types.CollectionsPrefix, "collections", collections.StringKey, codec.CollValue[types.Collection](cdc)),
-		Supply:      collections.NewMap(sb, types.SupplyPrefix, "supply", collections.StringKey, sdk.IntValue),
+		Collections: collections.NewMap(
+			sb,
+			types.CollectionsPrefix,
+			"collections",
+			collections.StringKey, codec.CollValue[types.Collection](cdc),
+		),
+		Supply: collections.NewMap(
+			sb,
+			types.SupplyPrefix,
+			"supply",
+			collections.StringKey,
+			sdk.IntValue,
+		),
 		NFTs: collections.NewIndexedMap(
 			sb,
 			types.NFTsPrefix,
@@ -90,6 +101,13 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, storeService stor
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 			codec.CollValue[types.Nft](cdc),
 			newNFTIndexes(sb),
+		),
+		Editions: collections.NewMap(
+			sb,
+			types.EditionsPrefix,
+			"editions",
+			collections.TripleKeyCodec(collections.StringKey, collections.StringKey, collections.Uint64Key),
+			codec.CollValue[types.Edition](cdc),
 		),
 	}
 

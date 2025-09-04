@@ -8,13 +8,17 @@ import (
 )
 
 func TestKeeper_createCollectionDenom(t *testing.T) {
-	creator := sdk.AccAddress(tmhash.SumTruncated([]byte("creator")))
+	creator := sdk.AccAddress(tmhash.SumTruncated([]byte("creator1")))
 	symbol := "MYNFT"
 
-	expectedDenom := "nft653AF6715F0C4EE2E24A54B191EBD0AD5DB33723"
+	expectedDenom := "nft9436DDD23FB751AEA7BC6C767F20F943DD735E06"
 	k := Keeper{}
 
-	denom := k.createCollectionDenom(creator, symbol)
+	denom, err := k.createCollectionDenom(creator, symbol)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	if denom != expectedDenom {
 		t.Errorf("expected %s, got %s", expectedDenom, denom)
 	}

@@ -15,6 +15,12 @@ const (
 	RouterKey  = ModuleName
 
 	MaxDenomLength = 43
+
+	MaxTokenIdLength     = 20
+	MaxSymbolLength      = 15
+	MaxNameLength        = 128
+	MaxDescriptionLength = 256
+	MaxURILength         = 150
 )
 
 var (
@@ -23,6 +29,7 @@ var (
 	NFTsPrefix             = collections.NewPrefix(2)
 	NFTsByCollectionPrefix = collections.NewPrefix(3)
 	NFTsByOwnerPrefix      = collections.NewPrefix(4)
+	EditionsPrefix         = collections.NewPrefix(5)
 )
 
 func SplitNftLengthPrefixedKey(key []byte) (denom, tokenId []byte, err error) {

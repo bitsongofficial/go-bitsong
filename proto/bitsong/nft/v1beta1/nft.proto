@@ -8,14 +8,16 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
 message Collection {
   option (gogoproto.goproto_getters) = false;
 
-  string symbol = 1;
-  string name = 2;
-  string description = 3;
-  string uri = 4;
+  string denom = 1;
 
-  string creator = 5;
-  string minter = 6;
-  uint64 num_tokens = 7;
+  string symbol = 2;
+  string name = 3;
+  string description = 4;
+  string uri = 5;
+
+  string creator = 6;
+  string minter = 7;
+  uint64 num_tokens = 8;
   // bool is_mutable
   // update_autority (who can update name, description and uri if is_mutable = true)
 }
@@ -31,8 +33,23 @@ message Nft {
   string uri = 5;
 
   string owner = 6;
+
+  // TODO: add max_editions
+  uint64 editions = 7; // number of printed editions
+
   // seller_fee_bps
   // payment_address
   // bool is_mutable
   // update_autority (who can update name, description and uri if is_mutable = true)
+}
+
+message Edition {
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+
+  uint64 seq = 3; // seq is the edition number
+
+  string owner = 4;
 }

@@ -15,18 +15,50 @@ import (
 )
 
 var (
-	creator = sdk.AccAddress(tmhash.SumTruncated([]byte("creator")))
-	owner   = sdk.AccAddress(tmhash.SumTruncated([]byte("owner")))
-	owner2  = sdk.AccAddress(tmhash.SumTruncated([]byte("owner2")))
-	// initAmt  = math.NewIntFromUint64(1000000000)
-	// initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
+	creator1 = sdk.AccAddress(tmhash.SumTruncated([]byte("creator1")))
+	creator2 = sdk.AccAddress(tmhash.SumTruncated([]byte("creator2")))
+
+	minter1 = sdk.AccAddress(tmhash.SumTruncated([]byte("minter1")))
+	minter2 = sdk.AccAddress(tmhash.SumTruncated([]byte("minter2")))
+
+	owner1 = sdk.AccAddress(tmhash.SumTruncated([]byte("owner1")))
+	owner2 = sdk.AccAddress(tmhash.SumTruncated([]byte("owner2")))
+
+	testCollection1 = types.Collection{
+		Name:        "My NFT Collection",
+		Symbol:      "MYNFT",
+		Description: "My NFT Collection Description",
+		Uri:         "ipfs://my-nft-collection-metadata.json",
+		Minter:      minter1.String(),
+	}
+	expectedDenom1 = "nft9436DDD23FB751AEA7BC6C767F20F943DD735E06"
+
+	testNft1 = types.Nft{
+		TokenId:     "1",
+		Name:        "My First NFT",
+		Description: "This is my first NFT",
+		Uri:         "ipfs://my-first-nft-metadata.json",
+	}
+
+	testNft2 = types.Nft{
+		TokenId:     "2",
+		Name:        "My Second NFT",
+		Description: "This is my second NFT",
+		Uri:         "ipfs://my-second-nft-metadata.json",
+	}
+
+	testNft3 = types.Nft{
+		TokenId:     "3",
+		Name:        "My Third NFT",
+		Description: "This is my third NFT",
+		Uri:         "ipfs://my-third-nft-metadata.json",
+	}
 )
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
-	ctx sdk.Context
-	// bk     bankkeeper.Keeper
+	ctx    sdk.Context
 	keeper keeper.Keeper
 	app    *simapp.BitsongApp
 }
@@ -36,15 +68,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	app := suite.App
 	suite.keeper = app.NftKeeper
-	// suite.bk = app.BankKeeper
 	suite.App = app
 	suite.ctx = suite.Ctx
-
-	// init tokens to addr
-	/*err := suite.bk.MintCoins(suite.ctx, types.ModuleName, initCoin)
-	suite.NoError(err)
-	err = suite.bk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleName, creator, initCoin)
-	suite.NoError(err)*/
 }
 
 func TestKeeperSuite(t *testing.T) {
@@ -52,60 +77,71 @@ func TestKeeperSuite(t *testing.T) {
 }
 
 func (suite *KeeperTestSuite) TestCreateCollection() {
-	testCollection := types.Collection{
-		Name:        "My NFT Collection",
-		Symbol:      "MYNFT",
-		Description: "My NFT Collection Description",
-		Uri:         "ipfs://my-nft-collection-metadata.json",
-	}
-	expectedDenom := "nft653AF6715F0C4EE2E24A54B191EBD0AD5DB33723"
-
-	denom, err := suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
+	denom, err := suite.keeper.CreateCollection(
+		suite.ctx,
+		creator1,
+		minter1,
+		testCollection1.Symbol,
+		testCollection1.Name,
+		testCollection1.Description,
+		testCollection1.Uri,
+	)
 	suite.NoError(err)
-	suite.Equal(expectedDenom, denom)
+	suite.Equal(expectedDenom1, denom)
 
-	_, err = suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
+	_, err = suite.keeper.CreateCollection(
+		suite.ctx,
+		creator1,
+		minter1,
+		testCollection1.Symbol,
+		testCollection1.Name,
+		testCollection1.Description,
+		testCollection1.Uri,
+	)
 	suite.Error(err)
 }
 
 func (suite *KeeperTestSuite) TestMintNFT() {
-	testCollection := types.Collection{
-		Name:        "My NFT Collection",
-		Symbol:      "MYNFT",
-		Description: "My NFT Collection Description",
-		Uri:         "ipfs://my-nft-collection-metadata.json",
-		Minter:      creator.String(),
-	}
-	expectedDenom := "nft653AF6715F0C4EE2E24A54B191EBD0AD5DB33723"
-
-	collectionDenom, err := suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
+	collectionDenom, err := suite.keeper.CreateCollection(
+		suite.ctx,
+		creator1,
+		minter1,
+		testCollection1.Symbol,
+		testCollection1.Name,
+		testCollection1.Description,
+		testCollection1.Uri,
+	)
 	suite.NoError(err)
-	suite.Equal(expectedDenom, collectionDenom)
+	suite.Equal(expectedDenom1, collectionDenom)
 
 	supply := suite.keeper.GetSupply(suite.ctx, collectionDenom)
 	suite.Equal(math.NewInt(0), supply)
 
-	nft1 := types.Nft{
-		TokenId:     "1",
-		Name:        "My First NFT",
-		Description: "This is my first NFT",
-		Uri:         "ipfs://my-first-nft-metadata.json",
-	}
-
-	nft2 := types.Nft{
-		TokenId:     "2",
-		Name:        "My First NFT",
-		Description: "This is my first NFT",
-		Uri:         "ipfs://my-first-nft-metadata.json",
-	}
-
-	err = suite.keeper.MintNFT(suite.ctx, collectionDenom, creator, owner, nft1)
+	err = suite.keeper.MintNFT(
+		suite.ctx,
+		minter1,
+		owner1,
+		collectionDenom,
+		testNft1.TokenId,
+		testNft1.Name,
+		testNft1.Description,
+		testNft1.Uri,
+	)
 	suite.NoError(err)
 
 	supply = suite.keeper.GetSupply(suite.ctx, collectionDenom)
 	suite.Equal(math.NewInt(1), supply)
 
-	err = suite.keeper.MintNFT(suite.ctx, collectionDenom, creator, owner, nft2)
+	err = suite.keeper.MintNFT(
+		suite.ctx,
+		minter1,
+		owner1,
+		collectionDenom,
+		testNft2.TokenId,
+		testNft2.Name,
+		testNft2.Description,
+		testNft2.Uri,
+	)
 	suite.NoError(err)
 
 	supply = suite.keeper.GetSupply(suite.ctx, collectionDenom)
@@ -113,35 +149,35 @@ func (suite *KeeperTestSuite) TestMintNFT() {
 }
 
 func (suite *KeeperTestSuite) TestSendNFT() {
-	testCollection := types.Collection{
-		Name:        "My NFT Collection",
-		Symbol:      "MYNFT",
-		Description: "My NFT Collection Description",
-		Uri:         "ipfs://my-nft-collection-metadata.json",
-		Minter:      creator.String(),
-	}
-	expectedDenom := "nft653AF6715F0C4EE2E24A54B191EBD0AD5DB33723"
-
-	collectionDenom, err := suite.keeper.CreateCollection(suite.ctx, creator, testCollection)
+	collectionDenom, err := suite.keeper.CreateCollection(
+		suite.ctx,
+		creator1,
+		minter1,
+		testCollection1.Symbol,
+		testCollection1.Name,
+		testCollection1.Description,
+		testCollection1.Uri,
+	)
 	suite.NoError(err)
-	suite.Equal(expectedDenom, collectionDenom)
 
-	nft1 := types.Nft{
-		TokenId:     "1",
-		Name:        "My First NFT",
-		Description: "This is my first NFT",
-		Uri:         "ipfs://my-first-nft-metadata.json",
-	}
-
-	err = suite.keeper.MintNFT(suite.ctx, collectionDenom, creator, owner, nft1)
+	err = suite.keeper.MintNFT(
+		suite.ctx,
+		minter1,
+		owner1,
+		collectionDenom,
+		testNft1.TokenId,
+		testNft1.Name,
+		testNft1.Description,
+		testNft1.Uri,
+	)
 	suite.NoError(err)
 
 	res, err := suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
-		Owner: owner.String(),
+		Owner: owner1.String(),
 	})
 	suite.NoError(err)
 	suite.Len(res.Nfts, 1)
-	suite.Equal(nft1.TokenId, res.Nfts[0].TokenId)
+	suite.Equal(testNft1.TokenId, res.Nfts[0].TokenId)
 
 	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
 		Owner: owner2.String(),
@@ -149,7 +185,7 @@ func (suite *KeeperTestSuite) TestSendNFT() {
 	suite.NoError(err)
 	suite.Len(res.Nfts, 0)
 
-	err = suite.keeper.SendNft(suite.ctx, owner, owner2, collectionDenom, "1")
+	err = suite.keeper.SendNft(suite.ctx, owner1, owner2, collectionDenom, "1")
 	suite.NoError(err)
 
 	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
@@ -157,10 +193,10 @@ func (suite *KeeperTestSuite) TestSendNFT() {
 	})
 	suite.NoError(err)
 	suite.Len(res.Nfts, 1)
-	suite.Equal(nft1.TokenId, res.Nfts[0].TokenId)
+	suite.Equal(testNft1.TokenId, res.Nfts[0].TokenId)
 
 	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
-		Owner: owner.String(),
+		Owner: owner1.String(),
 	})
 	suite.NoError(err)
 	suite.Len(res.Nfts, 0)
