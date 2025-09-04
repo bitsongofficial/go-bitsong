@@ -2,80 +2,75 @@
 
 set -eo pipefail
 
-SWAGGER_DIR=./swagger
-SWAGGER_UI_DIR=${SWAGGER_DIR}/swagger-ui
+go mod tidy
 
-SDK_VERSION=$(go list -m -f '{{ .Version }}' github.com/cosmos/cosmos-sdk)
-IBC_VERSION=$(go list -m -f '{{ .Version }}' github.com/cosmos/ibc-go/v10)
+mkdir -p tmp_deps
 
-SDK_RAW_URL=https://raw.githubusercontent.com/cosmos/cosmos-sdk/${SDK_VERSION}/client/docs/swagger-ui/swagger.yaml
-IBC_RAW_URL=https://raw.githubusercontent.com/cosmos/ibc-go/${IBC_VERSION}/docs/client/swagger-ui/swagger.yaml
+#copy some deps to use their proto files to generate swagger
+declare -a deps=("github.com/cosmos/cosmos-sdk"
+                "github.com/CosmWasm/wasmd"
+                "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10"
+                "github.com/cosmos/ibc-apps/middleware/ibc-hooks/v10")
 
-SWAGGER_UI_VERSION=4.11.0
-SWAGGER_UI_DOWNLOAD_URL=https://github.com/swagger-api/swagger-ui/archive/refs/tags/v${SWAGGER_UI_VERSION}.zip
-SWAGGER_UI_PACKAGE_NAME=${SWAGGER_DIR}/swagger-ui-${SWAGGER_UI_VERSION}
-
-mkdir -p ./tmp-swagger-gen
-
-proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
-for dir in $proto_dirs; do
-  # generate swagger files (filter query files)
-    query_file=$(find "${dir}" -maxdepth 2 \( -name 'query.proto' -o -name 'service.proto' \))
-    if [[ ! -z "$query_file" ]]; then
-      protoc  \
-      -I "proto" \
-      -I "third_party/proto" \
-      "$query_file" \
-      --swagger_out ./tmp-swagger-gen \
-      --swagger_opt logtostderr=true \
-      --swagger_opt fqn_for_swagger_name=true \
-      --swagger_opt simple_operation_ids=true
-    fi
+for dep in "${deps[@]}"
+do
+    path=$(go list -f '{{ .Dir }}' -m $dep); \
+    cp -r $path tmp_deps; \
 done
 
-# download Cosmos SDK swagger yaml file
-echo "SDK version ${SDK_VERSION}"
-wget "${SDK_RAW_URL}" -O ${SWAGGER_DIR}/swagger-sdk.yaml
+proto_dirs=$(find ./proto ./tmp_deps -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+for dir in $proto_dirs; do
 
-# download IBC swagger yaml file
-echo "IBC version ${IBC_VERSION}"
-wget "${IBC_RAW_URL}" -O ${SWAGGER_DIR}/swagger-ibc.yaml
+  # generate swagger files (filter query files)
+  query_file=$(find "${dir}" -maxdepth 1 \( -name 'query.proto' -o -name 'service.proto' \))
+  if [[ ! -z "$query_file" ]]; then
+    buf generate --template proto/buf.gen.swagger.yaml $query_file
+  fi
+done
 
-# combine swagger yaml files using nodejs package `swagger-combine`
-# all the individual swagger files need to be configured in `config.json` for merging
-swagger-combine ${SWAGGER_DIR}/config.json -f yaml \
-  -o ${SWAGGER_DIR}/swagger.yaml \
-  --continueOnConflictingPaths true \
-  --includeDefinitions true
+# Fix circular definition in cosmos b just removing them
+jq 'del(.definitions["cosmos.tx.v1beta1.ModeInfo.Multi"].properties.mode_infos.items["$ref"])' ./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json > ./tmp-swagger-gen/cosmos/tx/v1beta1/fixed_service.swagger.json
+jq 'del(.definitions["cosmos.autocli.v1.ServiceCommandDescriptor"].properties.sub_commands)' ./tmp-swagger-gen/cosmos/autocli/v1/query.swagger.json > ./tmp-swagger-gen/cosmos/autocli/v1/fixed_query.swagger.json
 
-# if swagger-ui does not exist locally, download swagger-ui and move dist directory to
-# swagger-ui directory, then remove zip file and unzipped swagger-ui directory
-if [ ! -d ${SWAGGER_UI_DIR} ]; then
-  # download swagger-ui
-  wget ${SWAGGER_UI_DOWNLOAD_URL} -O ${SWAGGER_UI_PACKAGE_NAME}.zip
-  # unzip swagger-ui package
-  unzip ${SWAGGER_UI_PACKAGE_NAME}.zip -d ${SWAGGER_DIR}
-  # move swagger-ui dist directory to swagger-ui directory
-  mv ${SWAGGER_UI_PACKAGE_NAME}/dist ${SWAGGER_UI_DIR}
-  # remove swagger-ui zip file and unzipped swagger-ui directory
-  rm -rf ${SWAGGER_UI_PACKAGE_NAME}.zip ${SWAGGER_UI_PACKAGE_NAME}
-fi
+rm -rf ./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json
+rm -rf ./tmp-swagger-gen/cosmos/autocli/v1/query.swagger.json
 
-# move generated swagger yaml file to swagger-ui directory
-cp ${SWAGGER_DIR}/swagger.yaml ${SWAGGER_DIR}/swagger-ui/
+# remove unnecessary modules and their proto files
+rm -rf tmp-swagger-gen/cosmos/distribution
+rm -rf tmp-swagger-gen/cosmos/gov
+rm -rf tmp-swagger-gen/cosmos/mint
+rm -rf tmp-swagger-gen/cosmos/group
+# Convert all *.swagger.json files into a single folder _all
+files=$(find ./tmp-swagger-gen -name '*.swagger.json' -print0 | xargs -0)
+mkdir -p ./tmp-swagger-gen/_all
+counter=0
+for f in $files; do
+  echo "[+] $f"
 
-# update swagger initializer to default to swagger.yaml
-# Note: using -i.bak makes this compatible with both GNU and BSD/Mac
-sed -i.bak "s|https://petstore.swagger.io/v2/swagger.json|swagger.yaml|" ${SWAGGER_UI_DIR}/swagger-initializer.js
+  # check gaia first before cosmos
+  if [[ "$f" =~ "router" ]]; then
+    cp $f ./tmp-swagger-gen/_all/pfm-$counter.json
+  elif [[ "$f" =~ "cosmwasm" ]]; then
+    cp $f ./tmp-swagger-gen/_all/cosmwasm-$counter.json
+  elif [[ "$f" =~ "go-bitsong" ]]; then
+    cp $f ./tmp-swagger-gen/_all/bitsong-$counter.json
+  elif [[ "$f" =~ "cosmos" ]]; then
+    cp $f ./tmp-swagger-gen/_all/cosmos-$counter.json
+  else
+    cp $f ./tmp-swagger-gen/_all/other-$counter.json
+  fi
 
-# generate statik golang code using updated swagger-ui directory
-statik -src=${SWAGGER_DIR}/swagger-ui -dest=${SWAGGER_DIR} -f -m
+  counter=$(expr $counter + 1)
+done
+
+# merges all the above into FINAL.json
+python3 ./scripts/swagger_merger.py
+
+# Makes a swagger temp file with reference pointers
+swagger-combine ./tmp-swagger-gen/FINAL.json -o ./tmp-swagger-gen/tmp_swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
+
+# extends out the *ref instances to their full value
+swagger-merger --input ./tmp-swagger-gen/tmp_swagger.yaml -o ./docs/static/swagger.yaml
 
 rm -rf tmp-swagger-gen
-
-# log whether or not the swagger directory was updated
-if [ -n "$(git status ${SWAGGER_DIR} --porcelain)" ]; then
-  echo "\033[91mSwagger updated\033[0m"
-else
-  echo "\033[92mSwagger in sync\033[0m"
-fi
+rm -rf tmp_deps
