@@ -1,4 +1,4 @@
-package testutil
+package apptesting
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"

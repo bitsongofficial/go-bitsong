@@ -35,20 +35,23 @@ func (s *KeeperTestHelper) InstantiateContract(sender string, admin string, wasm
 		m.WASMByteCode = wasmContract
 		m.Sender = sender
 	})
-	_, err := s.App.MsgServiceRouter().Handler(msgStoreCode)(s.Ctx, msgStoreCode)
+	var scResp wasmtypes.MsgStoreCodeResponse
+	storeResp, err := s.App.MsgServiceRouter().Handler(msgStoreCode)(s.Ctx, msgStoreCode)
 	s.Require().NoError(err)
+	s.Require().NoError(s.App.AppCodec().Unmarshal(storeResp.Data, &scResp))
 
 	msgInstantiate := wasmtypes.MsgInstantiateContractFixture(func(m *wasmtypes.MsgInstantiateContract) {
 		m.Sender = sender
 		m.Admin = admin
 		m.Msg = []byte(`{}`)
+		m.CodeID = scResp.CodeID
 	})
 	resp, err := s.App.MsgServiceRouter().Handler(msgInstantiate)(s.Ctx, msgInstantiate)
 	s.Require().NoError(err)
 	var result wasmtypes.MsgInstantiateContractResponse
 	s.Require().NoError(s.App.AppCodec().Unmarshal(resp.Data, &result))
 	contractInfo := s.App.AppKeepers.WasmKeeper.GetContractInfo(s.Ctx, sdk.MustAccAddressFromBech32(result.Address))
-	s.Require().Equal(contractInfo.CodeID, uint64(1))
+	s.Require().Equal(contractInfo.CodeID, scResp.CodeID)
 	s.Require().Equal(contractInfo.Admin, admin)
 	s.Require().Equal(contractInfo.Creator, sender)
 
