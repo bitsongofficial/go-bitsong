@@ -44,8 +44,6 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	cadencekeeper "github.com/bitsongofficial/go-bitsong/x/cadence/keeper"
-	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -137,7 +135,6 @@ type AppKeepers struct {
 	EvidenceKeeper       *evidencekeeper.Keeper
 	FanTokenKeeper       *fantokenkeeper.Keeper
 	WasmKeeper           *wasmkeeper.Keeper
-	CadenceKeeper        *cadencekeeper.Keeper
 	IBCWasmClientKeeper  *ibcwlckeeper.Keeper
 	FeeGrantKeeper       *feegrantkeeper.Keeper
 	GovKeeper            *govkeeper.Keeper
@@ -476,15 +473,6 @@ func NewAppKeepers(
 	)
 	// Set legacy router for backwards compatibility with gov v1beta1
 	appKeepers.GovKeeper.SetLegacyRouter(govRouter)
-
-	cadeKeeper := cadencekeeper.NewKeeper(
-		appKeepers.keys[cadencetypes.StoreKey],
-		appCodec,
-		appKeepers.WasmKeeper,
-		appKeepers.ContractKeeper,
-		govModAddress,
-	)
-	appKeepers.CadenceKeeper = &cadeKeeper
 
 	return appKeepers
 
