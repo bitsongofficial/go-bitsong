@@ -12,27 +12,29 @@ option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
 service Query {
   rpc Collection(QueryCollectionRequest) returns (QueryCollectionResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/collection/{collection}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}";
   }
+
+  // TODO: rpc AllCollections(QueryAllCollectionsRequest) returns (QueryAllCollectionsResponse).....
 
   rpc OwnerOf(QueryOwnerOfRequest) returns (QueryOwnerOfResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/owner/{collection}/{token_id}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/{token_id}/owner";
   }
 
   rpc NumTokens(QueryNumTokensRequest) returns (QueryNumTokensResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/num_tokens/{collection}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/num_tokens";
   }
 
   rpc NftInfo(QueryNftInfoRequest) returns (QueryNftInfoResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/nft_info/{collection}/{token_id}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/{token_id}";
   }
 
   rpc Nfts(QueryNftsRequest) returns (QueryNftsResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/nfts/{collection}";
+    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/nfts";
   }
 
   rpc AllNftsByOwner(QueryAllNftsByOwnerRequest) returns (QueryAllNftsByOwnerResponse) {

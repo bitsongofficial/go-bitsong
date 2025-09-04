@@ -746,15 +746,15 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Collection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"bitsong", "nft", "v1beta1", "collection"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Collection_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "collections", "collection"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_OwnerOf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bitsong", "nft", "v1beta1", "owner", "collection", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_OwnerOf_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"bitsong", "nft", "v1beta1", "collections", "collection", "token_id", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_NumTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "num_tokens", "collection"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_NumTokens_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"bitsong", "nft", "v1beta1", "collections", "collection", "num_tokens"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_NftInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bitsong", "nft", "v1beta1", "nft_info", "collection", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_NftInfo_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bitsong", "nft", "v1beta1", "collections", "collection", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Nfts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "nfts", "collection"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Nfts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"bitsong", "nft", "v1beta1", "collections", "collection", "nfts"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_AllNftsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bitsong", "nft", "v1beta1", "nfts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 )
