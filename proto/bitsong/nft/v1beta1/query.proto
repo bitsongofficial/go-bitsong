@@ -124,6 +124,8 @@ message QueryAllNftsByOwnerRequest {
   option (gogoproto.goproto_getters) = false;
 
   string owner = 1;
+
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryAllNftsByOwnerResponse {
@@ -133,4 +135,6 @@ message QueryAllNftsByOwnerResponse {
   repeated bitsong.nft.v1beta1.Nft nfts = 1 [
     (gogoproto.nullable) = false
   ];
+
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

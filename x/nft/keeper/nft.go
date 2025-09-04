@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/collections"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
@@ -9,6 +10,10 @@ import (
 )
 
 func (k Keeper) MintNFT(ctx sdk.Context, collectionDenom string, minter sdk.AccAddress, owner sdk.AccAddress, metadata types.Nft) error {
+	if strings.TrimSpace(metadata.TokenId) == "" {
+		return fmt.Errorf("token ID cannot be empty")
+	}
+
 	nftKey := collections.Join(collectionDenom, metadata.TokenId)
 	has, err := k.NFTs.Has(ctx, nftKey)
 	if err != nil {
@@ -21,6 +26,10 @@ func (k Keeper) MintNFT(ctx sdk.Context, collectionDenom string, minter sdk.AccA
 	coll, err := k.Collections.Get(ctx, collectionDenom)
 	if err != nil {
 		return types.ErrCollectionNotFound
+	}
+
+	if coll.Minter == "" {
+		return fmt.Errorf("minting disabled for this collection")
 	}
 
 	collectionMinter, err := sdk.AccAddressFromBech32(coll.Minter)

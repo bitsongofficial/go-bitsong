@@ -219,6 +219,13 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 		Uri:         "ipfs://my-second-nft-metadata.json",
 	}
 
+	nft3 := types.Nft{
+		TokenId:     "3",
+		Name:        "My Third NFT",
+		Description: "This is my third NFT",
+		Uri:         "ipfs://my-third-nft-metadata.json",
+	}
+
 	err = suite.keeper.MintNFT(suite.ctx, collectionDenom, creator, owner, nft1)
 	suite.NoError(err)
 
@@ -232,4 +239,20 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 	suite.Len(res.Nfts, 2)
 	suite.Equal(nft1.TokenId, res.Nfts[0].TokenId)
 	suite.Equal(nft2.TokenId, res.Nfts[1].TokenId)
+
+	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
+		Owner: owner2.String(),
+	})
+	suite.NoError(err)
+	suite.Len(res.Nfts, 0)
+
+	err = suite.keeper.MintNFT(suite.ctx, collectionDenom, creator, owner2, nft3)
+	suite.NoError(err)
+
+	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{
+		Owner: owner2.String(),
+	})
+	suite.NoError(err)
+	suite.Len(res.Nfts, 1)
+	suite.Equal(nft3.TokenId, res.Nfts[0].TokenId)
 }

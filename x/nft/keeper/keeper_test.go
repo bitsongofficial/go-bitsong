@@ -18,6 +18,7 @@ import (
 var (
 	creator  = sdk.AccAddress(tmhash.SumTruncated([]byte("creator")))
 	owner    = sdk.AccAddress(tmhash.SumTruncated([]byte("owner")))
+	owner2   = sdk.AccAddress(tmhash.SumTruncated([]byte("owner2")))
 	initAmt  = math.NewIntFromUint64(1000000000)
 	initCoin = sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, initAmt)}
 )

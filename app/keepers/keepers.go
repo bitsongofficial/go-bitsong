@@ -411,6 +411,7 @@ func NewAppKeepers(
 
 	appKeepers.NftKeeper = nftkeeper.NewKeeper(
 		appCodec,
+		keys[nfttypes.StoreKey],
 		runtime.NewKVStoreService(appKeepers.keys[nfttypes.StoreKey]),
 		appKeepers.AccountKeeper,
 		bApp.Logger(),

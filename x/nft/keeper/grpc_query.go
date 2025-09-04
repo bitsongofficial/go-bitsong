@@ -5,9 +5,10 @@ import (
 	"errors"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/collections/indexes"
+	"cosmossdk.io/store/prefix"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -142,9 +143,33 @@ func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwn
 		return nil, status.Errorf(codes.InvalidArgument, "invalid owner address: %s", err.Error())
 	}
 
-	// TODO: Add pagination support for this query
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-	iter, err := k.NFTs.Indexes.Owner.MatchExact(ctx, owner)
+	store := prefix.NewStore(
+		sdkCtx.KVStore(k.storeKey),
+		append(types.OwnersPrefix, address.MustLengthPrefix(owner)...),
+	)
+
+	var nfts []types.Nft
+
+	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
+		denom, tokenId := MustSplitNftLengthPrefixedKey(key)
+
+		nft, err := k.NFTs.Get(ctx, collections.Join(string(denom), string(tokenId)))
+		if err != nil {
+			return err
+		}
+
+		nfts = append(nfts, nft)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	/*iter, err := k.NFTs.Indexes.Owner.MatchExact(ctx, owner)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -153,9 +178,9 @@ func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwn
 	nfts, err := indexes.CollectValues(ctx, k.NFTs, iter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
-	}
-
+	}*/
 	return &types.QueryAllNftsByOwnerResponse{
-		Nfts: nfts,
+		Nfts:       nfts,
+		Pagination: pageRes,
 	}, nil
 }
