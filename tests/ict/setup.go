@@ -13,7 +13,6 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	testutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
@@ -92,7 +91,6 @@ func btsgEncoding() *testutil.TestEncodingConfig {
 	// ibclocalhost.RegisterInterfaces(cfg.InterfaceRegistry)
 	wasmtypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	fantokentypes.RegisterInterfaces(cfg.InterfaceRegistry)
-	cadencetypes.RegisterInterfaces(cfg.InterfaceRegistry)
 	smartaccounttypes.RegisterInterfaces(cfg.InterfaceRegistry)
 
 	return &cfg

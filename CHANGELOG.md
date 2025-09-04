@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file. See [conven
 - re-add ibc+wasm e2e tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
 
 ### 🐛 Bug fixes
-
+- remove x/cadence - ([62c6b84](https://github.com/bitsongofficial/go-bitsong/commit/62c6b8434cc20c97d6d287c72b385ebdaf0dd982)) - hard-nett
 - add x/fantoken MsgServiceHandler - ([160f17a](https://github.com/bitsongofficial/go-bitsong/commit/160f17a4014769936848f9aebbd3f7685ab4601e)) - hard-nett
 - wire in v024 upgradehandler - ([ad31d93](https://github.com/bitsongofficial/go-bitsong/commit/ad31d93cb56adac2caf9b84627d5097e98ac243c)) - hard-nett
 - wire 08-wasm & 07-tendermint light clients into cilentKeeper, use pointers for our AppKeepers struct - ([d32f36e](https://github.com/bitsongofficial/go-bitsong/commit/d32f36e9068e10ec752aa6f15a1a2cc88649c4c3)) - hard-nett
