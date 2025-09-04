@@ -32,8 +32,8 @@ func newNFTIndexes(sb *collections.SchemaBuilder) NFTIndexes {
 		),
 		Owner: indexes.NewMulti(
 			sb,
-			types.OwnersPrefix,
-			"owners",
+			types.NFTsByOwnerPrefix,
+			"nfts_by_owner",
 			sdk.AccAddressKey,
 			collections.PairKeyCodec(collections.StringKey, collections.StringKey),
 			func(pk collections.Pair[string, string], v types.Nft) (sdk.AccAddress, error) {

@@ -13,5 +13,5 @@ var (
 	SupplyPrefix           = collections.NewPrefix(1)
 	NFTsPrefix             = collections.NewPrefix(2)
 	NFTsByCollectionPrefix = collections.NewPrefix(3)
-	OwnersPrefix           = collections.NewPrefix(4)
+	NFTsByOwnerPrefix      = collections.NewPrefix(4)
 )

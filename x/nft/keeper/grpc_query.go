@@ -147,7 +147,7 @@ func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwn
 
 	store := prefix.NewStore(
 		sdkCtx.KVStore(k.storeKey),
-		append(types.OwnersPrefix, address.MustLengthPrefix(owner)...),
+		append(types.NFTsByOwnerPrefix, address.MustLengthPrefix(owner)...),
 	)
 
 	var nfts []types.Nft
