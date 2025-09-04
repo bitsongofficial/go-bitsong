@@ -39,7 +39,6 @@ service Query {
 
   // Edition returns a specific edition of an nft
   // OwnerOfEdition returns the owner of a specific edition
-  // NumEditions returns the total number of editions
   // NftEditions returns all editions of a specific nft
   // AllNftEditionsByOwner returns all nft editions owned by the owner
 }
