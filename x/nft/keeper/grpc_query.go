@@ -153,7 +153,7 @@ func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwn
 	var nfts []types.Nft
 
 	pageRes, err := query.Paginate(store, req.Pagination, func(key []byte, value []byte) error {
-		denom, tokenId := MustSplitNftLengthPrefixedKey(key)
+		denom, tokenId := types.MustSplitNftLengthPrefixedKey(key)
 
 		nft, err := k.NFTs.Get(ctx, collections.Join(string(denom), string(tokenId)))
 		if err != nil {

@@ -3,7 +3,6 @@ package keeper
 import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
-	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
@@ -54,9 +53,8 @@ type Keeper struct {
 	cdc          codec.BinaryCodec
 	storeKey     storetypes.StoreKey
 	storeService store.KVStoreService
-	ac           address.Codec
-	// bk           types.BankKeeper
-	logger log.Logger
+	ak           types.AccountKeeper
+	logger       log.Logger
 
 	Schema      collections.Schema
 	Collections collections.Map[string, types.Collection]
@@ -70,16 +68,17 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, storeService stor
 		panic("the " + types.ModuleName + " module account has not been set")
 	}*/
 
+	// TODO: validate all metadata length
+
 	logger = logger.With(log.ModuleKey, "x/"+types.ModuleName)
 
 	sb := collections.NewSchemaBuilder(storeService)
-	ac := ak.AddressCodec()
 
 	k := Keeper{
 		cdc:          cdc,
 		storeKey:     key,
 		storeService: storeService,
-		ac:           ac,
+		ak:           ak,
 		logger:       logger,
 		// TODO: fix the store once we add queries
 		Collections: collections.NewMap(sb, types.CollectionsPrefix, "collections", collections.StringKey, codec.CollValue[types.Collection](cdc)),
