@@ -259,7 +259,7 @@ func NewAppKeepers(
 	)
 	appKeepers.AuthzKeeper = &authzKeeper
 
-	stakingKeeper := stakingkeeper.NewKeeper(
+	stakingKeeper := *stakingkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[stakingtypes.StoreKey]), appKeepers.AccountKeeper, appKeepers.BankKeeper, govModAddress,
 		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ValidatorAddrPrefix()),
 		addresscodec.NewBech32Codec(sdk.GetConfig().GetBech32ConsensusAddrPrefix()),
@@ -301,7 +301,7 @@ func NewAppKeepers(
 		stakingtypes.NewMultiStakingHooks(appKeepers.DistrKeeper.Hooks(), appKeepers.SlashingKeeper.Hooks()),
 	)
 
-	appKeepers.StakingKeeper = stakingKeeper
+	appKeepers.StakingKeeper = &stakingKeeper
 
 	fantokenKeeper := fantokenkeeper.NewKeeper(
 		appCodec,
