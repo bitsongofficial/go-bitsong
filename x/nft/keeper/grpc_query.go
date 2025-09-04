@@ -65,23 +65,6 @@ func (k Keeper) OwnerOf(ctx context.Context, req *types.QueryOwnerOfRequest) (*t
 	}, nil
 }
 
-func (k Keeper) NumTokens(ctx context.Context, req *types.QueryNumTokensRequest) (*types.QueryNumTokensResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	if req.Collection == "" {
-		return nil, status.Error(codes.InvalidArgument, "collection cannot be empty")
-	}
-
-	sdkCtx := sdk.UnwrapSDKContext(ctx)
-
-	supply := k.GetSupply(sdkCtx, req.Collection)
-
-	return &types.QueryNumTokensResponse{
-		Count: supply.Uint64(),
-	}, nil
-}
-
 func (k Keeper) NftInfo(ctx context.Context, req *types.QueryNftInfoRequest) (*types.QueryNftInfoResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -133,6 +116,36 @@ func (k Keeper) Nfts(ctx context.Context, req *types.QueryNftsRequest) (*types.Q
 	}, nil
 }
 
+func (k Keeper) GetNftsByOwner(ctx context.Context, owner sdk.AccAddress, pagination *query.PageRequest) ([]types.Nft, *query.PageResponse, error) {
+	var nfts []types.Nft
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	store := prefix.NewStore(
+		sdkCtx.KVStore(k.storeKey),
+		append(types.NFTsByOwnerPrefix, address.MustLengthPrefix(owner)...),
+	)
+
+	pageRes, err := query.Paginate(store, pagination, func(key []byte, value []byte) error {
+		denom, tokenId := types.MustSplitNftLengthPrefixedKey(key)
+
+		nft, err := k.NFTs.Get(ctx, collections.Join(string(denom), string(tokenId)))
+		if err != nil {
+			return err
+		}
+
+		nfts = append(nfts, nft)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return nfts, pageRes, nil
+}
+
 func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwnerRequest) (*types.QueryAllNftsByOwnerResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -169,16 +182,6 @@ func (k Keeper) AllNftsByOwner(ctx context.Context, req *types.QueryAllNftsByOwn
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	/*iter, err := k.NFTs.Indexes.Owner.MatchExact(ctx, owner)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	defer iter.Close()
-
-	nfts, err := indexes.CollectValues(ctx, k.NFTs, iter)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}*/
 	return &types.QueryAllNftsByOwnerResponse{
 		Nfts:       nfts,
 		Pagination: pageRes,

@@ -59,58 +59,6 @@ func (suite *KeeperTestSuite) TestQueryOwnerOf() {
 	suite.Equal(owner1.String(), res.Owner)
 }
 
-func (suite *KeeperTestSuite) TestQueryNumTokens() {
-	collectionDenom, err := suite.keeper.CreateCollection(
-		suite.ctx,
-		creator1,
-		minter1,
-		testCollection1.Symbol,
-		testCollection1.Name,
-		testCollection1.Description,
-		testCollection1.Uri,
-	)
-	suite.NoError(err)
-
-	supply := suite.keeper.GetSupply(suite.ctx, collectionDenom)
-	suite.Equal(uint64(0), supply.Uint64())
-
-	err = suite.keeper.MintNFT(
-		suite.ctx,
-		minter1,
-		owner1,
-		collectionDenom,
-		testNft1.TokenId,
-		testNft1.Name,
-		testNft1.Description,
-		testNft1.Uri,
-	)
-	suite.NoError(err)
-
-	supply = suite.keeper.GetSupply(suite.ctx, collectionDenom)
-	suite.Equal(uint64(1), supply.Uint64())
-
-	err = suite.keeper.MintNFT(
-		suite.ctx,
-		minter1,
-		owner1,
-		collectionDenom,
-		testNft2.TokenId,
-		testNft2.Name,
-		testNft2.Description,
-		testNft2.Uri,
-	)
-	suite.NoError(err)
-
-	supply = suite.keeper.GetSupply(suite.ctx, collectionDenom)
-	suite.Equal(uint64(2), supply.Uint64())
-
-	res, err := suite.keeper.NumTokens(suite.ctx, &types.QueryNumTokensRequest{
-		Collection: collectionDenom,
-	})
-	suite.NoError(err)
-	suite.Equal(uint64(2), res.Count)
-}
-
 func (suite *KeeperTestSuite) TestQueryNftInfo() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,

@@ -22,11 +22,6 @@ service Query {
     option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/{token_id}/owner";
   }
 
-  rpc NumTokens(QueryNumTokensRequest) returns (QueryNumTokensResponse) {
-    option (cosmos.query.v1.module_query_safe) = true;
-    option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/num_tokens";
-  }
-
   rpc NftInfo(QueryNftInfoRequest) returns (QueryNftInfoResponse) {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get = "/bitsong/nft/v1beta1/collections/{collection}/{token_id}";
@@ -41,6 +36,12 @@ service Query {
     option (cosmos.query.v1.module_query_safe) = true;
     option (google.api.http).get = "/bitsong/nft/v1beta1/nfts_by_owner/{owner}";
   }
+
+  // Edition returns a specific edition of an nft
+  // OwnerOfEdition returns the owner of a specific edition
+  // NumEditions returns the total number of editions
+  // NftEditions returns all editions of a specific nft
+  // AllNftEditionsByOwner returns all nft editions owned by the owner
 }
 
 message QueryCollectionRequest {
@@ -70,20 +71,6 @@ message QueryOwnerOfResponse {
   option (gogoproto.goproto_getters) = false;
 
   string owner = 1;
-}
-
-message QueryNumTokensRequest {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-
-  string collection = 1;
-}
-
-message QueryNumTokensResponse {
-  option (gogoproto.equal)           = false;
-  option (gogoproto.goproto_getters) = false;
-
-  uint64 count = 1;
 }
 
 message QueryNftInfoRequest {
