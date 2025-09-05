@@ -93,7 +93,7 @@ func (k Keeper) createCollectionDenom(creator sdk.AccAddress, symbol string) (st
 	// TODO: if necessary add a salt field
 
 	if strings.TrimSpace(symbol) == "" {
-		return "", fmt.Errorf("symbol cannot be blank")
+		return "", fmt.Errorf("symbol cannot be empty")
 	}
 
 	if len(symbol) > types.MaxSymbolLength {

@@ -31,11 +31,11 @@ message Nft {
   string uri = 5;
 
   string owner = 6;
-  string authority = 7; // who can update name, description and uri, if not set no one can update
+  // string authority = 7; // who can update name, description and uri, if not set no one can update
 
   // TODO: add max_editions
   // uint64 max_editions = 8; // max number of printed editions, 0 means no limit
-  uint64 editions = 8; // number of printed editions
+  uint64 editions = 7; // number of printed editions
 
   // seller_fee_bps
   // payment_address

@@ -56,7 +56,10 @@ type KeeperTestSuite struct {
 
 	ctx    sdk.Context
 	keeper keeper.Keeper
-	app    *simapp.BitsongApp
+
+	msgServer types.MsgServer
+
+	app *simapp.BitsongApp
 }
 
 func (suite *KeeperTestSuite) SetupTest() {
@@ -66,6 +69,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.keeper = app.NftKeeper
 	suite.App = app
 	suite.ctx = suite.Ctx
+
+	suite.msgServer = keeper.NewMsgServerImpl(suite.keeper)
 }
 
 func TestKeeperSuite(t *testing.T) {
@@ -174,7 +179,7 @@ func (suite *KeeperTestSuite) TestSendNFT() {
 	suite.NoError(err)
 	suite.Len(res.Nfts, 0)
 
-	err = suite.keeper.SendNft(suite.ctx, owner1, owner2, collectionDenom, "1")
+	err = suite.keeper.SendNFT(suite.ctx, owner1, owner2, collectionDenom, "1")
 	suite.NoError(err)
 
 	res, err = suite.keeper.AllNftsByOwner(suite.ctx, &types.QueryAllNftsByOwnerRequest{

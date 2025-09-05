@@ -20,6 +20,10 @@ const (
 	MaxSymbolLength  = 15
 	MaxNameLength    = 128
 	MaxURILength     = 150
+
+	// TODO: move these to params
+	MaxNftsInCollection = 100
+	MaxEditions         = 1000
 )
 
 var (

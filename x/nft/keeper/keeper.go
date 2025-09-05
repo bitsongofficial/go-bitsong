@@ -3,6 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/collections/indexes"
+	"cosmossdk.io/core/address"
 	"cosmossdk.io/core/store"
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
@@ -54,6 +55,7 @@ type Keeper struct {
 	storeKey     storetypes.StoreKey
 	storeService store.KVStoreService
 	ak           types.AccountKeeper
+	ac           address.Codec
 	logger       log.Logger
 
 	Schema      collections.Schema
@@ -79,6 +81,7 @@ func NewKeeper(cdc codec.BinaryCodec, key storetypes.StoreKey, storeService stor
 		storeKey:     key,
 		storeService: storeService,
 		ak:           ak,
+		ac:           ak.AddressCodec(),
 		logger:       logger,
 		// TODO: fix the store once we add queries
 		Collections: collections.NewMap(

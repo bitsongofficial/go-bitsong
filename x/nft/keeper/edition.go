@@ -37,6 +37,10 @@ func (k Keeper) PrintEdition(
 
 	// TODO: Charge fee if necessary
 
+	if nft.Editions == types.MaxEditions {
+		return 0, fmt.Errorf("max editions reached for NFT %s in collection %s", tokenId, collectionDenom)
+	}
+
 	edition := types.Edition{
 		Collection: collectionDenom,
 		TokenId:    tokenId,

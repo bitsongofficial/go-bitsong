@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"cosmossdk.io/collections"
+	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,6 +52,11 @@ func (k Keeper) MintNFT(
 		return fmt.Errorf("only the collection minter can mint NFTs")
 	}
 
+	supply := k.GetSupply(ctx, collectionDenom)
+	if supply.Equal(math.NewInt(types.MaxNftsInCollection)) {
+		return fmt.Errorf("max supply reached for collection %s", collectionDenom)
+	}
+
 	// TODO: Charge fee if necessary
 
 	nft := types.Nft{
@@ -71,7 +77,7 @@ func (k Keeper) MintNFT(
 	return k.incrementSupply(ctx, collectionDenom)
 }
 
-func (k Keeper) SendNft(ctx context.Context, fromAddr, toAddr sdk.AccAddress, collectionDenom, tokenId string) error {
+func (k Keeper) SendNFT(ctx context.Context, fromAddr, toAddr sdk.AccAddress, collectionDenom, tokenId string) error {
 	err := k.changeNftOwner(ctx, fromAddr, toAddr, collectionDenom, tokenId)
 	if err != nil {
 		return err
@@ -159,9 +165,13 @@ func (k Keeper) setNft(ctx context.Context, nft types.Nft) error {
 }
 
 func (k Keeper) changeNftOwner(ctx context.Context, oldOwner, newOwner sdk.AccAddress, collectionDenom string, tokenId string) error {
+	if oldOwner.Equals(newOwner) {
+		return fmt.Errorf("cannot transfer NFT to the same owner")
+	}
+
 	nft, err := k.NFTs.Get(ctx, collections.Join(collectionDenom, tokenId))
 	if err != nil {
-		return fmt.Errorf("failed to get NFT: %w", err)
+		return fmt.Errorf("collection or token_id does not exist")
 	}
 
 	if nft.Owner != oldOwner.String() {
