@@ -115,6 +115,72 @@ func (k Keeper) SendNFT(ctx context.Context, fromAddr, toAddr sdk.AccAddress, co
 	return nil
 }
 
+func (k Keeper) SetNFTName(ctx context.Context, authority sdk.AccAddress, collectionDenom, tokenId, name string) error {
+	coll, err := k.Collections.Get(ctx, collectionDenom)
+	if err != nil {
+		return types.ErrCollectionNotFound
+	}
+
+	if coll.Authority == "" {
+		return fmt.Errorf("no authority, cannot set NFT name")
+	}
+
+	collectionAuthority, err := sdk.AccAddressFromBech32(coll.Authority)
+	if err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
+	if !authority.Equals(collectionAuthority) {
+		return fmt.Errorf("only the collection authority can set NFT name")
+	}
+
+	nft, err := k.GetNft(ctx, collectionDenom, tokenId)
+	if err != nil {
+		return err
+	}
+
+	err = k.validateNftMetadata(tokenId, name, nft.Uri)
+	if err != nil {
+		return err
+	}
+
+	nft.Name = name
+	return k.setNft(ctx, *nft)
+}
+
+func (k Keeper) SetNFTUri(ctx context.Context, authority sdk.AccAddress, collectionDenom, tokenId, uri string) error {
+	coll, err := k.Collections.Get(ctx, collectionDenom)
+	if err != nil {
+		return types.ErrCollectionNotFound
+	}
+
+	if coll.Authority == "" {
+		return fmt.Errorf("no authority, cannot set NFT uri")
+	}
+
+	collectionAuthority, err := sdk.AccAddressFromBech32(coll.Authority)
+	if err != nil {
+		return fmt.Errorf("invalid authority address: %w", err)
+	}
+
+	if !authority.Equals(collectionAuthority) {
+		return fmt.Errorf("only the collection authority can set NFT uri")
+	}
+
+	nft, err := k.GetNft(ctx, collectionDenom, tokenId)
+	if err != nil {
+		return err
+	}
+
+	err = k.validateNftMetadata(tokenId, nft.Name, uri)
+	if err != nil {
+		return err
+	}
+
+	nft.Uri = uri
+	return k.setNft(ctx, *nft)
+}
+
 func (k Keeper) GetNft(ctx context.Context, collectionDenom, tokenId string) (*types.Nft, error) {
 	nftKey := collections.Join(collectionDenom, tokenId)
 	has, err := k.NFTs.Has(ctx, nftKey)

@@ -16,7 +16,7 @@ message Collection {
 
   string creator = 6;
   string minter = 7; // who can mint new nfts, if not set no one can mint
-  string authority = 8; // who can update name, description and uri, if not set no one can update
+  string authority = 8; // who can update name and uri, if not set no one can update, this is valid for the all nfts in this collection
 
   uint64 num_tokens = 9;
 }

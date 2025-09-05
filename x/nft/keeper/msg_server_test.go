@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestMsgCreateCollection() {
 				Creator: creator1.String(),
 				Minter:  minter1.String(),
 				Name:    testCollection1.Name,
-				Symbol:  testCollection1.Symbol,
+				Symbol:  testCollection1.Symbol + "0",
 				Uri:     testCollection1.Uri,
 			},
 		},
@@ -58,8 +58,7 @@ func (suite *KeeperTestSuite) TestMsgCreateCollection() {
 			expectedErrorMsg: "invalid minter address: decoding bech32 failed",
 		},
 		{
-			// TODO: this should be valid as minter can be empty (meaning no one can mint)
-			name: "invalid empty minter address",
+			name: "valid empty minter address",
 			msg: &types.MsgCreateCollection{
 				Creator: creator1.String(),
 				Minter:  "",
@@ -67,8 +66,6 @@ func (suite *KeeperTestSuite) TestMsgCreateCollection() {
 				Symbol:  testCollection1.Symbol,
 				Uri:     testCollection1.Uri,
 			},
-			expectError:      true,
-			expectedErrorMsg: "invalid minter address: empty address string",
 		},
 		{
 			name: "should fail on empty symbol",
@@ -356,7 +353,7 @@ func (suite *KeeperTestSuite) TestMsgPrintEdition() {
 		Creator: creator1.String(),
 		Minter:  minter1.String(),
 		Name:    testCollection1.Name,
-		Symbol:  testCollection1.Symbol,
+		Symbol:  testCollection1.Symbol + "3",
 		Uri:     testCollection1.Uri,
 	}
 	res, err := suite.msgServer.CreateCollection(suite.ctx, createCollectionMsg)

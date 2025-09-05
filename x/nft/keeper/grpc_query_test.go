@@ -7,8 +7,9 @@ import (
 func (suite *KeeperTestSuite) TestQueryCollection() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,
@@ -28,8 +29,9 @@ func (suite *KeeperTestSuite) TestQueryCollection() {
 func (suite *KeeperTestSuite) TestQueryOwnerOf() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,
@@ -58,8 +60,9 @@ func (suite *KeeperTestSuite) TestQueryOwnerOf() {
 func (suite *KeeperTestSuite) TestQueryNftInfo() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,
@@ -92,8 +95,9 @@ func (suite *KeeperTestSuite) TestQueryNftInfo() {
 func (suite *KeeperTestSuite) TestQueryNftsOfOwner() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,
@@ -134,8 +138,9 @@ func (suite *KeeperTestSuite) TestQueryNftsOfOwner() {
 func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,

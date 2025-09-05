@@ -3,8 +3,9 @@ package keeper_test
 func (suite *KeeperTestSuite) TestPrintEdition() {
 	collectionDenom, err := suite.keeper.CreateCollection(
 		suite.ctx,
-		creator1,
-		minter1,
+		creator1.String(),
+		minter1.String(),
+		"",
 		testCollection1.Symbol,
 		testCollection1.Name,
 		testCollection1.Uri,

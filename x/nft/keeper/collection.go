@@ -5,21 +5,29 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bitsongofficial/go-bitsong/x/nft/types"
 	tmcrypto "github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) CreateCollection(
-	ctx context.Context,
+	ctx sdk.Context,
 	creator,
-	minter sdk.AccAddress,
+	minter,
+	authority,
 	symbol,
 	name,
 	uri string,
 ) (denom string, err error) {
-	denom, err = k.validateCollectionDenom(ctx, creator, symbol)
+	creatorAddr, err := k.ac.StringToBytes(creator)
+	if err != nil {
+		return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
+	}
+
+	denom, err = k.validateCollectionDenom(ctx, creatorAddr, symbol)
 	if err != nil {
 		return "", err
 	}
@@ -35,8 +43,25 @@ func (k Keeper) CreateCollection(
 		Symbol:  symbol,
 		Name:    name,
 		Uri:     uri,
-		Creator: creator.String(),
-		Minter:  minter.String(),
+		Creator: creator,
+	}
+
+	if minter != "" {
+		_, err = k.ac.StringToBytes(minter)
+		if err != nil {
+			return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address: %s", err)
+		}
+
+		coll.Minter = minter
+	}
+
+	if authority != "" {
+		_, err = k.ac.StringToBytes(authority)
+		if err != nil {
+			return "", errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address: %s", err)
+		}
+
+		coll.Authority = authority
 	}
 
 	if err := k.setCollection(ctx, coll); err != nil {
@@ -44,6 +69,112 @@ func (k Keeper) CreateCollection(
 	}
 
 	return denom, nil
+}
+
+func (k Keeper) SetCollectionName(ctx context.Context, authority sdk.AccAddress, denom, name string) error {
+	coll, err := k.GetCollection(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if coll.Authority != authority.String() {
+		return fmt.Errorf("only the collection authority can change the name")
+	}
+
+	if err := k.validateCollectionMetadata(name, coll.Uri); err != nil {
+		return err
+	}
+
+	coll.Name = name
+
+	return k.setCollection(ctx, coll)
+}
+
+func (k Keeper) SetCollectionUri(ctx context.Context, authority sdk.AccAddress, denom, uri string) error {
+	coll, err := k.GetCollection(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if coll.Authority != authority.String() {
+		return fmt.Errorf("only the collection authority can change the uri")
+	}
+
+	if err := k.validateCollectionMetadata(coll.Name, uri); err != nil {
+		return err
+	}
+
+	coll.Uri = uri
+
+	return k.setCollection(ctx, coll)
+}
+
+func (k Keeper) SetMinter(ctx context.Context, oldMinter sdk.AccAddress, newMinter *sdk.AccAddress, denom string) error {
+	coll, err := k.GetCollection(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if coll.Minter == "" {
+		return fmt.Errorf("minting disabled for this collection")
+	}
+
+	if coll.Minter != oldMinter.String() {
+		return fmt.Errorf("only the current minter can change the minter")
+	}
+
+	if newMinter != nil {
+		coll.Minter = newMinter.String()
+	} else {
+		coll.Minter = ""
+	}
+
+	return k.setCollection(ctx, coll)
+}
+
+func (k Keeper) SetAuthority(ctx context.Context, oldAuthority sdk.AccAddress, newAuthority *sdk.AccAddress, denom string) error {
+	coll, err := k.GetCollection(ctx, denom)
+	if err != nil {
+		return err
+	}
+
+	if coll.Authority != oldAuthority.String() {
+		return fmt.Errorf("only the current authority can change the authority")
+	}
+
+	if newAuthority != nil {
+		coll.Authority = newAuthority.String()
+	} else {
+		coll.Authority = ""
+	}
+
+	return k.setCollection(ctx, coll)
+}
+
+func (k Keeper) GetMinter(ctx context.Context, denom string) (sdk.AccAddress, error) {
+	coll, err := k.Collections.Get(ctx, denom)
+	if err != nil {
+		return nil, types.ErrCollectionNotFound
+	}
+
+	if coll.Minter == "" {
+		return nil, fmt.Errorf("minting disabled for this collection")
+	}
+
+	return sdk.AccAddressFromBech32(coll.Minter)
+}
+
+func (k Keeper) GetAuthority(ctx context.Context, denom string) (sdk.AccAddress, error) {
+	coll, err := k.Collections.Get(ctx, denom)
+	if err != nil {
+		return nil, types.ErrCollectionNotFound
+	}
+
+	if coll.Authority == "" {
+		return nil, fmt.Errorf("no authority set for this collection")
+	}
+
+	return sdk.AccAddressFromBech32(coll.Authority)
 }
 
 func (k Keeper) GetSupply(ctx context.Context, denom string) math.Int {
@@ -65,17 +196,13 @@ func (k Keeper) HasCollection(ctx context.Context, denom string) bool {
 	return has && err == nil
 }
 
-func (k Keeper) GetMinter(ctx context.Context, denom string) (sdk.AccAddress, error) {
+func (k Keeper) GetCollection(ctx context.Context, denom string) (types.Collection, error) {
 	coll, err := k.Collections.Get(ctx, denom)
 	if err != nil {
-		return nil, types.ErrCollectionNotFound
+		return types.Collection{}, types.ErrCollectionNotFound
 	}
 
-	if coll.Minter == "" {
-		return nil, fmt.Errorf("minting disabled for this collection")
-	}
-
-	return sdk.AccAddressFromBech32(coll.Minter)
+	return coll, nil
 }
 
 func (k Keeper) setSupply(ctx context.Context, denom string, supply math.Int) error {
@@ -123,15 +250,6 @@ func (k Keeper) validateCollectionDenom(ctx context.Context, creator sdk.AccAddr
 
 func (k Keeper) setCollection(ctx context.Context, coll types.Collection) error {
 	return k.Collections.Set(ctx, coll.Denom, coll)
-}
-
-func (k Keeper) getCollection(ctx context.Context, denom string) (types.Collection, error) {
-	coll, err := k.Collections.Get(ctx, denom)
-	if err != nil {
-		return types.Collection{}, types.ErrCollectionNotFound
-	}
-
-	return coll, nil
 }
 
 func (k Keeper) validateCollectionMetadata(name, uri string) error {

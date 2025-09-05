@@ -22,23 +22,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 func (k msgServer) CreateCollection(goCtx context.Context, msg *types.MsgCreateCollection) (*types.MsgCreateCollectionResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creator, err := k.ac.StringToBytes(msg.Creator)
-	if err != nil {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address: %s", err)
-	}
-
-	minter, err := k.ac.StringToBytes(msg.Minter)
-	if err != nil {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid minter address: %s", err)
-	}
-
-	// TODO: add authority
-	/*authority, err := k.ac.StringToBytes(msg.Authority)
-	if err != nil {
-		return nil, errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid authority address: %s", err)
-	}*/
-
-	denom, err := k.Keeper.CreateCollection(ctx, creator, minter, msg.Symbol, msg.Name, msg.Uri)
+	denom, err := k.Keeper.CreateCollection(ctx, msg.Creator, msg.Minter, msg.Authority, msg.Symbol, msg.Name, msg.Uri)
 	if err != nil {
 		return nil, err
 	}
