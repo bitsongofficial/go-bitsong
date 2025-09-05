@@ -11,7 +11,6 @@ func (suite *KeeperTestSuite) TestQueryCollection() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -22,7 +21,6 @@ func (suite *KeeperTestSuite) TestQueryCollection() {
 	suite.NoError(err)
 	suite.Equal(testCollection1.Name, res.Collection.Name)
 	suite.Equal(testCollection1.Symbol, res.Collection.Symbol)
-	suite.Equal(testCollection1.Description, res.Collection.Description)
 	suite.Equal(testCollection1.Uri, res.Collection.Uri)
 	suite.Equal(testCollection1.Minter, res.Collection.Minter)
 }
@@ -34,7 +32,6 @@ func (suite *KeeperTestSuite) TestQueryOwnerOf() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -46,7 +43,6 @@ func (suite *KeeperTestSuite) TestQueryOwnerOf() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)
@@ -66,7 +62,6 @@ func (suite *KeeperTestSuite) TestQueryNftInfo() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -78,7 +73,6 @@ func (suite *KeeperTestSuite) TestQueryNftInfo() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)
@@ -90,7 +84,6 @@ func (suite *KeeperTestSuite) TestQueryNftInfo() {
 	suite.NoError(err)
 	suite.Equal(testNft1.TokenId, res.Nft.TokenId)
 	suite.Equal(testNft1.Name, res.Nft.Name)
-	suite.Equal(testNft1.Description, res.Nft.Description)
 	suite.Equal(testNft1.Uri, res.Nft.Uri)
 	suite.Equal(collectionDenom, res.Nft.Collection)
 	suite.Equal(owner1.String(), res.Nft.Owner)
@@ -103,7 +96,6 @@ func (suite *KeeperTestSuite) TestQueryNftsOfOwner() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -115,7 +107,6 @@ func (suite *KeeperTestSuite) TestQueryNftsOfOwner() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)
@@ -127,7 +118,6 @@ func (suite *KeeperTestSuite) TestQueryNftsOfOwner() {
 		collectionDenom,
 		testNft2.TokenId,
 		testNft2.Name,
-		testNft2.Description,
 		testNft2.Uri,
 	)
 	suite.NoError(err)
@@ -148,7 +138,6 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -160,7 +149,6 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)
@@ -172,7 +160,6 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 		collectionDenom,
 		testNft2.TokenId,
 		testNft2.Name,
-		testNft2.Description,
 		testNft2.Uri,
 	)
 	suite.NoError(err)
@@ -200,7 +187,6 @@ func (suite *KeeperTestSuite) TestQueryNftsByOwner() {
 		collectionDenom,
 		testNft3.TokenId,
 		testNft3.Name,
-		testNft3.Description,
 		testNft3.Uri,
 	)
 	suite.NoError(err)

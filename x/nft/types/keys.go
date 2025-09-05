@@ -16,11 +16,10 @@ const (
 
 	MaxDenomLength = 43
 
-	MaxTokenIdLength     = 20
-	MaxSymbolLength      = 15
-	MaxNameLength        = 128
-	MaxDescriptionLength = 256
-	MaxURILength         = 150
+	MaxTokenIdLength = 20
+	MaxSymbolLength  = 15
+	MaxNameLength    = 128
+	MaxURILength     = 150
 )
 
 var (

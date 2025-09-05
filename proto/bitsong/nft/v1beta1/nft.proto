@@ -12,7 +12,6 @@ message Collection {
 
   string symbol = 2;
   string name = 3;
-  string description = 4;
   string uri = 5;
 
   string creator = 6;
@@ -29,7 +28,6 @@ message Nft {
   string token_id = 2;
 
   string name = 3;
-  string description = 4;
   string uri = 5;
 
   string owner = 6;

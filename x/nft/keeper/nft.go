@@ -18,10 +18,9 @@ func (k Keeper) MintNFT(
 	collectionDenom,
 	tokenId,
 	name,
-	description,
 	uri string,
 ) error {
-	if err := k.validateNftMetadata(tokenId, name, description, uri); err != nil {
+	if err := k.validateNftMetadata(tokenId, name, uri); err != nil {
 		return err
 	}
 
@@ -55,13 +54,12 @@ func (k Keeper) MintNFT(
 	// TODO: Charge fee if necessary
 
 	nft := types.Nft{
-		Collection:  collectionDenom,
-		TokenId:     tokenId,
-		Name:        name,
-		Description: description,
-		Uri:         uri,
-		Owner:       owner.String(),
-		Editions:    0,
+		Collection: collectionDenom,
+		TokenId:    tokenId,
+		Name:       name,
+		Uri:        uri,
+		Owner:      owner.String(),
+		Editions:   0,
 	}
 
 	if err := k.setNft(ctx, nft); err != nil {
@@ -129,7 +127,7 @@ func (k Keeper) GetNft(ctx context.Context, collectionDenom, tokenId string) (*t
 	return &nft, nil
 }
 
-func (k Keeper) validateNftMetadata(tokenId, name, description, uri string) error {
+func (k Keeper) validateNftMetadata(tokenId, name, uri string) error {
 	if strings.TrimSpace(tokenId) == "" {
 		return fmt.Errorf("token ID cannot be empty")
 	}
@@ -141,9 +139,6 @@ func (k Keeper) validateNftMetadata(tokenId, name, description, uri string) erro
 	if len(name) > types.MaxNameLength {
 		return fmt.Errorf("name length exceeds maximum of %d", types.MaxNameLength)
 
-	}
-	if len(description) > types.MaxDescriptionLength {
-		return fmt.Errorf("description length exceeds maximum of %d", types.MaxDescriptionLength)
 	}
 
 	if len(uri) > types.MaxURILength {

@@ -7,7 +7,6 @@ func (suite *KeeperTestSuite) TestPrintEdition() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -19,7 +18,6 @@ func (suite *KeeperTestSuite) TestPrintEdition() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)

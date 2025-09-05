@@ -25,33 +25,29 @@ var (
 	owner2 = sdk.AccAddress(tmhash.SumTruncated([]byte("owner2")))
 
 	testCollection1 = types.Collection{
-		Name:        "My NFT Collection",
-		Symbol:      "MYNFT",
-		Description: "My NFT Collection Description",
-		Uri:         "ipfs://my-nft-collection-metadata.json",
-		Minter:      minter1.String(),
+		Name:   "My NFT Collection",
+		Symbol: "MYNFT",
+		Uri:    "ipfs://my-nft-collection-metadata.json",
+		Minter: minter1.String(),
 	}
 	expectedDenom1 = "nft9436DDD23FB751AEA7BC6C767F20F943DD735E06"
 
 	testNft1 = types.Nft{
-		TokenId:     "1",
-		Name:        "My First NFT",
-		Description: "This is my first NFT",
-		Uri:         "ipfs://my-first-nft-metadata.json",
+		TokenId: "1",
+		Name:    "My First NFT",
+		Uri:     "ipfs://my-first-nft-metadata.json",
 	}
 
 	testNft2 = types.Nft{
-		TokenId:     "2",
-		Name:        "My Second NFT",
-		Description: "This is my second NFT",
-		Uri:         "ipfs://my-second-nft-metadata.json",
+		TokenId: "2",
+		Name:    "My Second NFT",
+		Uri:     "ipfs://my-second-nft-metadata.json",
 	}
 
 	testNft3 = types.Nft{
-		TokenId:     "3",
-		Name:        "My Third NFT",
-		Description: "This is my third NFT",
-		Uri:         "ipfs://my-third-nft-metadata.json",
+		TokenId: "3",
+		Name:    "My Third NFT",
+		Uri:     "ipfs://my-third-nft-metadata.json",
 	}
 )
 
@@ -83,7 +79,6 @@ func (suite *KeeperTestSuite) TestCreateCollection() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -95,7 +90,6 @@ func (suite *KeeperTestSuite) TestCreateCollection() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.Error(err)
@@ -108,7 +102,6 @@ func (suite *KeeperTestSuite) TestMintNFT() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -124,7 +117,6 @@ func (suite *KeeperTestSuite) TestMintNFT() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)
@@ -139,7 +131,6 @@ func (suite *KeeperTestSuite) TestMintNFT() {
 		collectionDenom,
 		testNft2.TokenId,
 		testNft2.Name,
-		testNft2.Description,
 		testNft2.Uri,
 	)
 	suite.NoError(err)
@@ -155,7 +146,6 @@ func (suite *KeeperTestSuite) TestSendNFT() {
 		minter1,
 		testCollection1.Symbol,
 		testCollection1.Name,
-		testCollection1.Description,
 		testCollection1.Uri,
 	)
 	suite.NoError(err)
@@ -167,7 +157,6 @@ func (suite *KeeperTestSuite) TestSendNFT() {
 		collectionDenom,
 		testNft1.TokenId,
 		testNft1.Name,
-		testNft1.Description,
 		testNft1.Uri,
 	)
 	suite.NoError(err)

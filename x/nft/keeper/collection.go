@@ -17,7 +17,6 @@ func (k Keeper) CreateCollection(
 	minter sdk.AccAddress,
 	symbol,
 	name,
-	description,
 	uri string,
 ) (denom string, err error) {
 	denom, err = k.validateCollectionDenom(ctx, creator, symbol)
@@ -27,18 +26,17 @@ func (k Keeper) CreateCollection(
 
 	// TODO: charge fee
 
-	if err := k.validateCollectionMetadata(name, description, uri); err != nil {
+	if err := k.validateCollectionMetadata(name, uri); err != nil {
 		return "", err
 	}
 
 	coll := types.Collection{
-		Denom:       denom,
-		Symbol:      symbol,
-		Name:        name,
-		Description: description,
-		Uri:         uri,
-		Creator:     creator.String(),
-		Minter:      minter.String(),
+		Denom:   denom,
+		Symbol:  symbol,
+		Name:    name,
+		Uri:     uri,
+		Creator: creator.String(),
+		Minter:  minter.String(),
 	}
 
 	if err := k.setCollection(ctx, coll); err != nil {
@@ -136,13 +134,9 @@ func (k Keeper) getCollection(ctx context.Context, denom string) (types.Collecti
 	return coll, nil
 }
 
-func (k Keeper) validateCollectionMetadata(name, description, uri string) error {
+func (k Keeper) validateCollectionMetadata(name, uri string) error {
 	if len(name) > types.MaxNameLength {
 		return fmt.Errorf("name cannot be longer than %d characters", types.MaxNameLength)
-	}
-
-	if len(description) > types.MaxDescriptionLength {
-		return fmt.Errorf("description cannot be longer than %d characters", types.MaxDescriptionLength)
 	}
 
 	if len(uri) > types.MaxURILength {
