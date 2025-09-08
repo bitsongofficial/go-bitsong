@@ -2,12 +2,20 @@ name: ictest E2E
 
 on:
   pull_request:
+    branches:
+      - main
+      - master
+    branches-ignore:
+      - "mvp/**"
+
   push:
     tags:
       - "**"
     branches:
-      - "main"
-      - "master"
+      - main
+      - master
+    branches-ignore:
+      - "mvp/**"
 
 permissions:
   contents: read

@@ -2,6 +2,7 @@ package keepers
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -57,6 +58,7 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		wasmtypes.StoreKey,
 		icqtypes.StoreKey,
 		fantokentypes.StoreKey,
+		nfttypes.StoreKey,
 		cadencetypes.StoreKey,
 		smartaccounttypes.StoreKey,
 		protocolpooltypes.StoreKey,

@@ -1,0 +1,40 @@
+syntax = "proto3";
+package bitsong.drop.v1beta1;
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/drop/types";
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "amino/amino.proto";
+
+message Template {
+  option (gogoproto.goproto_getters) = false;
+
+  string name = 1;
+  string uri = 2;
+}
+
+message Rule {
+  option (gogoproto.goproto_getters) = false;
+
+  uint64 id = 1;
+
+  google.protobuf.Timestamp start_time = 2
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+
+  google.protobuf.Timestamp end_time = 3
+    [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (amino.dont_omitempty) = true];
+}
+
+message Drop {
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+
+  uint64 max_available = 2;
+
+  Template template = 3;
+
+  // Template hidden_template
+  // bool is_hidden
+}

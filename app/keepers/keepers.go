@@ -26,6 +26,8 @@ import (
 	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 	fantokenkeeper "github.com/bitsongofficial/go-bitsong/x/fantoken/keeper"
 	fantokentypes "github.com/bitsongofficial/go-bitsong/x/fantoken/types"
+	nftkeeper "github.com/bitsongofficial/go-bitsong/x/nft/keeper"
+	nfttypes "github.com/bitsongofficial/go-bitsong/x/nft/types"
 	"github.com/bitsongofficial/go-bitsong/x/smart-account/authenticator"
 	smartaccountkeeper "github.com/bitsongofficial/go-bitsong/x/smart-account/keeper"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
@@ -149,6 +151,7 @@ type AppKeepers struct {
 	ICQKeeper            *icqkeeper.Keeper
 	EvidenceKeeper       evidencekeeper.Keeper
 	FanTokenKeeper       fantokenkeeper.Keeper
+	NftKeeper            nftkeeper.Keeper
 	WasmKeeper           wasmkeeper.Keeper
 	CadenceKeeper        cadencekeeper.Keeper
 	IBCFeeKeeper         ibcfeekeeper.Keeper
@@ -404,6 +407,14 @@ func NewAppKeepers(
 		appKeepers.BankKeeper,
 		appKeepers.DistrKeeper,
 		BlockedAddrs(),
+	)
+
+	appKeepers.NftKeeper = nftkeeper.NewKeeper(
+		appCodec,
+		keys[nfttypes.StoreKey],
+		runtime.NewKVStoreService(appKeepers.keys[nfttypes.StoreKey]),
+		appKeepers.AccountKeeper,
+		bApp.Logger(),
 	)
 
 	// Stargate Queries
