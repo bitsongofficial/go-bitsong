@@ -10,22 +10,35 @@ All notable changes to this project will be documented in this file. See [conven
 
 ### ⚙️ Miscellaneous
 
-- [**breaking**] remove x/cadence - ([62c6b84](https://github.com/bitsongofficial/go-bitsong/commit/62c6b8434cc20c97d6d287c72b385ebdaf0dd982)) - hard-nett
-- [**breaking**] remove x/icq - ([6e30322](https://github.com/bitsongofficial/go-bitsong/commit/6e30322327e85dd6acbc9796429640bc60f91872)) - hard-nett
-- [**breaking**] bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
+- remove icq support - ([6e30322](https://github.com/bitsongofficial/go-bitsong/commit/6e30322327e85dd6acbc9796429640bc60f91872)) - hard-nett
+- [**breaking**]bump wasmd@v0.61.3, wasmvm@v3.0.2, cometbft@0.38.18, pfm@v10.1, wasm-light-client@v10, ibc-go@v10, ibc-hooks@v10 - ([3ad1785](https://github.com/bitsongofficial/go-bitsong/commit/3ad17852b7027bf69455e28b5441cc0ee0bbba9b)) - hard-nett
 - remove the rest of stale upgradehandler imports - ([f0ed673](https://github.com/bitsongofficial/go-bitsong/commit/f0ed673c6c9b4142f430955d966829e51316b972)) - hard-nett
 - re-wire default export cmd - ([a1a260c](https://github.com/bitsongofficial/go-bitsong/commit/a1a260c96a066f0c13a100e9b306bf317072b2ff)) - hard-nett
-- re-add ibc+wasm ict tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
+- re-add ibc+wasm e2e tests (via polytone) - ([a39e677](https://github.com/bitsongofficial/go-bitsong/commit/a39e67729e8a049eb54433af3075999b44ae704f)) - hard-nett
+- prep changelog - ([287ab85](https://github.com/bitsongofficial/go-bitsong/commit/287ab85291f3bc99411190979ec1adddf9c649ce)) - hard-nett
+- prep changelog, go-test pass - ([054a944](https://github.com/bitsongofficial/go-bitsong/commit/054a944fac1280d14a085f2efb7d61c218472149)) - hard-nett
 - add ibc-hooks tests, rename e2e test library to ict, prep gitopia-mirror & swag-docs - ([ab2c296](https://github.com/bitsongofficial/go-bitsong/commit/ab2c2960ab123507d32f1d36dd44898c91401f8e)) - hard-nett
+- small cleanup - ([72dc358](https://github.com/bitsongofficial/go-bitsong/commit/72dc358a6320061509aae2f733f8654b3334b98f)) - hard-nett
+- unbreak staking-hooks - ([1f35c06](https://github.com/bitsongofficial/go-bitsong/commit/1f35c06242d49547f072d9f320a92a5bc14b0d57)) - hard-nett
+- merge e2e sh scripts into codebase - ([e250eb6](https://github.com/bitsongofficial/go-bitsong/commit/e250eb601aa88969be884a9df37727bf32e6b3cf)) - hard-nett
+- prep remaining cicd test - ([6aa6748](https://github.com/bitsongofficial/go-bitsong/commit/6aa6748b598d622b9db44077e1a772587650de40)) - hard-nett
+- wire in tools for sh ci workflows - ([5afa3c2](https://github.com/bitsongofficial/go-bitsong/commit/5afa3c201db298941dd9de60dc30f12aac6cf1a9)) - hard-nett
+- fix go version, upgrade ci test works locally - ([9cfae3d](https://github.com/bitsongofficial/go-bitsong/commit/9cfae3d0a06ced04dc6b0a43fda93a700e3f64a1)) - hard-nett
+- run snapshot download and bitsongd install in parallel - ([40912d3](https://github.com/bitsongofficial/go-bitsong/commit/40912d3a5125aa91c896892101119571946ea2ae)) - hard-nett
+- rename workflow to pr-checks, remove trace log flag - ([276c02d](https://github.com/bitsongofficial/go-bitsong/commit/276c02dfc96bed94d9396f21f354c9a7a4cc42a2)) - hard-nett
+- add manual approval to upgrade ci - ([ac5b37b](https://github.com/bitsongofficial/go-bitsong/commit/ac5b37b25135f6fe9bf26a62575f5c1f2faa1a03)) - hard-nett
 
 ### 🐛 Bug fixes
+
 - add x/fantoken MsgServiceHandler - ([160f17a](https://github.com/bitsongofficial/go-bitsong/commit/160f17a4014769936848f9aebbd3f7685ab4601e)) - hard-nett
 - wire in v024 upgradehandler - ([ad31d93](https://github.com/bitsongofficial/go-bitsong/commit/ad31d93cb56adac2caf9b84627d5097e98ac243c)) - hard-nett
 - wire 08-wasm & 07-tendermint light clients into cilentKeeper, use pointers for our AppKeepers struct - ([d32f36e](https://github.com/bitsongofficial/go-bitsong/commit/d32f36e9068e10ec752aa6f15a1a2cc88649c4c3)) - hard-nett
 - revert bankKeeper pointer for now, improve pointer use throughout app - ([0756c5c](https://github.com/bitsongofficial/go-bitsong/commit/0756c5c45a3ce20abce57be2884d815d97606df8)) - hard-nett
 - revert to proper ics4Middleware keeper initialization sequence - ([54feebf](https://github.com/bitsongofficial/go-bitsong/commit/54feebfbf8432417714309dbae472ec92eb9aa74)) - hard-nett
+- remove x/cadence - ([62c6b84](https://github.com/bitsongofficial/go-bitsong/commit/62c6b8434cc20c97d6d287c72b385ebdaf0dd982)) - hard-nett
 
 ---
+
 ## [0.23.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.22.0..v0.23.0) - 2025-06-23
 
 ### ⚙️ Miscellaneous
@@ -45,6 +58,7 @@ All notable changes to this project will be documented in this file. See [conven
 - set feepool to reflect updated balance - ([831d0ee](https://github.com/bitsongofficial/go-bitsong/commit/831d0ee582d651e1dbc27715c740e38ad01225bc)) - hard-nett
 
 ---
+
 ## [0.22.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.21.6..v0.22.0) - 2025-05-18
 
 ### ⚙️ Miscellaneous
@@ -52,6 +66,7 @@ All notable changes to this project will be documented in this file. See [conven
 - - resolve v018-v021 issues (#278) - ([cf7a58c](https://github.com/bitsongofficial/go-bitsong/commit/cf7a58c6f3c274e9153f0f907ebfa8b88e58cf97)) - Hard-Nett
 
 ---
+
 ## [0.21.6](https://github.com/bitsongofficial/go-bitsong/compare/v0.21.5..v0.21.6) - 2025-03-13
 
 ### ⚙️ Miscellaneous
@@ -59,6 +74,7 @@ All notable changes to this project will be documented in this file. See [conven
 - upgrade ibc to 8.7.0 (#281) - ([fbdc845](https://github.com/bitsongofficial/go-bitsong/commit/fbdc84594b0a65d2bbe1da4381f71932efa7efed)) - Angelo RC
 
 ---
+
 ## [0.20.2](https://github.com/bitsongofficial/go-bitsong/compare/v0.20.1..v0.20.2) - 2024-12-27
 
 ### ⚙️ Miscellaneous
@@ -66,6 +82,7 @@ All notable changes to this project will be documented in this file. See [conven
 - V0.20.2 (#252) - ([e49371a](https://github.com/bitsongofficial/go-bitsong/commit/e49371a6876f650fc908ee376337606b2f57f3b5)) - Hard-Nett
 
 ---
+
 ## [0.18.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.17.0..v0.18.0) - 2024-11-27
 
 ### ⚙️ Miscellaneous
@@ -73,6 +90,7 @@ All notable changes to this project will be documented in this file. See [conven
 - cosmos-sdk@v0.47, wasmd@v0.46, ibc-go@v7, (#235) - ([50b4082](https://github.com/bitsongofficial/go-bitsong/commit/50b4082736a68cdde098cf36edd7c7a70d9fdae6)) - Hard-Nett
 
 ---
+
 ## [0.17.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.16.0..v0.17.0) - 2024-08-21
 
 ### 🐛 Bug fixes
@@ -80,6 +98,7 @@ All notable changes to this project will be documented in this file. See [conven
 - Remove IBCFeeKeeper and replace with ChannelKeeper in app.go (#234) - ([6caaf5f](https://github.com/bitsongofficial/go-bitsong/commit/6caaf5fdba8e7ce41e8a9d44654c141f85c9c38f)) - Angelo RC
 
 ---
+
 ## [0.16.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.15.0..v0.16.0) - 2024-08-09
 
 ### ⚙️ Miscellaneous
@@ -88,6 +107,7 @@ All notable changes to this project will be documented in this file. See [conven
 - add node service handler (#233) - ([608415a](https://github.com/bitsongofficial/go-bitsong/commit/608415adfd0d5fedb081c369268461541b3fe4e4)) - Sergey
 
 ---
+
 ## [0.14.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.14.0-alpha.1..v0.14.0) - 2023-02-07
 
 ### ⚙️ Miscellaneous
@@ -100,6 +120,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(authz)** Add MinValCommissionDecorator test - ([a6b3d76](https://github.com/bitsongofficial/go-bitsong/commit/a6b3d76bd00650dae0fc6c9323723ce4ffa547a5)) - angelorc
 
 ---
+
 ## [0.14.0-alpha.1](https://github.com/bitsongofficial/go-bitsong/compare/v0.13.0..v0.14.0-alpha.1) - 2023-02-04
 
 ### 🐛 Bug fixes
@@ -107,6 +128,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(authz)** Add Binary Codec support to MinValCommissionDecorator - ([8b3cc2e](https://github.com/bitsongofficial/go-bitsong/commit/8b3cc2eeb0ef48624ebf4517c6f6dce285798f5a)) - angelorc
 
 ---
+
 ## [0.13.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.12.1.1..v0.13.0) - 2023-01-24
 
 ### 🐛 Bug fixes
@@ -114,6 +136,7 @@ All notable changes to this project will be documented in this file. See [conven
 - go.sum - ([ecf29a7](https://github.com/bitsongofficial/go-bitsong/commit/ecf29a742bebfd9c037a9aeadb4e4ac85d4bcd4b)) - angelorc
 
 ---
+
 ## [0.12.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.11.0..v0.12.0) - 2022-10-14
 
 ### ⚙️ Miscellaneous
@@ -126,6 +149,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(docker)** fix and push the new docker images - ([a7d1a18](https://github.com/bitsongofficial/go-bitsong/commit/a7d1a1893b8050c1679889cd507f59a56c197b51)) - angelorc
 
 ---
+
 ## [0.11.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.11.0-rc0..v0.11.0) - 2022-07-01
 
 ### ⚙️ Miscellaneous
@@ -133,6 +157,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(app)** default fee for merkledrop and fantoken is 1_000_000_000ubtsg - ([f92cb0e](https://github.com/bitsongofficial/go-bitsong/commit/f92cb0eced47db4bc9fdba21a16a2e1a1b9ebf85)) - angelorc
 
 ---
+
 ## [0.11.0-rc0](https://github.com/bitsongofficial/go-bitsong/compare/v0.10.0..v0.11.0-rc0) - 2022-07-01
 
 ### ⚙️ Miscellaneous
@@ -140,6 +165,7 @@ All notable changes to this project will be documented in this file. See [conven
 - **(app)** change golang version to gorelease - ([820b9d9](https://github.com/bitsongofficial/go-bitsong/commit/820b9d95c0cb87d2f39ade62a667d45ee5d3cc38)) - angelorc
 
 ---
+
 ## [0.10.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.8.0..v0.10.0) - 2022-01-31
 
 ### ⚙️ Miscellaneous
@@ -149,6 +175,7 @@ All notable changes to this project will be documented in this file. See [conven
 - ante handle val min commission - ([e4ffcf3](https://github.com/bitsongofficial/go-bitsong/commit/e4ffcf35e3e72b3257430a33a9401fc512db77a4)) - angelorc
 
 ---
+
 ## [0.8.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.8.0-rc1..v0.8.0) - 2021-10-05
 
 ### ⚙️ Miscellaneous
@@ -158,6 +185,7 @@ All notable changes to this project will be documented in this file. See [conven
 - workflow - ([860f893](https://github.com/bitsongofficial/go-bitsong/commit/860f893138fffdd5c8812299a45c2b4d58a8bf14)) - Angelo
 
 ---
+
 ## [0.8.0-dev](https://github.com/bitsongofficial/go-bitsong/compare/v0.7.0-rc1..v0.8.0-dev) - 2021-06-23
 
 ### ⚙️ Miscellaneous
@@ -168,6 +196,7 @@ All notable changes to this project will be documented in this file. See [conven
 - fix mint fantoken amount #56 - ([555b7db](https://github.com/bitsongofficial/go-bitsong/commit/555b7dbb73ecc10347b8241d02b08901867fe158)) - sarawut
 
 ---
+
 ## [0.7.0-rc1](https://github.com/bitsongofficial/go-bitsong/compare/v0.6.0-beta1..v0.7.0-rc1) - 2021-03-20
 
 ### ⚙️ Miscellaneous
@@ -175,6 +204,7 @@ All notable changes to this project will be documented in this file. See [conven
 - default crisis GenesisState - ([276f739](https://github.com/bitsongofficial/go-bitsong/commit/276f739d2193d031a32e418723b1f136fd2cd112)) - Angelo
 
 ---
+
 ## [0.5.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.4.0..v0.5.0) - 2020-08-06
 
 ### ⚙️ Miscellaneous
@@ -186,6 +216,7 @@ All notable changes to this project will be documented in this file. See [conven
 - add/remove share to track - ([00c29e3](https://github.com/bitsongofficial/go-bitsong/commit/00c29e33c36a2a8b531366d8cf3452ff43fefe55)) - Angelo
 
 ---
+
 ## [0.4.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.3.1..v0.4.0) - 2020-08-04
 
 ### ⚙️ Miscellaneous
@@ -198,6 +229,7 @@ All notable changes to this project will be documented in this file. See [conven
 - tokenize rights - ([3112161](https://github.com/bitsongofficial/go-bitsong/commit/31121617f7ba50d701d0298af84006519b05de43)) - Angelo
 
 ---
+
 ## [0.3.0-dev-1](https://github.com/bitsongofficial/go-bitsong/compare/v0.2.1..v0.3.0-dev-1) - 2019-12-05
 
 ### ⚙️ Miscellaneous
@@ -232,6 +264,7 @@ All notable changes to this project will be documented in this file. See [conven
 - fix pay fee - ([d79ef57](https://github.com/bitsongofficial/go-bitsong/commit/d79ef57488cf9d5614c2259289905abebd99c670)) - Angelo
 
 ---
+
 ## [0.1.0](https://github.com/bitsongofficial/go-bitsong/compare/v0.0.2..v0.1.0) - 2019-07-10
 
 ### ⚙️ Miscellaneous
@@ -267,6 +300,7 @@ All notable changes to this project will be documented in this file. See [conven
 - gentx for POS-Bakerz - ([3e7b06b](https://github.com/bitsongofficial/go-bitsong/commit/3e7b06b64f18c2ccc9cea06f1f129906a28c8292)) - root
 
 ---
+
 ## [0.0.1] - 2019-07-02
 
 ### ⚙️ Miscellaneous

@@ -1,0 +1,268 @@
+---
+name: tests
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  pull_request_target:
+  push:
+    branches:
+      - main
+      - mainnet/main
+    tags:
+      - v*
+
+jobs:
+  manual-approval:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
+    permissions:
+      issues: write
+    steps:
+      - name: Request manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: bitsongofficial  # Replace with actual maintainer usernames
+          minimum-approvals: 1
+          issue-title: "Lets not swamp our snapshot providers!"
+          issue-body: "CI workflow for testing upgrades requires maintainer approval to run. Ping one of the contributors in the bitsongofficial org to approve this CI test"
+          exclude-workflow-initiator-as-approver: false
+  # build-macos:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Install dependencies
+  #       run: |
+  #         brew install bash direnv
+  #         sudo chsh -s /usr/local/bin/bash
+  #     - name: Hook direnv to bash
+  #       run: echo 'eval "$(direnv hook bash)"' >> $HOME/.bashrc
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #         check-latest: true
+  #     - name: Setup direnv
+  #       run: |
+  #         direnv allow
+  #         direnv export gha >> "$GITHUB_ENV"
+  #     - run: make bins
+  # build-bins:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #         check-latest: true
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - run: make bins
+  #     - run: make docker-image
+
+  bsh-upgrade:
+    runs-on: ubuntu-latest
+    # Skip approval for pushes to main branches and tags, require it for fork PRs
+    needs: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'manual-approval' || '' }}
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      (needs.manual-approval.result == 'success')
+    container:
+        image: node:20-bullseye
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
+      - name: Install required tools
+        run: |
+          apt-get update
+          apt-get install -y jq lz4  # Install tools checked in .envrc
+      - name: Set environment
+        uses: HatsuneMiku3939/direnv-action@v1
+      - run: make bsh-upgrade
+
+  # coverage:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - run: make test-coverage
+  #     - uses: codecov/codecov-action@v4
+
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - run: make deps-tidy
+  #     - run: make build
+  #     - run: make test-vet
+  #     - name: lint all
+  #       run: make test-lint-all
+  #     - name: lint make-sublinters
+  #       run: make test-sublinters
+
+  # shellcheck:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - run: make shellcheck
+
+  # sims:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: rokroskar/workflow-run-cleanup-action@master
+  #       env:
+  #         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  #     - uses: actions/checkout@v4
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - name: test-sim-nondeterminism
+  #       run: make test-sim-nondeterminism
+  #     - name: test-sim-import-export
+  #       run: make test-sim-import-export
+  #     - name: test-sim-after-import
+  #       run: make test-sim-after-import
+  #     - name: test-sim-fullapp
+  #       run: make test-sim-fullapp
+
+  # release-dry-run:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+  #     - uses: fregante/setup-git-user@v2
+  #     - name: configure git tag
+  #       run: echo "RELEASE_TAG=v$(./script/semver.sh bump patch $(git describe --tags $(git rev-list --tags --max-count=1)))" >> $GITHUB_ENV
+  #     - name: git tag
+  #       run: git tag -a ${{ env.RELEASE_TAG }} -m ${{ env.RELEASE_TAG }}
+  #     - name: release dry-run
+  #       run: make release
+
+  # network-upgrade-names:
+  #   runs-on: upgrade-tester
+  #   steps:
+  #     - name: Cleanup build folder
+  #       run: |
+  #         sudo rm -rf ./* || true
+  #         sudo rm -rf ./.??* || true
+  #     - uses: actions/checkout@v4
+  #     - run: git fetch --prune --unshallow
+  #     - name: Detect required Go version
+  #       run: |
+  #         toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
+  #         echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
+  #     - name: 'Setup jq'
+  #       uses: dcarbone/install-jq-action@v3
+  #     - name: Setup npm
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 18
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "${{ env.GOVERSION }}"
+  #     - name: Setup docker user
+  #       run: |
+  #         DOCKER_USER=$(id -u)
+  #         DOCKER_GROUP=$(id -g)
+  #           echo "DOCKER_USER=$DOCKER_USER" >> $GITHUB_ENV
+  #           echo "DOCKER_GROUP=$DOCKER_GROUP" >> $GITHUB_ENV
+  #     - name: set environment
+  #       uses: HatsuneMiku3939/direnv-action@v1
+  #     - name: Ensure only directories exists in upgrades dir
+  #       run: |
+  #         dir=./upgrades/software
+  #         if [[ $(find "$dir" ! -path "$dir" -maxdepth 1 -type f | wc -c) -ne 0 ]]; then
+  #             echo "$dir must contain only directories"
+  #             exit 1
+  #         fi
+  #     - name: Ensure names of upgrade dirs are semver compliant
+  #       run: |
+  #         dir=./upgrades/software
+  #         while read upgrade; do
+  #             ./script/semver.sh validate "$upgrade"
+  #         done <<< $(find "$dir" ! -path "$dir" -maxdepth 1 -type d -exec basename {} \;)
+
+  # dispatch-release:
+  #   runs-on: ubuntu-latest
+  #   if: startsWith(github.event.ref, 'refs/tags/v')
+  #   needs:
+  #     # - build-macos
+  #     # - build-bins
+  #     - tests
+  #     - coverage
+  #     - lint
+  #     - sims
+  #     - release-dry-run
+  #     - network-upgrade
+  #     - shellcheck
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - name: trigger release process
+  #       uses: benc-uk/workflow-dispatch@v1
+  #       with:
+  #         workflow: release.yaml
