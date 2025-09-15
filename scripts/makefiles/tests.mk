@@ -14,6 +14,8 @@ test-help:
 	@echo "  test-cover              Run coverage tests"
 	@echo "  test-race               Run race tests"
 	@echo "  test-race               Run race tests"
+	@echo "  test-ict                View current InterchainTests configured"
+	@echo "  test-bsh                View current bash script options"
 
 test: test-help
 test-all: test-race test-cover test-unit
@@ -29,6 +31,12 @@ test-cover:
 
 test-benchmark:
 	@go test -mod=readonly -bench=. ./...
+
+test-ict:
+	@make ict
+
+test-bsh:
+	@make bsh
 
 # include simulations
 # include sims.mk

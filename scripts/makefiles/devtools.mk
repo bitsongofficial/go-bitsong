@@ -34,6 +34,8 @@ cd $(GITHUBDIR)$(FS)$(1)$(FS)$(2) && git fetch origin && git checkout -q $(3)
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mkfile_dir := $(shell cd $(shell dirname $(mkfile_path)); pwd)
+workspace_root := $(shell cd $(mkfile_dir)/../..; pwd)
+
 
 ###
 # tools
@@ -55,9 +57,9 @@ all: tools
 tools: statik golangci-lint proto-tools
 
 golangci-lint: $(GOLANGCI_LINT)
-$(GOLANGCI_LINT): $(mkfile_dir)/install-golangci-lint.sh
+$(GOLANGCI_LINT): $(workspace_root)/scripts/release/install-golangci-lint.sh
 	@echo "Installing golangci-lint..."
-	@bash $(mkfile_dir)/install-golangci-lint.sh $(TOOLS_DESTDIR) $(GOLANGCI_LINT_HASHSUM)
+	@bash $(workspace_root)/scripts/release/install-golangci-lint.sh $(TOOLS_DESTDIR) $(GOLANGCI_LINT_HASHSUM)
 
 statik: $(STATIK)
 $(STATIK):

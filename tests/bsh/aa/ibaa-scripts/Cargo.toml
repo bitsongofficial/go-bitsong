@@ -1,0 +1,87 @@
+[package]
+name = "interchain-bitsong-accounts"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Riada <riada@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+documentation = "https://docs.abstract.money/"
+edition = "2021"
+homepage = "https://abstract.money"
+keywords = ["cosmos", "cosmwasm", "framework"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/AbstractSDK/abstract"
+version = "0.26.1"
+
+
+[dependencies]
+cosmwasm-schema = { version = "2.0" }
+cosmwasm-std    = { version = "2.0" }
+cw-controllers  = { version = "2.0" }
+cw-storage-plus = "2.0.0"
+cw-utils        = { version = "2.0" }
+cw2             = { version = "2.0.0" }
+cw20            = { version = "2.0.0" }
+cw20-base       = { version = "2.0.0", features = ["library"] }
+
+
+
+cw-address-like = { version = "2.0" }
+cw-asset        = { version = "4.0" }
+cw-ownable      = { version = "2.0" }
+
+
+protobuf  = { version = "2", features = ["with-bytes"] }
+schemars  = "0.8"
+serde     = { version = "1.0", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.49" }
+
+clap   = { version = "4.0.32", features = ["derive"] }
+semver = "1.0"
+tokio  = { version = "1.33.0", features = ["full"] }
+dotenv                = "0.15.0"
+env_logger            = "0.11.3"
+env = "1.0.1"
+log                   = "0.4.14"
+
+cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+cw-blob = "0.2.0"
+polytone         = { package = "abstract-polytone", version = "2.0.0" }
+polytone-note    = { package = "abstract-polytone-note", version = "4.0.0" }
+
+cosmrs = "0.22.0"
+cw-orch               = { version = "0.27.0" , features = ["daemon"]}
+cw-orch-clone-testing = { version = "0.9.0" }
+cw-orch-daemon        = { version = "0.28.0" }
+cw-orch-interchain    = { version = "0.8.0" }
+cw-orch-proto         = { version = "0.9.0" }
+
+# Keep these as path, creates cirular dependency otherwise
+# Only need to re-publish all contracts if a re-publish of abstract-interface is required
+abstract-adapter   = { version = "0.26.1" }
+abstract-app       = { version = "0.26.1" }
+abstract-client    = { version = "0.26.1" }
+abstract-interface = { version = "0.26.1" }
+abstract-sdk       = { version = "0.26.1" }
+abstract-std       = { version = "0.26.1" }
+abstract-testing   = { version = "0.26.1" }
+# Modules
+abstract-account = { version = "0.26.1" }
+ 
+
+## Testing
+anyhow = "1"
+rstest = "0.17.0"
+ 
+
+# Backup release profile, will result in warnings during optimization
+[profile.release]
+codegen-units    = 1
+debug            = false
+debug-assertions = false
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+panic            = 'abort'
+rpath            = false
