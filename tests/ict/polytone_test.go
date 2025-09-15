@@ -48,9 +48,9 @@ type NoteExecute struct {
 }
 
 type NoteQuery struct {
-	Msgs           []w.CosmosMsg   `json:"msgs"`
-	TimeoutSeconds uint64          `json:"timeout_seconds,string"`
-	Callback       CallbackRequest `json:"callback"`
+	Msgs           []w.QueryRequest `json:"msgs"`
+	TimeoutSeconds uint64           `json:"timeout_seconds,string"`
+	Callback       CallbackRequest  `json:"callback"`
 }
 
 type NoteExecuteMsg struct {
@@ -166,7 +166,21 @@ func TestPolytoneOnBitsong(t *testing.T) {
 	}
 
 	require.Equal(t, "", callbackExecute.Error)
+	fmt.Printf("res: %q\n", callbackExecute.Success)
+	// Perform IBC Query Workflow
+	simpleCosmosQuery := w.QueryRequest{
+		Staking: &w.StakingQuery{
+			AllValidators: &w.AllValidatorsQuery{},
+		},
+	}
+	// use the query function
+	callbackQuery, err := suite.RoundtripQuery(suite.ChainA.Note, &suite.ChainA, []w.QueryRequest{simpleCosmosQuery})
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	require.Equal(t, "", callbackQuery.Error)
+	fmt.Printf("res: %q\n", callbackQuery.Success)
 }
 
 func NewPolytoneSuite(t *testing.T) Suite {
@@ -444,7 +458,7 @@ func (s *Suite) RoundtripExecute(note string, chain *SuiteChain, msgs []w.Cosmos
 	})
 }
 
-func (s *Suite) RoundtripQuery(note string, chain *SuiteChain, msgs []w.CosmosMsg) (Callback, error) {
+func (s *Suite) RoundtripQuery(note string, chain *SuiteChain, msgs []w.QueryRequest) (Callback, error) {
 	msg := NoteQuery{
 		Msgs:           msgs,
 		TimeoutSeconds: 100,
