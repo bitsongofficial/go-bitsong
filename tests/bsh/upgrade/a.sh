@@ -123,10 +123,10 @@ lz4 -c -d  $SNAPSHOT_PATH | tar -x -C $VAL1HOME
 
 echo "creating testnet-from-export"
 # create testnet-from-export
-$BIND in-place-testnet "$CHAINID" "$USERADDR" bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr --trigger-testnet-upgrade $UPGRADE_VERSION  --home $VAL1HOME --skip-confirmation  --log_level trace & 
+$BIND in-place-testnet "$CHAINID" "$USERADDR" bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr --trigger-testnet-upgrade $UPGRADE_VERSION  --home $VAL1HOME --skip-confirmation & 
 INPLACE_TESTNET=$!
 echo "INPLACE_TESTNET: $INPLACE_TESTNET"
-sleep 45
+sleep 55
 
 ####################################################################
 # 0. UPGRADING
