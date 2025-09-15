@@ -59,17 +59,18 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
+    container:
+        image: node:20-bullseye
     steps:
       - uses: actions/checkout@v4
-      - run: git fetch --prune --unshallow
-      # - name: Detect required Go version
-      #   run: |
-      #     toolchain=$(./script/tools.sh gotoolchain | sed 's/go*//')
-      #     echo "GOVERSION=${toolchain}" >> $GITHUB_ENV
       - uses: actions/setup-go@v5
         with:
           go-version: 1.24
-      - name: set environment
+      - name: Install required tools
+        run: |
+          apt-get update
+          apt-get install -y jq lz4  # Install tools checked in .envrc
+      - name: Set environment
         uses: HatsuneMiku3939/direnv-action@v1
       - run: make bsh-upgrade
 
