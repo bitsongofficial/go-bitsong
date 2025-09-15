@@ -30,21 +30,45 @@ VAL1_P2P_PORT=26656
 echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 trap 'pkill -f '"$BIND" EXIT
 
-# Clone the repository if it doesn't exist
-git clone $OLD_RELEASE_GIT
-# # Change into the cloned directory
-cd go-bitsong &&
-# # Checkout the version of go-bitsong that doesnt submit slashing hooks
-git checkout $OLD_TAG
-make install 
-cd ../ &&
+# install bitsongd in background
+(
+    echo "Starting repository clone and build..."
+    git clone $OLD_RELEASE_GIT
+    cd go-bitsong &&
+    git checkout $OLD_TAG
+    make install 
+    cd ../
+    echo "✅ Repository clone and build completed"
+) &
+BUILD_PID=$!
 
-# download live network snapshot
-if [ -f "$SNAPSHOT_PATH" ]; then
-    echo "Snapshot already exists at $SNAPSHOT_PATH, skipping download"
+# download live snapshot in background
+(
+    echo "Starting snapshot download..."
+    mkdir $CHAINDIR
+    if [ -f "$SNAPSHOT_PATH" ]; then
+        echo "Snapshot already exists at $SNAPSHOT_PATH, skipping download"
+    else
+        echo "Downloading snapshot from $SNAPSHOT_URL"
+        curl "$SNAPSHOT_URL" -o "$SNAPSHOT_PATH"
+    fi
+    echo "✅ Snapshot download completed"
+) &
+DOWNLOAD_PID=$!
+
+# wait for both to complete
+echo "Waiting for clone/build and snapshot download to complete..."
+wait $BUILD_PID
+BUILD_EXIT=$?
+wait $DOWNLOAD_PID  
+DOWNLOAD_EXIT=$?
+
+# Check if both succeeded
+if [ $BUILD_EXIT -eq 0 ] && [ $DOWNLOAD_EXIT -eq 0 ]; then
+    echo "✅ Both operations completed successfully"
 else
-    echo "Downloading snapshot from $SNAPSHOT_URL"
-    curl "$SNAPSHOT_URL" -o "$SNAPSHOT_PATH"
+    echo "❌ One or both operations failed (Build: $BUILD_EXIT, Download: $DOWNLOAD_EXIT)"
+    exit 1
 fi
 
 ####################################################################
