@@ -6,12 +6,12 @@ UPGRADE_VERSION=v024
 
 OLD_RELEASE_GIT=https://github.com/bitsongofficial/go-bitsong
 NEW_RELEASE_GIT=https://github.com/permissionlessweb/go-bitsong
-OLD_TAG=v0.23.0
+OLD_TAG=main
 NEW_TAG=main
 
-SNAPSHOT_BLOCK=24222132
-SNAPSHOT_TAR=bitsong_$SNAPSHOT_BLOCK.tar.lz4
-SNAPSHOT_PATH=./data/$SNAPSHOT_TAR
+SNAPSHOT_PATH=./data/bitsong-snapshot.tar.lz4
+SNAPSHOT_URL=$(curl -s "https://www.polkachu.com/tendermint_snapshots/bitsong" | grep -o 'https://snapshots\.polkachu\.com/snapshots/bitsong/bitsong_[0-9]*\.tar\.lz4' | head -1)
+echo "Current snapshot url: $SNAPSHOT_URL"
 
 # file paths
 CHAINDIR=./data
@@ -25,7 +25,7 @@ VAL1_PROXY_APP_PORT=26658
 VAL1_RPC_PORT=26657
 VAL1_PPROF_PORT=6060
 VAL1_P2P_PORT=26656
- 
+
 
 echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 trap 'pkill -f '"$BIND" EXIT
@@ -39,10 +39,13 @@ git checkout $OLD_TAG
 make install 
 cd ../ &&
 
-## download snapshot from polkachu (thanks team!)
-mkdir .bin
-# sudo apt install lz4
-# curl https://snapshots.polkachu.com/snapshots/bitsong/$SNAPSHOT_TAR  -o $SNAPSHOT_PATH
+# download live network snapshot
+if [ -f "$SNAPSHOT_PATH" ]; then
+    echo "Snapshot already exists at $SNAPSHOT_PATH, skipping download"
+else
+    echo "Downloading snapshot from $SNAPSHOT_URL"
+    curl "$SNAPSHOT_URL" -o "$SNAPSHOT_PATH"
+fi
 
 ####################################################################
 # A. CHAINS CONFIG
@@ -52,25 +55,18 @@ rm -rf $VAL1HOME
 rm -rf $VAL1HOME/test-keys
 
 # initialize chains
-$BIND init $CHAINID --overwrite --home $VAL1HOME --chain-id $CHAINID
-sleep 2
+$BIND init $CHAINID --overwrite --home $VAL1HOME --chain-id $CHAINID &&
 mkdir $VAL1HOME/test-keys
 
 # cli config
-$BIND --home $VAL1HOME config keyring-backend test
-sleep 1
-$BIND --home $VAL1HOME config chain-id $CHAINID
-sleep 1
-$BIND --home $VAL1HOME config node tcp://localhost:$VAL1_RPC_PORT
-sleep 1
+$BIND --home $VAL1HOME config keyring-backend test &&
+$BIND --home $VAL1HOME config chain-id $CHAINID &&
+$BIND --home $VAL1HOME config node tcp://localhost:$VAL1_RPC_PORT &&
   
 # setup test keys.
-yes | $BIND  --home $VAL1HOME keys add validator1 --output json > $VAL1HOME/test-keys/val.json 2>&1 
-sleep 1
-yes | $BIND  --home $VAL1HOME keys add user --output json > $VAL1HOME/test-keys/user.json 2>&1
-sleep 1
-yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/del.json 2>&1
-sleep 1
+yes | $BIND  --home $VAL1HOME keys add validator1 --output json > $VAL1HOME/test-keys/val.json 2>&1 &&
+yes | $BIND  --home $VAL1HOME keys add user --output json > $VAL1HOME/test-keys/user.json 2>&1 &&
+yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/del.json 2>&1 &&
 
 DEL1=$(jq -r '.name' $CHAINDIR/"$CHAINID"/val1/test-keys/del.json)
 DEL1ADDR=$(jq -r '.address' $CHAINDIR/"$CHAINID"/val1/test-keys/del.json)
@@ -103,7 +99,7 @@ lz4 -c -d  $SNAPSHOT_PATH | tar -x -C $VAL1HOME
 
 echo "creating testnet-from-export"
 # create testnet-from-export
-$BIND in-place-testnet "$CHAINID" "$USERADDR" bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr --trigger-testnet-upgrade $UPGRADE_VERSION  --home $VAL1HOME --skip-confirmation & 
+$BIND in-place-testnet "$CHAINID" "$USERADDR" bitsongvaloper1qxw4fjged2xve8ez7nu779tm8ejw92rv0vcuqr --trigger-testnet-upgrade $UPGRADE_VERSION  --home $VAL1HOME --skip-confirmation  --log_level trace & 
 INPLACE_TESTNET=$!
 echo "INPLACE_TESTNET: $INPLACE_TESTNET"
 sleep 45
@@ -126,12 +122,15 @@ $BIND start --home $VAL1HOME &
 VAL1_PID=$!
 echo "VAL1_PID: $VAL1_PID"
 sleep 7
- 
-# ## ensure funding community pool is okay 
-# MSG_CODE=$($BIND tx distribution fund-community-pool $fundCommunityPool --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -o json -y | jq -r '.code')
-# if [ -n "$MSG_CODE" ] && [ "$MSG_CODE" -ne 0 ]; then
-#   exit 1
-# fi
 
-echo "COMMUNITY POOL PATCH APPLIED SUCCESSFULLY, ENDING TESTS"
-pkill -f bitsongd
+# TODO: run basic test suite ensuring functionality post upgrade
+
+if kill -0 $VAL1_PID 2>/dev/null; then
+    echo "SUCCESS: Node started successfully without panic"
+    kill $VAL1_PID 2>/dev/null
+    wait $VAL1_PID 2>/dev/null
+    exit 0
+else
+    echo "FAILED: Node process died (likely panicked)"
+    exit 1
+fi

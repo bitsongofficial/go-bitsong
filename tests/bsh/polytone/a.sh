@@ -15,7 +15,7 @@ USERFILE="test-keys/$USER.json"
 HERMES_CFG_TEMPLATE_PATH="helpers/relayer/hermes.toml"
 
 # file paths
-CHAINDIR=./data
+CHAINDIR=../data/polytone
 VAL1HOME=$CHAINDIR/$CHAINID_A/val1
 VAL2HOME=$CHAINDIR/$CHAINID_B/val1
 HERMES=~/.hermes
