@@ -19,11 +19,11 @@ func (s *KeeperTestHelper) StoreCode(wasmContract []byte) {
 	s.Require().NoError(err)
 	var result wasmtypes.MsgStoreCodeResponse
 	s.Require().NoError(s.App.AppCodec().Unmarshal(rsp.Data, &result))
-	s.Require().Equal(uint64(1), result.CodeID)
+	s.Require().Equal(result.CodeID, 0)
 	expHash := sha256.Sum256(wasmContract)
 	s.Require().Equal(expHash[:], result.Checksum)
 	// and
-	info := s.App.AppKeepers.WasmKeeper.GetCodeInfo(s.Ctx, 1)
+	info := s.App.AppKeepers.WasmKeeper.GetCodeInfo(s.Ctx, result.CodeID)
 	s.Require().NotNil(info)
 	s.Require().Equal(expHash[:], info.CodeHash)
 	s.Require().Equal(sender.String(), info.Creator)

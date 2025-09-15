@@ -18,7 +18,7 @@ bsh-help:
 bsh: bsh-help
 bsh-all: bsh-upgrade bsh-staking-hooks bsh-polytone bsh-aa bsh-pfm bsh-ibchook bsh-nfts
 bsh-aa: 
-	cd tests/bsh/aa && sh a.deploy.sh
+	cd tests/bsh/aa && sh a.sh
 bsh-ibchook: 
 	cd tests/bsh/ibchook && sh a.sh
 bsh-upgrade: 

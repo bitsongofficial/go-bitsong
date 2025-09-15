@@ -27,7 +27,7 @@ VAL1_PPROF_PORT=6060
 VAL1_P2P_PORT=26656
 
 
-echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
+echo "Creating $BIND instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 trap 'pkill -f '"$BIND" EXIT
 
 # install bitsongd in background

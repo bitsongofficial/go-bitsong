@@ -17,19 +17,22 @@ on:
 jobs:
   manual-approval:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
     permissions:
       issues: write
     steps:
+      - name: Auto-succeed when approval is not required
+        if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
+        run: echo "Manual approval not required for this event."
       - name: Request manual approval
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ secrets.GITHUB_TOKEN }}
           approvers: bitsongofficial  # Replace with actual maintainer usernames
           minimum-approvals: 1
-          issue-title: "Lets not swamp our snapshot providers!"
+          issue-title: "Let's not swamp our snapshot providers!"
           issue-body: "CI workflow for testing upgrades requires maintainer approval to run. Ping one of the contributors in the bitsongofficial org to approve this CI test"
-          exclude-workflow-initiator-as-approver: false
+          exclude-workflow-initiator-as-approver: true
   # build-macos:
   #   runs-on: macos-latest
   #   steps:

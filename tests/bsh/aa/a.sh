@@ -73,8 +73,8 @@ VAL2_RPC_PORT=27657
 VAL2_PPROF_PORT=6361
 VAL2_P2P_PORT=26356
 
-echo "Creating $BINARY instance for VAL1_A: home=$VAL1HOME | chain-id=$CHAINID_A | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
-echo "Creating $BINARY instance for VAL: home=$VAL2HOME | chain-id=$CHAINID_B | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
+echo "Creating $BIND instance for VAL1_A: home=$VAL1HOME | chain-id=$CHAINID_A | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
+echo "Creating $BIND instance for VAL: home=$VAL2HOME | chain-id=$CHAINID_B | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
 # trap 'pkill -f '"$BIND" EXIT
 
 

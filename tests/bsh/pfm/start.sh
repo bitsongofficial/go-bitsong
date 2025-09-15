@@ -11,7 +11,7 @@ PROFPORT=$6
 GRPCPORT=$7
 DENOM=$8
 
-echo "Creating $BINARY instance: home=$CHAINDIR | chain-id=$CHAINID | p2p=:$P2PPORT | rpc=:$RPCPORT | profiling=:$PROFPORT | grpc=:$GRPCPORT"
+echo "Creating $BIND instance: home=$CHAINDIR | chain-id=$CHAINID | p2p=:$P2PPORT | rpc=:$RPCPORT | profiling=:$PROFPORT | grpc=:$GRPCPORT"
 
 if ! mkdir -p $CHAINDIR/$CHAINID 2>/dev/null; then
     echo "Failed to create chain folder. Aborting..."

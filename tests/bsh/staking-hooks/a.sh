@@ -37,8 +37,8 @@ echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
-echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
-echo "Creating $BINARY instance for VAL2: home=$VAL2HOME | chain-id=$CHAINID | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
+echo "Creating $BIND instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
+echo "Creating $BIND instance for VAL2: home=$VAL2HOME | chain-id=$CHAINID | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
 trap 'pkill -f '"$BIND" EXIT
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
@@ -134,7 +134,7 @@ sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL2_RPC
 sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL2_P2P_PORT\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$VAL1_P2P_ADDR\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL2HOME/config/config.toml &&
-sed -i.bak "/^\[consensus\]/,/^\[/ s/^[[:space:]]*timeout_commit[[:space:]]*=.*/timeout_commit = \"2s\"/" "$VAL1HOME/config/config.toml"
+sed -i.bak "/^\[consensus\]/,/^\[/ s/^[[:space:]]*timeout_commit[[:space:]]*=.*/timeout_commit = \"2s\"/" "$VAL2HOME/config/config.toml"
 
 # app.toml
 sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL1HOME/config/app.toml &&
@@ -237,6 +237,11 @@ echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 sleep 1
 if [ -z "$VAL1_DEL1_SHARES" ] || [ -z "$VAL1_DEL1_BTSG" ] || [ -z "$VAL2_DEL2_SHARES" ] || [ -z "$VAL2_DEL2_BTSG" ]; then
   echo "Error: unable to extract delegation information."
+  echo "VAL1_DEL1_SHARES: $VAL1_DEL1_SHARES"
+  echo "VAL1_DEL1_BTSG: $VAL1_DEL1_BTSG"
+  echo "VAL2_DEL2_SHARES: $VAL2_DEL2_SHARES"
+  echo "VAL2_DEL2_BTSG: $VAL2_DEL2_BTSG"
+  pkill -f bitsongd
   exit 1
 fi
 sleep 1
