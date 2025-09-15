@@ -118,28 +118,18 @@ USERBADDR=$(jq -r '.address' $VAL2HOME/$USERFILE)
 
 $BIND --home $VAL1HOME genesis add-genesis-account $USERAADDR $defaultCoins
 $BIND --home $VAL1HOME genesis add-genesis-account $RELAYERADDR $defaultCoins
-$BIND --home $VAL1HOME genesis add-genesis-account $VAL1A_ADDR $defaultCoins
-sleep 1
-$BIND --home $VAL1HOME genesis add-genesis-account $DEL1ADDR $defaultCoins
-sleep 1
-$BIND --home $VAL1HOME genesis add-genesis-account $DEL2ADDR $defaultCoins
-sleep 1
-$BIND --home $VAL1HOME genesis gentx $VAL $delegate --chain-id $CHAINID_A
-sleep 1
-$BIND genesis collect-gentxs --home $VAL1HOME
-sleep 1
+$BIND --home $VAL1HOME genesis add-genesis-account $VAL1A_ADDR $defaultCoins &&
+$BIND --home $VAL1HOME genesis add-genesis-account $DEL1ADDR $defaultCoins &&
+$BIND --home $VAL1HOME genesis add-genesis-account $DEL2ADDR $defaultCoins &&
+$BIND --home $VAL1HOME genesis gentx $VAL $delegate --chain-id $CHAINID_A &&
+$BIND genesis collect-gentxs --home $VAL1HOME &&
 
 # setup second chain 
-$BIND genesis add-genesis-account $USERBADDR $defaultCoins --home $VAL2HOME 
-sleep 1
-$BIND genesis add-genesis-account $VAL1B_ADDR $defaultCoins --home $VAL2HOME 
-sleep 1
-$BIND genesis add-genesis-account $RELAYERADDR $defaultCoins --home $VAL2HOME 
-sleep 1
-$BIND genesis add-genesis-account $DEL2ADDR $defaultCoins --home $VAL2HOME 
-sleep 1
-$BIND genesis gentx $VAL $delegate --home $VAL2HOME --chain-id $CHAINID_B
-sleep 1
+$BIND genesis add-genesis-account $USERBADDR $defaultCoins --home $VAL2HOME &&
+$BIND genesis add-genesis-account $VAL1B_ADDR $defaultCoins --home $VAL2HOME &&
+$BIND genesis add-genesis-account $RELAYERADDR $defaultCoins --home $VAL2HOME &&
+$BIND genesis add-genesis-account $DEL2ADDR $defaultCoins --home $VAL2HOME &&
+$BIND genesis gentx $VAL $delegate --home $VAL2HOME --chain-id $CHAINID_B &&
 $BIND genesis collect-gentxs --home $VAL2HOME 
 
 # app & config modiifications
@@ -202,8 +192,8 @@ fi
   for contract in "${POLYTONE_CONTRACTS[@]}"; do
     echo "Uploading $contract WASM file..."
     # get tx hash 
-    $BIND tx wasm upload --home $VAL2HOME ./bin/$contract --from $USER --chain-id $CHAINID_B --gas auto --gas-adjustment 1.4 --gas auto --fees 400000ubtsg -y 
-    $BIND tx wasm upload --home $VAL1HOME ./bin/$contract --from $DEL  --chain-id $CHAINID_A --gas auto --gas-adjustment 1.4 --gas auto --fees 400000ubtsg -y 
+    $BIND tx wasm upload --home $VAL2HOME ../../ict/contracts/$contract --from $USER --chain-id $CHAINID_B --gas auto --gas-adjustment 1.4 --gas auto --fees 400000ubtsg -y 
+    $BIND tx wasm upload --home $VAL1HOME ../../ict/contracts/$contract --from $DEL  --chain-id $CHAINID_A --gas auto --gas-adjustment 1.4 --gas auto --fees 400000ubtsg -y 
     sleep 2
     echo "Uploaded $contract WASM file successfully."
     sleep 4

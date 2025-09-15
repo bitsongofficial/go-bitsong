@@ -17,13 +17,20 @@ bsh-help:
 
 bsh: bsh-help
 bsh-all: bsh-upgrade bsh-staking-hooks bsh-polytone bsh-aa bsh-pfm bsh-ibchook bsh-nfts
-bsh-aa: tests/bsh/aa && sh a.deploy.sh
-bsh-ibchook: tests/bsh/ibchook && sh a.sh
-bsh-upgrade: tests/bsh/upgrade && sh a.sh
-bsh-staking-hooks: tests/bsh/staking-hooks && sh a.sh
-bsh-polytone: tests/bsh/polytone && sh a.sh
-bsh-pfm: tests/bsh/pfm && sh a.sh
-bsh-nfts: tests/bsh/nft && sh a.sh
+bsh-aa: 
+	cd tests/bsh/aa && sh a.deploy.sh
+bsh-ibchook: 
+	cd tests/bsh/ibchook && sh a.sh
+bsh-upgrade: 
+	cd tests/bsh/upgrade && sh a.sh
+bsh-staking-hooks: 
+	cd tests/bsh/staking-hooks && sh a.sh
+bsh-polytone: 
+	cd tests/bsh/polytone && sh a.sh
+bsh-pfm: 
+	cd tests/bsh/pfm && sh a.sh
+bsh-nfts: 
+	cd tests/bsh/nft && sh a.sh
 
 
 # include simulations

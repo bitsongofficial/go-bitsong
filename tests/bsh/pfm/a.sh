@@ -2,13 +2,13 @@
 
 # PFM Test:
 # https://hermes.informal.systems/documentation/forwarding/test.html
-cargo install ibc-relayer-cli --bin hermes --locked
+cargo install ibc-relayer-cli@1.10.5 --bin hermes --locked
 
-./hermes-init.sh
 ./start.sh bitsongd test-1 ./data 26657 26656 6060 9090 ubtsg
 ./start.sh bitsongd test-2 ./data 27657 27656 7060 10090 ubtsg
 
 # start hermes
+./../helpers/relayer/hermes-init.sh
 hermes start
 
 # Send tokens
@@ -33,3 +33,6 @@ hermes tx ft-transfer \
  --src-port transfer \
  --src-channel channel-0 \
  --amount 2000000000
+
+pkill -f bitsongd
+pkill -f hermes
