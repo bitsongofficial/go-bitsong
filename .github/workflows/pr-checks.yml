@@ -6,7 +6,7 @@ defaults:
     shell: bash
 
 on:
-  pull_request:
+  pull_request_target:
   push:
     branches:
       - main
@@ -15,6 +15,21 @@ on:
       - v*
 
 jobs:
+  manual-approval:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
+    permissions:
+      issues: write
+    steps:
+      - name: Request manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: bitsongofficial  # Replace with actual maintainer usernames
+          minimum-approvals: 1
+          issue-title: "Lets not swamp our snapshot providers!"
+          issue-body: "CI workflow for testing upgrades requires maintainer approval to run. Ping one of the contributors in the bitsongofficial org to approve this CI test"
+          exclude-workflow-initiator-as-approver: false
   # build-macos:
   #   runs-on: macos-latest
   #   steps:
@@ -59,6 +74,12 @@ jobs:
 
   bsh-upgrade:
     runs-on: ubuntu-latest
+    # Skip approval for pushes to main branches and tags, require it for fork PRs
+    needs: ${{ (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository) && 'manual-approval' || '' }}
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.head.repo.full_name == github.repository ||
+      (needs.manual-approval.result == 'success')
     container:
         image: node:20-bullseye
     steps:
