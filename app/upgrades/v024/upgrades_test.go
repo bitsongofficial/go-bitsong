@@ -39,12 +39,14 @@ func TestUpgradeTestSuite(t *testing.T) {
 func (s *UpgradeTestSuite) TestUpgrade() {
 
 	upgradeSetup := func() {
+		// TODO:  setup 2 validators with equal vp, using different home path locations
 		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 2)
 
 	}
 
 	postUpgrade := func() {
 		s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight + 1)
+		// TODO:  ensure validators are okay
 
 	}
 

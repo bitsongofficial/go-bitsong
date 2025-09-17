@@ -36,7 +36,8 @@ const (
 	FlagOverwrite = "overwrite"
 
 	// FlagSeed defines a flag to initialize the private validator key from a specific seed.
-	FlagRecover = "recover"
+	FlagRecover   = "recover"
+	FlagSeedPeers = "seed-peers"
 )
 
 type printInfo struct {
@@ -82,12 +83,15 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			config := serverCtx.Config
 
 			// P2P
-			seeds := []string{
-				"ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:16056",      // Polkachu
-				"8542cd7e6bf9d260fef543bc49e59be5a3fa90740@seed.publicnode.com:26656",    // Allnodes team
-				"8defec7d0eec97f507411e02fd2634e3efc997a2@bitsong-seed.panthea.eu:41656", // Panthea EU
+			seed_peers, _ := cmd.Flags().GetBool(FlagSeedPeers)
+			if seed_peers {
+				seeds := []string{
+					"ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:16056",      // Polkachu
+					"8542cd7e6bf9d260fef543bc49e59be5a3fa90740@seed.publicnode.com:26656",    // Allnodes team
+					"8defec7d0eec97f507411e02fd2634e3efc997a2@bitsong-seed.panthea.eu:41656", // Panthea EU
+				}
+				config.P2P.Seeds = strings.Join(seeds, ",")
 			}
-			config.P2P.Seeds = strings.Join(seeds, ",")
 			config.P2P.MaxNumInboundPeers = 80
 			config.P2P.MaxNumOutboundPeers = 60
 
@@ -98,8 +102,9 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 			config.StateSync.TrustPeriod = 112 * time.Hour
 			config.BlockSync.Version = "v0"
 
-			// // Consensus
-			// config.Consensus.TimeoutCommit = 1500 * time.Millisecond // 1.5s
+			// Consensus
+			config.Consensus.TimeoutCommit = 2400 * time.Millisecond  // 2.4s block time
+			config.Consensus.TimeoutPropose = 2000 * time.Millisecond // 2.4s block time
 
 			//  other
 			config.Moniker = args[0]
@@ -190,6 +195,7 @@ func InitCmd(mbm module.BasicManager, defaultNodeHome string) *cobra.Command {
 		},
 	}
 
+	cmd.Flags().Bool(FlagSeedPeers, false, "Seed the config file with known network peers for bitsong-2b")
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().BoolP(FlagOverwrite, "o", false, "overwrite the genesis.json file")
 	cmd.Flags().Bool(FlagRecover, false, "provide seed phrase to recover existing key instead of creating")

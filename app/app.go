@@ -620,6 +620,7 @@ func (app *BitsongApp) setupUpgradeHandlers(cfg module.Configurator) {
 				cfg,
 				app.BaseApp,
 				&app.AppKeepers,
+				app.homePath,
 			),
 		)
 	}

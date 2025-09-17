@@ -247,7 +247,7 @@ func SetCustomEnvVariablesFromClientToml(ctx client.Context) {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
+		InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		ConfigCmd(),
 		pruning.Cmd(newApp, bitsong.DefaultNodeHome),
