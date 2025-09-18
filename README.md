@@ -90,13 +90,13 @@ bitsongd init MyValidator --chain-id bitsong-localnet
 
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
-bitsongd keys add jack
+bitsongd keys add lauryn
 
 # Add both accounts, with coins to the genesis file
-bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
+bitsongd add-genesis-account mary 100000000000ubtsg --keyring-backend test
 
 # Generate the transaction that creates your validator
-bitsongd gentx jack 10000000ubtsg --keyring-backend test
+bitsongd gentx gloria 10000000ubtsg --keyring-backend test
 
 # Add the generated bonding transaction to the genesis file
 bitsongd collect-gentxs
