@@ -251,7 +251,7 @@ func NewBitsongApp(
 
 	ibcWasmConfig := wasmlctypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
-		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
+		SupportedCapabilities: keepers.ExtendedBuiltInCapabilities(),
 		ContractDebugMode:     false,
 	}
 

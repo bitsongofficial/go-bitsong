@@ -32,7 +32,9 @@ func CreateV024Upgrade(mm *module.Manager, configurator module.Configurator, bpm
 		// retrieve config.toml
 		appConfigPath := filepath.Join(homepath, "config", "config.toml")
 		configBytes, err := os.ReadFile(appConfigPath)
-
+		if err != nil {
+			return nil, err
+		}
 		// unmarshal file
 		var config map[string]interface{}
 		if err := toml.Unmarshal(configBytes, &config); err != nil {

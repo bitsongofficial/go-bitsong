@@ -69,7 +69,7 @@ var (
 		GasAdjustment:       2.0,
 		TrustingPeriod:      "112h",
 		NoHostMount:         false,
-		ConfigFileOverrides: nil,
+		ConfigFileOverrides: nil, // TODO: use faster blocks
 		EncodingConfig:      btsgEncoding(),
 		ModifyGenesis:       cosmos.ModifyGenesis(defaultGenesisKV),
 	}

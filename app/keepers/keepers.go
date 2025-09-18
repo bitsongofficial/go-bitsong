@@ -85,9 +85,7 @@ import (
 )
 
 func ExtendedBuiltInCapabilities() []string {
-	originalCaps := wasmkeeper.BuiltInCapabilities()
-	extendedCaps := append(originalCaps, "bitsong", "cosmwasm_3_0")
-	return extendedCaps
+	return append(wasmkeeper.BuiltInCapabilities(), "bitsong", "cosmwasm_3_0")
 }
 
 // module account permissions
@@ -186,7 +184,6 @@ func NewAppKeepers(
 	// & add capability keeper and ScopeToModule for ibc module
 	appKeepers.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, appKeepers.keys[capabilitytypes.StoreKey], appKeepers.memKeys[capabilitytypes.MemStoreKey])
 	appKeepers.ScopedIBCKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
-	appKeepers.ScopedTransferKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	appKeepers.ScopedWasmKeeper = appKeepers.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
@@ -287,11 +284,10 @@ func NewAppKeepers(
 	)
 	appKeepers.SlashingKeeper = &slashKeeper
 
-	// https://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
 	mintKeeper := mintkeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[minttypes.StoreKey]), stakingKeeper,
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, authtypes.FeeCollectorName, govModAddress,
-		// mintkeeper.WithMintFn(myCustomMintFunc), // Use custom minting function
+		// mintkeeper.WithMintFn(myCustomMintFunc), // Use custom minting function: https://github.com/cosmos/cosmos-sdk/blob/v0.53.0/UPGRADING.md?plain=1#L192
 	)
 	appKeepers.MintKeeper = &mintKeeper
 
@@ -436,16 +432,15 @@ func NewAppKeepers(
 	// wire wasm to IBC
 
 	// Create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack).
+	ibcRouter := porttypes.NewRouter().
+		AddRoute(ibctransfertypes.ModuleName, transferStack).
 		AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.TransferKeeper, appKeepers.IBCKeeper.ChannelKeeper))
-
-	// Seal the router
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
 	clientKeeper := appKeepers.IBCKeeper.ClientKeeper
 	storeProvider := appKeepers.IBCKeeper.ClientKeeper.GetStoreProvider()
 
+	// Add tendermint & ibcWasm light client routes
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 	ibcWasmLightClientModule := ibcwlc.NewLightClientModule(*appKeepers.IBCWasmClientKeeper, storeProvider)
 	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)

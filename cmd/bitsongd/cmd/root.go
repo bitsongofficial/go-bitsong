@@ -257,6 +257,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	testnetserver.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
+	// TODO: spin up a streaming oracle
+
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
@@ -265,7 +267,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
-		server.ExportCmd(appExport, bitsong.DefaultNodeHome),
 	)
 }
 
