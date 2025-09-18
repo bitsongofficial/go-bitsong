@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -10,9 +11,7 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
 	errorsmod "cosmossdk.io/errors"
@@ -71,6 +70,7 @@ import (
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
+	"github.com/bitsongofficial/go-bitsong/docs"
 
 	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	// unnamed import of statik for swagger UI support
@@ -561,7 +561,7 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		// RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		RegisterSwaggerAPI(clientCtx, apiSvr)
 	}
 
 }
@@ -627,15 +627,15 @@ func (app *BitsongApp) setupUpgradeHandlers(cfg module.Configurator) {
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
-	statikFS, err := fs.New()
+func RegisterSwaggerAPI(_ client.Context, apiSvr *api.Server) error {
+	staticSubDir, err := fs.Sub(docs.Docs, "static")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+	staticServer := http.FileServer(http.FS(staticSubDir))
+	apiSvr.Router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+	return nil
 }
 
 // we cache the reflectionService to save us time within tests.

@@ -17,8 +17,8 @@ proto-help:
 	@echo "Available Commands:"
 	@echo "  proto-all              Run proto-format and proto-gen"
 	@echo "  proto-check-breaking   Check breaking instances"
-	@echo "  proto-gen              Generate Protobuf files"
-	@echo "  proto-pulsar-gen       Generate Protobuf files"
+	@echo "  proto-gen-swagger.     Generate Protobuf files"
+	@echo "  proto-gen-pulsar       Generate Protobuf files"
 	@echo "  proto-format           Format Protobuf files"
 	@echo "  proto-lint             Lint Protobuf files"
 	@echo "  proto-image-build      Build the protobuf Docker image"
@@ -31,11 +31,11 @@ proto-all: proto-format proto-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) sh ./scripts/protocgen.sh
+	@$(protoImage) sh ./scripts/gen-swagger.sh
 
-proto-pulsar-gen:
+proto-gen-pulsar:
 	@echo "Generating Dep-Inj Protobuf files"
-	@$(protoImage) sh ./scripts/protocgen-pulsar.sh
+	@$(protoImage) sh ./scripts/gen-pulsar.sh
 
 # linux only
 proto-format:
@@ -52,14 +52,3 @@ proto-lint:
 
 proto-check-breaking:
 	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
-
-proto-docs:
-	@echo
-	@echo "=========== Generate Message ============"
-	@echo
-	sh ./scripts/protoc-swagger-gen.sh
-
-	@echo
-	@echo "=========== Generate Complete ============"
-	@echo
-.PHONY: docs
