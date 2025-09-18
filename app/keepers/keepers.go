@@ -247,7 +247,6 @@ func NewAppKeepers(
 		govModuleAddr,
 		appKeepers.GetSubspace(smartaccounttypes.ModuleName),
 		appKeepers.AuthenticatorManager,
-		*appKeepers.FeeGrantKeeper,
 	)
 	appKeepers.SmartAccountKeeper = &smartAccountKeeper
 
