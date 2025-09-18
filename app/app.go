@@ -634,7 +634,14 @@ func RegisterSwaggerAPI(_ client.Context, apiSvr *api.Server) error {
 	}
 
 	staticServer := http.FileServer(http.FS(staticSubDir))
-	apiSvr.Router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+
+	// Handle /swag without trailing slash - redirect to /swag/
+	apiSvr.Router.HandleFunc("/swag", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/swag/", http.StatusMovedPermanently)
+	})
+
+	apiSvr.Router.PathPrefix("/swag/").Handler(http.StripPrefix("/swag/", staticServer))
+
 	return nil
 }
 
