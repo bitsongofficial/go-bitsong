@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -62,6 +63,7 @@ func (s *KeeperTestSuite) TestKeeper_AddAuthenticatorWithId() {
 		2,
 	)
 	s.Require().Error(err)
+	fmt.Printf("TestKeeper_AddAuthenticatorWithId: %v\n", err)
 	s.Require().ErrorContains(err, "authenticator type")
 }
 
