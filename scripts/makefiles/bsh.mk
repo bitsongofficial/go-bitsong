@@ -1,9 +1,10 @@
 bsh-help:
-	@echo "test subcommands"
+	@echo "Bitsong e2e testing subcommands"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make [command]"
+	@echo "  make tsh-[command]"
 	@echo ""
+	@echo "Testing bitsong app functions using its daemon + sh scripts"
 	@echo "Available Commands:"
 	@echo "  bsh                	 View bitsong sh tests available to run"
 	@echo "  bsh-all 			 	 Run all sh tests in repo"

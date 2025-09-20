@@ -171,9 +171,6 @@ func NewAppKeepers(
 	appKeepers.ConsensusParamsKeeper = &consensusParamsKeeper
 	bApp.SetParamStore(&appKeepers.ConsensusParamsKeeper.ParamsStore)
 
-	// grant capabilities for the ibc and ibc-transfer modules
-	// & add capability keeper and ScopeToModule for ibc module
-
 	invCheckPeriod := cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod))
 	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[crisistypes.StoreKey]),
