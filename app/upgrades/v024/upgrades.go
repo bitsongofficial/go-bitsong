@@ -3,13 +3,10 @@ package v024
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/pelletier/go-toml/v2"
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
@@ -26,11 +23,6 @@ func CreateV024Upgrade(mm *module.Manager, configurator module.Configurator, bpm
 		// Run migrations first
 		logger.Info(fmt.Sprintf("pre migrate version map: %v", vm))
 		versionMap, err := mm.RunMigrations(sdkCtx, configurator, vm)
-		if err != nil {
-			return nil, err
-		}
-
-		err = DecreaseBlockTimes(homepath)
 		if err != nil {
 			return nil, err
 		}
@@ -53,38 +45,21 @@ func CreateV024Upgrade(mm *module.Manager, configurator module.Configurator, bpm
 			return nil, err
 		}
 		mp.BlocksPerYear = 13148719 // @ 31556925 seconds per tropical year (365 days, 5 hours, 48 mins, 45 seconds)
-		k.MintKeeper.Params.Set(sdkCtx, mp)
-
+		err = k.MintKeeper.Params.Set(sdkCtx, mp)
+		if err != nil {
+			return nil, err
+		}
 		// retain signed blocks duration given new block speeds
-		p, _ := k.SlashingKeeper.GetParams(sdkCtx)
+		p, err := k.SlashingKeeper.GetParams(sdkCtx)
+		if err != nil {
+			return nil, err
+		}
 		p.SignedBlocksWindow = 25_000 /// ~16.67 hours
-		k.SlashingKeeper.SetParams(sdkCtx, p)
-
+		err = k.SlashingKeeper.SetParams(sdkCtx, p)
+		if err != nil {
+			return nil, err
+		}
 		logger.Info(fmt.Sprintf("post migrate version map: %v", versionMap))
 		return versionMap, err
 	}
-}
-
-func DecreaseBlockTimes(homepath string) error {
-	// retrieve config.toml
-	appConfigPath := filepath.Join(homepath, "config", "config.toml")
-	configBytes, err := os.ReadFile(appConfigPath)
-	if err != nil {
-		return err
-	}
-	// unmarshal file
-	var config map[string]interface{}
-	if err := toml.Unmarshal(configBytes, &config); err != nil {
-		return err
-	}
-
-	// update block speed to 2.4s
-	if consensus, ok := config["consensus"].(map[string]interface{}); ok {
-		consensus["timeout_commit"] = "2400ms"  // 2.4s
-		consensus["timeout_propose"] = "2400ms" // 2.4s
-	}
-	// apply changes to config file
-	updatedBytes, err := toml.Marshal(config)
-	os.WriteFile(appConfigPath, updatedBytes, 0o644)
-	return nil
 }

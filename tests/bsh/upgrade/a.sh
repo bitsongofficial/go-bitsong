@@ -4,9 +4,9 @@ BIND=bitsongd
 CHAINID=test-1
 UPGRADE_VERSION=v024
 
-OLD_RELEASE_GIT=https://github.com/bitsongofficial/go-bitsong
+OLD_RELEASE_GIT=https://github.com/permissionlessweb/go-bitsong
 NEW_RELEASE_GIT=https://github.com/permissionlessweb/go-bitsong
-OLD_TAG=main
+OLD_TAG=feat/v0.23.0
 NEW_TAG=main
 
 SNAPSHOT_PATH=./data/bitsong-snapshot.tar.lz4
@@ -70,6 +70,7 @@ else
     echo "❌ One or both operations failed (Build: $BUILD_EXIT, Download: $DOWNLOAD_EXIT)"
     exit 1
 fi
+
 
 ####################################################################
 # A. CHAINS CONFIG

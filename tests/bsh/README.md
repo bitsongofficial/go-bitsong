@@ -1,8 +1,6 @@
 ## Bash Tests
 
-This repo contains bash scripts for testing local Bitsong networks.
-
-Here's the markdown table for those modules:
+This package contains bash scripts for testing local Bitsong networks.
 
 | Module | Description | Documentation |
 |--------|-------------|---------------|
@@ -14,7 +12,7 @@ Here's the markdown table for those modules:
 | [Staking-Hooks](./staking-hooks/README) | | [README](./staking-hooks/README) |
 | [Upgrades](./upgrade/) | | [README](./upgrade/) |
 <!-- | [Cadence](./cadence/) | | [README](./cadence/) | -->
- 
+
 ## TODO
 
 - refactor to remove redundancy of starting up nodes
