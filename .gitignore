@@ -60,7 +60,6 @@ abstract
 .env
 target
 artifacts
-bin
 
 # Proto related
 github.com*

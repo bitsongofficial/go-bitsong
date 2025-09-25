@@ -110,23 +110,14 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
 mv $DAEMON_HOME/config/tmp.json $DAEMON_HOME/config/genesis.json
 
 # setup test keys.
-yes | $BIND  --home $DAEMON_HOME keys add validator1 --output json > $DAEMON_HOME/test-keys/val.json 2>&1 
-sleep 1
-yes | $BIND  --home $DAEMON_HOME keys add user --output json > $DAEMON_HOME/test-keys/user.json 2>&1
-sleep 1
-yes | $BIND  --home $DAEMON_HOME keys add delegator1 --output json > $DAEMON_HOME/test-keys/del.json 2>&1
-sleep 1
-$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show user -a)" $defaultCoins
-sleep 1
-$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show validator1 -a)" $defaultCoins
-sleep 1
-$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show delegator1 -a)" $defaultCoins
-sleep 1
-$BIND --home $DAEMON_HOME genesis gentx validator1 $delegate --chain-id $CHAINID 
-sleep 1
-$BIND genesis collect-gentxs --home $DAEMON_HOME
-sleep 1
-
+yes | $BIND  --home $DAEMON_HOME keys add validator1 --output json > $DAEMON_HOME/test-keys/val.json 2>&1 &&
+yes | $BIND  --home $DAEMON_HOME keys add user --output json > $DAEMON_HOME/test-keys/user.json 2>&1 &&
+yes | $BIND  --home $DAEMON_HOME keys add delegator1 --output json > $DAEMON_HOME/test-keys/del.json 2>&1 &&
+$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show user -a)" $defaultCoins &&
+$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show validator1 -a)" $defaultCoins &&
+$BIND --home $DAEMON_HOME genesis add-genesis-account "$($BIND --home $DAEMON_HOME keys show delegator1 -a)" $defaultCoins &&
+$BIND --home $DAEMON_HOME genesis gentx validator1 $delegate --chain-id $CHAINID &&
+$BIND genesis collect-gentxs --home $DAEMON_HOME &&
 
 # keys 
 DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/del.json)

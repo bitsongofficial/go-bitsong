@@ -44,6 +44,8 @@ USER=user
 VALFILE="test-keys/$VAL.json"
 RELAYERFILE="test-keys/$RELAYER.json"
 USERFILE="test-keys/$USER.json"
+env_file=".env"
+mnemonic=$(jq -r '.mnemonic' "$VAL1HOME/test-keys/val.json")
 
 # file paths
 CHAINDIR=./data
@@ -162,6 +164,7 @@ sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL1_RPC
 sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL1_P2P_PORT\"/" $VAL1HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL1HOME/config/config.toml &&
 sed -i.bak -e "s/^pprof_laddr *=.*/pprof_laddr = \"localhost:6060\"/g" $VAL1HOME/config/config.toml &&
+sed -i.bak "/^\[consensus\]/,/^\[/ s/^[[:space:]]*timeout_commit[[:space:]]*=.*/timeout_commit = \"1s\"/" "$VAL1HOME/config/config.toml"
 # val2
 sed -i.bak -e "s/^proxy_app *=.*/proxy_app = \"tcp:\/\/127.0.0.1:$VAL2_PROXY_APP_PORT\"/g" $VAL2HOME/config/config.toml &&
 sed -i.bak "/^\[rpc\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/127.0.0.1:$VAL2_RPC_PORT\"/" $VAL2HOME/config/config.toml &&
@@ -169,6 +172,7 @@ sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL2_RPC
 sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL2_P2P_PORT\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^pprof_laddr *=.*/pprof_laddr = \"localhost:6070\"/g" $VAL2HOME/config/config.toml &&
+sed -i.bak "/^\[consensus\]/,/^\[/ s/^[[:space:]]*timeout_commit[[:space:]]*=.*/timeout_commit = \"1s\"/" "$VAL2HOME/config/config.toml"
 # app.toml
 sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL1HOME/config/app.toml &&
 sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL1_API_PORT\"/" $VAL1HOME/config/app.toml &&
@@ -195,7 +199,6 @@ sleep 10
 ####################################################################
 # B. RELAYER CONFIG
 ####################################################################
-
 ## create mnemonic file, grab menmonic from relayer key file, print to new txt file
 REL_MNEMONIC=$(jq -r '.mnemonic' $VAL1HOME/$RELAYERFILE)
 echo "$REL_MNEMONIC" >  $VAL1HOME/mnemonic.txt
@@ -207,7 +210,7 @@ fi
 
 ## configure hermes with chain & and b
 rm -rf $HERMES && mkdir -p $HERMES
-cp ../pfm/hermes.toml $HERMES/config.toml
+cp ../helpers/relayer/hermes.toml $HERMES/config.toml
 
 ## modify $HERMES_CFG toml with correct values 
 sed -i.bak "/^\[chains\]/,/^\[/ { 
@@ -254,7 +257,7 @@ sleep 15
 ## check if abstract folder exists (./abstract), download if not
 if [ ! -d "$ABSTRACT_DIR" ]; then
     echo "Downloading abstract repository..."
-    git clone https://github.com/AbstractSDK/abstract.git "$ABSTRACT_DIR"
+    git clone -b default https://github.com/permissionlessweb/abstract.git "$ABSTRACT_DIR"
 else
     echo "Abstract repository already exists."
 fi
@@ -267,15 +270,11 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
   else
     echo "Wasm artifacts already exist."
   fi
+  
 
-## configure deploy scripts in ./ibaa-scripts (.env file w/ test mnemonic, and state file path )
-## add val1 mnemonic for use to deploy ($VAL1HOME/mnemonic.txt)
-env_file="$SCRIPTS_DIR/.env"
-mnemonic=$(jq -r '.mnemonic' "$VAL1HOME/test-keys/val.json")
-
+ 
 # Create the .env
 rm -rf $env_file
- 
 cat > "$env_file" <<EOF
 LOCAL_MNEMONIC="$mnemonic"
 STATE_FILE=./state.json
@@ -284,20 +283,18 @@ LOGGING=debug
 CW_ORCH_SERIALIZE_JSON=true
 USE_AUTHZ=$USE_AUTHZ
 EOF
- 
- 
 
 ## grant authz from val1 to user for (upload,init,execute,migrate)
 if [ "$USE_AUTHZ" = "true" ]; then
   echo "Setting up AuthZ grants..."
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-  sleep 3
+  sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-  sleep 3
+  sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-  sleep 3
+  sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-  sleep 3
+  sleep 2
 else
   echo "Skipping AuthZ grants (disabled)"
 fi
@@ -306,7 +303,6 @@ fi
 
 # # Deploy on both chains
 echo "Deploying on both chains..."
-cd "$SCRIPTS_DIR" || exit  
 cat .env
 if [ "$USE_AUTHZ" = "true" ]; then
   echo "Running with AuthZ granter: $USERAADDR"
@@ -322,7 +318,7 @@ echo "Preparation and deployment complete."
 #####################################################################
 # C. CREATE INTERCHAIN ABSTRACT ACCOUNT 
 ####################################################################
-
+# upload all apps
 
 ####################################################################
 # D. INSTALL MODULE ON ACCOUNT
