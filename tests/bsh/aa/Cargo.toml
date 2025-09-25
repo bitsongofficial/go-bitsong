@@ -58,15 +58,15 @@ cw-orch-proto         = { version = "0.9.0" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-adapter    = { path = "../abstract/framework/packages/abstract-adapter" }
-abstract-app        = { path = "../abstract/framework/packages/abstract-app" }
-abstract-client     = { path = "../abstract/framework/packages/abstract-client" }
-abstract-interface   = { path = "../abstract/framework/packages/abstract-interface" }
-abstract-sdk        = { path = "../abstract/framework/packages/abstract-sdk" }
-abstract-std      = { path = "../abstract/framework/packages/abstract-std" }
-abstract-testing   = { path = "../abstract/framework/packages/abstract-testing" }
+abstract-adapter    = { path = "./abstract/framework/packages/abstract-adapter" }
+abstract-app        = { path = "./abstract/framework/packages/abstract-app" }
+abstract-client     = { path = "./abstract/framework/packages/abstract-client" }
+abstract-interface   = { path = "./abstract/framework/packages/abstract-interface" }
+abstract-sdk        = { path = "./abstract/framework/packages/abstract-sdk" }
+abstract-std      = { path = "./abstract/framework/packages/abstract-std" }
+abstract-testing   = { path = "./abstract/framework/packages/abstract-testing" }
 # Modules
-abstract-account  = { path = "../abstract/framework/contracts/account" }
+abstract-account  = { path = "./abstract/framework/contracts/account" }
  
 
 ## Testing

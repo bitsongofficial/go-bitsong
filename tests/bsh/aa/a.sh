@@ -55,7 +55,6 @@ HERMES=~/.hermes
 # abstract paths
 ABSTRACT_DIR="./abstract"
 ARTIFACTS_DIR="$ABSTRACT_DIR/framework/artifacts"
-SCRIPTS_DIR="./ibaa-scripts"
  
 # Define the new ports for val1 on chain a
 VAL1_API_PORT=1317
