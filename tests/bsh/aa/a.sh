@@ -2,6 +2,10 @@
 BIND=bitsongd
 CHAINID_A=test-1
 CHAINID_B=test-2
+CHAINDIR=./data
+VAL1HOME=$CHAINDIR/$CHAINID_A/val1
+VAL2HOME=$CHAINDIR/$CHAINID_B/val1
+HERMES=~/.hermes
 
 # Authz feature flag - can be overridden with --enable-authz or --disable-authz
 USE_AUTHZ=true
@@ -36,22 +40,16 @@ done
 
 echo "AuthZ feature: $([ "$USE_AUTHZ" = "true" ] && echo "ENABLED" || echo "DISABLED")"
 
-# setup test keys.
+# file paths
 VAL=val
 RELAYER=relayer
-DEL=del
 USER=user
 VALFILE="test-keys/$VAL.json"
 RELAYERFILE="test-keys/$RELAYER.json"
 USERFILE="test-keys/$USER.json"
-env_file=".env"
-mnemonic=$(jq -r '.mnemonic' "$VAL1HOME/test-keys/val.json")
+ENV_FILE=".env"
+MNEMONIC=$(jq -r '.MNEMONIC' "$VAL1HOME/test-keys/val.json")
 
-# file paths
-CHAINDIR=./data
-VAL1HOME=$CHAINDIR/$CHAINID_A/val1
-VAL2HOME=$CHAINDIR/$CHAINID_B/val1
-HERMES=~/.hermes
 # abstract paths
 ABSTRACT_DIR="./abstract"
 ARTIFACTS_DIR="$ABSTRACT_DIR/framework/artifacts"
@@ -76,7 +74,7 @@ VAL2_P2P_PORT=26356
 
 echo "Creating $BIND instance for VAL1_A: home=$VAL1HOME | chain-id=$CHAINID_A | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 echo "Creating $BIND instance for VAL: home=$VAL2HOME | chain-id=$CHAINID_B | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
-# trap 'pkill -f '"$BIND" EXIT
+trap 'pkill -f '"$BIND" EXIT
 
 
 defaultCoins="100000000000ubtsg"  # 100K
@@ -273,9 +271,9 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
 
  
 # Create the .env
-rm -rf $env_file
-cat > "$env_file" <<EOF
-LOCAL_MNEMONIC="$mnemonic"
+rm -rf $ENV_FILE
+cat > "$ENV_FILE" <<EOF
+LOCAL_MNEMONIC="$MNEMONIC"
 STATE_FILE=./state.json
 ARTIFACTS_DIR=../abstract/framework/artifacts
 LOGGING=debug
