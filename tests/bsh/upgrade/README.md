@@ -7,4 +7,6 @@ Ensure live network data does not corrupt upgrade integrity.
 sh a.sh
 # test using cosmovisor + any deterministic preupgrade scripts set in upgradeInfo
 sh b.sh
+# test using normal cosmovisor + COSMOVISOR_CUSTOM_PREUPGRADE flag
+sh c.sh
 ```
