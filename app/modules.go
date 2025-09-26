@@ -54,7 +54,6 @@ import (
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10/types"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
 	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
 	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
@@ -102,7 +101,7 @@ var AppModuleBasics = module.NewBasicManager(
 
 func orderBeginBlockers() []string {
 	return []string{
-		capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
+		minttypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, protocolpooltypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
 		authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
@@ -114,7 +113,7 @@ func orderBeginBlockers() []string {
 func orderEndBlockers() []string {
 	return []string{
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName,
-		packetforwardtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
+		packetforwardtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, authtypes.ModuleName,
 		protocolpooltypes.ModuleName, // must be before bank
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName, smartaccounttypes.ModuleName,
 		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName,
@@ -124,7 +123,6 @@ func orderEndBlockers() []string {
 
 func orderInitBlockers() []string {
 	return []string{
-		capabilitytypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		fantokentypes.ModuleName,

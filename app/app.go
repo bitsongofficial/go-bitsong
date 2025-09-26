@@ -57,7 +57,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	// testnetserver "github.com/bitsongofficial/go-bitsong/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -107,6 +106,8 @@ import (
 	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	// performance profiling (pprof)
+	// _ "net/http/pprof"
 )
 
 const appName = "BitsongApp"

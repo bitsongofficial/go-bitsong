@@ -48,7 +48,7 @@ VALFILE="test-keys/$VAL.json"
 RELAYERFILE="test-keys/$RELAYER.json"
 USERFILE="test-keys/$USER.json"
 ENV_FILE=".env"
-MNEMONIC=$(jq -r '.MNEMONIC' "$VAL1HOME/test-keys/val.json")
+
 
 # abstract paths
 ABSTRACT_DIR="./abstract"
@@ -191,7 +191,6 @@ echo "Starting chain 2..."
 $BIND start --home $VAL2HOME & 
 VAL1B_PID=$!
 echo "VAL1B_PID: $VAL1B_PID"
-sleep 10
  
 ####################################################################
 # B. RELAYER CONFIG
@@ -269,7 +268,7 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
   fi
   
 
- 
+MNEMONIC=$(jq -r '.mnemonic' "$VAL1HOME/test-keys/val.json")
 # Create the .env
 rm -rf $ENV_FILE
 cat > "$ENV_FILE" <<EOF
@@ -292,6 +291,7 @@ if [ "$USE_AUTHZ" = "true" ]; then
   sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
   sleep 2
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract2 --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
 else
   echo "Skipping AuthZ grants (disabled)"
 fi
