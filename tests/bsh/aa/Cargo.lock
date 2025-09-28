@@ -1880,6 +1880,7 @@ dependencies = [
 [[package]]
 name = "bs721-account"
 version = "0.2.0"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "abstract-std 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bs-controllers",
@@ -1903,6 +1904,7 @@ dependencies = [
 [[package]]
 name = "bs721-account-marketplace"
 version = "0.2.0"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "bs-controllers",
  "bs721",
@@ -1925,6 +1927,7 @@ dependencies = [
 [[package]]
 name = "bs721-account-minter"
 version = "0.2.0"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "bs-controllers",
  "bs721",
@@ -2053,6 +2056,7 @@ dependencies = [
 [[package]]
 name = "btsg-account"
 version = "0.2.0"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "bech32 0.11.0",
  "bs-controllers",
@@ -2070,6 +2074,7 @@ dependencies = [
 [[package]]
 name = "btsg-account-scripts"
 version = "0.2.0"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "abstract-std 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "anyhow",
@@ -2079,7 +2084,7 @@ dependencies = [
  "bs721-account-minter",
  "bs721-base",
  "btsg-account",
- "btsg-auth 0.2.0",
+ "btsg-auth",
  "btsg-nft-scripts",
  "clap",
  "commonware-cryptography",
@@ -2108,21 +2113,7 @@ dependencies = [
 [[package]]
 name = "btsg-auth"
 version = "0.2.0"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils",
- "schemars 0.8.22",
- "serde",
- "serde_json",
- "sha2 0.10.9",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "btsg-auth"
-version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#9aef8f7a7065d872fe99b56a6f2d408d0d8bf88f"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#75b1931199e8410095993cb6893aebed17118ed7"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -2149,7 +2140,7 @@ dependencies = [
  "bs721-factory",
  "bs721-launchparty",
  "bs721-royalties",
- "btsg-auth 0.2.0 (git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup)",
+ "btsg-auth",
  "clap",
  "cosmwasm-std",
  "cw-orch 0.26.0",
