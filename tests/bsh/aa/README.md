@@ -20,7 +20,7 @@ Once deployed, it will confirm contracts can be made use of by create a default 
 
 This project supports two deployment scenarios:
 
-### With AuthZ (Currently broken. Issue tracked [here](https://github.com/AbstractSDK/abstract/issues/569))
+### With AuthZ
 
 ```bash
 # Run deployment with AuthZ grants

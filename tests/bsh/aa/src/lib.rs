@@ -1,7 +1,5 @@
-use cw_orch::daemon::networks::neutron::NEUTRON_NETWORK;
-use cw_orch::environment::{ChainKind, NetworkInfo};
+use cw_orch::environment::ChainKind;
 use cw_orch::prelude::{networks::bitsong::BITSONG_NETWORK, *};
-use serde::{Deserialize, Serialize};
 
 pub const DEPLOYMENT_DAO: &str =
     "bitsong13hmdq0slwmff7sej79kfa8mgnx4rl46nj2fvmlgu6u32tz6vfqesdfq4vm";

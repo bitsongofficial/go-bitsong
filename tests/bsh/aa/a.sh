@@ -98,6 +98,8 @@ mkdir $VAL2HOME/test-keys
 # cli config
 $BIND --home $VAL1HOME config keyring-backend test
 $BIND --home $VAL2HOME config keyring-backend test
+$BIND --home $VAL1HOME config chain-id $CHAINID_A
+$BIND --home $VAL2HOME config chain-id $CHAINID_B
 sleep 1
 
 # optimize val1 genesis for testing
@@ -150,8 +152,10 @@ sleep 1
 $BIND genesis add-genesis-account "$VAL1B_ADDR" $defaultCoins --home $VAL2HOME &&
 $BIND genesis add-genesis-account "$VAL1A_ADDR" $defaultCoins --home $VAL2HOME &&
 $BIND genesis add-genesis-account "$RELAYERADDR" $defaultCoins --home $VAL2HOME &&
+$BIND genesis add-genesis-account "$USERAADDR" $defaultCoins --home $VAL2HOME &&
 $BIND genesis gentx $VAL $defaultCoins --home $VAL2HOME --chain-id $CHAINID_B &&
 $BIND genesis collect-gentxs --home $VAL2HOME 
+
 
 # app & config modiifications
 # config.toml
@@ -284,14 +288,19 @@ EOF
 if [ "$USE_AUTHZ" = "true" ]; then
   echo "Setting up AuthZ grants..."
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_B --home $VAL1HOME --node tcp://localhost:$VAL2_RPC_PORT -y
   sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_B --home $VAL1HOME --node tcp://localhost:$VAL2_RPC_PORT -y
   sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_B --home $VAL1HOME --node tcp://localhost:$VAL2_RPC_PORT -y
   sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_B --home $VAL1HOME --node tcp://localhost:$VAL2_RPC_PORT  -y
   sleep 2
   $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract2 --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract2 --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_B --home $VAL1HOME --node tcp://localhost:$VAL2_RPC_PORT -y
 else
   echo "Skipping AuthZ grants (disabled)"
 fi
@@ -324,3 +333,4 @@ echo "Preparation and deployment complete."
 ####################################################################
 # E. USE MODULE
 ####################################################################
+

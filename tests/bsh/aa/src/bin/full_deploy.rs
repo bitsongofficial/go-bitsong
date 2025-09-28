@@ -1,36 +1,36 @@
 use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use cw_orch_daemon::{networks::BITSONG_2B, RUNTIME};
+
+use bs_accounts::*;
+use cw_orch::prelude::*;
+use interchain_bitsong_accounts::{BITSONG_LOCAL_1, BITSONG_LOCAL_2};
 
 use clap::Parser;
-use cw_orch::prelude::*;
-use interchain_bitsong_accounts::{assert_wallet_balance, BITSONG_LOCAL_1, BITSONG_LOCAL_2};
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 
 fn full_deploy(
     mut networks: Vec<ChainInfoOwned>,
     authz_granter: Option<String>,
 ) -> anyhow::Result<()> {
-    
     // let networks = RUNTIME.block_on(assert_wallet_balance(networks));
     for network in networks {
         let mut chain = DaemonBuilder::new(network.clone()).build()?;
-        let mut deploy_data: Option<Addr> = None;
+        let mut admin = chain.sender_addr();
         // Conditionally set authz granter based on environment or parameter
         if let Some(granter) = &authz_granter {
             let le_granter = &Addr::unchecked(granter.to_string());
             println!("Using AuthZ granter: {}", granter);
             chain.sender_mut().set_authz_granter(le_granter);
-            deploy_data = Some(le_granter.clone())
+            admin = le_granter.clone();
         } else {
             println!("Using direct sender (no AuthZ)");
         }
 
-        let monarch = chain.sender_addr();
-
-        let deployment = match Abstract::deploy_on(chain, deploy_data) {
+        // #####################################################################
+        // # ABSTRACT FRAMEWORK
+        // ####################################################################
+        let deployment = match Abstract::deploy_on(chain.clone(), ()) {
             Ok(deployment) => {
                 // write_deployment(&deployment_status)?;
                 deployment
@@ -41,15 +41,22 @@ fn full_deploy(
             }
         };
 
+        // #####################################################################
+        // # BITSONG ACCOUNT
+        // ####################################################################
+        let btsg_suite = BtsgAccountSuite::deploy_on(chain.clone(), admin.clone())?;
+        let btsg_account_id = "fee-collector";
+        btsg_suite.minter.mint_and_list(btsg_account_id)?;
+
         // Create the Abstract Account because it's needed for the fees for the dex module
         AccountI::create_default_account(
             &deployment,
-            GovernanceDetails::Monarchy {
-                monarch: monarch.to_string(),
+            GovernanceDetails::NFT {
+                collection_addr: btsg_suite.account.address()?.to_string(),
+                token_id: btsg_account_id.to_string(),
             },
         )?;
     }
-
     // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
     Ok(())
 }
@@ -75,7 +82,6 @@ fn main() {
     let args = Arguments::parse();
     let authz_granter = args.authz_granter;
 
-    
     let networks = vec![BITSONG_LOCAL_1.into(), BITSONG_LOCAL_2.into()];
     // let networks = args
     //     .network_ids
