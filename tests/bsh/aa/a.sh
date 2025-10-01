@@ -272,7 +272,7 @@ if [ ! -d "$ARTIFACTS_DIR" ]; then
   fi
   
 
-MNEMONIC=$(jq -r '.mnemonic' "$VAL1HOME/test-keys/val.json")
+MNEMONIC=$(jq -r '.mnemonic' "$VAL1HOME/$VALFILE")
 # Create the .env
 rm -rf $ENV_FILE
 cat > "$ENV_FILE" <<EOF

@@ -1,8 +1,13 @@
 # Interchain Bitsong Abstract Accounts
 
-Here we test the deployment and various functions of the Abstract Account Framework on Bitsong.
+Here we test the deployment and various functions of the Abstract Account Framework on Bitsong. Once deployed, it will confirm contracts can be made use of by create a default monarch account
 
-Once deployed, it will confirm contracts can be made use of by create a default monarch account
+## Requirements
+
+```sh
+# download abstract locally
+git clone -b feat/wasm-path https://github.com/permissionlessweb/abstract
+```
 
 ## TODO
 

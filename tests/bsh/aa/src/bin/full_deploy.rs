@@ -2,6 +2,7 @@ use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
 
 use bs_accounts::*;
+use cosmwasm_std::coin;
 use cw_orch::prelude::*;
 use interchain_bitsong_accounts::{BITSONG_LOCAL_1, BITSONG_LOCAL_2};
 
@@ -28,6 +29,23 @@ fn full_deploy(
         }
 
         // #####################################################################
+        // # BITSONG ACCOUNT
+        // ####################################################################
+        let btsg_suite = BtsgAccountSuite::deploy_on(chain.clone(), admin.clone())?;
+        let btsg_account_id = "fee-collector";
+        let fee = btsg_suite.minter.params()?.base_price;
+        btsg_suite
+            .account
+            .approve_all(btsg_suite.market.address()?, None)?;
+        // btsg_suite.minter.mint_and_list(btsg_account_id)?;
+        btsg_suite.minter.execute(
+            &bs_accounts::Bs721AccountMinterExecuteMsgTypes::MintAndList {
+                account: btsg_account_id.to_string(),
+            },
+            &[coin(fee.u128(), "ubtsg")],
+        )?;
+
+        // #####################################################################
         // # ABSTRACT FRAMEWORK
         // ####################################################################
         let deployment = match Abstract::deploy_on(chain.clone(), ()) {
@@ -40,13 +58,6 @@ fn full_deploy(
                 return Err(e.into());
             }
         };
-
-        // #####################################################################
-        // # BITSONG ACCOUNT
-        // ####################################################################
-        let btsg_suite = BtsgAccountSuite::deploy_on(chain.clone(), admin.clone())?;
-        let btsg_account_id = "fee-collector";
-        btsg_suite.minter.mint_and_list(btsg_account_id)?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         AccountI::create_default_account(
