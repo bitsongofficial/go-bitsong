@@ -21,10 +21,9 @@ import (
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
 	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10"
 	ibcwlc "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	ibcwlckeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
 	ibcwlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
-
-	ibcwasm "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -76,8 +75,6 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	wasmlckeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
-	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
 	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
 	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 
@@ -281,7 +278,7 @@ func NewBitsongApp(
 		panic("error while reading wasm config: " + err.Error())
 	}
 
-	ibcWasmConfig := wasmlctypes.WasmConfig{
+	ibcWasmConfig := ibcwlctypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
 		SupportedCapabilities: keepers.ExtendedBuiltInCapabilities(),
 		ContractDebugMode:     false,
@@ -359,7 +356,7 @@ func NewBitsongApp(
 		authzmodule.NewAppModule(appCodec, *app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
-		ibcwasm.NewAppModule(*app.IBCWasmClientKeeper),
+		ibcwlc.NewAppModule(*app.IBCWasmClientKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
 		params.NewAppModule(app.ParamsKeeper),
 		consensus.NewAppModule(appCodec, *app.ConsensusParamsKeeper),
@@ -450,7 +447,7 @@ func NewBitsongApp(
 		}
 		//  takes care of persisting the external state from wasm code when snapshot is created
 		err = manager.RegisterExtensions(
-			wasmlckeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
+			ibcwlckeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
