@@ -312,7 +312,7 @@ echo "Deploying on both chains..."
 cat .env
 if [ "$USE_AUTHZ" = "true" ]; then
   echo "Running with AuthZ granter: $USERAADDR"
-  RUST_LOG=info cargo run --bin full_deploy -- --authz-granter "$USERAADDR"
+  RUST_LOG=info cargo run --bin full_deploy -- --authz-granter "$USERAADDR" --network-ids $CHAINID_A $CHAINID_B  --deploy-abstract
 else
   echo "Running without AuthZ"
   RUST_LOG=info cargo run --bin full_deploy

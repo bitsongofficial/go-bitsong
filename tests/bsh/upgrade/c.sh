@@ -12,7 +12,6 @@ DAEMON_HOME=$CHAINDIR/$CHAINID/val1
 
 # upgrade 
 OLD_RELEASE_GIT=https://github.com/permissionlessweb/go-bitsong
-NEW_RELEASE_GIT=https://github.com/permissionlessweb/go-bitsong
 OLD_TAG=feat/v0.23.0
 
 # cosmovisor 
@@ -44,7 +43,7 @@ echo "«««««««««««««««««««««««««««««««««««««
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "Creating $BINARY instance for VAL1: home=$DAEMON_HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
-# trap 'pkill -f '"$BIND" EXIT
+trap 'pkill -f '"$BIND" EXIT
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
@@ -184,34 +183,13 @@ sleep 6
 $CV run tx gov vote 1 yes --from "$DEL1" --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $DAEMON_HOME -y
 $CV run tx gov vote 1 yes --from "$VAL1" --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $DAEMON_HOME -y
 sleep 10
-
-
-VAL1_OP_ADDR=$(jq -r '.body.messages[0].validator_address' $DAEMON_HOME/config/gentx/gentx-*.json)
-echo "VAL1_OP_ADDR: $VAL1_OP_ADDR"
-echo "DEL1ADDR: $DEL1ADDR"
-
-echo "querying rewards and balances pre upgrade"
-
+ 
 ####################################################################
 # C. CONFIRM
 ####################################################################
-echo "performing v023 upgrade"
+echo "performing v024 upgrade"
 sleep 120
-
-# # install v0.23
-# pkill -f $BIND
-# cd terp-core && 
-# git checkout v050-upgrade
-# make install 
-# cd ..
-# Start bitsong
-# echo "Running upgradehandler to fix community-pool issue..."
-# $CV run start --home $DAEMON_HOME & 
-# VAL1_PID=$!
-# echo "VAL1_PID: $VAL1_PID"
-# sleep 21
+pkill -f $BIND
+echo "UPGRADE APPLIED SUCCESSFULLY"
 
 
-
-# echo "UPGRADE APPLIED SUCCESSFULLY"
-# pkill -f $BIND

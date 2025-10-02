@@ -1880,7 +1880,7 @@ dependencies = [
 [[package]]
 name = "bs721-account"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "abstract-std 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bs-controllers",
@@ -1895,7 +1895,6 @@ dependencies = [
  "cw-utils",
  "cw2",
  "schemars 0.8.22",
- "semver",
  "serde",
  "subtle-encoding",
  "thiserror 1.0.69",
@@ -1904,7 +1903,7 @@ dependencies = [
 [[package]]
 name = "bs721-account-marketplace"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "bs-controllers",
  "bs721",
@@ -1927,7 +1926,7 @@ dependencies = [
 [[package]]
 name = "bs721-account-minter"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "bs-controllers",
  "bs721",
@@ -2056,7 +2055,7 @@ dependencies = [
 [[package]]
 name = "btsg-account"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "bech32 0.11.0",
  "bs-controllers",
@@ -2074,7 +2073,7 @@ dependencies = [
 [[package]]
 name = "btsg-account-scripts"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "abstract-std 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "anyhow",
@@ -2113,7 +2112,7 @@ dependencies = [
 [[package]]
 name = "btsg-auth"
 version = "0.2.0"
-source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#edf5a7df67a78c5465ceb496ac1ebf7874fcc4cd"
+source = "git+https://github.com/permissionlessweb/bs-accounts?branch=cleanup#067482ff1ddb115ab0f019b44261e6afeca4c3fd"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7841,6 +7840,7 @@ dependencies = [
  "cw-asset",
  "cw-controllers",
  "cw-orch 0.27.0 (git+https://github.com/permissionlessweb/cw-orchestrator?branch=feat%2Fwasm-path)",
+ "cw-orch-daemon 0.29.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "cw-orch-interchain 0.9.0",
  "cw-ownable",
  "cw-storage-plus",
@@ -7857,6 +7857,7 @@ dependencies = [
  "schemars 0.8.22",
  "semver",
  "serde",
+ "serde_json",
  "thiserror 1.0.69",
  "time",
  "tokio",

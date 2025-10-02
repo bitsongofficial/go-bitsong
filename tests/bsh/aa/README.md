@@ -43,18 +43,9 @@ sh a.sh --disable-authz
 
 You can also run the Rust scripts directly:
 
-### With AuthZ
-
-```bash
-cargo run --bin init_contracts -- --authz-granter <GRANTER_ADDRESS>
-cargo run --bin full_deploy -- --authz-granter <GRANTER_ADDRESS>
-```
-
-### Without AuthZ
-
 ```bash
 cargo run --bin init_contracts
-cargo run --bin full_deploy
+cargo run --bin full_deploy  --  --deploy_abstract
 ```
 
 be sure to `pkill -f bitsongd` once complete (make sure you dont kill any production services!!)

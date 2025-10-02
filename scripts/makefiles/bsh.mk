@@ -2,7 +2,7 @@ bsh-help:
 	@echo "Bitsong e2e testing subcommands"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make tsh-[command]"
+	@echo "  make bsh-[command]"
 	@echo ""
 	@echo "Testing bitsong app functions using its daemon + sh scripts"
 	@echo "Available Commands:"
