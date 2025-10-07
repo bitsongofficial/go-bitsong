@@ -45,6 +45,7 @@ build-check-version:
 # a lot of time due to QEMU virtualization but it's the only way (afaik)
 # to get a statically linked binary with CosmWasm
 build-reproducible: build-reproducible-amd64 build-reproducible-arm64
+	sh scripts/release/prep-release.sh
 
 build-reproducible-amd64: go.sum
 	mkdir -p $(BUILDDIR)

@@ -137,7 +137,6 @@ fi
 base_json=$(jq -n --arg version "$version" '{
   swagger: "2.0",
   info: { title: "Bitsong Network API", version: $version, description: "REST API for Bitsong blockchain" },
-  host: "localhost:1317",
   schemes: ["http", "https"],
   consumes: ["application/json"],
   produces: ["application/json"],

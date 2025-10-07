@@ -2,7 +2,7 @@
 ###                                  Proto                                  ###
 ###############################################################################
 
-protoVer=0.15.1
+protoVer=0.17.1
 protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
 protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
 SWAGGER_DIR=./swagger-proto
@@ -17,7 +17,7 @@ proto-help:
 	@echo "Available Commands:"
 	@echo "  proto-all              Run proto-format and proto-gen"
 	@echo "  proto-check-breaking   Check breaking instances"
-	@echo "  proto-gen-swagger.     Generate Protobuf files"
+	@echo "  proto-gen-swagger     Generate Protobuf files"
 	@echo "  proto-gen-pulsar       Generate Protobuf files"
 	@echo "  proto-format           Format Protobuf files"
 	@echo "  proto-lint             Lint Protobuf files"
@@ -27,9 +27,9 @@ proto-help:
 
 proto: proto-help
 
-proto-all: proto-format proto-gen
+proto-all: proto-format proto-gen-swagger
 
-proto-gen:
+proto-gen-swagger:
 	@echo "Generating Protobuf files"
 	@$(protoImage) sh ./scripts/gen-swagger.sh
 
