@@ -22,7 +22,7 @@ env:
   DOCKER_REPOSITORY: bitsongofficial/go-bitsong
   RUNNER_BASE_IMAGE_DISTROLESS: gcr.io/distroless/static-debian12
   RUNNER_BASE_IMAGE_NONROOT: gcr.io/distroless/static-debian12:nonroot
-  RUNNER_BASE_IMAGE_ALPINE: alpine:3.21
+  RUNNER_BASE_IMAGE_ALPINE: alpine:3.22
 
 on:
   release:
@@ -37,7 +37,7 @@ jobs:
     steps:
       - 
         name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - 
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -65,7 +65,7 @@ jobs:
       - 
         name: Build and push 
         id: build_push_image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           file: Dockerfile
           context: .
