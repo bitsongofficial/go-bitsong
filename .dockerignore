@@ -1,0 +1,4 @@
+banner.png
+# Test directories - ignore all target and data directories
+tests/**/target/
+tests/**/data/

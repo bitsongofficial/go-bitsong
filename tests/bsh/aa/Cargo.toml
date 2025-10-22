@@ -1,0 +1,91 @@
+[package]
+name = "interchain-bitsong-accounts"
+authors = [
+    "CyberHoward <cyberhoward@protonmail.com>",
+    "Riada <riada@abstract.money>",
+    "Abstract Money <contact@abstract.money>",
+]
+documentation = "https://docs.abstract.money/"
+edition = "2021"
+homepage = "https://abstract.money"
+keywords = ["cosmos", "cosmwasm", "framework"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/AbstractSDK/abstract"
+version = "0.0.1"
+
+
+[dependencies]
+# ─── Abstract Framework: Modules ──────────────────────────────────────
+abstract-account     = { path = "./abstract/framework/contracts/account" }
+bs-accounts         = { package = "btsg-account-scripts", git = "https://github.com/permissionlessweb/bs-accounts", branch = "cleanup" }
+
+# ─── Abstract Framework: Packages (Local Path) ────────────────────────
+# Note: Keep as path dependencies to avoid circular dependency issues
+#       Only re-publish all if abstract-interface changes
+abstract-adapter     = { path = "./abstract/framework/packages/abstract-adapter" }
+abstract-app         = { path = "./abstract/framework/packages/abstract-app" }
+abstract-client      = { path = "./abstract/framework/packages/abstract-client" }
+abstract-interface   = { path = "./abstract/framework/packages/abstract-interface", features = ["daemon"] }
+abstract-sdk         = { path = "./abstract/framework/packages/abstract-sdk" }
+abstract-std         = { path = "./abstract/framework/packages/abstract-std" }
+abstract-testing     = { path = "./abstract/framework/packages/abstract-testing" }
+
+# ─── CW-Orchestrator & Testing ───────────────────────────────────────
+cw-orch              = { git = "https://github.com/permissionlessweb/cw-orchestrator", branch = "feat/wasm-path", features = ["daemon"] }
+cw-orch-interchain   = { version = "0.9.0" }
+cw-orch-daemon       = { version = "0.29.2" }
+# ─── External & Custom Packages ──────────────────────────────────────
+
+# ─── CosmWasm & CW-Stack ─────────────────────────────────────────────
+cosmwasm-schema      = { version = "2.0" }
+cosmwasm-std         = { version = "2.0" }
+cw-controllers       = { version = "2.0" }
+cw-storage-plus      = { version = "2.0.0" }
+cw-utils             = { version = "2.0" }
+cw2                  = { version = "2.0.0" }
+cw20                 = { version = "2.0.0" }
+cw20-base            = { version = "2.0.0", features = ["library"] }
+cw-address-like      = { version = "2.0" }
+cw-ownable           = { version = "2.0" }
+cw-asset             = { version = "4.0" }
+cosmrs               = { version = "0.22.0" }
+
+# ─── Serialization & Schema ──────────────────────────────────────────
+serde                = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json           = { version = "1.0.79" }
+schemars             = { version = "0.8" }
+thiserror            = { version = "1.0.49" }
+protobuf             = { version = "2", features = ["with-bytes"] }
+
+# ─── Utilities ────────────────────────────────────────────────
+clap                 = { version = "4.0.32", features = ["derive"] }
+log                  = { version = "0.4.14" }
+env_logger           = { version = "0.11.3" }
+dotenv               = { version = "0.15.0" }
+time                 = { version = "0.3.37" }
+semver               = { version = "1.0" }
+env                  = { version = "1.0.1" }
+tokio                = { version = "1.33.0", features = ["full"] }
+
+# ─── Polytone & Interchain Messaging ─────────────────────────────────
+polytone             = { package = "abstract-polytone", version = "2.0.0" }
+polytone-note        = { package = "abstract-polytone-note", version = "4.0.0" }
+cw-orch-polytone     = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+
+
+
+# ─── Testing ─────────────────────────────────────────────────────────
+anyhow               = { version = "1" }
+rstest               = { version = "0.17.0" }
+ 
+# Backup release profile, will result in warnings during optimization
+[profile.release]
+codegen-units    = 1
+debug            = false
+debug-assertions = false
+incremental      = false
+lto              = true
+opt-level        = 3
+overflow-checks  = true
+panic            = 'abort'
+rpath            = false

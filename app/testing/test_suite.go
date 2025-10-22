@@ -3,6 +3,7 @@ package apptesting
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"cosmossdk.io/math"
@@ -12,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	"github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakinghelper "github.com/cosmos/cosmos-sdk/x/staking/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -62,6 +62,13 @@ func (s *KeeperTestHelper) Setup() {
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temporary directory: %v", err))
 	}
+
+	// Create minimal config files for testing
+	err = s.createTestConfigFiles(dir)
+	if err != nil {
+		panic(fmt.Sprintf("failed creating test config files: %v", err))
+	}
+
 	s.T().Cleanup(func() { os.RemoveAll(dir); s.withCaching = false })
 	s.App = app.SetupWithCustomHome(false, dir)
 	// configure ctx, caching, query helper,& test accounts
@@ -144,8 +151,25 @@ func ConvertAddrsToValAddrs(addrs []sdk.AccAddress) []sdk.ValAddress {
 	return valAddrs
 }
 
-// FundAcc funds target address with specified amount.
-func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
-	err := testutil.FundAccount(s.Ctx, s.App.BankKeeper, acc, amounts)
-	s.Require().NoError(err)
+// createTestConfigFiles creates minimal config files needed for upgrade handler tests
+func (s *KeeperTestHelper) createTestConfigFiles(homeDir string) error {
+	configDir := filepath.Join(homeDir, "config")
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return err
+	}
+	configContent := `
+# Minimal config.toml for testing
+[consensus]
+timeout_commit = "5s"
+timeout_propose = "3s"
+timeout_propose_delta = "500ms"
+timeout_prevote = "1s"
+timeout_prevote_delta = "500ms"
+timeout_precommit = "1s"
+timeout_precommit_delta = "500ms"
+ 
+`
+
+	configPath := filepath.Join(configDir, "config.toml")
+	return os.WriteFile(configPath, []byte(configContent), 0o644)
 }

@@ -47,9 +47,21 @@ dependency-graph.png
 contract_tests/*
 buf-stamp
 
+# Test related
 data
 state_export.json
+upgradeHandlerDebug.json
+go-bitsong
+bins
+go-bitsong/*
+test-keys*
+*.json
+abstract
+.env
+target
+artifacts
 
+# Proto related
 github.com*
 gogoproto*
 target/

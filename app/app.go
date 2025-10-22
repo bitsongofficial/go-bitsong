@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -10,35 +11,63 @@ import (
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 
 	errorsmod "cosmossdk.io/errors"
+	smartaccount "github.com/bitsongofficial/go-bitsong/x/smart-account"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	packetforward "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
+	ibc_hooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10"
+	ibcwlc "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10"
+	ibcwlckeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/keeper"
+	ibcwlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
+	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/gov"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/protocolpool"
+	"github.com/cosmos/cosmos-sdk/x/slashing"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
-	// testnetserver "github.com/bitsongofficial/go-bitsong/server"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 
 	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/x/evidence"
+	feegrantmodule "cosmossdk.io/x/feegrant/module"
+	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sigtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -46,11 +75,8 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	wasmlctypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
+	"github.com/cosmos/ibc-go/v10/modules/apps/transfer"
+	ibc "github.com/cosmos/ibc-go/v10/modules/core"
 
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	dbm "github.com/cosmos/cosmos-db"
@@ -68,16 +94,17 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	ibcwasmkeeper "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/keeper"
 
 	"github.com/bitsongofficial/go-bitsong/app/keepers"
 	"github.com/bitsongofficial/go-bitsong/app/upgrades"
+	"github.com/bitsongofficial/go-bitsong/docs"
+	"github.com/bitsongofficial/go-bitsong/x/fantoken"
 
-	v021 "github.com/bitsongofficial/go-bitsong/app/upgrades/v021"
-	v022 "github.com/bitsongofficial/go-bitsong/app/upgrades/v022"
-	v023 "github.com/bitsongofficial/go-bitsong/app/upgrades/v023"
+	v024 "github.com/bitsongofficial/go-bitsong/app/upgrades/v024"
 	// unnamed import of statik for swagger UI support
 	// _ "github.com/bitsongofficial/go-bitsong/swagger/statik"
+	// performance profiling (pprof)
+	// _ "net/http/pprof"
 )
 
 const appName = "BitsongApp"
@@ -97,7 +124,8 @@ var (
 	Upgrades = []upgrades.Upgrade{
 		// v010.Upgrade, v011.Upgrade, v013.Upgrade, v014.Upgrade,
 		// v015.Upgrade, v016.Upgrade, v018.Upgrade, v020.Upgrade,
-		v021.Upgrade, v022.Upgrade, v023.Upgrade,
+		// v021.Upgrade, v022.Upgrade, v023.Upgrade,
+		v024.Upgrade,
 	}
 )
 
@@ -241,24 +269,23 @@ func NewBitsongApp(
 		txConfig:          txConfig,
 		interfaceRegistry: interfaceRegistry,
 		tkeys:             storetypes.NewTransientStoreKeys(paramstypes.TStoreKey),
-		memKeys:           storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey),
 	}
 
 	app.homePath = homePath
 	wasmDir := filepath.Join(homePath, "wasm")
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
+	wasmConfig, err := wasm.ReadNodeConfig(appOpts)
 	if err != nil {
 		panic("error while reading wasm config: " + err.Error())
 	}
 
-	ibcWasmConfig := wasmlctypes.WasmConfig{
+	ibcWasmConfig := ibcwlctypes.WasmConfig{
 		DataDir:               filepath.Join(homePath, "ibc_08-wasm"),
-		SupportedCapabilities: []string{"iterator", "stargate", "abort"},
+		SupportedCapabilities: keepers.ExtendedBuiltInCapabilities(),
 		ContractDebugMode:     false,
 	}
 
 	// Setup keepers
-	app.AppKeepers = keepers.NewAppKeepers(
+	appKeepers := keepers.NewAppKeepers(
 		appCodec,
 		encodingConfig,
 		bApp,
@@ -270,6 +297,16 @@ func NewBitsongApp(
 		wasmConfig,
 		ibcWasmConfig,
 	)
+	// add all light clients to app keepers
+	clientKeeper := appKeepers.IBCKeeper.ClientKeeper
+	storeProvider := appKeepers.IBCKeeper.ClientKeeper.GetStoreProvider()
+	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
+	ibcWasmLightClientModule := ibcwlc.NewLightClientModule(*appKeepers.IBCWasmClientKeeper, storeProvider)
+	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
+	clientKeeper.AddRoute(ibcwlctypes.ModuleName, ibcWasmLightClientModule)
+
+	app.AppKeepers = appKeepers
+
 	app.keys = app.GetKVStoreKey()
 
 	// cosmos-sdk@v0.50: textual signature for ledger devices
@@ -300,7 +337,35 @@ func NewBitsongApp(
 	skipGenesisInvariants := cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants))
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.mm = module.NewManager(appModules(app, encodingConfig, skipGenesisInvariants)...)
+	app.mm = module.NewManager(genutil.NewAppModule(
+		app.AccountKeeper, app.StakingKeeper, app.BaseApp,
+		encodingConfig.TxConfig,
+	),
+		auth.NewAppModule(appCodec, *app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
+		vesting.NewAppModule(*app.AccountKeeper, app.BankKeeper),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
+		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
+		mint.NewAppModule(appCodec, *app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
+		slashing.NewAppModule(appCodec, *app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName), app.interfaceRegistry),
+		distr.NewAppModule(appCodec, *app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		upgrade.NewAppModule(app.UpgradeKeeper, addresscodec.NewBech32Codec(Bech32PrefixAccAddr)),
+		wasm.NewAppModule(appCodec, app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), app.GetSubspace(wasmtypes.ModuleName)),
+		evidence.NewAppModule(*app.EvidenceKeeper),
+		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, *app.FeeGrantKeeper, app.interfaceRegistry),
+		authzmodule.NewAppModule(appCodec, *app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
+		fantoken.NewAppModule(appCodec, app.FanTokenKeeper, app.BankKeeper),
+		ibc.NewAppModule(app.IBCKeeper),
+		ibcwlc.NewAppModule(*app.IBCWasmClientKeeper),
+		ibctm.NewAppModule(tmLightClientModule),
+		params.NewAppModule(app.ParamsKeeper),
+		consensus.NewAppModule(appCodec, *app.ConsensusParamsKeeper),
+		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
+		transfer.NewAppModule(*app.TransferKeeper),
+		ibc_hooks.NewAppModule(*app.AccountKeeper),
+		protocolpool.NewAppModule(*app.ProtocolPoolKeeper, app.AccountKeeper, app.BankKeeper),
+		smartaccount.NewAppModule(appCodec, *app.SmartAccountKeeper),
+		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)))
 
 	// NOTE: upgrade module is prioritized in preblock
 	app.mm.SetOrderPreBlockers(
@@ -341,7 +406,6 @@ func NewBitsongApp(
 	// initialize stores
 	app.MountKVStores(app.keys)
 	app.MountTransientStores(app.GetTransientStoreKey())
-	app.MountMemoryStores(app.GetMemoryStoreKey())
 
 	anteHandler, err := NewAnteHandler(
 		HandlerOptions{
@@ -353,7 +417,6 @@ func NewBitsongApp(
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
 			SmartAccount:      app.SmartAccountKeeper,
-			GovKeeper:         app.GovKeeper,
 			IBCKeeper:         app.IBCKeeper,
 			TxCounterStoreKey: runtime.NewKVStoreService(app.GetKey(wasmtypes.StoreKey)),
 			WasmConfig:        wasmConfig,
@@ -377,14 +440,14 @@ func NewBitsongApp(
 
 	if manager := app.SnapshotManager(); manager != nil {
 		err = manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
+			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.WasmKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
 		}
 		//  takes care of persisting the external state from wasm code when snapshot is created
 		err = manager.RegisterExtensions(
-			ibcwasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
+			ibcwlckeeper.NewWasmSnapshotter(app.CommitMultiStore(), app.IBCWasmClientKeeper),
 		)
 		if err != nil {
 			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
@@ -401,7 +464,7 @@ func NewBitsongApp(
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
-		if err := ibcwasmkeeper.InitializePinnedCodes(ctx); err != nil {
+		if err := app.IBCWasmClientKeeper.InitializePinnedCodes(ctx); err != nil {
 			tmos.Exit(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 		// Initialize and seal the capability keeper so all persistent capabilities
@@ -411,7 +474,6 @@ func NewBitsongApp(
 		// that in-memory capabilities get regenerated on app restart.
 		// Note that since this reads from the store, we can only perform it when
 		// `loadLatest` is set to true.
-		app.CapabilityKeeper.Seal()
 	}
 
 	app.sm.RegisterStoreDecoders()
@@ -564,7 +626,7 @@ func (app *BitsongApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 
 	// register swagger API from root so that other applications can override easily
 	if apiConfig.Swagger {
-		// RegisterSwaggerAPI(clientCtx, apiSvr.Router)
+		RegisterSwaggerAPI(clientCtx, apiSvr)
 	}
 
 }
@@ -623,21 +685,29 @@ func (app *BitsongApp) setupUpgradeHandlers(cfg module.Configurator) {
 				cfg,
 				app.BaseApp,
 				&app.AppKeepers,
+				app.homePath,
 			),
 		)
 	}
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server
-func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
-	statikFS, err := fs.New()
+func RegisterSwaggerAPI(_ client.Context, apiSvr *api.Server) error {
+	staticSubDir, err := fs.Sub(docs.Docs, "static")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+	staticServer := http.FileServer(http.FS(staticSubDir))
+
+	// Handle /swag without trailing slash - redirect to /swag/
+	apiSvr.Router.HandleFunc("/swag", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/swag/", http.StatusMovedPermanently)
+	})
+
+	apiSvr.Router.PathPrefix("/swag/").Handler(http.StripPrefix("/swag/", staticServer))
+
+	return nil
 }
 
 // we cache the reflectionService to save us time within tests.

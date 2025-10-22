@@ -6,7 +6,7 @@ Make files allow us to organize make functions into files specific to their purp
 |---|---|---|---|---|
 | `build`  | builds `bitsongd` binary  |   |   |   |
 | `docker`  |  current docker options |   |   |   |
-| `e2e`  | current e2e & integration tests  |   |   |   |
+| `ict`  | current ict & integration tests  |   |   |   |
 | `hl`  |  current heighliner options |   |   |   |
 | `localnet`  | localBitsong commands   |   |   |   |
 | `proto`  |  generate protobuf documentation and files |   |   |   |

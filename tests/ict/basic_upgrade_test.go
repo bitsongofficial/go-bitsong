@@ -1,4 +1,4 @@
-package e2e
+package ict
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/docker/docker/client"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
-	"github.com/strangelove-ventures/interchaintest/v8/testutil"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10/testutil"
 	"github.com/stretchr/testify/require"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -66,7 +66,7 @@ func BitsongBasicUpgradeSanityTest(t *testing.T, chainName, upgradeBranchVersion
 		},
 	}
 
-	cfg := baseCfg
+	cfg := BaseCfg
 
 	cfg.ModifyGenesis = cosmos.ModifyGenesis(previousVersionGenesis)
 	cfg.Images = []ibc.DockerImage{baseChain}

@@ -182,7 +182,7 @@ func initAppConfig() (string, interface{}) {
 	type CustomAppConfig struct {
 		serverconfig.Config
 
-		Wasm wasmtypes.WasmConfig `mapstructure:"wasm"`
+		Wasm wasmtypes.NodeConfig `mapstructure:"wasm"`
 	}
 
 	// modify the default server configuration
@@ -194,7 +194,7 @@ func initAppConfig() (string, interface{}) {
 
 	customAppConfig := CustomAppConfig{
 		Config: *srvCfg,
-		Wasm:   wasmtypes.DefaultWasmConfig(),
+		Wasm:   wasmtypes.DefaultNodeConfig(),
 	}
 
 	customAppTemplate := serverconfig.DefaultConfigTemplate +
@@ -247,7 +247,7 @@ func SetCustomEnvVariablesFromClientToml(ctx client.Context) {
 func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 
 	rootCmd.AddCommand(
-		genutilcli.InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
+		InitCmd(bitsong.AppModuleBasics, bitsong.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		ConfigCmd(),
 		pruning.Cmd(newApp, bitsong.DefaultNodeHome),
@@ -257,6 +257,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 	testnetserver.AddTestnetCreatorCommand(rootCmd, newTestnetApp, addModuleInitFlags)
 	wasmcli.ExtendUnsafeResetAllCmd(rootCmd)
 
+	// TODO: spin up a streaming oracle
+
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
 		server.StatusCommand(),
@@ -265,7 +267,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		queryCommand(),
 		txCommand(),
 		keys.Commands(),
-		CustomExportCmd(customAppExport, bitsong.DefaultNodeHome),
 	)
 }
 
@@ -467,53 +468,6 @@ func appExport(
 	}
 
 	return wasmApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-}
-
-// customAppExport creates a new wasm app (optionally at a given height) and exports state.
-func customAppExport(
-	logger log.Logger,
-	db cosmosdb.DB,
-	traceStore io.Writer,
-	height int64,
-	forZeroHeight bool,
-	jailAllowedAddrs []string,
-	appOpts servertypes.AppOptions,
-	modulesToExport []string,
-) (servertypes.ExportedApp, error) {
-	var wasmApp *bitsong.BitsongApp
-	homePath, ok := appOpts.Get(flags.FlagHome).(string)
-	if !ok || homePath == "" {
-		return servertypes.ExportedApp{}, errors.New("application home is not set")
-	}
-
-	viperAppOpts, ok := appOpts.(*viper.Viper)
-	if !ok {
-		return servertypes.ExportedApp{}, errors.New("appOpts is not viper.Viper")
-	}
-
-	// overwrite the FlagInvCheckPeriod
-	viperAppOpts.Set(server.FlagInvCheckPeriod, 1)
-	appOpts = viperAppOpts
-
-	var emptyWasmOpts []wasmkeeper.Option
-	wasmApp = bitsong.NewBitsongApp(
-		logger,
-		db,
-		traceStore,
-		height == -1,
-		cast.ToString(appOpts.Get(flags.FlagHome)),
-		appOpts,
-		emptyWasmOpts,
-	)
-
-	if height != -1 {
-		if err := wasmApp.LoadHeight(height); err != nil {
-			return servertypes.ExportedApp{}, err
-		}
-	}
-
-	return wasmApp.CustomExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-
 }
 
 func autoCliOpts(initClientCtx client.Context, tempApp *bitsong.BitsongApp) autocli.AppOptions {

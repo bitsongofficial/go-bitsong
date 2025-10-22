@@ -6,7 +6,6 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -34,7 +33,7 @@ type Keeper struct {
 	isSmartAccountActiveVal bool
 
 	AuthenticatorManager *authenticator.AuthenticatorManager
-	FeegrantKeeper       types.FeegrantKeeper
+	FeegrantKeeper       *types.FeegrantKeeper
 }
 
 func NewKeeper(
@@ -43,7 +42,6 @@ func NewKeeper(
 	govModuleAddr sdk.AccAddress,
 	ps paramtypes.Subspace,
 	authenticatorManager *authenticator.AuthenticatorManager,
-	feegrantKeeper feegrantkeeper.Keeper,
 ) Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -56,7 +54,6 @@ func NewKeeper(
 		CircuitBreakerGovernor: govModuleAddr,
 		paramSpace:             ps,
 		AuthenticatorManager:   authenticatorManager,
-		FeegrantKeeper:         feegrantKeeper,
 	}
 }
 

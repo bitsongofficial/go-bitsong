@@ -1,5 +1,5 @@
 // source: https://github.com/strangelove-ventures/interchaintest/blob/main/examples/cosmos/chain_core_test.go#L161
-package e2e
+package ict
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	pooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/strangelove-ventures/interchaintest/v8"
-	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v10"
+	"github.com/strangelove-ventures/interchaintest/v10/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v10/ibc"
 	"github.com/stretchr/testify/require"
 )
 

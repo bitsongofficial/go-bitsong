@@ -6,18 +6,46 @@
 
 ## What is BitSong?
 
-BitSong is a multifunctional blockchain-based ecosystem built to empower the music industry. It unites artists, fans, distributors in an environment where music, merchandise, and fan loyalty are assets of value. BitSong’s decentralized ecosystem of services providers the global music community with a trustless marketplace for music streaming, Fan Tokens, and NFTs, powered by the BTSG token.
-
-## Brief History of BitSong
-
-BitSong was conceived in 2018 by developer and entrepreneur Angelo Recca. Angelo realized that while the digitalization of music has brought many benefits to the industry, it’s also created a new set of problems around the ownership of music and attribution of royalties. He joined forces with Iulian Anghelin and BitSong was born.
-The initial intention was for BitSong to become an Ethereum-based application where fans could stream music and artists could receive royalties directly. However, after discovering Cosmos and its ambition to become the “Internet of Blockchains,” Angelo and Iulian immediately recognized the full potential of becoming part of a multi-chain environment.
-After launching the main BitSong blockchain in August 2020, the bitsong-2b mainnet went live on October 21, 2021. Featuring Fan Tokens, NFTs, and music streaming platform, all underpinned by secure, robust, battle-tested blockchain technology, the launch of BitSong marks a turning point in the ongoing development of the music industry.
+BitSong is a multifunctional blockchain-based ecosystem built to disrupt the music industry. It unites artists, fans, distributors in an environment where music, merchandise, and fan loyalty are assets of value. BitSong’s decentralized ecosystem of services providers the global music community with a trustless marketplace for music streaming, Fan Tokens, and NFTs, powered by the BTSG token.
 
 _NOTE: This is alpha software. Please contact us if you aim to run it in production._
 
 **Note**: Requires [Go 1.23.x+](https://golang.org/dl/)
 
+### Developer CLI
+
+```sh
+# display a list of various developer tooling
+make help 
+```
+
+## Testing 
+## Unit Tests
+```sh
+go test ./...
+```
+## Integration Tests
+```sh
+# todo: provide examples for running integration tests
+```
+
+## E2E Tests
+```sh
+# a. build fresh docker image
+make docker-build
+# b. run default ict test
+make ict-basic
+# run `make ict-help` to view current implemented ict-tests
+```
+
+## Release
+These are used exclusively when generating the [pre-compiled release images.](https://github.com/bitsongofficial/go-bitsong/releases)
+```sh
+# a. builds reproducible instances of the release
+make build-reproducible
+# b. generates sha256sum hashes for compiled instances
+make build-generate-tar-and-checksum
+```
 # Install BitSong Blockchain
 
 There are many ways you can install BitSong Blockchain Testnet node on your machine.
@@ -62,13 +90,13 @@ bitsongd init MyValidator --chain-id bitsong-localnet
 
 # Copy the `Address` output here and save it for later use
 # [optional] add "--ledger" at the end to use a Ledger Nano S
-bitsongd keys add jack
+bitsongd keys add lauryn
 
 # Add both accounts, with coins to the genesis file
-bitsongd add-genesis-account jack 100000000000ubtsg --keyring-backend test
+bitsongd add-genesis-account mary 100000000000ubtsg --keyring-backend test
 
 # Generate the transaction that creates your validator
-bitsongd gentx jack 10000000ubtsg --keyring-backend test
+bitsongd gentx gloria 10000000ubtsg --keyring-backend test
 
 # Add the generated bonding transaction to the genesis file
 bitsongd collect-gentxs
@@ -112,3 +140,4 @@ According to SemVer, anything in the public API can change at any time before ve
 To provide some stability to BitSong users in these 0.X.X days, the MINOR version is used
 to signal breaking changes across a subset of the total public API. This subset includes all
 interfaces exposed to other processes, but does not include the in-process Go APIs.
+

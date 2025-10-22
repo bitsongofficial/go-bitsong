@@ -47,7 +47,7 @@ from_scratch () {
   # bitsong1ww54e9y0ysfq3ljglj9rx3qvcekksksju93l5f
   echo "course render gym design oppose focus van impulse surround chase lock setup unhappy priority mammal video chapter under rocket child sadness always coyote sample" | BINARY keys add $KEY2 --keyring-backend $KEYRING --algo $KEYALGO --recover
 
-  BINARY init $MONIKER --chain-id $CHAIN_ID --default-denom ubtsg
+  BINARY init $MONIKER --chain-id $CHAIN_ID
 
   # Function updates the config based on a jq argument as a string
   update_test_genesis () {
@@ -117,4 +117,4 @@ sed -i 's/address = "localhost:9091"/address = "0.0.0.0:'$GRPC_WEB'"/g' $HOME_DI
 sed -i 's/timeout_commit = "5s"/timeout_commit = "'$TIMEOUT_COMMIT'"/g' $HOME_DIR/config/config.toml
 
 # Start the node with 0 gas fees
-BINARY start --pruning=nothing  --minimum-gas-prices=0.0025ubtsg --rpc.laddr="tcp://0.0.0.0:$RPC"
+BINARY start --pruning=nothing  --minimum-gas-prices=0.0025ubtsg --rpc.laddr="tcp://0.0.0.0:$RPC"  --api.enable=true --api.swagger=true

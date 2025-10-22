@@ -5,13 +5,13 @@ import (
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
+
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v8/packetforward/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v10/packetforward/types"
 
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -24,12 +24,10 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	icqtypes "github.com/cosmos/ibc-apps/modules/async-icq/v8/types"
-	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
-	capabilitytypes "github.com/cosmos/ibc-go/modules/capability/types"
-	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/types"
-	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
+	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v10/types"
+	ibcwasmtypes "github.com/cosmos/ibc-go/modules/light-clients/08-wasm/v10/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {
@@ -52,19 +50,14 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		ibchookstypes.StoreKey,
 		ibctransfertypes.StoreKey,
 		ibcwasmtypes.StoreKey,
-		capabilitytypes.StoreKey,
 		authzkeeper.StoreKey,
 		wasmtypes.StoreKey,
-		icqtypes.StoreKey,
 		fantokentypes.StoreKey,
-		cadencetypes.StoreKey,
 		smartaccounttypes.StoreKey,
 		protocolpooltypes.StoreKey,
 	)
 
 	appKeepers.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
-	// memkeys are info stored  in RAM
-	appKeepers.memKeys = storetypes.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 }
 
 func (appKeepers *AppKeepers) GetKVStoreKey() map[string]*storetypes.KVStoreKey {

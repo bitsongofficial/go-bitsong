@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/pkg/errors"
@@ -52,7 +51,7 @@ func (k Keeper) FanTokens(c context.Context, req *types.QueryFanTokensRequest) (
 	if len(req.Authority) > 0 {
 		owner, err = sdk.AccAddressFromBech32(req.Authority)
 		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("invalid authority address (%s)", err))
+			return nil, status.Errorf(codes.InvalidArgument, "invalid authority address: %s", err.Error())
 		}
 	}
 
