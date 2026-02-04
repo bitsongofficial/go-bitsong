@@ -34,6 +34,8 @@ Format: * (**scope**) Description (#PR or commit)
 
 ### CI
 
+* (**release**) Use native arm64 runners, disable Windows builds (#300)
+
 ---
 
 ## [0.23.1] - 2026-02-04
