@@ -5,17 +5,30 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
       - "v[0-9]+.[0-9]+.[0-9]+-rc*"
+  # Manual trigger for testing - can be removed after verification
+  workflow_dispatch:
+    inputs:
+      test_version:
+        description: 'Test version string (e.g., 0.0.0-test)'
+        required: false
+        default: '0.0.0-test'
 
 permissions:
   contents: write
 
 jobs:
   build-linux:
+    # Native runners for both architectures - eliminates QEMU emulation overhead
+    # See: docs/research/release-build-infrastructure.md
     name: Build Linux ${{ matrix.arch }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-22.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm  # Native arm64 runner (free for public repos)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +37,11 @@ jobs:
 
       - name: Set version
         run: |
-          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.test_version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+          fi
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -73,7 +90,11 @@ jobs:
 
       - name: Set version
         run: |
-          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.test_version }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+          fi
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -98,42 +119,45 @@ jobs:
             build/bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz
             build/bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz.sha256
 
-  build-windows:
-    name: Build Windows amd64
-    runs-on: windows-latest
-    steps:
-      - name: Install make
-        run: choco install make
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set version
-        run: |
-          $version = git describe --tags | ForEach-Object { $_ -replace '^v', '' }
-          echo "VERSION=$version" >> $env:GITHUB_ENV
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23"
-
-      - name: Build binary
-        run: |
-          make LEDGER_ENABLED=true build
-          mv build/bitsongd.exe "build/bitsongd-$env:VERSION-windows-amd64.exe"
-
-      - name: Create checksum
-        run: |
-          cd build
-          $hash = (Get-FileHash -Algorithm SHA256 "bitsongd-$env:VERSION-windows-amd64.exe").Hash.ToLower()
-          "$hash  bitsongd-$env:VERSION-windows-amd64.exe" | Out-File -Encoding ASCII "bitsongd-$env:VERSION-windows-amd64.exe.sha256"
-
-      - name: Upload to release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            build/bitsongd-${{ env.VERSION }}-windows-amd64.exe
-            build/bitsongd-${{ env.VERSION }}-windows-amd64.exe.sha256
+  # NOTE: Windows builds disabled - Unix-specific syscalls (unix.LOCK_NB, unix.Flock)
+  # cause build failures. Validators run Linux (99%+), CosmWasm requires Linux/macOS.
+  # See: docs/research/release-build-infrastructure.md (Section 3)
+  # build-windows:
+  #   name: Build Windows amd64
+  #   runs-on: windows-latest
+  #   steps:
+  #     - name: Install make
+  #       run: choco install make
+  #
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #
+  #     - name: Set version
+  #       run: |
+  #         $version = git describe --tags | ForEach-Object { $_ -replace '^v', '' }
+  #         echo "VERSION=$version" >> $env:GITHUB_ENV
+  #
+  #     - name: Setup Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version: "1.23"
+  #
+  #     - name: Build binary
+  #       run: |
+  #         make LEDGER_ENABLED=true build
+  #         mv build/bitsongd.exe "build/bitsongd-$env:VERSION-windows-amd64.exe"
+  #
+  #     - name: Create checksum
+  #       run: |
+  #         cd build
+  #         $hash = (Get-FileHash -Algorithm SHA256 "bitsongd-$env:VERSION-windows-amd64.exe").Hash.ToLower()
+  #         "$hash  bitsongd-$env:VERSION-windows-amd64.exe" | Out-File -Encoding ASCII "bitsongd-$env:VERSION-windows-amd64.exe.sha256"
+  #
+  #     - name: Upload to release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           build/bitsongd-${{ env.VERSION }}-windows-amd64.exe
+  #           build/bitsongd-${{ env.VERSION }}-windows-amd64.exe.sha256
