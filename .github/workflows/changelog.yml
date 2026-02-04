@@ -1,0 +1,91 @@
+name: Changelog
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+jobs:
+  check-changelog:
+    name: Check changelog updated
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changelog update
+        id: changelog
+        run: |
+          # Skip check only if PR has explicit 'skip-changelog' label
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}" == "true" ]]; then
+            echo "Skipping changelog check (skip-changelog label present)"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if CHANGELOG.md was modified
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          if echo "$CHANGED_FILES" | grep -q "CHANGELOG.md"; then
+            echo "CHANGELOG.md was updated"
+            echo "updated=true" >> $GITHUB_OUTPUT
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Require changelog update
+        if: steps.changelog.outputs.skip != 'true' && steps.changelog.outputs.updated != 'true'
+        run: |
+          echo "::error::CHANGELOG.md must be updated for this PR."
+          echo ""
+          echo "Please add an entry under the [Unreleased] section describing your changes."
+          echo "For a blockchain project, all changes should be documented."
+          echo ""
+          echo "Format: * (<type>) Description of change"
+          echo "Types: state-breaking, security, feature, fix, deps, docs, ci"
+          echo ""
+          echo "If this change truly doesn't need documentation, add the 'skip-changelog' label."
+          exit 1
+
+  validate-commits:
+    name: Validate conventional commits
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages
+        run: |
+          # Get commits in this PR
+          COMMITS=$(git log --format="%s" origin/${{ github.base_ref }}..HEAD)
+
+          # Conventional commit pattern
+          PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert|security|deps)(\(.+\))?(!)?: .+"
+
+          FAILED=0
+          while IFS= read -r commit; do
+            if [[ ! "$commit" =~ $PATTERN ]]; then
+              # Allow merge commits
+              if [[ ! "$commit" =~ ^Merge ]]; then
+                echo "::warning::Non-conventional commit: $commit"
+                FAILED=1
+              fi
+            fi
+          done <<< "$COMMITS"
+
+          if [[ $FAILED -eq 1 ]]; then
+            echo ""
+            echo "Some commits don't follow conventional commit format."
+            echo "Expected: <type>(<scope>): <description>"
+            echo "Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert, security, deps"
+            echo ""
+            echo "Examples:"
+            echo "  feat(fantoken): add burn functionality"
+            echo "  fix: resolve delegation query timeout"
+            echo "  security: bump cometbft to v0.38.21"
+            # Warning only for now - can be made strict later
+            exit 0
+          fi
