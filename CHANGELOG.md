@@ -34,7 +34,19 @@ Format: * (**scope**) Description (#PR or commit)
 
 ### CI
 
-* (**changelog**) Fix shell quoting in GITHUB_OUTPUT writes
+---
+
+## [0.23.1] - 2026-02-04
+
+### Security
+
+* (**cometbft**) Bump CometBFT to v0.38.21 ([CSA-2026-001](https://github.com/bitsongofficial/internal-docs/blob/main/docs/operations/security/advisories/CSA-2026-001.md)) (#297)
+
+### CI
+
+* (**release**) Modernize release workflow with multi-arch builds and checksums (#298)
+* (**changelog**) Add changelog enforcement and conventional commit validation (#298)
+* (**changelog**) Fix shell quoting in GITHUB_OUTPUT writes (#299)
 
 ---
 
@@ -160,7 +172,8 @@ Format: * (**scope**) Description (#PR or commit)
 
 ---
 
-[Unreleased]: https://github.com/bitsongofficial/go-bitsong/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/bitsongofficial/go-bitsong/compare/v0.23.1...HEAD
+[0.23.1]: https://github.com/bitsongofficial/go-bitsong/compare/v0.20.0...v0.23.1
 [0.20.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.16.0...v0.18.0
