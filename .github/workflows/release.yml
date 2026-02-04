@@ -52,16 +52,18 @@ jobs:
             build/bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz.sha256
 
   build-darwin:
+    # NOTE: darwin-amd64 disabled until osxcross cross-compilation is implemented
+    # See: https://github.com/bitsongofficial/internal-docs/blob/main/docs/research/macos-cross-compilation.md
     name: Build macOS ${{ matrix.arch }}
     runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
         include:
-          - arch: amd64
-            runner: macos-15-large
-            goarch: amd64
+          # - arch: amd64
+          #   runner: macos-15-large  # Requires paid runner
+          #   goarch: amd64
           - arch: arm64
-            runner: macos-15
+            runner: macos-latest
             goarch: arm64
     steps:
       - name: Checkout
