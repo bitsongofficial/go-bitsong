@@ -34,6 +34,8 @@ Format: * (**scope**) Description (#PR or commit)
 
 ### CI
 
+* (**changelog**) Fix shell quoting in GITHUB_OUTPUT writes
+
 ---
 
 ## [0.20.0]
