@@ -1,139 +1,135 @@
-# Special thanks to @RiccardoM (https://github.com/riccardoM)
-# https://github.com/desmos-labs/desmos/blob/master/.github/workflows/release.yml
-
 name: Release
-# Release workflow builds the binaries for a release, and then publishes them to a newly created GitHub release.
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. v1.0, v20.15.10
-      - "v[0-9]+.[0-9]+.[0-9]+-rc*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc*"
+
+permissions:
+  contents: write
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Setup Go 🧰
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.23
-
-      - name: Unshallow
-        run: git fetch --prune --unshallow --tags --force
-
-      - name: Create release 📜
-        uses: goreleaser/goreleaser-action@v3.0.0
-        with:
-          args: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-macos:
-    name: Build MacOS binary
-    runs-on: macos-10.15
-    steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
-
-      - name: Unshallow
-        run: git fetch --prune --unshallow --tags --force
-
-      - name: Set variables
-        run: |
-          echo "VERSION=$(git describe --always | sed 's/^v//')" >> $GITHUB_ENV
-      - name: Setup Go 🧰
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.23
-
-      - name: Build the binary 🏭
-        run: |
-          LEDGER_ENABLED=true make build
-          mv build/bitsongd "build/bitsongd-$VERSION-darwin-amd64"
-      - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v4
-        with:
-          name: "darwin-amd64"
-          path: "build/*darwin*amd64*"
-
   build-linux:
-    name: Build Linux binaries
-    runs-on: ubuntu-18.04
+    name: Build Linux ${{ matrix.arch }}
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        go-arch: ["amd64", "arm64"]
+        arch: [amd64, arm64]
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Fetch tags
-        run: git fetch --prune --unshallow --tags --force
-
-      - name: Set variables
+      - name: Set version
         run: |
-          echo "VERSION=$(git describe --always | sed 's/^v//')" >> $GITHUB_ENV
-      - name: Setup Go 🧰
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.23
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
 
-      - name: Compute diff 📜
-        uses: technote-space/get-diff-action@v6.1.0
-        id: git_diff
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          PATTERNS: |
-            **/**.go
-            go.mod
-            go.sum
-      - name: Build 🔨
+          go-version: "1.23"
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build reproducible binary
         run: |
-          GOARCH=${{ matrix.go-arch }} LEDGER_ENABLED=true make build
-          mv build/bitsongd "build/bitsongd-$VERSION-linux-${{ matrix.go-arch }}"
-      - name: Upload the linux/amd64 artifact 📤
-        uses: actions/upload-artifact@v4
-        with:
-          name: "linux-amd64"
-          path: "build/*linux*amd64*"
+          make build-reproducible-${{ matrix.arch }}
 
-      - name: Upload the linux/arm64 artifact 📤
-        uses: actions/upload-artifact@v4
+      - name: Create tarball and checksum
+        run: |
+          cd build
+          tar -czvf bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz bitsongd-linux-${{ matrix.arch }}
+          sha256sum bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz > bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz.sha256
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: "linux-arm64"
-          path: "build/*linux*arm64*"
+          files: |
+            build/bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz
+            build/bitsongd-${{ env.VERSION }}-linux-${{ matrix.arch }}.tar.gz.sha256
+
+  build-darwin:
+    name: Build macOS ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: macos-13
+          - arch: arm64
+            runner: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        run: |
+          echo "VERSION=$(git describe --tags | sed 's/^v//')" >> $GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Build binary
+        run: |
+          LEDGER_ENABLED=true make build
+          mv build/bitsongd build/bitsongd-darwin-${{ matrix.arch }}
+
+      - name: Create tarball and checksum
+        run: |
+          cd build
+          tar -czvf bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz bitsongd-darwin-${{ matrix.arch }}
+          shasum -a 256 bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz > bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz.sha256
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz
+            build/bitsongd-${{ env.VERSION }}-darwin-${{ matrix.arch }}.tar.gz.sha256
 
   build-windows:
-    name: Build Windows binary
+    name: Build Windows amd64
     runs-on: windows-latest
     steps:
-      - name: Setting up dependencies
-        run: |
-          choco install make
-      - name: Checkout 🛎️
-        uses: actions/checkout@v3
+      - name: Install make
+        run: choco install make
 
-      - name: Fetch tags
-        run: git fetch --prune --unshallow --tags --force
-
-      - name: Set variables
-        run: |
-          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$(git describe --always | sed 's/^v//')"
-      - name: Setup Go 🧰
-        uses: actions/setup-go@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          go-version: 1.23
+          fetch-depth: 0
 
-      - name: Build the binary 🏭
+      - name: Set version
+        run: |
+          $version = git describe --tags | ForEach-Object { $_ -replace '^v', '' }
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Build binary
         run: |
           make LEDGER_ENABLED=true build
-          echo "build/bitsongd-$env:VERSION-$env:COMMIT-windows-amd64.exe"
           mv build/bitsongd.exe "build/bitsongd-$env:VERSION-windows-amd64.exe"
-      - name: Upload the artifacts 📤
-        uses: actions/upload-artifact@v4
+
+      - name: Create checksum
+        run: |
+          cd build
+          $hash = (Get-FileHash -Algorithm SHA256 "bitsongd-$env:VERSION-windows-amd64.exe").Hash.ToLower()
+          "$hash  bitsongd-$env:VERSION-windows-amd64.exe" | Out-File -Encoding ASCII "bitsongd-$env:VERSION-windows-amd64.exe.sha256"
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: "windows-amd64"
-          path: "build/*windows*amd64*"
+          files: |
+            build/bitsongd-${{ env.VERSION }}-windows-amd64.exe
+            build/bitsongd-${{ env.VERSION }}-windows-amd64.exe.sha256

@@ -1,115 +1,169 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 <!--
-Guiding Principles:
+Types of changes:
+- **Security** - security patches and vulnerability fixes
+- **State-Breaking** - changes requiring coordinated upgrade
+- **Features** - new functionality
+- **Bug Fixes** - bug fixes
+- **Dependencies** - dependency updates
+- **Documentation** - documentation changes
+- **CI** - continuous integration changes
 
-Changelogs are for humans, not machines.
-There should be an entry for every single version.
-The same types of changes should be grouped.
-Versions and sections should be linkable.
-The latest version comes first.
-The release date of each version is displayed.
-Mention whether you follow Semantic Versioning.
-
-Usage:
-
-Change log entries are to be added to the Unreleased section under the
-appropriate stanza (see below). Each entry should ideally include a tag and
-the Github issue reference in the following format:
-
-* (<tag>) \#<issue-number> message
-
-The issue numbers will later be link-ified during the release process so you do
-not have to worry about including a link manually, but you can if you wish.
-
-Types of changes (Stanzas):
-
-"Features" for new features.
-"Improvements" for changes in existing functionality.
-"Deprecated" for soon-to-be removed features.
-"Bug Fixes" for any bug fixes.
-"Client Breaking" for breaking CLI commands and REST routes.
-"State Machine Breaking" for breaking the AppState
-
-Ref: https://keepachangelog.com/en/1.0.0/
+Format: * (**scope**) Description (#PR or commit)
 -->
 
-# Changelog
-## [v0.20.0]
+## [Unreleased]
 
-## Added
-- v020 upgrade handler 
+### Security
 
-## Fixed
-- certain delegators inability to claim rewards after v018 patch 
+### State-Breaking
 
-## [v0.19.0]
-### Added 
-- new ci tests for wasm,packetforwardmiddleware & polytone (ibc-callbacks)
-- Introduced a Makefile for managing Docker-related tasks, including commands for building various Docker images.
-- Added functionality for validating CosmWasm contracts in a new testing framework.
-- Enhanced configuration capabilities for the Bitsong application with additional parameters.
-- Introduced commands for verifying slashed delegators and calculating discrepancies in delegator rewards.
-- Added a new Makefile for managing a local testnet environment for the Bitsong blockchain.
-- Introduced a new script for automating the downloading of Polyone contract.
-- Improved docker commands
+### Features
 
-### Fixed
-- Registered legacy gov msgs
-- Register ModuleBasics GrpcGatewayRoutes
+### Bug Fixes
 
-### Removed 
-- versioning of app go module 
-- removed randomGenesisAccounts as param on new apps auth module registration
+### Dependencies
 
-## [v0.18.x]
-### Added
-- Interchaintest package support added
-- New CI support to build & release docker image
-- New CI support to run interchain tests
-- New script at `scripts/test_node.sh` that is a basic script to test setting up and starting a node.
-### Improvements 
-- Improved Makefile cli top-level command scripting
-- Replaced tendermint with cometbft
-- Bumped wasmd to `v0.45.0`
-- Bumped Cosmos-SDK to `v0.47.8`
-- Bumped IBC-Go to `v7.4.0`
-- Bumped Paket-Forward-Middleware to `v7.1.3`
-- Reformatted app test suite
+### Documentation
 
-### Depreceated
-- remove `x/merkledrop` module
+### CI
 
-### State Breaking 
-- Bumped required minimum Go version to `v1.22`
+---
 
-## [v0.16.0]
-### Bug fixes 
-- patch for v0.16.0 that fixed Packet Forward Middleware bug.
+## [0.20.0]
 
-## [v0.15.0] - 2024-03-06
-- Updated Cosmos-sdk to v0.45.16 for improved stability and security
-- Upgraded ibc-go to v4.4.2 for enhanced interoperability between different blockchain networks
-- Replaced Tendermint with CometBFT
-- Upgraded Cosmwasm to v0.33.0 for advanced smart contract functionality
-- Replaced strangelove-ventures/packet-forward-middleware with cosmos/ibc-apps/middleware/packet-forward-middleware
+### Features
 
-## [v0.14.0] - 2023-02-07
-- fix(authz): Add Binary Codec support to MinValCommissionDecorator
-- fix(authz): Add MinValCommissionDecorator test
+* (**upgrade**) Add v020 upgrade handler
 
-## [v0.13.0] - 2023-01-23
-- Updated Cosmos-sdk to v0.45.11 for improved stability and security
-- Upgraded ibc-go to v3.3.1 for enhanced interoperability between different blockchain networks
-- Tendermint upgraded to v0.34.24 for better performance and bug fixes
-- Integrated Cosmwasm v0.29.2 for advanced smart contract functionality
-- Added new command init-from-state which allows for easy initialization of private validator, p2p, genesis, and application configuration, as well as replacement of exported state.
+### Bug Fixes
 
-## [v0.11.0] -2022-07-01
+* (**staking**) Fix delegators inability to claim rewards after v018 patch
 
-* (fantoken) introduce the [fantoken module](./x/fantoken/spec)
-* (merkledrop) introduce the [merkledrop module](./x/merkledrop/spec)
-* (app) bump [cosmos-sdk](https://github.com/cosmos/cosmos-sdk) to [v0.45.6](https://github.com/cosmos/cosmos-sdk/tree/v0.45.6)
-* (app) bump [ibc](https://github.com/cosmos/ibc-go) to [v3.0.0](https://github.com/cosmos/ibc-go/tree/v3.0.0)
-* (app) bump [tendermint](https://github.com/tendermint/tendermint) to [v0.34.19](https://github.com/tendermint/tendermint/tree/v0.34.19)
-* (app) bump [packet-forward-middleware](https://github.com/strangelove-ventures/packet-forward-middleware) to [v2.1.1](github.com/strangelove-ventures/packet-forward-middleware/tree/v2.1.1)
-* (app) update swagger to reflect new modules
-* (app) small fixs Makefile
+---
+
+## [0.19.0]
+
+### Features
+
+* (**ci**) Add e2e tests for wasm, packet-forward-middleware & polytone (ibc-callbacks)
+* (**docker**) Add Makefile for managing Docker-related tasks
+* (**tests**) Add CosmWasm contract validation in testing framework
+* (**app**) Enhance configuration capabilities with additional parameters
+* (**cli**) Add commands for verifying slashed delegators and calculating reward discrepancies
+* (**localnet**) Add Makefile for managing local testnet environment
+* (**scripts**) Add automation script for downloading Polytone contracts
+* (**docker**) Improve docker commands
+
+### Bug Fixes
+
+* (**gov**) Register legacy gov messages
+* (**app**) Register ModuleBasics GrpcGatewayRoutes
+
+### State-Breaking
+
+* Remove versioning of app go module
+* Remove randomGenesisAccounts param from auth module registration
+
+---
+
+## [0.18.0]
+
+### Features
+
+* (**tests**) Add interchaintest package support
+* (**ci**) Add CI support to build & release docker image
+* (**ci**) Add CI support to run interchain tests
+* (**scripts**) Add `scripts/test_node.sh` for basic node setup testing
+
+### Dependencies
+
+* (**tendermint**) Replace tendermint with cometbft
+* (**wasmd**) Bump to v0.45.0
+* (**cosmos-sdk**) Bump to v0.47.8
+* (**ibc-go**) Bump to v7.4.0
+* (**pfm**) Bump packet-forward-middleware to v7.1.3
+
+### State-Breaking
+
+* Bump required minimum Go version to v1.22
+* (**merkledrop**) Remove `x/merkledrop` module
+
+---
+
+## [0.16.0]
+
+### Bug Fixes
+
+* (**pfm**) Patch for Packet Forward Middleware bug
+
+---
+
+## [0.15.0] - 2024-03-06
+
+### Dependencies
+
+* (**cosmos-sdk**) Update to v0.45.16
+* (**ibc-go**) Upgrade to v4.4.2
+* (**tendermint**) Replace with CometBFT
+* (**cosmwasm**) Upgrade to v0.33.0
+* (**pfm**) Replace strangelove-ventures/packet-forward-middleware with cosmos/ibc-apps/middleware/packet-forward-middleware
+
+---
+
+## [0.14.0] - 2023-02-07
+
+### Bug Fixes
+
+* (**authz**) Add Binary Codec support to MinValCommissionDecorator
+* (**authz**) Add MinValCommissionDecorator test
+
+---
+
+## [0.13.0] - 2023-01-23
+
+### Features
+
+* (**cli**) Add `init-from-state` command for easy initialization from exported state
+
+### Dependencies
+
+* (**cosmos-sdk**) Update to v0.45.11
+* (**ibc-go**) Upgrade to v3.3.1
+* (**tendermint**) Upgrade to v0.34.24
+* (**cosmwasm**) Integrate v0.29.2
+
+---
+
+## [0.11.0] - 2022-07-01
+
+### Features
+
+* (**fantoken**) Introduce the [fantoken module](./x/fantoken/spec)
+* (**merkledrop**) Introduce the [merkledrop module](./x/merkledrop/spec)
+* (**docs**) Update swagger to reflect new modules
+
+### Dependencies
+
+* (**cosmos-sdk**) Bump to v0.45.6
+* (**ibc-go**) Bump to v3.0.0
+* (**tendermint**) Bump to v0.34.19
+* (**pfm**) Bump packet-forward-middleware to v2.1.1
+
+---
+
+[Unreleased]: https://github.com/bitsongofficial/go-bitsong/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.19.0...v0.20.0
+[0.19.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.16.0...v0.18.0
+[0.16.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.15.0...v0.16.0
+[0.15.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/bitsongofficial/go-bitsong/compare/v0.11.0...v0.13.0
+[0.11.0]: https://github.com/bitsongofficial/go-bitsong/releases/tag/v0.11.0
