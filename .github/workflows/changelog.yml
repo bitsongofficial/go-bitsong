@@ -21,7 +21,7 @@ jobs:
           # Skip check only if PR has explicit 'skip-changelog' label
           if [[ "${{ contains(github.event.pull_request.labels.*.name, 'skip-changelog') }}" == "true" ]]; then
             echo "Skipping changelog check (skip-changelog label present)"
-            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -29,9 +29,9 @@ jobs:
           CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
           if echo "$CHANGED_FILES" | grep -q "CHANGELOG.md"; then
             echo "CHANGELOG.md was updated"
-            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "updated=true" >> "$GITHUB_OUTPUT"
           else
-            echo "updated=false" >> $GITHUB_OUTPUT
+            echo "updated=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Require changelog update
