@@ -120,8 +120,8 @@ var maccPerms = map[string][]string{
 	wasmtypes.ModuleName:                        {authtypes.Burner},
 	protocolpooltypes.ModuleName:                nil,
 	protocolpooltypes.ProtocolPoolEscrowAccount: nil,
-	hyperlanetypes.ModuleName:                   nil,                                       // Core module account (IGP gas payments)
-	warptypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},      // Warp needs mint/burn for synthetic tokens
+	hyperlanetypes.ModuleName:                   nil,
+	warptypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 }
 
 type AppKeepers struct {
@@ -272,7 +272,7 @@ func NewAppKeepers(
 		runtime.NewKVStoreService(keys[warptypes.ModuleName]),
 		govModAddress,
 		appKeepers.BankKeeper,
-		appKeepers.HyperlaneKeeper, // *Keeper satisfies types.CoreKeeper interface
+		appKeepers.HyperlaneKeeper,
 		[]int32{
 			int32(warptypes.HYP_TOKEN_TYPE_COLLATERAL),
 			int32(warptypes.HYP_TOKEN_TYPE_SYNTHETIC),
