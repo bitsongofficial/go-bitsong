@@ -281,6 +281,41 @@ print_warp_state() {
     echo -e "  Cosmos token:    $token_id"
   fi
   echo
+
+  # Fantoken warp routes (iterate over ft_route_list)
+  local route_list
+  route_list=$(load_state "ft_route_list")
+  if [[ -n "$route_list" ]]; then
+    echo -e "  ${BOLD}Fantoken Warp Routes${NC}"
+    IFS=',' read -ra routes <<< "$route_list"
+    for sym in "${routes[@]}"; do
+      [[ -z "$sym" ]] && continue
+      local ft_evm ft_tid ft_denom_val
+      ft_evm=$(load_state "ft_${sym}_evm_hyp_erc20")
+      ft_tid=$(load_state "ft_${sym}_token_id")
+      ft_denom_val=$(load_state "ft_${sym}_denom")
+
+      echo -e "  ── ${BOLD}${sym}${NC} ──"
+      echo -e "    denom:        ${ft_denom_val:-?}"
+
+      if [[ -n "$ft_evm" ]] && command -v cast >/dev/null 2>&1; then
+        local ft_supply ft_symbol ft_ism
+        ft_supply=$(cast call "$ft_evm" "totalSupply()(uint256)" --rpc-url "$EVM_RPC" 2>/dev/null) || ft_supply="?"
+        ft_symbol=$(cast call "$ft_evm" "symbol()(string)" --rpc-url "$EVM_RPC" 2>/dev/null) || ft_symbol="?"
+        ft_ism=$(cast call "$ft_evm" "interchainSecurityModule()(address)" --rpc-url "$EVM_RPC" 2>/dev/null) || ft_ism="?"
+        echo -e "    HypERC20:     $ft_evm  ($ft_symbol)"
+        echo -e "    totalSupply:  $ft_supply"
+        echo -e "    ISM:          $ft_ism"
+      else
+        echo -e "    HypERC20:     ${YELLOW}not deployed${NC}"
+      fi
+
+      if [[ -n "$ft_tid" ]]; then
+        echo -e "    Cosmos token: $ft_tid"
+      fi
+    done
+    echo
+  fi
 }
 
 # ─── Test Results ────────────────────────────────────────────────────────────
@@ -291,14 +326,37 @@ print_test_results() {
   c2e=$(load_state "cosmos_to_evm_test_passed")
   e2c=$(load_state "evm_to_cosmos_test_passed")
   if [[ -n "$c2e" ]]; then
-    echo -e "  Cosmos -> EVM:  ${GREEN}$c2e${NC}"
+    echo -e "  Cosmos -> EVM (ubtsg):  ${GREEN}$c2e${NC}"
   else
-    echo -e "  Cosmos -> EVM:  ${YELLOW}not run${NC}"
+    echo -e "  Cosmos -> EVM (ubtsg):  ${YELLOW}not run${NC}"
   fi
   if [[ -n "$e2c" ]]; then
-    echo -e "  EVM -> Cosmos:  ${GREEN}$e2c${NC}"
+    echo -e "  EVM -> Cosmos (ubtsg):  ${GREEN}$e2c${NC}"
   else
-    echo -e "  EVM -> Cosmos:  ${YELLOW}not run${NC}"
+    echo -e "  EVM -> Cosmos (ubtsg):  ${YELLOW}not run${NC}"
+  fi
+
+  # Per-symbol fantoken test results
+  local route_list
+  route_list=$(load_state "ft_route_list")
+  if [[ -n "$route_list" ]]; then
+    IFS=',' read -ra routes <<< "$route_list"
+    for sym in "${routes[@]}"; do
+      [[ -z "$sym" ]] && continue
+      local ft_c2e ft_e2c
+      ft_c2e=$(load_state "ft_${sym}_cosmos_to_evm_test_passed")
+      ft_e2c=$(load_state "ft_${sym}_evm_to_cosmos_test_passed")
+      if [[ -n "$ft_c2e" ]]; then
+        echo -e "  Cosmos->EVM ($sym):     ${GREEN}$ft_c2e${NC}"
+      else
+        echo -e "  Cosmos->EVM ($sym):     ${YELLOW}not run${NC}"
+      fi
+      if [[ -n "$ft_e2c" ]]; then
+        echo -e "  EVM->Cosmos ($sym):     ${GREEN}$ft_e2c${NC}"
+      else
+        echo -e "  EVM->Cosmos ($sym):     ${YELLOW}not run${NC}"
+      fi
+    done
   fi
   echo
 }

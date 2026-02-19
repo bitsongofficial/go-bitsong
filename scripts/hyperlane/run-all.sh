@@ -31,6 +31,12 @@ while [[ $# -gt 0 ]]; do
       echo "  3  Deploy HypERC20 + enrollment     (03-evm-deploy.sh)"
       echo "  4  ISM upgrade + validators/relayer (04-agents.sh)"
       echo "  5  Transfer tests                   (05-test.sh)"
+      echo "  6  Fantoken warp route              (06-fantoken-route.sh)"
+      echo "  7  Fantoken transfer tests          (07-fantoken-test.sh)"
+      echo ""
+      echo "Environment (Phase 6/7):"
+      echo "  FT_SYMBOL   Fantoken symbol (default: clay)"
+      echo "  FT_NAME     Fantoken name   (default: Clay Token)"
       exit 0 ;;
     *) echo "Unknown flag: $1"; exit 1 ;;
   esac
@@ -59,6 +65,15 @@ run_phase 4 "04-agents.sh" $CLEAN_FLAG
 
 if [[ "$SKIP_TEST" != "true" ]]; then
   run_phase 5 "05-test.sh"
+fi
+
+FT_SYMBOL="${FT_SYMBOL:-clay}"
+FT_NAME="${FT_NAME:-Clay Token}"
+
+run_phase 6 "06-fantoken-route.sh" --symbol "$FT_SYMBOL" --name "$FT_NAME" $CLEAN_FLAG
+
+if [[ "$SKIP_TEST" != "true" ]]; then
+  run_phase 7 "07-fantoken-test.sh" --symbol "$FT_SYMBOL"
 fi
 
 echo ""

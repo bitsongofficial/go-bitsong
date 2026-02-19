@@ -48,10 +48,13 @@ init_chain() {
     .app_state.gov.params.expedited_min_deposit[0].denom = "ubtsg" |
     .app_state.mint.params.mint_denom = "ubtsg" |
     .app_state.bank.denom_metadata = [{
-      "description": "Registered denom ubtsg for localbitsong-hyperlane testing",
+      "description": "denom ubtsg for testing",
       "denom_units": [{"denom": "ubtsg", "exponent": 0}],
       "base": "ubtsg", "display": "ubtsg", "name": "ubtsg", "symbol": "ubtsg"
-    }]
+    }] |
+    .app_state.fantoken.params.issue_fee = {"denom": "ubtsg", "amount": "1000000000"} |
+    .app_state.fantoken.params.mint_fee  = {"denom": "ubtsg", "amount": "0"} |
+    .app_state.fantoken.params.burn_fee  = {"denom": "ubtsg", "amount": "0"}
   ' "$genesis" > "$tmp" && mv "$tmp" "$genesis"
   log_ok "Genesis modified"
 
