@@ -53,3 +53,16 @@ state_export.json
 github.com*
 gogoproto*
 target/
+
+# Local devnet data
+.localbitsong-hyperlane/
+
+# EVM deployment artifacts
+evm/out/
+evm/cache/
+evm/broadcast/
+evm/node_modules/
+
+# Secrets (never commit)
+scripts/hyperlane/.env
+infra/.env.secrets

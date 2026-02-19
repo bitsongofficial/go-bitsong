@@ -44,6 +44,10 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
+	hyperlanekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	hyperlanetypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	warpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	cadencekeeper "github.com/bitsongofficial/go-bitsong/x/cadence/keeper"
 	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -116,6 +120,8 @@ var maccPerms = map[string][]string{
 	wasmtypes.ModuleName:                        {authtypes.Burner},
 	protocolpooltypes.ModuleName:                nil,
 	protocolpooltypes.ProtocolPoolEscrowAccount: nil,
+	hyperlanetypes.ModuleName:                   nil,                                       // Core module account (IGP gas payments)
+	warptypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},      // Warp needs mint/burn for synthetic tokens
 }
 
 type AppKeepers struct {
@@ -159,6 +165,10 @@ type AppKeepers struct {
 	SmartAccountKeeper   *smartaccountkeeper.Keeper
 	AuthenticatorManager *authenticator.AuthenticatorManager
 	ProtocolPoolKeeper   protocolpoolkeeper.Keeper
+
+	// Hyperlane keepers
+	HyperlaneKeeper *hyperlanekeeper.Keeper
+	WarpKeeper      warpkeeper.Keeper
 
 	// Middleware wrapper
 	Ics20WasmHooks      *ibchooks.WasmHooks
@@ -243,6 +253,30 @@ func NewAppKeepers(
 	appKeepers.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, runtime.NewKVStoreService(appKeepers.keys[banktypes.StoreKey]), appKeepers.AccountKeeper, BlockedAddrs(),
 		govModAddress, bApp.Logger(),
+	)
+
+	// Hyperlane Core Keeper
+	hyperlaneKeeper := hyperlanekeeper.NewKeeper(
+		appCodec,
+		appKeepers.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(keys[hyperlanetypes.ModuleName]),
+		govModAddress,
+		appKeepers.BankKeeper,
+	)
+	appKeepers.HyperlaneKeeper = &hyperlaneKeeper
+
+	// Hyperlane Warp Keeper
+	appKeepers.WarpKeeper = warpkeeper.NewKeeper(
+		appCodec,
+		appKeepers.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(keys[warptypes.ModuleName]),
+		govModAddress,
+		appKeepers.BankKeeper,
+		appKeepers.HyperlaneKeeper, // *Keeper satisfies types.CoreKeeper interface
+		[]int32{
+			int32(warptypes.HYP_TOKEN_TYPE_COLLATERAL),
+			int32(warptypes.HYP_TOKEN_TYPE_SYNTHETIC),
+		},
 	)
 
 	// Initialize authenticators

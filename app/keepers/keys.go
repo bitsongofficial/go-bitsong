@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/x/feegrant"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	hyperlanetypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	cadencetypes "github.com/bitsongofficial/go-bitsong/x/cadence/types"
 	smartaccounttypes "github.com/bitsongofficial/go-bitsong/x/smart-account/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
@@ -60,6 +62,8 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		cadencetypes.StoreKey,
 		smartaccounttypes.StoreKey,
 		protocolpooltypes.StoreKey,
+		hyperlanetypes.ModuleName, // "hyperlane" — no StoreKey constant exported, ModuleName is the store key
+		warptypes.ModuleName,      // "warp" — no StoreKey constant exported, ModuleName is the store key
 	)
 
 	appKeepers.tkeys = storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
