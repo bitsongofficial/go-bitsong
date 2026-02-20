@@ -8,6 +8,10 @@ import (
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/CosmWasm/wasmd/x/wasm"
+	hyperlane "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hyperlanetypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	warp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	warptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	encparams "github.com/bitsongofficial/go-bitsong/app/params"
 	"github.com/bitsongofficial/go-bitsong/x/cadence"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -109,6 +113,8 @@ var AppModuleBasics = module.NewBasicManager(
 	ibcwasm.AppModuleBasic{},
 	smartaccount.AppModuleBasic{},
 	protocolpool.AppModule{},
+	hyperlane.AppModule{},
+	warp.AppModule{},
 )
 
 func appModules(
@@ -149,6 +155,8 @@ func appModules(
 		cadence.NewAppModule(appCodec, app.CadenceKeeper),
 		protocolpool.NewAppModule(app.ProtocolPoolKeeper, app.AccountKeeper, app.BankKeeper),
 		smartaccount.NewAppModule(appCodec, *app.SmartAccountKeeper),
+		hyperlane.NewAppModule(appCodec, app.HyperlaneKeeper),
+		warp.NewAppModule(appCodec, app.WarpKeeper),
 		crisis.NewAppModule(app.CrisisKeeper, skipGenesisInvariants, app.GetSubspace(crisistypes.ModuleName)), // always be last to make sure that it checks for all invariants and not only part of them
 	}
 }
@@ -158,7 +166,8 @@ func orderBeginBlockers() []string {
 		capabilitytypes.ModuleName, minttypes.ModuleName, authtypes.ModuleName,
 		banktypes.ModuleName, distrtypes.ModuleName, protocolpooltypes.ModuleName, slashingtypes.ModuleName, govtypes.ModuleName, crisistypes.ModuleName,
 		stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName, packetforwardtypes.ModuleName,
-		icqtypes.ModuleName, authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
+		icqtypes.ModuleName, hyperlanetypes.ModuleName, warptypes.ModuleName,
+		authz.ModuleName, genutiltypes.ModuleName, evidencetypes.ModuleName, wasmtypes.ModuleName,
 		feegrant.ModuleName, paramstypes.ModuleName, vestingtypes.ModuleName, cadencetypes.ModuleName,
 		ibchookstypes.ModuleName, ibcwasmtypes.ModuleName, fantokentypes.ModuleName,
 	}
@@ -167,7 +176,8 @@ func orderBeginBlockers() []string {
 func orderEndBlockers() []string {
 	return []string{
 		crisistypes.ModuleName, govtypes.ModuleName, stakingtypes.ModuleName, ibctransfertypes.ModuleName, ibcexported.ModuleName,
-		packetforwardtypes.ModuleName, icqtypes.ModuleName, feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
+		packetforwardtypes.ModuleName, icqtypes.ModuleName, hyperlanetypes.ModuleName, warptypes.ModuleName,
+		feegrant.ModuleName, authz.ModuleName, capabilitytypes.ModuleName, authtypes.ModuleName,
 		protocolpooltypes.ModuleName, // must be before bank
 		banktypes.ModuleName, distrtypes.ModuleName, slashingtypes.ModuleName, minttypes.ModuleName, genutiltypes.ModuleName, wasmtypes.ModuleName,
 		evidencetypes.ModuleName, paramstypes.ModuleName, upgradetypes.ModuleName, vestingtypes.ModuleName, cadencetypes.ModuleName,
@@ -200,6 +210,8 @@ func orderInitBlockers() []string {
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
+		hyperlanetypes.ModuleName,
+		warptypes.ModuleName,
 		wasmtypes.ModuleName,
 		ibcwasmtypes.ModuleName,
 		ibchookstypes.ModuleName,

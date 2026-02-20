@@ -53,3 +53,13 @@ state_export.json
 github.com*
 gogoproto*
 target/
+
+.localbitsong-hyperlane/
+
+evm/out/
+evm/cache/
+evm/broadcast/
+evm/node_modules/
+
+scripts/hyperlane/.env
+infra/.env.secrets
