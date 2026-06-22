@@ -203,8 +203,6 @@ func orderInitBlockers() []string {
 		evidencetypes.ModuleName,
 		feegrant.ModuleName,
 		authz.ModuleName,
-		authtypes.ModuleName,
-		ibcwasmtypes.ModuleName,
 		smartaccounttypes.ModuleName,
 		genutiltypes.ModuleName,
 		paramstypes.ModuleName,
