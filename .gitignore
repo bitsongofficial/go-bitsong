@@ -63,3 +63,4 @@ evm/node_modules/
 
 scripts/hyperlane/.env
 infra/.env.secrets
+.docs-to-agent/
