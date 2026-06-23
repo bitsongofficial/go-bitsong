@@ -24,11 +24,16 @@ Format: * (**scope**) Description (#PR or commit)
 
 ### State-Breaking
 
+* (**hyperlane**) Integrate Hyperlane Core and Warp modules for cross-chain messaging and token bridging, registered via the `v024` upgrade handler (#301)
+
 ### Features
 
 ### Bug Fixes
 
 ### Dependencies
+
+* (**deps**) Add `hyperlane-cosmos v1.1.0` dependency (#301)
+* (**deps**) Bump cosmos-sdk to v0.53.7, cometbft to v0.38.23, wasmd to v0.53.4 (#301)
 
 ### Documentation
 
