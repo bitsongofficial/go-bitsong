@@ -1,0 +1,53 @@
+syntax = "proto3";
+package bitsong.nft.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bitsongofficial/go-bitsong/x/nft/types";
+
+message Collection {
+  option (gogoproto.goproto_getters) = false;
+
+  string denom = 1;
+
+  string symbol = 2;
+  string name = 3;
+  string uri = 5;
+
+  string creator = 6;
+  string minter = 7; // who can mint new nfts, if not set no one can mint
+  string authority = 8; // who can update name and uri, if not set no one can update, this is valid for the all nfts in this collection
+
+  uint64 num_tokens = 9;
+}
+
+message Nft {
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+
+  string name = 3;
+  string uri = 5;
+
+  string owner = 6;
+  // string authority = 7; // who can update name, description and uri, if not set no one can update
+
+  // TODO: add max_editions
+  // uint64 max_editions = 8; // max number of printed editions, 0 means no limit
+  uint64 editions = 7; // number of printed editions
+
+  // seller_fee_bps
+  // payment_address
+}
+
+message Edition {
+  option (gogoproto.goproto_getters) = false;
+
+  string collection = 1;
+  string token_id = 2;
+
+  uint64 seq = 3; // seq is the edition number
+
+  string owner = 4;
+}
